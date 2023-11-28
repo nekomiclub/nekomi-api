@@ -1,7 +1,7 @@
 import express from 'express';
 import { ErrorConstructor, E404 } from '../handlers/v1/Errors';
 
-export function getTitle(req: express.Request, res: express.Response) {
+export async function getTitle(req: express.Request, res: express.Response) {
   try {
     return res.send(req.params);
   } catch (e) {
@@ -15,7 +15,7 @@ export function getTitle(req: express.Request, res: express.Response) {
   }
 }
 
-export function getTitles(req: express.Request, res: express.Response) {
+export async function getTitles(req: express.Request, res: express.Response) {
   try {
     return res.send('ok');
   } catch (e) {
@@ -29,7 +29,7 @@ export function getTitles(req: express.Request, res: express.Response) {
   }
 }
 
-export function getGS(req: express.Request, res: express.Response) {
+export async function getGS(req: express.Request, res: express.Response) {
   try {
     return res.send('ok');
   } catch (e) {

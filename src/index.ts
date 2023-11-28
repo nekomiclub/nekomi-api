@@ -3,12 +3,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import mongoose from 'mongoose';
+
 import * as router from './router';
+
+mongoose.set('strictQuery', false);
+mongoose.connect(process.env.MONGODBURI!);
 
 const app = express();
 
 app.use(express.json());
 app.use('/v1', router.ApiV1);
+
 
 if (!process.env.PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
