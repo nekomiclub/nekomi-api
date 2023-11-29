@@ -8,7 +8,7 @@ import cfg from '../../config';
 export async function uploadTmp({ ext, file }: IUploadRequest, test: boolean): Promise<IUploadResponse> {
   const id = `${(test) ? 'testid-' : ''}${uuid.v4()}`;
 
-  fs.writeFileSync(`${path.resolve()}/tmp/uploads/${id}.${ext}`, file);
+  fs.writeFileSync(`${path.resolve()}/tmp/uploads/${id}.${ext}`, Buffer.from(file.data));
   const storage = new Storage({
     id,
     URI: `${path.resolve()}/tmp/uploads/${id}.${ext}`,

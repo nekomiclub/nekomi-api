@@ -23,7 +23,10 @@ describe('v1 controllers', () => {
       const reqData: IUploadRequest = {
         type: 'photo/user/avatar',
         ext: 'jpg',
-        file: fs.readFileSync(`${path.resolve()}/src/test/dev-testBuff.jpg`)
+        file: {
+          type: 'Buffer',
+          data: fs.readFileSync(`${path.resolve()}/src/test/dev-testBuff.jpg`)
+        }
       };
 
       const req = request(ip);

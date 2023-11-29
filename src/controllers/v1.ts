@@ -1,7 +1,10 @@
 import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E404 } from '../handlers/v1/Errors';
 import * as service from '../services/v1/storage';
+import * as video from '../services/v1/video';
 import { IUploadRequest, TUpload } from '../core/IUpload';
+import Storage from '../Models/Storage';
+import fs from 'fs';
 
 const apiUptime = +new Date();
 const isDev = process.argv.some(el => el === 'devMode');
@@ -63,6 +66,28 @@ export async function uptime(req: express.Request, res: express.Response) {
   }
 }
 
+export async function media(req: express.Request, res: express.Response) {
+  try {
+    const { id } = req.params;
+
+    const item = await Storage.findOne({ id });
+
+    if (!item) {
+      throw new E400('Media with that id is not found.');
+    }
+
+    return res.status(200).sendFile(item.URI);
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
 //
 
 interface IUploadReq extends express.Request {
@@ -87,11 +112,11 @@ export async function upload(req: IUploadReq, res: express.Response) {
       throw new E400('type is invalid');
     }
 
-    // @ts-expect-error 123
-    const uploaded = await service.uploadTmp({ type, ext, file: Buffer.from(file.data) }, isTest);
+    const uploaded = await service.uploadTmp({ type, ext, file }, isTest);
 
     if (type === 'video/series') {
       // convert to webm, slice quality, create prevM
+      await video.process(uploaded.id);
     } else if (type === 'photo/series') {
       // convert to webp, upscale, store
     } else if (type === 'photo/user/avatar') {
