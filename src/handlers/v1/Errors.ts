@@ -1,4 +1,4 @@
-type THTTPErrorCodes = 200 | 401 | 403 | 404 | 500;
+type THTTPErrorCodes = 200 | 400 | 401 | 403 | 404 | 500;
 
 export class ErrorConstructor {
   msg: string;
@@ -7,6 +7,24 @@ export class ErrorConstructor {
   constructor(msg: string, code: THTTPErrorCodes) {
     this.msg = msg;
     this.code = code;
+  }
+}
+
+export class E400 extends ErrorConstructor {
+  constructor(msg: string) {
+    super(msg, 400);
+  }
+}
+
+export class E401 extends ErrorConstructor {
+  constructor(msg: string) {
+    super(msg, 401);
+  }
+}
+
+export class E403 extends ErrorConstructor {
+  constructor(msg: string) {
+    super(msg, 403);
   }
 }
 
