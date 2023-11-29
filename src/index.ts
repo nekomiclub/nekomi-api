@@ -8,6 +8,7 @@ const env = process.env as IEnv;
 
 import express from 'express';
 import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
 
 import * as router from './router';
 
@@ -16,7 +17,8 @@ mongoose.connect(env.MONGODBURI);
 
 export const app = express();
 
-app.use(express.json({ limit: '1gb' }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/v1', router.ApiV1);
 
 

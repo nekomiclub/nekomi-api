@@ -2,9 +2,9 @@ import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E404 } from '../handlers/v1/Errors';
 import * as service from '../services/v1/storage';
 import * as video from '../services/v1/video';
-import { IUploadRequest, TUpload } from '../core/IUpload';
 import Storage from '../Models/Storage';
 import fs from 'fs';
+import { IUploadRequest, TUpload } from '@/core/IUpload';
 
 const apiUptime = +new Date();
 const isDev = process.argv.some(el => el === 'devMode');
@@ -90,11 +90,7 @@ export async function media(req: express.Request, res: express.Response) {
 
 //
 
-interface IUploadReq extends express.Request {
-  body: IUploadRequest
-}
-
-export async function upload(req: IUploadReq, res: express.Response) {
+export async function upload(req: express.Request, res: express.Response) {
   try {
     if (!req.hostname.includes('animee.club')) {
       if (!isDev) {
@@ -102,28 +98,9 @@ export async function upload(req: IUploadReq, res: express.Response) {
       }
     }
 
-    const { file, ext, type } = req.body;
+    const { id, type } = req.body as { id: string, type: TUpload };
 
-    if (!type || !ext || !file) {
-      throw new E400('type and ext and file are required.');
-    }
-
-    if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {
-      throw new E400('type is invalid');
-    }
-
-    const uploaded = await service.uploadTmp({ type, ext, file }, isTest);
-
-    if (type === 'video/series') {
-      // convert to webm, slice quality, create prevM
-      await video.process(uploaded.id);
-    } else if (type === 'photo/series') {
-      // convert to webp, upscale, store
-    } else if (type === 'photo/user/avatar') {
-      // convert to webp, store
-    }
-
-    return res.status(200).json({ id: `${(isTest) ? `testid-${uploaded.id}` : uploaded.id}` });
+    return res.status(200).json({ id: req.body.id });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

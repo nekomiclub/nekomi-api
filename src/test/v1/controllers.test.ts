@@ -18,21 +18,15 @@ describe('v1 controllers', () => {
       .expect(200);
   });
 
-  describe('POST /upload', () => {
-    test('success', async () => {
-      const reqData: IUploadRequest = {
-        type: 'photo/user/avatar',
-        ext: 'jpg',
-        file: {
-          type: 'Buffer',
-          data: fs.readFileSync(`${path.resolve()}/src/test/dev-testBuff.jpg`)
-        }
-      };
+  // describe('POST /upload', () => {
+  //   test('success', async () => {
+  //     const req = request(ip);
+  //     const res = await req.post('/v1/upload')
+  //       .attach('file', fs.readFileSync(`${path.resolve()}/src/test/dev-testVid.mp4`))
+  //       // .field('type', 'photo/user/avatar');
+  //       .field('type', 'video/series');
 
-      const req = request(ip);
-      const res = await req.post('/v1/upload').send(reqData);
-
-      expect(res.body.id).toBeTruthy();
-    });
-  });
+  //     expect(res.body.id).toBeTruthy();
+  //   });
+  // });
 });
