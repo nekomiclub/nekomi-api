@@ -11,8 +11,8 @@ files.then((filePaths) => {
       if (!data.match(/import .* from/g) && !data.match(/export .* from/g)) {
         return;
       }
-      const nd1 = data.replace(/(import .* from\s+['"])(\.?(\.)\/[^.'"]+)(?=['"])/g, '$1$2.js');
-      const newData = nd1.replace(/(export .* from\s+['"])(\.?(\.)\/[^.'"]+)(?=['"])/g, '$1$2.js');
+      const nd1 = data.replace(/(import .* from\s+['"])((\.\/|(\.\.\/)+)[^.'"]+)(?=['"])/g, '$1$2.js');
+      const newData = nd1.replace(/(export .* from\s+['"])((\.\/|(\.\.\/)+)[^.'"]+)(?=['"])/g, '$1$2.js');
       if (err)
         throw err;
       fs.writeFile(filepath, newData, function (err) {

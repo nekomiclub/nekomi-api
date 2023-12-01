@@ -8,7 +8,7 @@
     "dev": "npx nodemon devMode",
     "start": "npx nodemon",
     "start-test": "npx nodemon devMode testMode",
-    "build": "npm i && npx tsc && node changeExt.js && node dist/src/index.js",
+    "build": "npm i && rm -rf dist && npx tsc && node changeExt.js && node dist/src/index.js",
     "test": "jest"
   },
   "keywords": [],
