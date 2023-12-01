@@ -22,9 +22,8 @@ describe('v1 controllers', () => {
   //   test('success', async () => {
   //     const req = request(ip);
   //     const res = await req.post('/v1/upload')
-  //       .attach('file', fs.readFileSync(`${path.resolve()}/src/test/dev-testVid.mp4`))
-  //       // .field('type', 'photo/user/avatar');
-  //       .field('type', 'video/series');
+  //       .field('file', fs.readFileSync(`${path.resolve()}/src/test/dev-testBuff.jpg`))
+  //       .field('type', 'photo/user/avatar');
 
   //     expect(res.body.id).toBeTruthy();
   //   });

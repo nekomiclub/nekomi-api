@@ -33,3 +33,17 @@ export class E404 extends ErrorConstructor {
     super(msg, 404);
   }
 }
+
+export class E500 extends ErrorConstructor {
+  constructor(msg: string) {
+    super(msg, 500);
+  }
+}
+
+import fs from 'fs';
+import path from 'path';
+
+export function writeErrorLog(msg: string, at: string) {
+  const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
+  fs.appendFileSync(`${path.resolve()}/.log`, `\nERROR (UTC ${time}) [${at}]: ${msg}`);
+}

@@ -4,8 +4,8 @@ interface ICfg {
 
 export const cfg: ICfg = {
   storageURIs: [
-    'D://.animee/testStorage/',
-    'D://.animee/testStorage2/',
+    'D:/.animee/testStorage',
+    'D:/.animee/testStorage2',
   ]
 };
 

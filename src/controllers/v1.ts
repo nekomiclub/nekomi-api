@@ -1,10 +1,10 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404 } from '../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../handlers/v1/Errors';
 import * as service from '../services/v1/storage';
-import * as video from '../services/v1/video';
 import Storage from '../Models/Storage';
 import fs from 'fs';
-import { IUploadRequest, TUpload } from '@/core/IUpload';
+import { IUploadRequest, TUpload } from './../core/IUpload';
+import * as processMedia from '../services/v1/processMedia';
 
 const apiUptime = +new Date();
 const isDev = process.argv.some(el => el === 'devMode');
@@ -92,15 +92,23 @@ export async function media(req: express.Request, res: express.Response) {
 
 export async function upload(req: express.Request, res: express.Response) {
   try {
-    if (!req.hostname.includes('animee.club')) {
-      if (!isDev) {
-        throw new E401('Uploading files can only animee.club domain.');
-      }
-    }
-
     const { id, type } = req.body as { id: string, type: TUpload };
 
-    return res.status(200).json({ id: req.body.id });
+    await processMedia.checkConditions(id);
+
+    try {
+      if (type.match(/^photo\//gi)) {
+        processMedia.processPhoto(id, type);
+      } else if (type.match(/^video\//gi)) {
+        processMedia.processVideo(id);
+      }
+    } catch (e) {
+      console.error(e);
+      // @ts-ignore
+      writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
+    }
+
+    return res.status(201).json({ id: req.body.id });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);
