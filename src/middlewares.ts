@@ -30,18 +30,20 @@ export async function privateRoute(req: express.Request, res: express.Response, 
 }
 
 export async function uploadValidity(req: express.Request, res: express.Response, next: express.NextFunction) {
-  async function revert(id: string, URI: string, err: E400 | E401 | E403 | E500) {
+  async function revert(id: string, URI: string, err: E400 | E401 | E403 | E500, isThrow = true) {
     await Storage.deleteOne({ id });
     fs.rmSync(URI);
 
-    throw err;
+    if (isThrow) {
+      throw err;
+    }
   }
 
-  try {
-    const id = req.body.id;
-    const type = req.body.type as TUpload;
-    const item = await Storage.findOne({ id });
+  const id = req.body.id as string;
+  const type = req.body.type as TUpload;
+  const item = await Storage.findOne({ id });
 
+  try {
     if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {
       return await revert(id, item!.URI, new E400('Type is invalid.'));
     }
@@ -58,7 +60,9 @@ export async function uploadValidity(req: express.Request, res: express.Response
         return await revert(id, item!.URI, new E400(`Video uploading supports only: ${tVideoExts.join(' ')} extensions.`));
       }
     }
+
   } catch (e) {
+    await revert(id, item!.URI, new E500(''), false);
     if (e instanceof ErrorConstructor) {
       console.error(e);
       return res.status(e.code).json(e);

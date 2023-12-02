@@ -17,7 +17,28 @@ export const uploadStorage = multer.diskStorage({
   async filename(req, file, callback) {
     const filename = file.originalname;
     const ext = filename.substring(filename.lastIndexOf('.') + 1, filename.length);
+
     const id = `${(process.argv.some(el => el === 'testMode')) ? 'testid-' : ''}${uuid.v4()}`;
+
+    if (req.query.update) {
+      const item = await Storage.findOne({ id: req.query.update });
+
+      if (!item) {
+        return callback(new Error('Update reverted. Provided update id is not found in db.'), `123`);
+      } else {
+        const id = req.query.update;
+        item!.URI = `${path.resolve()}/tmp/uploads/${id}.${ext}`;
+        await item.save();
+
+        req.body = {
+          ...req.body,
+          id
+        };
+
+        return callback(null, `${id}.${ext}`);
+      }
+    }
+
     callback(null, `${id}.${ext}`);
 
     const storage = new Storage({

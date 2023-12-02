@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path'
+import path from 'path';
 
 interface ICfg {
   storageURIs: string[]

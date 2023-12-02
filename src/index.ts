@@ -12,6 +12,9 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 
 import * as router from './router';
+import { createInitArchitecture } from './handlers/v1/handlers';
+
+createInitArchitecture();
 
 
 mongoose.set('strictQuery', false);
@@ -30,9 +33,3 @@ if (!process.env.PORT) {
 app.listen(env.PORT, String(env.IP), () => {
   console.log(`Server is listening on ${env.IP}:${env.PORT} ...`);
 });
-
-// import fs from 'fs';
-// import path from 'path';
-// import { createPreview } from './services/v1/processMedia';
-
-// createPreview('testid-64f2a15d-42aa-4902-b2be-50171dd71b45', `${path.resolve()}/tmp/processing/testid-64f2a15d-42aa-4902-b2be-50171dd71b45.webm`);

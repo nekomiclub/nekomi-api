@@ -1,3 +1,19 @@
+import fs from 'fs';
+import path from 'path';
+
 export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
+}
+
+export function createInitArchitecture() {
+  const root = path.resolve();
+  const tmp = `${root}/tmp`;
+  const processing = `${tmp}/processing`;
+  const raw = `${tmp}/processing/raw`;
+  const uploads = `${tmp}/uploads`;
+
+  if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
+  if (!fs.existsSync(processing)) fs.mkdirSync(processing);
+  if (!fs.existsSync(raw)) fs.mkdirSync(raw);
+  if (!fs.existsSync(uploads)) fs.mkdirSync(uploads);
 }
