@@ -1,42 +1,14 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../handlers/v1/Errors';
-import * as service from '../services/v1/storage';
-import Storage from '../Models/Storage';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../handlers/v1/Errors';
+import * as service from '../../services/v1/storage';
+import Storage from '../../Models/Storage';
 import fs from 'fs';
-import { IUploadRequest, TUpload } from './../core/IUpload';
-import * as processMedia from '../services/v1/processMedia';
+import { IUploadRequest, TUpload } from '../../core/IUpload';
+import * as processMedia from '../../services/v1/processMedia';
 
 const apiUptime = +new Date();
 const isDev = process.argv.some(el => el === 'devMode');
 const isTest = process.argv.some(el => el === 'testMode');
-
-export async function getTitle(req: express.Request, res: express.Response) {
-  try {
-    return res.send(req.params);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      console.error(e);
-      return res.status(500).json(e);
-    }
-  }
-}
-
-export async function getTitles(req: express.Request, res: express.Response) {
-  try {
-    return res.send('ok');
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      console.error(e);
-      return res.status(500).json(e);
-    }
-  }
-}
 
 export async function getGS(req: express.Request, res: express.Response) {
   try {

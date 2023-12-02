@@ -25,6 +25,20 @@ export const app = express();
 app.use(bodyParser.json());
 app.use('/v1', router.ApiV1);
 
+// import Dubbers from './Models/IDub';
+// import * as uuid from 'uuid';
+
+// (async function () {
+//   const dubber = new Dubbers({
+//     id: uuid.v4(),
+//     name: 'Didko Studio',
+//     code: 'didko-studio',
+//     thumbURL: 'http://api.animee.club:8080/v1/media/77c77f74-f9d8-45bc-8b89-a9aeef2a84e4'
+//   });
+
+//   await dubber.save();
+// })();
+
 
 if (!process.env.PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
