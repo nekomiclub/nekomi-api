@@ -1,6 +1,7 @@
 import express from 'express';
 import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
+import * as v1CDubber from './controllers/v1/dubber';
 import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
@@ -14,6 +15,7 @@ const upload = multer({ storage: uploadStorage });
 
 ApiV1.get(`/title/:id`, v1CTitle.getOne);
 ApiV1.get(`/titles`, v1CTitle.getMany);
+ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
 
 ApiV1.get(`/global_stats`, v1C.getGS);
 ApiV1.get(`/uptime`, v1C.uptime);

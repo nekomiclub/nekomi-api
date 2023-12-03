@@ -7,8 +7,6 @@ import { IUploadRequest, TUpload } from '../../core/IUpload';
 import * as processMedia from '../../services/v1/processMedia';
 
 const apiUptime = +new Date();
-const isDev = process.argv.some(el => el === 'devMode');
-const isTest = process.argv.some(el => el === 'testMode');
 
 export async function getGS(req: express.Request, res: express.Response) {
   try {

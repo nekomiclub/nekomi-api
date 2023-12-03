@@ -7,7 +7,6 @@ import path from 'path';
 import imagemin from 'imagemin';
 import imageminWebp from 'imagemin-webp';
 import ffmpeg from 'fluent-ffmpeg';
-import express from 'express';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import { getFreeDiskURI, store } from './storage';
 import sharp from 'sharp';

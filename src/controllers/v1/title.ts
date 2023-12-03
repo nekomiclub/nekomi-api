@@ -9,10 +9,7 @@ import * as uuid from 'uuid';
 import Title from '../../Models/Title';
 import { ITitleEpisodesDub } from 'src/core/ITitle';
 import * as dto from '../../handlers/v1/dtos';
-
-const apiUptime = +new Date();
-const isDev = process.argv.some(el => el === 'devMode');
-const isTest = process.argv.some(el => el === 'testMode');
+import { testMode, devMode } from '../../config';
 
 export async function getOne(req: express.Request, res: express.Response) {
   try {
@@ -25,7 +22,7 @@ export async function getOne(req: express.Request, res: express.Response) {
     }
 
     // @ts-ignore
-    let item: ITitle = dto.convertTitle(db);
+    let item: ITitle = dto.title(db);
 
     return res.status(200).json(item);
   } catch (e) {
@@ -57,7 +54,7 @@ export async function getMany(req: express.Request, res: express.Response) {
     const sliced: ITitle[] = [];
 
     titles.forEach(title => {
-      sliced.push(dto.convertTitle(title));
+      sliced.push(dto.title(title));
     });
 
     return res.status(200).json({ titles: sliced });
@@ -116,7 +113,7 @@ export async function create(req: express.Request, res: express.Response) {
       throw validation.array();
     }
 
-    const id = `${isTest ? `testid-${uuid.v4()}` : uuid.v4()}`;
+    const id = `${testMode ? `testid-${uuid.v4()}` : uuid.v4()}`;
 
     const title: ITitle = {
       ...titleRaw,

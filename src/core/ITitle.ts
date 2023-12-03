@@ -8,10 +8,10 @@ export interface ITitleEpisodesDub {
 export interface ITitleEpisodeDubbed {
   order: number,
   source: {
-    q240: string,
-    q480: string,
-    q720: string,
-    q1080: string,
+    q240: string | null,
+    q480: string | null,
+    q720: string | null,
+    q1080: string | null,
     q2k: string | null
   },
   subIDs: string[] | null,
