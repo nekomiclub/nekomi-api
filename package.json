@@ -43,11 +43,7 @@
     },
     "transformIgnorePatterns": [
       "node_modules/(?!variables/.*)"
-    ],
-    "moduleNameMapper": {
-      "~/": "<rootDir>/$1",
-      "~src/": "<rootDir>/src/$1"
-    }
+    ]
   },
   "dependencies": {
     "@types/uuid": "^9.0.7",

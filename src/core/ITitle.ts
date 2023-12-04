@@ -19,7 +19,6 @@ export interface ITitleEpisodeDubbed {
 }
 
 export interface ITitleEpisodeMeta {
-  titleID: string,
   order: number,
   names: {
     ukr: string,

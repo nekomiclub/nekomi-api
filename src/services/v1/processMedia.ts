@@ -10,6 +10,8 @@ import ffmpeg from 'fluent-ffmpeg';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import { getFreeDiskURI, store } from './storage';
 import sharp from 'sharp';
+import { devMode } from '../../config';
+import * as dto from '../../handlers/v1/dtos';
 
 export async function checkConditions(id: string) {
   const item = await Storage.findOne({ id });
@@ -107,111 +109,127 @@ async function enchancePoster(id: string, URI: string): Promise<string> {
 
 
 
-export async function processVideo(id: string) {
+export type TPVQuality = 240 | 480 | 720 | 1080 | 1440;
+
+export async function processVideo(id: string, quality: TPVQuality[]) {
+  const startedAt = +new Date();
   const item = await Storage.findOne({ id });
+  const TID = (Math.random() + 1).toString(36).substring(8);
 
-  if (!item) {
-    throw new E400('Item with provided id is not found in storage.');
+  try {
+    const sourceURI = await convertWebm(id, TID, dto.storageItem(item!));
+
+    createPreview(id, TID, sourceURI);
+    await Promise.all([
+      (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720) : '',
+      (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480) : '',
+      (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240) : '',
+    ]);
+
+    await store(id);
+
+    fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true });
+    console.log(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
+  } catch (e) {
+    writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
+
+    if (!devMode) {
+      return;
+    }
+
+    console.error(e);
   }
+}
 
-  await convertWebm(id, item);
+async function convertWebm(id: string, TID: string, item: IStorageItem): Promise<string> {
+  const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
+  const outURI = `${outFolder}/${id}.webm`;
+  const sourceURI = item.URI;
+  const startTS = +new Date();
+
+  if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
+  if (devMode) console.log(`Start compressing video to webm with TID: ${TID}`);
+
+  await new Promise((res, rej) => {
+    ffmpeg(sourceURI)
+      .videoCodec('libvpx')
+      .on('error', e => {
+        rej(e);
+      })
+      .on('progress', progress => {
+        if (devMode) console.log(`Ready: ${progress.percent}`);
+      })
+      .on('end', () => {
+        res(1);
+      })
+      .saveToFile(outURI);
+  });
+
+  fs.rmSync(item.URI);
+
+  const db = await Storage.findOne({ id });
+  db!.URI = outURI;
+
+  await db!.save();
+
+  if (devMode) console.log(`Compressing video with TID ${TID} ended within ${(+new Date() - startTS) / 1000}s`);
+
+  return outURI;
+}
+
+export async function cropWebm(id: string, TID: string, sourceURI: string, quality: TPVQuality): Promise<string> {
+  const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
+  const outURI = `${outFolder}/${id}_q_${quality}.webm`;
+  const startTS = +new Date();
+
+  if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
+  if (devMode) console.log(`Start cropping video to ${quality} with TID: ${TID}`);
+
+  fs.writeFileSync(outURI, '');
+
+  await new Promise((res, rej) => {
+    ffmpeg(sourceURI)
+      .inputOptions('-c:v libvpx')
+      .outputOption('-c:v vp9')
+      .size(`${quality}x?`)
+      .aspect('16:9')
+      .on('error', e => {
+        rej(e);
+      })
+      .on('end', () => {
+        res(1);
+      })
+      .saveToFile(outURI);
+  });
+
+  if (devMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(+new Date() - startTS) / 1000}s`);
+
+  const item = new Storage({
+    id: `${id}_q_${quality}`,
+    dateAdded: +new Date(),
+    URI: outURI
+  });
+
+  await item.save();
+
   await new Promise(res => {
     setTimeout(() => {
       res(1);
     }, 1000);
   });
-  const sourceURI = await store(id);
-  createPreview(id, sourceURI);
-  cropWebm(id, sourceURI, 720);
-  cropWebm(id, sourceURI, 480);
-  cropWebm(id, sourceURI, 240);
-}
 
-async function convertWebm(id: string, item: IStorageItem): Promise<string> {
-  const outURI = `${path.resolve()}/tmp/processing/${id}.webm`;
-  const startDate = +new Date();
-  console.log(`Started converting video with id ${id} to webm.`);
-
-  await new Promise(res => {
-    ffmpeg(item.URI)
-      .videoCodec('libvpx') // libvpx-vp9 could be used too
-      .videoBitrate(1000, true)
-      .outputOptions(
-        '-minrate', '1000',
-        '-maxrate', '1000',
-        '-threads', '4', //Use number of real cores available on the computer - 1
-        '-flags', '+global_header')
-      .on('error', e => {
-        console.log('Video processed with error');
-        console.error(e);
-        // @ts-ignore
-        writeErrorLog(`Service throw an error while processing ${id}: ${e.msg}`, 'services/v1/processMedia.ts/convertWebm');
-      })
-      .on('end', async () => {
-        console.log(`Video with id ${id} converting to webm finished! (${+new Date() - startDate}ms)`);
-
-        fs.rmSync(item.URI);
-        const db = await Storage.findOne({ id });
-
-        db!.URI = outURI;
-        await db!.save();
-
-        res(1);
-      })
-      .save(outURI);
-  });
+  await store(`${id}_q_${quality}`);
 
   return outURI;
 }
 
-async function cropWebm(id: string, sourceURI: string, quality: 1440 | 720 | 480 | 240): Promise<string> {
-  id = `${id}_q_${quality}`;
-  const startDate = +new Date();
-  const outURI = `${path.resolve()}/tmp/processing/${id}.webm`;
-
-  ffmpeg(sourceURI)
-    .videoCodec('libvpx') // libvpx-vp9 could be used too
-    .videoBitrate(1000, true)
-    .size(`${quality}x?`)
-    .aspect('16:9')
-    .outputOptions(
-      '-minrate', '1000',
-      '-maxrate', '1000',
-      '-threads', '4', //Use number of real cores available on the computer - 1
-      '-flags', '+global_header')
-    .on('error', e => {
-      console.log('Video processed with error');
-      console.error(e);
-      // @ts-ignore
-      writeErrorLog(`Service throw an error while processing ${id}: ${e.msg}`, 'services/v1/processMedia.ts/convertWebm');
-    })
-    .on('end', async () => {
-      console.log(`Video with id ${id} cropping to ${quality} finished! (${+new Date() - startDate}ms)`);
-      const item = new Storage({
-        id,
-        URI: outURI,
-        dateAdded: +new Date()
-      });
-
-      await item.save();
-
-      await new Promise(res => {
-        res(1);
-      });
-
-      await store(id);
-    })
-    .save(outURI);
-
-  return id;
-}
-
-async function createPreview(id: string, sourceURI: string) {
+const previewsInFrame = 25; // TODO: (must be 25)
+async function createPreview(id: string, TID: string, sourceURI: string): Promise<number> {
   const duration = await getVideoDurationInSeconds(sourceURI);
   const previews = Math.ceil(duration / 5);
-  const frames = Math.ceil(previews / 10); // TODO: test only (must be 25)
+  const frames = Math.ceil(previews / previewsInFrame);
 
-  const tempFolder = `${path.resolve()}/tmp/processing/raw/${id}`;
+  const tempFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const previewsFolder = `${tempFolder}/previews`;
   const framesFolder = `${tempFolder}/frames`;
 
@@ -227,25 +245,32 @@ async function createPreview(id: string, sourceURI: string) {
     fs.mkdirSync(framesFolder);
   }
 
-  await cropPreviews(sourceURI, previews, previewsFolder);
+  await cropPreviews(TID, sourceURI, previews, previewsFolder);
   await createFrames(id, previewsFolder, framesFolder);
 
-  fs.rmSync(tempFolder, { recursive: true });
+  fs.rmSync(previewsFolder, { recursive: true });
+  return frames;
 }
 
-async function cropPreviews(sourceURI: string, previews: number, previewsFolder: string) {
-  return await new Promise(res => {
+async function cropPreviews(TID: string, sourceURI: string, previews: number, previewsFolder: string) {
+  const tempDir = `${path.resolve()}/pw/${TID}`;
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+
+  await new Promise(res => {
     ffmpeg(sourceURI)
       .screenshots({
         count: previews,
         size: '320x240',
         filename: '%s.webp',
-        folder: previewsFolder
+        folder: `./pw/${TID}`
       })
       .on('end', () => {
         res(1);
       });
   });
+
+  fs.readdirSync(tempDir).forEach(file => fs.copyFileSync(`${tempDir}/${file}`, `${previewsFolder}/${file}`));
+  fs.rmSync(tempDir, { recursive: true });
 }
 
 async function createFrames(id: string, previewsFolder: string, framesFolder: string) {
@@ -262,7 +287,7 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
   let picsArrTemp: string[] = [];
 
   previews.forEach(preview => {
-    if (previewNow === 10) { // TODO: test only (must be 25)
+    if (previewNow === previewsInFrame) { // TODO: test only (must be 25)
       previewNow = 0;
 
       picsArr.push(picsArrTemp);
@@ -306,7 +331,7 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
 
     const uid = `${id}_f_${picI}`;
 
-    layer.toFile(outURI);
+    await layer.toFile(outURI);
     framesIDsArr.push(uid);
 
     const item = new Storage({

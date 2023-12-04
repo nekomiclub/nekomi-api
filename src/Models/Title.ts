@@ -9,8 +9,8 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
     alt: Array<string>
   },
   code: String,
-  posterURL: String,
-  backgroundURL: String,
+  poster: String,
+  background: String,
   rating: Number || null,
   description: String,
   status: String,
@@ -45,8 +45,6 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
     }>
   }> || null,
   epsMeta: Array<{
-    id: string,
-    titleID: string,
     order: number,
     names: {
       ukr: string,

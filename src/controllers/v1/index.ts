@@ -5,6 +5,8 @@ import Storage from '../../Models/Storage';
 import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
 import * as processMedia from '../../services/v1/processMedia';
+import { getVideoDurationInSeconds } from 'get-video-duration';
+import path from 'path';
 
 const apiUptime = +new Date();
 
@@ -62,7 +64,7 @@ export async function media(req: express.Request, res: express.Response) {
 
 export async function upload(req: express.Request, res: express.Response) {
   try {
-    const { id, type } = req.body as { id: string, type: TUpload };
+    const { id, type, quality } = req.body as { id: string, type: TUpload, quality: processMedia.TPVQuality[] };
 
     await processMedia.checkConditions(id);
 
@@ -70,7 +72,7 @@ export async function upload(req: express.Request, res: express.Response) {
       if (type.match(/^photo\//gi)) {
         processMedia.processPhoto(id, type);
       } else if (type.match(/^video\//gi)) {
-        processMedia.processVideo(id);
+        processMedia.processVideo(id, quality);
       }
     } catch (e) {
       console.error(e);
@@ -78,7 +80,31 @@ export async function upload(req: express.Request, res: express.Response) {
       writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
     }
 
-    return res.status(201).json({ id: req.body.id });
+    return res.status(201).json({ id: req.body.id, frames: Math.ceil(Math.ceil(await getVideoDurationInSeconds(`${path.resolve()}/tmp/uploads/${id}.mp4`) / 5) / 25) });
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function deleteUpload(req: express.Request, res: express.Response) {
+  try {
+    const { id } = req.body as { id: string };
+    const item = await Storage.findOne({ id });
+
+    if (!item) {
+      throw new E400('Storage item with provided id is not found');
+    }
+
+    fs.rmSync(item.URI);
+    await item.deleteOne();
+
+    return res.status(20).json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

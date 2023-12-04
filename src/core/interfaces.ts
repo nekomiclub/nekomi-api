@@ -17,8 +17,8 @@ export interface ITitle {
     alt: string[] | null
   },
   code: string,
-  posterURL: string,
-  backgroundURL: string,
+  poster: string,
+  background: string,
   rating: number | null,
   description: string,
   status: 'announcement' | 'ongoing' | 'out' | 'delayed',
