@@ -30,9 +30,12 @@ export async function privateRoute(req: express.Request, res: express.Response, 
 }
 
 export async function uploadValidity(req: express.Request, res: express.Response, next: express.NextFunction) {
-  async function revert(id: string, URI: string, err: E400 | E401 | E403 | E500, isThrow = true) {
+  async function revert(id: string, URI: string | undefined, err: E400 | E401 | E403 | E500, isThrow = true) {
     await Storage.deleteOne({ id });
-    fs.rmSync(URI);
+
+    if (URI) {
+      fs.rmSync(URI);
+    }
 
     if (isThrow) {
       throw err;
@@ -44,9 +47,13 @@ export async function uploadValidity(req: express.Request, res: express.Response
   const type = req.body.type as TUpload;
   const item = await Storage.findOne({ id });
 
+  console.log(id);
+  console.log(type);
+  console.log(item);
+
   try {
     if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {
-      return await revert(id, item!.URI, new E400('Type is invalid.'));
+      return await revert(id, item?.URI, new E400('Type is invalid.'));
     }
 
     const tPhotoExts: string[] = ['png', 'jpg', 'jpeg'];
@@ -54,16 +61,20 @@ export async function uploadValidity(req: express.Request, res: express.Response
 
     if (type.match(/^photo\//gi)) {
       if (!tPhotoExts.includes(getFileExtension(item!.URI))) {
-        return await revert(id, item!.URI, new E400(`Photo uploading supports only: ${tPhotoExts.join(' ')} extensions.`));
+        return await revert(id, item?.URI, new E400(`Photo uploading supports only: ${tPhotoExts.join(' ')} extensions.`));
       }
     } else if (type.match(/^video\//gi)) {
       if (!tVideoExts.includes(getFileExtension(item!.URI))) {
-        return await revert(id, item!.URI, new E400(`Video uploading supports only: ${tVideoExts.join(' ')} extensions.`));
+        return await revert(id, item?.URI, new E400(`Video uploading supports only: ${tVideoExts.join(' ')} extensions.`));
+      }
+
+      if (!quality) {
+        return await revert(id, item?.URI, new E400(`Quality must be provided`));
       }
     }
 
   } catch (e) {
-    await revert(id, item!.URI, new E500(''), false);
+    await revert(id, item?.URI, new E500(''), false);
     if (e instanceof ErrorConstructor) {
       console.error(e);
       return res.status(e.code).json(e);

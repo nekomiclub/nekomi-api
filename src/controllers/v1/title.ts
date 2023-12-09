@@ -36,6 +36,25 @@ export async function getOne(req: express.Request, res: express.Response) {
   }
 }
 
+export async function search(req: express.Request, res: express.Response) {
+  try {
+    // @ts-ignore
+    const { ageRate, code, country, id, genres, names, season, estimatedEps, rating, status, type, year, studios } = req.query as ITitle;
+
+    const item = await Title.findOne({ year, country: 'null' });
+
+    return res.status(200).json(dto.title(item!));
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
 export async function getMany(req: express.Request, res: express.Response) {
   try {
     const { limit, page } = req.query;

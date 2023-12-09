@@ -9,12 +9,14 @@ import Storage from './Models/Storage';
 import { privateRoute, uploadValidity } from './middlewares';
 import { uploadStorage } from './services/v1/storage';
 import { body } from 'express-validator';
+import { TAnimeGenres } from './core/interfaces';
 
 export const ApiV1 = express.Router();
 const upload = multer({ storage: uploadStorage });
 
 ApiV1.get(`/title/:id`, v1CTitle.getOne);
 ApiV1.get(`/titles`, v1CTitle.getMany);
+ApiV1.get(`/titles/search`, v1CTitle.search);
 ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
 
 ApiV1.get(`/global_stats`, v1C.getGS);
@@ -30,8 +32,8 @@ const titleValidation = [
     'names.eng',
     'names.ukr',
     'code',
-    'posterURL',
-    'backgroundURL',
+    'poster',
+    'background',
     'description',
     'estimatedEps',
     'year',
@@ -39,8 +41,15 @@ const titleValidation = [
     'country',
   ]).notEmpty(),
   body('status').isIn(['announcement', 'ongoing', 'out', 'delayed']),
-  body('genres').custom((input: string[]) => {
-    const genres = ['Shonen', 'Shoujo', 'Senen', 'Josei', 'Ecchi', 'Harem', 'Isekai', 'Mecha', 'Slice of Life', 'Kodomomuke', 'Iyashikei'];
+  body('genres').custom((input: TAnimeGenres[]) => {
+    const genres: TAnimeGenres[] = [
+      'chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy',
+      'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons',
+      'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music',
+      'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural',
+      'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller',
+      'erotica'
+    ];
 
     input.forEach(genre => {
       if (!genres.includes(genre)) {
@@ -73,3 +82,5 @@ const titleValidation = [
 ApiV1.patch(`/title`, titleValidation, v1CTitle.update);
 ApiV1.post(`/title`, titleValidation, v1CTitle.create);
 ApiV1.delete(`/title`, v1CTitle.remove);
+
+ApiV1.post('/titleUpdate', v1C.titleUpdate);

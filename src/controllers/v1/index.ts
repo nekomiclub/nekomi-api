@@ -80,7 +80,7 @@ export async function upload(req: express.Request, res: express.Response) {
       writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
     }
 
-    return res.status(201).json({ id: req.body.id, frames: Math.ceil(Math.ceil(await getVideoDurationInSeconds(`${path.resolve()}/tmp/uploads/${id}.mp4`) / 5) / 25) });
+    return res.status(201).json({ id: req.body.id, frames: type.match(/^video\//gi) ? Math.ceil(Math.ceil(await getVideoDurationInSeconds(`${path.resolve()}/tmp/uploads/${id}.mp4`) / 5) / 25) : null });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);
@@ -104,7 +104,40 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
     fs.rmSync(item.URI);
     await item.deleteOne();
 
-    return res.status(20).json('ok');
+    return res.status(200).json('ok');
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+
+import titleUpdateDB from '../../../titleUpdateDB.json' assert {type: 'json'};
+export async function titleUpdate(req: express.Request, res: express.Response) {
+  try {
+    const { id, year } = req.query as { id: string, year: string };
+
+    const user = titleUpdateDB.users.find(el => el.id === id);
+
+    if (!user) {
+      throw new E401('User is not found');
+    }
+
+    if (year) {
+      titleUpdateDB.updated[year]++;
+      user.updated++;
+    }
+
+    fs.writeFileSync(`${path.resolve()}/titleUpdateDB.json`, JSON.stringify(titleUpdateDB, null, 2));
+    let total = 0;
+    titleUpdateDB.users.forEach(usr => total = total + usr.updated);
+
+    return res.status(200).json({ id, updated: user.updated, total });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

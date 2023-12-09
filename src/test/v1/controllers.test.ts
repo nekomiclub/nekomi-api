@@ -1,15 +1,11 @@
 import request, { Response } from 'supertest';
 import * as dotenv from 'dotenv';
-import { IEnv } from '../../env';
 import { app } from '../../index';
 import { IUploadRequest } from '../../core/IUpload';
 import fs from 'fs';
 import path from 'path';
+import { env } from '../../config';
 
-dotenv.config();
-
-// @ts-expect-error 123
-const env = process.env as IEnv;
 const ip = `${env.IP}:${env.PORT}`;
 
 describe('v1 controllers', () => {
