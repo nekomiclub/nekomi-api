@@ -37,6 +37,6 @@ app.listen(env.PORT, String(env.IP), () => {
 
 
 async function onReady() {
-  await handler.clearTestIDs();
-  handler.createDubbers();
+  // await handler.clearTestIDs();
+  // handler.createDubbers();
 }

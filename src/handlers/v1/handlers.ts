@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import Dubbers from '../../Models/Dubber';
 import Storage from '../../Models/Storage';
 import Title from '../../Models/Title';
-import { env, cfg, testMode } from '../../config';
+import { env, cfg, testMode, devMode } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
 
@@ -19,11 +19,13 @@ export function createInitArchitecture() {
   const uploads = `${tmp}/uploads`;
 
   const pw = `${root}/pw`;
+  const testStorage = `${root}/testStorage`;
 
   if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
   if (!fs.existsSync(processing)) fs.mkdirSync(processing);
   if (!fs.existsSync(uploads)) fs.mkdirSync(uploads);
   if (!fs.existsSync(pw)) fs.mkdirSync(pw);
+  if (!fs.existsSync(testStorage)) fs.mkdirSync(testStorage);
 }
 
 export async function clearTestIDs() {
@@ -64,7 +66,7 @@ export async function createDubber(name: string, avatarID: string) {
     id: testMode ? `testid-${uuid.v4()}` : uuid.v4(),
     code,
     name,
-    thumbURL: `http://${ip.address()}:${env.PORT}/v1/media/${avatarID}`
+    thumbURL: `http://${devMode ? ip.address() : 'api.animee.club'}:${devMode ? env.PORT : 8080}/v1/media/${avatarID}`
   });
 
   await item.save();

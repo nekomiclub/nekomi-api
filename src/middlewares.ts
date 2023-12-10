@@ -47,10 +47,6 @@ export async function uploadValidity(req: express.Request, res: express.Response
   const type = req.body.type as TUpload;
   const item = await Storage.findOne({ id });
 
-  console.log(id);
-  console.log(type);
-  console.log(item);
-
   try {
     if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {
       return await revert(id, item?.URI, new E400('Type is invalid.'));

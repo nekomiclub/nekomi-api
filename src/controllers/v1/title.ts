@@ -36,14 +36,18 @@ export async function getOne(req: express.Request, res: express.Response) {
   }
 }
 
+function randomInteger(min: number, max: number): number {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
 export async function search(req: express.Request, res: express.Response) {
   try {
     // @ts-ignore
     const { ageRate, code, country, id, genres, names, season, estimatedEps, rating, status, type, year, studios } = req.query as ITitle;
 
-    const item = await Title.findOne({ year, country: 'null' });
+    const items = await Title.find({ year, country: 'null' });
 
-    return res.status(200).json(dto.title(item!));
+    return res.status(200).json(dto.title(items[randomInteger(0, items.length - 1)]!));
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);
