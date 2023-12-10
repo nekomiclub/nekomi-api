@@ -24,8 +24,8 @@ ApiV1.get(`/uptime`, v1C.uptime);
 ApiV1.get(`/media/:id`, v1C.media);
 
 // Private
-ApiV1.post('/upload', privateRoute, upload.fields([{ name: 'file' }, { name: 'type' }]), uploadValidity, v1C.upload);
-ApiV1.delete('/upload', privateRoute, v1C.deleteUpload);
+ApiV1.post('/upload', upload.fields([{ name: 'file' }, { name: 'type' }]), uploadValidity, v1C.upload);
+ApiV1.delete('/upload', v1C.deleteUpload);
 
 const titleValidation = [
   body([

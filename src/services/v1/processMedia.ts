@@ -1,6 +1,7 @@
 import { TUpload } from '../../core/IUpload';
 import Storage from '../../Models/Storage';
 import { ErrorConstructor, E400, writeErrorLog, E500 } from '../../handlers/v1/Errors';
+import { writeToLog } from '../../handlers/v1/handlers';
 import { IStorageItem } from '../../core/interfaces';
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +11,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import { getFreeDiskURI, store } from './storage';
 import sharp from 'sharp';
-import { devMode } from '../../config';
+import { devMode, testMode } from '../../config';
 import * as dto from '../../handlers/v1/dtos';
 
 export async function checkConditions(id: string) {
@@ -33,11 +34,12 @@ export async function processPhoto(id: string, type: TUpload) {
     throw new E400('Item with provided id is not found in storage.');
   }
 
+  writeToLog(`Started processing ${type} with id ${id}`);
   //! ConvertWebp func will remove file without updating it`s URI in storage. Untill URI will be replaced (cropAvatar/enchancePoster) current URI will be unaccesible. Use croppedURI instead 
   const croppedURI = await convertWebp(id, item);
 
-  if (!fs.existsSync(`${path.resolve()}/tmp/processing/raw`)) {
-    fs.mkdirSync(`${path.resolve()}/tmp/processing/raw`);
+  if (!fs.existsSync(`${path.resolve()}/tmp/processing`)) {
+    fs.mkdirSync(`${path.resolve()}/tmp/processing`);
   }
 
   let readyURI = '';
@@ -55,7 +57,7 @@ export async function processPhoto(id: string, type: TUpload) {
 }
 
 async function convertWebp(id: string, item: IStorageItem): Promise<string> {
-  const croppedDest = `${path.resolve()}/tmp/processing/raw`;
+  const croppedDest = `${path.resolve()}/tmp/processing`;
   let croppedURI = `${croppedDest}/${id}.webp`;
 
   await imagemin([item.URI], {
@@ -116,14 +118,16 @@ export async function processVideo(id: string, quality: TPVQuality[]) {
   const item = await Storage.findOne({ id });
   const TID = (Math.random() + 1).toString(36).substring(8);
 
+  writeToLog(`Started processing video. ID: ${id}; TID: ${TID}, Q: ${quality}`);
+
   try {
     const sourceURI = await convertWebm(id, TID, dto.storageItem(item!));
 
     createPreview(id, TID, sourceURI);
     await Promise.all([
-      (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720) : '',
-      (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480) : '',
-      (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240) : '',
+      (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720) : null,
+      (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480) : null,
+      (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240) : null,
     ]);
 
     await store(id);
@@ -148,7 +152,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
   const startTS = +new Date();
 
   if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
-  if (devMode) console.log(`Start compressing video to webm with TID: ${TID}`);
+  console.log(`Start compressing video to webm with TID: ${TID}`);
 
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
@@ -157,7 +161,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
         rej(e);
       })
       .on('progress', progress => {
-        if (devMode) console.log(`Ready: ${progress.percent}`);
+        if (devMode || testMode) console.log(`Ready: ${progress.percent}`);
       })
       .on('end', () => {
         res(1);
@@ -172,7 +176,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
 
   await db!.save();
 
-  if (devMode) console.log(`Compressing video with TID ${TID} ended within ${(+new Date() - startTS) / 1000}s`);
+  if (devMode || testMode) console.log(`Compressing video with TID ${TID} ended within ${(+new Date() - startTS) / 1000}s`);
 
   return outURI;
 }
@@ -183,7 +187,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
   const startTS = +new Date();
 
   if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
-  if (devMode) console.log(`Start cropping video to ${quality} with TID: ${TID}`);
+  if (devMode || testMode) console.log(`Start cropping video to ${quality} with TID: ${TID}`);
 
   fs.writeFileSync(outURI, '');
 
@@ -202,7 +206,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
       .saveToFile(outURI);
   });
 
-  if (devMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(+new Date() - startTS) / 1000}s`);
+  if (devMode || testMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(+new Date() - startTS) / 1000}s`);
 
   const item = new Storage({
     id: `${id}_q_${quality}`,
@@ -228,6 +232,8 @@ async function createPreview(id: string, TID: string, sourceURI: string): Promis
   const duration = await getVideoDurationInSeconds(sourceURI);
   const previews = Math.ceil(duration / 5);
   const frames = Math.ceil(previews / previewsInFrame);
+
+  writeToLog(`Started processing Frames for ID: ${id}; TID: ${TID}; F: ${frames}`);
 
   const tempFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const previewsFolder = `${tempFolder}/previews`;

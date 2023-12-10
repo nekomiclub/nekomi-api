@@ -8,6 +8,11 @@ import { env, cfg, testMode, devMode } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
 
+export function writeToLog(msg: string) {
+  const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
+  fs.appendFileSync(`${path.resolve()}/.log`, `\nINFO (UTC ${time}): ${msg}`);
+}
+
 export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
 }
