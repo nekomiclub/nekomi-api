@@ -9,3 +9,90 @@ ERROR (UTC 4.12.2023 (19:17)) [services/v1/processMedia.ts/processVideo]: Servic
 ERROR (UTC 4.12.2023 (19:27)) [services/v1/processMedia.ts/processVideo]: Service throw an error: {"errno":-4058,"code":"ENOENT","syscall":"stat","path":"D:\\.animee\\core\\tmp\\processing\\32cv\\1080.webm"}. Reverting...
 ERROR (UTC 4.12.2023 (19:29)) [services/v1/processMedia.ts/processVideo]: Service throw an error: {"errno":-4058,"code":"ENOENT","syscall":"stat","path":"D:\\.animee\\core\\tmp\\processing\\j453\\1080.webm"}. Reverting...
 ERROR (UTC 9.12.2023 (12:45)) [services/v1/processMedia.ts/processVideo]: Service throw an error: {}. Reverting...
+INFO (UTC 10.12.2023 (19:8)): Started processing video. ID: testid-a29bc940-c78e-49ed-bc5e-0b72ff14154f; TID: kp2o, Q: [1080, 720, 480, 240]
+INFO (UTC 10.12.2023 (19:19)): Started processing Frames for ID: testid-a29bc940-c78e-49ed-bc5e-0b72ff14154f; TID: kp2o; F: 7
+INFO (UTC 10.12.2023 (20:13)): Started processing video. ID: testid-a32a28b9-b692-4aa0-9376-8947e7852019; TID: w2zh, Q: [1080, 720, 480, 240]
+INFO (UTC 10.12.2023 (20:24)): Started processing Frames for ID: testid-a32a28b9-b692-4aa0-9376-8947e7852019; TID: w2zh; F: 7
+INFO (UTC 11.12.2023 (8:28)): Started processing video. ID: testid-fb0a3812-5490-4996-b447-b4da896f391d; TID: qc1t, Q: [1080, 720, 480, 240]
+INFO (UTC 11.12.2023 (8:54)): Started processing Frames for ID: testid-fb0a3812-5490-4996-b447-b4da896f391d; TID: qc1t; F: 7
+INFO (UTC 11.12.2023 (9:0)): Started processing video. ID: testid-33bbcec3-014d-4a26-b288-0bc25fffa614; TID: 6mzz, Q: [1080, 720, 480, 240]
+INFO (UTC 11.12.2023 (9:20)): Started processing Frames for ID: testid-33bbcec3-014d-4a26-b288-0bc25fffa614; TID: 6mzz; F: 7
+INFO (UTC 11.12.2023 (9:32)): Started processing video. ID: testid-90c3f2c0-6670-4e10-bafe-a57cee3c55b3; TID: fc5bh, Q: [1080, 720, 480, 240]
+INFO (UTC 11.12.2023 (9:51)): Started processing Frames for ID: testid-90c3f2c0-6670-4e10-bafe-a57cee3c55b3; TID: fc5bh; F: 7
+INFO (UTC 11.12.2023 (9:55)): Started processing video. ID: testid-bb987f3a-009e-443a-ac1a-934270b6af0f; TID: yc5z, Q: [1080, 720, 480, 240]
+ERROR (UTC 11.12.2023 (10:9)) [services/v1/processMedia.ts/processVideo]: Service throw an error: {}. Reverting...
+INFO (UTC 11.12.2023 (10:11)): Started processing video. ID: testid-8aa9265b-bcd7-4d15-b2b6-c5c00613ee97; TID: cipi, Q: [1080, 720, 480, 240]
+INFO (UTC 11.12.2023 (11:16)): Started processing Frames for ID: testid-8aa9265b-bcd7-4d15-b2b6-c5c00613ee97; TID: cipi; F: 7
+INFO (UTC 11.12.2023 (11:31)): Started processing video. ID: testid-a485a28d-fac5-4525-a000-926d467eac96; TID: vem1, Q: [1080,]
+INFO (UTC 11.12.2023 (12:23)): Started processing Frames for ID: testid-a485a28d-fac5-4525-a000-926d467eac96; TID: vem1; F: 7
+INFO (UTC 11.12.2023 (14:7)): Started processing photo/user/avatar with id testid-820035bf-d8b9-4adb-9a87-417ad382e85c
+INFO (UTC 11.12.2023 (14:7)): Started processing photo/user/avatar with id testid-820035bf-d8b9-4adb-9a87-417ad382e85c
+ERROR (UTC 11.12.2023 (14:7)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, lstat 'D:\.animee\core/tmp/uploads/testid-820035bf-d8b9-4adb-9a87-417ad382e85c.jpg'
+INFO (UTC 11.12.2023 (14:8)): Started processing photo/user/avatar with id testid-944141c5-35fc-445f-a14c-7c92f8d85389
+INFO (UTC 11.12.2023 (14:8)): Started processing photo/user/avatar with id testid-944141c5-35fc-445f-a14c-7c92f8d85389
+ERROR (UTC 11.12.2023 (14:8)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, lstat 'D:\.animee\core/tmp/uploads/testid-944141c5-35fc-445f-a14c-7c92f8d85389.jpg'
+INFO (UTC 11.12.2023 (14:8)): Started processing photo/user/avatar with id testid-b38c61fc-c118-4a1d-aacb-d7eb4bcda195
+INFO (UTC 11.12.2023 (14:9)): Started processing photo/user/avatar with id testid-da05c576-c7a0-42f6-a22c-1e3eb1016b87
+ERROR (UTC 11.12.2023 (14:9)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-da05c576-c7a0-42f6-a22c-1e3eb1016b87.webp'
+INFO (UTC 11.12.2023 (14:11)): Started processing photo/user/avatar with id testid-005db332-1de5-43d3-a118-660aaeb9082a
+ERROR (UTC 11.12.2023 (14:11)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-005db332-1de5-43d3-a118-660aaeb9082a.webp'
+INFO (UTC 11.12.2023 (14:12)): Started processing photo/user/avatar with id testid-4016b5c2-51be-4fbc-ae0c-cc08dfb6bdef
+ERROR (UTC 11.12.2023 (14:12)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-4016b5c2-51be-4fbc-ae0c-cc08dfb6bdef.webp'
+INFO (UTC 11.12.2023 (14:13)): Started processing photo/user/avatar with id testid-e8c05c9b-d673-426d-85bb-48f77095ebd5
+INFO (UTC 11.12.2023 (14:14)): Started processing photo/user/avatar with id testid-cfb38cb1-c8f8-4c5d-9931-7971bd291cd4
+INFO (UTC 11.12.2023 (14:23)): Started processing photo/user/avatar with id testid-d51848c2-abe3-4ad4-976b-e27aa1587c0c
+INFO (UTC 11.12.2023 (14:23)): Started processing photo/user/avatar with id testid-afbb65c2-3cc3-4230-9beb-03989fa1525a
+INFO (UTC 11.12.2023 (14:25)): Started processing video. ID: testid-96d42228-392a-41f3-90e9-e517537540f9; TID: esdw, Q: [1080,]
+INFO (UTC 11.12.2023 (14:26)): Started processing Frames for ID: testid-96d42228-392a-41f3-90e9-e517537540f9; TID: esdw; F: 1
+INFO (UTC 11.12.2023 (14:33)): Started processing video. ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: pcl3, Q: [1080]
+INFO (UTC 11.12.2023 (14:41)): Started processing video. ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: xkls, Q: [1080]
+INFO (UTC 11.12.2023 (14:41)): Started processing video. ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: 2sfmk, Q: [1080]
+INFO (UTC 11.12.2023 (14:42)): Started processing Frames for ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: 2sfmk; F: 1
+INFO (UTC 11.12.2023 (14:46)): Started processing video. ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: dhbqg, Q: [1080]
+INFO (UTC 11.12.2023 (14:47)): Started processing Frames for ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: dhbqg; F: 1
+INFO (UTC 11.12.2023 (14:48)): Started processing video. ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: wmpq, Q: [1080]
+INFO (UTC 11.12.2023 (14:49)): Started processing Frames for ID: testid-7f0cec3d-5f88-408b-9be7-ebebb44ee245; TID: wmpq; F: 1
+INFO (UTC 11.12.2023 (14:59)): Started processing photo/user/avatar with id testid-54c61bcb-9b4e-4f96-85de-0a72aeba6b13
+ERROR (UTC 11.12.2023 (14:59)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-54c61bcb-9b4e-4f96-85de-0a72aeba6b13.webp'
+INFO (UTC 11.12.2023 (15:0)): Started processing photo/series with id testid-d7a11caf-61fd-484f-8444-396433997c27
+ERROR (UTC 11.12.2023 (15:0)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-d7a11caf-61fd-484f-8444-396433997c27.webp'
+INFO (UTC 11.12.2023 (15:4)): Started processing photo/series with id testid-31b4947e-9e79-45d3-b86e-b185a47f6549
+ERROR (UTC 11.12.2023 (15:4)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-31b4947e-9e79-45d3-b86e-b185a47f6549.webp'
+INFO (UTC 11.12.2023 (15:5)): Started processing photo/series with id testid-0559b57c-3e0d-416f-ae9a-10b2e08bbf86
+ERROR (UTC 11.12.2023 (15:5)) [services/v1/processMedia/UploadQueue]: Queue errored: EPERM: operation not permitted, copyfile 'D:\.animee\core\tmp\processing\testid-0559b57c-3e0d-416f-ae9a-10b2e08bbf86.webp' -> 'D:\.animee\core\tmp\processing\testid-0559b57c-3e0d-416f-ae9a-10b2e08bbf86.webp'
+INFO (UTC 11.12.2023 (15:5)): Started processing photo/series with id testid-464ab295-8411-40d0-acde-3126824056aa
+ERROR (UTC 11.12.2023 (15:5)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-464ab295-8411-40d0-acde-3126824056aa.webp'
+INFO (UTC 11.12.2023 (15:8)): Started processing photo/series with id testid-0bd50bb6-7365-4ad4-a96f-3c71b3636463
+ERROR (UTC 11.12.2023 (15:8)) [services/v1/processMedia/UploadQueue]: Queue errored: EPERM: operation not permitted, copyfile 'D:\.animee\core\tmp\processing\testid-0bd50bb6-7365-4ad4-a96f-3c71b3636463.webp' -> 'D:\.animee\core\tmp\processing\testid-0bd50bb6-7365-4ad4-a96f-3c71b3636463.webp'
+INFO (UTC 11.12.2023 (15:9)): Started processing photo/series with id testid-5d6db83b-a67a-4d32-aa4f-9e37ef921d40
+ERROR (UTC 11.12.2023 (15:9)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, copyfile 'D:\.animee\core\tmp\processing\testid-5d6db83b-a67a-4d32-aa4f-9e37ef921d40.webp' -> 'D:\.animee\core\tmp\processing\testid-5d6db83b-a67a-4d32-aa4f-9e37ef921d40.webp'
+INFO (UTC 11.12.2023 (15:9)): Started processing photo/series with id testid-7baec678-168e-42a6-add2-5413a19988c1
+ERROR (UTC 11.12.2023 (15:9)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-7baec678-168e-42a6-add2-5413a19988c1.webp'
+INFO (UTC 11.12.2023 (15:10)): Started processing photo/series with id testid-f9b33da3-4fcd-4d13-840b-80c38e2c04d2
+ERROR (UTC 11.12.2023 (15:10)) [services/v1/processMedia/UploadQueue]: Queue errored: Error occurred when handling file: D:\.animee\core/tmp/uploads/testid-f9b33da3-4fcd-4d13-840b-80c38e2c04d2.jpg
+
+Error: ENOENT: no such file or directory, mkdir 'D:\.animee\core\tmp\processing\*'
+    at async Object.mkdir (node:internal/fs/promises:850:10)
+    at async handleFile (file:///D:/.animee/core/node_modules/imagemin/index.js:38:2)
+    at async file:///D:/.animee/core/node_modules/imagemin/index.js:57:13
+    at async Promise.all (index 0)
+INFO (UTC 11.12.2023 (15:12)): Started processing photo/series with id testid-2ab07b4e-d3d9-40b9-8f4d-3eb06c1acf7c
+ERROR (UTC 11.12.2023 (15:12)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-2ab07b4e-d3d9-40b9-8f4d-3eb06c1acf7c.webp'
+INFO (UTC 11.12.2023 (15:13)): Started processing photo/series with id testid-7e9ec949-ebb3-4801-855e-418e63d5b9a2
+ERROR (UTC 11.12.2023 (15:13)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-7e9ec949-ebb3-4801-855e-418e63d5b9a2.webp'
+INFO (UTC 11.12.2023 (15:13)): Started processing photo/series with id testid-be21ac5f-9c67-42f7-a7de-20f0b4cff579
+ERROR (UTC 11.12.2023 (15:13)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-be21ac5f-9c67-42f7-a7de-20f0b4cff579.webp'
+INFO (UTC 11.12.2023 (15:20)): Started processing photo/series with id testid-889d0045-0120-4a0a-ab5a-1c0de6d661fc
+ERROR (UTC 11.12.2023 (15:20)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-889d0045-0120-4a0a-ab5a-1c0de6d661fc.webp'
+INFO (UTC 11.12.2023 (15:21)): Started processing photo/series with id testid-0bf43ec0-d083-43da-86fc-1fb1d21c1744
+ERROR (UTC 11.12.2023 (15:21)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-0bf43ec0-d083-43da-86fc-1fb1d21c1744.webp'
+INFO (UTC 11.12.2023 (15:22)): Started processing photo/series with id testid-68fcd63e-c4d6-4b06-a4b0-cf1f80963184
+ERROR (UTC 11.12.2023 (15:22)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-68fcd63e-c4d6-4b06-a4b0-cf1f80963184.webp'
+INFO (UTC 11.12.2023 (15:24)): Started processing photo/series with id testid-9b0a76b5-8934-41f6-852b-c48e85a9f176
+INFO (UTC 11.12.2023 (15:25)): Started processing photo/series with id testid-ab7aa4fb-c2cf-4739-a3f8-64ea667a5547
+INFO (UTC 11.12.2023 (15:25)): Started processing photo/series with id testid-efac6157-f2e0-4149-bdfe-45ac33d90211
+INFO (UTC 11.12.2023 (15:26)): Started processing photo/series with id testid-1b5c2ce2-ee0f-44c0-8744-a44bd9b26470
+ERROR (UTC 11.12.2023 (15:26)) [services/v1/processMedia/UploadQueue]: Queue errored: ENOENT: no such file or directory, stat 'D:\.animee\core\tmp\processing\testid-1b5c2ce2-ee0f-44c0-8744-a44bd9b26470.webp'
+INFO (UTC 11.12.2023 (15:26)): Started processing photo/series with id testid-94b80c66-6e79-4af9-973a-fd3ea884f81c
+INFO (UTC 11.12.2023 (15:26)): Started processing photo/series with id testid-b171fef8-44a8-47b0-92f2-4579c1c6c6a1
+INFO (UTC 11.12.2023 (15:27)): Started processing photo/user/avatar with id testid-a2a4a8de-19ba-49fc-bd2b-cbb8a8cb6e3b

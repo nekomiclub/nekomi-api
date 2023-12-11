@@ -42,8 +42,11 @@ export class E500 extends ErrorConstructor {
 
 import fs from 'fs';
 import path from 'path';
+import { devMode } from '../../config';
 
 export function writeErrorLog(msg: string, at: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
-  fs.appendFileSync(`${path.resolve()}/.log`, `\nERROR (UTC ${time}) [${at}]: ${msg}`);
+  const emsg = `\nERROR (UTC ${time}) [${at}]: ${msg}`;
+  if (devMode) console.error(emsg);
+  fs.appendFileSync(`${path.resolve()}/.log`, emsg);
 }

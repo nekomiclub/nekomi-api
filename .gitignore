@@ -4,3 +4,5 @@ tmp
 pw
 testStorage
 test/*.mp4
+titleUpdateDB.json
+.log

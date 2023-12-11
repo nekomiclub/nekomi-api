@@ -8,6 +8,7 @@ import * as handler from './handlers/v1/handlers';
 import { Dubbers } from './Models/Dubber';
 import * as uuid from 'uuid';
 import cors from 'cors';
+import { UploadQueue } from './services/v1/processMedia';
 
 handler.createInitArchitecture();
 
@@ -25,6 +26,8 @@ if (!process.env.PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
+export const uploadQueue = new UploadQueue();
+
 
 
 app.listen(env.PORT, String(env.IP), () => {
@@ -37,6 +40,6 @@ app.listen(env.PORT, String(env.IP), () => {
 
 
 async function onReady() {
-  await handler.clearTestIDs();
+  // await handler.clearTestIDs();
   // handler.createDubbers();
 }

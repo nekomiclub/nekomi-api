@@ -45,7 +45,7 @@ export async function uploadValidity(req: express.Request, res: express.Response
   const id = req.body.id as string;
   const quality = req.body.quality as string;
   const type = req.body.type as TUpload;
-  const item = await Storage.findOne({ id });
+  const item = await Storage.findOne({ id }, {}, { maxTimeMS: 10000 });
 
   try {
     if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {

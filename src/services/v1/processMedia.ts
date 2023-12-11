@@ -13,6 +13,7 @@ import { getFreeDiskURI, store } from './storage';
 import sharp from 'sharp';
 import { devMode, testMode } from '../../config';
 import * as dto from '../../handlers/v1/dtos';
+import uploadDB from '../../localDB/uploadDB.json' assert {type: 'json'};
 
 export async function checkConditions(id: string) {
   const item = await Storage.findOne({ id });
@@ -23,6 +24,75 @@ export async function checkConditions(id: string) {
 
   // Check if disk have enought capacity
   await getFreeDiskURI(fs.statSync(item.URI).size * 3);
+}
+
+interface IUploadQueue { id: string, type: TUpload, quality: TPVQuality[], URI: string, timestamp: number }
+
+export class UploadQueue {
+  private queue: IUploadQueue[];
+  private isQueueFree = true;
+
+  constructor() {
+    // @ts-ignore
+    this.queue = (uploadDB.queue as IUploadQueue[]).sort((a, b) => a.timestamp - b.timestamp);
+    // eslint-disable-next-line
+    const th = this;
+
+    (async function () {
+      if (th.queue.length) {
+        await new Promise(res => {
+          th.queue.forEach(async (el, i) => {
+            const item = await Storage.findOne({ id: el.id });
+
+            item!.URI = el.URI;
+            await item!.save();
+
+            if (i === th.queue.length - 1) {
+              res(1);
+            }
+          });
+        });
+
+        th.run();
+      }
+    })();
+  }
+
+  add(id: string, URI: string, quality: TPVQuality[], type: TUpload) {
+    this.queue.push({ id, URI, quality, type, timestamp: +new Date() });
+    fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: this.queue }, null, 2));
+
+    this.run();
+  }
+
+  remove(id: string) {
+    this.queue = this.queue.filter(el => el.id !== id);
+    fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: this.queue }, null, 2));
+  }
+
+  async run() {
+    if (!this.queue.length) return devMode ? console.log('queue is empty') : null;
+    if (!this.isQueueFree) return devMode ? console.log('queue is not free') : null;
+
+    const { URI, id, quality, timestamp, type } = this.queue[0];
+
+    this.isQueueFree = false;
+
+    try {
+      if (type.match(/^photo\//gi)) {
+        await processPhoto(id, type);
+      } else if (type.match(/^video\//gi)) {
+        await processVideo(id, quality);
+      }
+    } catch (e) {
+      // @ts-ignore
+      writeErrorLog(`Queue errored: ${e.message}`, 'services/v1/processMedia/UploadQueue');
+    }
+
+    this.isQueueFree = true;
+    this.remove(id);
+    this.run();
+  }
 }
 
 
@@ -37,10 +107,6 @@ export async function processPhoto(id: string, type: TUpload) {
   writeToLog(`Started processing ${type} with id ${id}`);
   //! ConvertWebp func will remove file without updating it`s URI in storage. Untill URI will be replaced (cropAvatar/enchancePoster) current URI will be unaccesible. Use croppedURI instead 
   const croppedURI = await convertWebp(id, item);
-
-  if (!fs.existsSync(`${path.resolve()}/tmp/processing`)) {
-    fs.mkdirSync(`${path.resolve()}/tmp/processing`);
-  }
 
   let readyURI = '';
 
@@ -57,7 +123,7 @@ export async function processPhoto(id: string, type: TUpload) {
 }
 
 async function convertWebp(id: string, item: IStorageItem): Promise<string> {
-  const croppedDest = `${path.resolve()}/tmp/processing`;
+  const croppedDest = `${path.resolve()}/tmp/processing/webp`;
   let croppedURI = `${croppedDest}/${id}.webp`;
 
   await imagemin([item.URI], {
@@ -121,10 +187,11 @@ export async function processVideo(id: string, quality: TPVQuality[]) {
   writeToLog(`Started processing video. ID: ${id}; TID: ${TID}, Q: ${quality}`);
 
   try {
+    const uploadURI = item!.URI;
     const sourceURI = await convertWebm(id, TID, dto.storageItem(item!));
 
-    createPreview(id, TID, sourceURI);
     await Promise.all([
+      createPreview(id, TID, sourceURI),
       (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720) : null,
       (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480) : null,
       (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240) : null,
@@ -134,6 +201,7 @@ export async function processVideo(id: string, quality: TPVQuality[]) {
 
     fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true });
     console.log(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
+    fs.rmSync(uploadURI);
   } catch (e) {
     writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
 
@@ -154,9 +222,20 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
   if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
   console.log(`Start compressing video to webm with TID: ${TID}`);
 
+  fs.writeFileSync(`${outFolder}/clearout-${startTS}`, ``);
+
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
       .videoCodec('libvpx')
+      .audioCodec('libopus')
+      .videoBitrate('1200k')
+      .audioBitrate('128k')
+      .outputOptions([
+        '-minrate', '900k',
+        '-maxrate', '1800k',
+        '-crf', '32',
+        '-threads', '1'
+      ])
       .on('error', e => {
         rej(e);
       })
@@ -168,8 +247,6 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
       })
       .saveToFile(outURI);
   });
-
-  fs.rmSync(item.URI);
 
   const db = await Storage.findOne({ id });
   db!.URI = outURI;

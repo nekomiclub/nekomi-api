@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500 } from '../../handlers/v1/Errors';
 import * as service from '../../services/v1/storage';
 import Storage from '../../Models/Storage';
 import fs from 'fs';
@@ -7,6 +7,7 @@ import { IUploadRequest, TUpload } from '../../core/IUpload';
 import * as processMedia from '../../services/v1/processMedia';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import path from 'path';
+import { uploadQueue } from '../../index';
 
 const apiUptime = +new Date();
 
@@ -67,13 +68,14 @@ export async function upload(req: express.Request, res: express.Response) {
     const { id, type, quality } = req.body as { id: string, type: TUpload, quality: processMedia.TPVQuality[] };
 
     await processMedia.checkConditions(id);
+    const item = await Storage.findOne({ id });
+
+    if (!item) {
+      throw new E500('Item with provided id is not found');
+    }
 
     try {
-      if (type.match(/^photo\//gi)) {
-        processMedia.processPhoto(id, type);
-      } else if (type.match(/^video\//gi)) {
-        processMedia.processVideo(id, quality);
-      }
+      uploadQueue.add(id, item.URI, quality, type);
     } catch (e) {
       console.error(e);
       // @ts-ignore
