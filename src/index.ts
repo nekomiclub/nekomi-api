@@ -35,16 +35,21 @@ if (!process.env.PORT) {
 export const uploadQueue = new UploadQueue();
 
 
-
-https.createServer({
-  key: privateKey,
-  cert: certificate
-}, app).listen(env.PORT, env.IP, () => {
+function listen() {
   console.log(`Server is listening on ${env.IP}:${env.PORT} ...`);
   console.log(`DETAILS:\nStartedAt: ${new Date()};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
 
   onReady();
-});
+}
+
+if (devMode) {
+  app.listen(env.PORT, env.IP, () => listen());
+} else {
+  https.createServer({
+    key: privateKey,
+    cert: certificate
+  }, app).listen(env.PORT, env.IP, () => listen());
+}
 
 
 

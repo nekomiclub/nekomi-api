@@ -96,3 +96,5 @@ ERROR (UTC 11.12.2023 (15:26)) [services/v1/processMedia/UploadQueue]: Queue err
 INFO (UTC 11.12.2023 (15:26)): Started processing photo/series with id testid-94b80c66-6e79-4af9-973a-fd3ea884f81c
 INFO (UTC 11.12.2023 (15:26)): Started processing photo/series with id testid-b171fef8-44a8-47b0-92f2-4579c1c6c6a1
 INFO (UTC 11.12.2023 (15:27)): Started processing photo/user/avatar with id testid-a2a4a8de-19ba-49fc-bd2b-cbb8a8cb6e3b
+INFO (UTC 12.12.2023 (17:47)): Started processing video. ID: testid-d63a75cb-9b00-420a-ac51-97132230055b; TID: twuz, Q: [1080, 480]
+INFO (UTC 12.12.2023 (18:11)): Started processing video. ID: testid-c1e43c15-5d92-4a29-a157-fcae30bd987b; TID: 758t, Q: [1080, 480]

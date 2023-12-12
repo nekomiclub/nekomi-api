@@ -1,3 +1,11 @@
 {
-  "queue": []
+  "queue": [
+    {
+      "id": "testid-c1e43c15-5d92-4a29-a157-fcae30bd987b",
+      "URI": "D:\\.animee\\core/tmp/uploads/testid-c1e43c15-5d92-4a29-a157-fcae30bd987b.mp4",
+      "quality": "[1080, 480]",
+      "type": "video/series",
+      "timestamp": 1702404689003
+    }
+  ]
 }
