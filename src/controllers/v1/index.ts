@@ -75,7 +75,11 @@ export async function upload(req: express.Request, res: express.Response) {
     }
 
     try {
-      uploadQueue.add(id, item.URI, quality, type);
+      if (type.match(/^video/g)) {
+        uploadQueue.add(id, item.URI, quality, type);
+      } else {
+        processMedia.processPhoto(id, type);
+      }
     } catch (e) {
       console.error(e);
       // @ts-ignore

@@ -1,4 +1,6 @@
+import { TAuthProviders } from './IAuth';
 import { ITitleEpisodeMeta, ITitleEpisodesDub } from './ITitle';
+import { IUserList, IUserSettings, IUserStats } from './IUser';
 
 export interface IStorageItem {
   id: string,
@@ -48,4 +50,17 @@ export interface IDubber {
   code: string,
   name: string,
   thumbURL: string
+}
+
+export interface IUser {
+  uid: string,
+  username: string,
+  password: string,
+  avatar: string,
+  profileBg: string | null,
+  badgesIDs: string[] | null,
+  settings: IUserSettings,
+  stats: IUserStats,
+  lists: IUserList[],
+  providers: TAuthProviders[]
 }

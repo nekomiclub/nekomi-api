@@ -9,6 +9,12 @@ import { Dubbers } from './Models/Dubber';
 import * as uuid from 'uuid';
 import cors from 'cors';
 import { UploadQueue } from './services/v1/processMedia';
+import https from 'https';
+
+import fs from 'fs';
+import path from 'path';
+const privateKey = fs.readFileSync(`${path.resolve()}/ssl/privatekey.pem`);
+const certificate = fs.readFileSync(`${path.resolve()}/ssl/certificate.pem`);
 
 handler.createInitArchitecture();
 
@@ -30,7 +36,10 @@ export const uploadQueue = new UploadQueue();
 
 
 
-app.listen(env.PORT, String(env.IP), () => {
+https.createServer({
+  key: privateKey,
+  cert: certificate
+}, app).listen(env.PORT, env.IP, () => {
   console.log(`Server is listening on ${env.IP}:${env.PORT} ...`);
   console.log(`DETAILS:\nStartedAt: ${new Date()};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
 

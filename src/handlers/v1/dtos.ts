@@ -1,5 +1,4 @@
-import { IStorageItem } from 'src/core/interfaces';
-import { IDubber, ITitle } from '../../core/interfaces';
+import { IStorageItem, IUser, IDubber, ITitle } from '../../core/interfaces';
 
 export function title({ id, ageRate, background, code, country, description, dubs, ended, epsMeta, estimatedEps, genres, linkedManga, linkedTitlesIDs, names, poster, rating, season, started, status, studios, type, year }: ITitle): ITitle {
   return { id, ageRate, background, code, country, description, dubs, ended, epsMeta, estimatedEps, genres, linkedManga, linkedTitlesIDs, names, poster, rating, season, started, status, studios, type, year };
@@ -11,4 +10,8 @@ export function dubber({ code, id, name, thumbURL }: IDubber): IDubber {
 
 export function storageItem({ URI, dateAdded, id }: IStorageItem): IStorageItem {
   return { dateAdded, id, URI };
+}
+
+export function user({ avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username }: IUser): IUser {
+  return { avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, password: 'HIDDEN' };
 }

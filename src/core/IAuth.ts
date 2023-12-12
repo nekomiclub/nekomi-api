@@ -1,0 +1,1 @@
+export type TAuthProviders = 'google' | 'telegram' | 'animee' | 'fullkekw'

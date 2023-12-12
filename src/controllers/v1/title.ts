@@ -1,5 +1,6 @@
 import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../handlers/v1/Errors';
+import { randomNumber } from '../../handlers/v1/handlers';
 import Storage from '../../Models/Storage';
 import fs from 'fs';
 import { ITitle } from '../../core/interfaces';
@@ -7,7 +8,6 @@ import { validationResult } from 'express-validator';
 import type { ValidationError } from 'express-validator';
 import * as uuid from 'uuid';
 import Title from '../../Models/Title';
-import { ITitleEpisodesDub } from 'src/core/ITitle';
 import * as dto from '../../handlers/v1/dtos';
 import { testMode, devMode } from '../../config';
 
@@ -36,10 +36,6 @@ export async function getOne(req: express.Request, res: express.Response) {
   }
 }
 
-function randomInteger(min: number, max: number): number {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-}
-
 export async function search(req: express.Request, res: express.Response) {
   try {
     // @ts-ignore
@@ -47,7 +43,7 @@ export async function search(req: express.Request, res: express.Response) {
 
     const items = await Title.find({ year, country: 'null' });
 
-    return res.status(200).json(dto.title(items[randomInteger(0, items.length - 1)]!));
+    return res.status(200).json(dto.title(items[randomNumber(0, items.length - 1)]!));
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

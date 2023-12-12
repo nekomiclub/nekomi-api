@@ -33,6 +33,10 @@ export function createInitArchitecture() {
   if (!fs.existsSync(testStorage)) fs.mkdirSync(testStorage);
 }
 
+export function randomNumber(min: number, max: number): number {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
 export async function clearTestIDs() {
   await Dubbers.deleteMany({ id: { $regex: /^testid-/g } });
   await Title.deleteMany({ id: { $regex: /^testid-/g } });

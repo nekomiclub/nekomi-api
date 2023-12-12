@@ -228,11 +228,11 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
     ffmpeg(sourceURI)
       .videoCodec('libvpx')
       .audioCodec('libopus')
-      .videoBitrate('1200k')
+      .videoBitrate('1800k')
       .audioBitrate('128k')
       .outputOptions([
         '-minrate', '900k',
-        '-maxrate', '1800k',
+        '-maxrate', '2610k',
         '-crf', '32',
         '-threads', '1'
       ])
@@ -270,8 +270,16 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
 
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
-      .inputOptions('-c:v libvpx')
-      .outputOption('-c:v vp9')
+      .videoCodec('libvpx')
+      .audioCodec('libopus')
+      .videoBitrate('1100k')
+      .audioBitrate('128k')
+      .outputOptions([
+        '-minrate', '900k',
+        '-maxrate', '1300k',
+        '-crf', '31',
+        '-threads', '1'
+      ])
       .size(`${quality}x?`)
       .aspect('16:9')
       .on('error', e => {

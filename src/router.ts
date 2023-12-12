@@ -2,13 +2,15 @@ import express from 'express';
 import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
+import * as v1CUser from './controllers/v1/user';
+
 import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
 import Storage from './Models/Storage';
 import { privateRoute, uploadValidity } from './middlewares';
 import { uploadStorage } from './services/v1/storage';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 
 export const ApiV1 = express.Router();
@@ -84,3 +86,8 @@ ApiV1.post(`/title`, titleValidation, v1CTitle.create);
 ApiV1.delete(`/title`, v1CTitle.remove);
 
 ApiV1.post('/titleUpdate', v1C.titleUpdate);
+
+ApiV1.get(`/user/:uid`, param('uid').notEmpty(), v1CUser.get);
+ApiV1.patch(`/user`, body('uid').notEmpty(), v1CUser.update);
+ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'), body('password').isLength({ min: 6, max: 32 }), v1CUser.create);
+ApiV1.delete(`/user`, body(['uid']).notEmpty(), v1CUser.remove);
