@@ -13,9 +13,6 @@ import https from 'https';
 
 import fs from 'fs';
 import { writeErrorLog } from './handlers/v1/Errors';
-const hskey = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
-const hscert = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
-const hschain = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
 
 handler.createInitArchitecture();
 
@@ -36,7 +33,18 @@ app.use(bodyParser.json());
 app.use(cors({}));
 app.use('/v1', router.ApiV1);
 
-if (!process.env.PORT) {
+if (!devMode) {
+  app.enable('trust proxy');
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!req.secure) {
+      return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+
+    next();
+  });
+}
+
+if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
@@ -53,8 +61,12 @@ function listen(https?: boolean, showDetails?: boolean) {
 }
 
 if (devMode) {
-  app.listen(env.HTTP_PORT, env.IP, () => listen(true));
+  app.listen(env.HTTP_PORT, env.IP, () => listen(false, true));
 } else {
+  const hskey = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
+  const hscert = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
+  const hschain = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
+
   app.listen(env.HTTP_PORT, env.IP, () => listen());
   https.createServer({
     key: hskey,
