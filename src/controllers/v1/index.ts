@@ -123,7 +123,7 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
 }
 
 
-import titleUpdateDB from '../../../titleUpdateDB.json' assert {type: 'json'};
+import titleUpdateDB from '../../localDB/titleUpdateDB.json' assert {type: 'json'};
 export async function titleUpdate(req: express.Request, res: express.Response) {
   try {
     const { id, year } = req.query as { id: string, year: string };

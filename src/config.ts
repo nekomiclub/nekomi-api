@@ -5,7 +5,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 interface IEnv {
-  PORT: number,
+  HTTP_PORT: number,
+  HTTPS_PORT: number,
   IP: string,
   MONGODB_PROD_URI: string
   MONGODB_DEV_URI: string

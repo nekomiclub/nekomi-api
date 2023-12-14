@@ -12,15 +12,23 @@ import { UploadQueue } from './services/v1/processMedia';
 import https from 'https';
 
 import fs from 'fs';
-import path from 'path';
-const privateKey = fs.readFileSync(`${path.resolve()}/ssl/privatekey.pem`);
-const certificate = fs.readFileSync(`${path.resolve()}/ssl/certificate.pem`);
+import { writeErrorLog } from './handlers/v1/Errors';
+const hskey = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
+const hscert = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
+const hschain = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
 
 handler.createInitArchitecture();
 
 
 mongoose.set('strictQuery', false);
-mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI);
+mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI, {
+  // ssl: true,
+  retryWrites: true,
+}).catch(e => {
+  console.error(e);
+  // @ts-ignore
+  writeErrorLog(`MONGODB ERROR: ${e.message}`, 'index');
+});
 
 export const app = express();
 
@@ -35,20 +43,24 @@ if (!process.env.PORT) {
 export const uploadQueue = new UploadQueue();
 
 
-function listen() {
-  console.log(`Server is listening on ${env.IP}:${env.PORT} ...`);
+function listen(https?: boolean, showDetails?: boolean) {
+  console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
+
+  if (!showDetails) return;
   console.log(`DETAILS:\nStartedAt: ${new Date()};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
 
   onReady();
 }
 
 if (devMode) {
-  app.listen(env.PORT, env.IP, () => listen());
+  app.listen(env.HTTP_PORT, env.IP, () => listen(true));
 } else {
+  app.listen(env.HTTP_PORT, env.IP, () => listen());
   https.createServer({
-    key: privateKey,
-    cert: certificate
-  }, app).listen(env.PORT, env.IP, () => listen());
+    key: hskey,
+    cert: hscert,
+    ca: [hschain]
+  }, app).listen(env.HTTPS_PORT, env.IP, () => listen(true, true));
 }
 
 
