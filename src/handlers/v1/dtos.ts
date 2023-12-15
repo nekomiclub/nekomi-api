@@ -12,6 +12,6 @@ export function storageItem({ URI, dateAdded, id }: IStorageItem): IStorageItem 
   return { dateAdded, id, URI };
 }
 
-export function user({ avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username }: IUser): IUser {
-  return { avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, password: 'HIDDEN' };
+export function user({ avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, roles }: IUser): IUser {
+  return { avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, password: 'HIDDEN', roles };
 }

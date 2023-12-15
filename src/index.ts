@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import { devMode, testMode, env } from './config';
 
 import * as router from './router';
@@ -30,6 +31,7 @@ mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI, {
 export const app = express();
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(cors({}));
 app.use('/v1', router.ApiV1);
 

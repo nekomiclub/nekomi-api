@@ -40,7 +40,8 @@ export const User = mongoose.model<IUser>('user', new Schema({
         }>
       }> || null
     }
-  }
+  },
+  roles: ['admin' || 'dubber' || 'editor' || 'moderator' || 'root' || 'subber' || 'subscriber' || 'user']
 }));
 
 export default User; 

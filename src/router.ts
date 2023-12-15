@@ -10,7 +10,7 @@ import * as uuid from 'uuid';
 import Storage from './Models/Storage';
 import { privateRoute, uploadValidity } from './middlewares';
 import { uploadStorage } from './services/v1/storage';
-import { body, param } from 'express-validator';
+import { body, cookie, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 
 export const ApiV1 = express.Router();
@@ -24,6 +24,12 @@ ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
 ApiV1.get(`/global_stats`, v1C.getGS);
 ApiV1.get(`/uptime`, v1C.uptime);
 ApiV1.get(`/media/:id`, v1C.media);
+
+ApiV1.post(`/auth`, body(['username', 'password']).notEmpty(), v1CUser.auth);
+ApiV1.get(`/refresh`, cookie('refreshToken').notEmpty(), v1CUser.refresh);
+
+ApiV1.post(`/token/verify`, body(['token', 'method']).notEmpty(), v1C.tokenVerify);
+ApiV1.post(`/token/decode`, body(['token']).notEmpty(), v1C.tokenDecode);
 
 // Private
 ApiV1.post('/upload', upload.fields([{ name: 'file' }, { name: 'type' }]), uploadValidity, v1C.upload);
@@ -89,5 +95,5 @@ ApiV1.post('/titleUpdate', v1C.titleUpdate);
 
 ApiV1.get(`/user/:uid`, param('uid').notEmpty(), v1CUser.get);
 ApiV1.patch(`/user`, body('uid').notEmpty(), v1CUser.update);
-ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'), body('password').isLength({ min: 6, max: 32 }), v1CUser.create);
+ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'), body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'), v1CUser.create);
 ApiV1.delete(`/user`, body(['uid']).notEmpty(), v1CUser.remove);

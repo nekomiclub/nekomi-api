@@ -1,6 +1,6 @@
 import { TAuthProviders } from './IAuth';
 import { ITitleEpisodeMeta, ITitleEpisodesDub } from './ITitle';
-import { IUserList, IUserSettings, IUserStats } from './IUser';
+import { IUserList, IUserSettings, IUserStats, TUserRoles } from './IUser';
 
 export interface IStorageItem {
   id: string,
@@ -62,5 +62,6 @@ export interface IUser {
   settings: IUserSettings,
   stats: IUserStats,
   lists: IUserList[],
-  providers: TAuthProviders[]
+  providers: TAuthProviders[],
+  roles: TUserRoles[]
 }

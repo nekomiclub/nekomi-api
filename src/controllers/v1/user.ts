@@ -3,6 +3,7 @@ import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../h
 import { randomNumber } from '../../handlers/v1/handlers';
 import fs from 'fs';
 import * as dto from '../../handlers/v1/dtos';
+import * as authService from '../../services/v1/auth';
 import User from '../../Models/User';
 import { validationResult } from 'express-validator';
 import { IUser } from '../../core/interfaces';
@@ -154,6 +155,7 @@ export async function create(req: express.Request, res: express.Response) {
         name: 'Закинуті',
         id: `threwn-${uid}`
       }],
+      roles: ['user']
     };
 
     const item = new User(user);
@@ -189,6 +191,71 @@ export async function remove(req: express.Request, res: express.Response) {
     await User.findOneAndDelete({ uid });
 
     return res.status(200).json(`UID: ${uid} deleted`);
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function auth(req: express.Request, res: express.Response) {
+  try {
+    const valRes = validationResult(req);
+
+    if (!valRes.isEmpty()) {
+      return res.status(400).json(valRes.array());
+    }
+
+    const { password, username } = req.body as { username: string, password: string };
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      throw new E400('User with provided username is not found');
+    }
+
+    if (!bcrypt.compareSync(password, user.password)) {
+      throw new E400('Password is incorrect');
+    }
+
+    const tokens = authService.signTokens({ uid: user.uid, username, roles: user.roles });
+
+    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function refresh(req: express.Request, res: express.Response) {
+  try {
+    const valRes = validationResult(req);
+
+    if (!valRes.isEmpty()) {
+      return res.status(400).json(valRes.array());
+    }
+
+    const { refreshToken } = req.cookies as { refreshToken: string };
+
+    const isValid = authService.verify(refreshToken, 'refresh');
+
+    if (!isValid) {
+      throw new E401('Refresh token is invalid. Re-login');
+    }
+
+    const { roles, uid, username } = authService.decode(refreshToken)!;
+    const tokens = authService.signTokens({ uid, roles, username });
+
+    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

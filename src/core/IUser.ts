@@ -38,3 +38,5 @@ interface IUserStatsWatchedTitlesDub {
   id: string,
   totalWatch: number
 }
+
+export type TUserRoles = 'root' | 'admin' | 'moderator' | 'dubber' | 'subber' | 'subscriber' | 'editor' | 'user'

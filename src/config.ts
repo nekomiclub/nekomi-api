@@ -9,7 +9,9 @@ interface IEnv {
   HTTPS_PORT: number,
   IP: string,
   MONGODB_PROD_URI: string
-  MONGODB_DEV_URI: string
+  MONGODB_DEV_URI: string,
+  JWT_SECRET_ACCESS: string,
+  JWT_SECRET_REFRESH: string,
 }
 
 interface ICfg {
