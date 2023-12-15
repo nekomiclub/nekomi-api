@@ -173,7 +173,7 @@ export async function tokenVerify(req: express.Request, res: express.Response) {
       throw new E400('Token method is invalid');
     }
 
-    const serviceResponse = authService.verify(token, method);
+    const serviceResponse = authService.verify(token.split('=')[1], method);
 
     return res.status(200).json({ verified: serviceResponse });
   } catch (e) {
@@ -197,7 +197,7 @@ export async function tokenDecode(req: express.Request, res: express.Response) {
 
     const { token } = req.body as { token: string };
 
-    const serviceResponse = authService.decode(token);
+    const serviceResponse = authService.decode(token.split('=')[1]);
 
     return res.status(200).json(serviceResponse);
   } catch (e) {

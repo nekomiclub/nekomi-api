@@ -44,9 +44,14 @@ export async function update(req: express.Request, res: express.Response) {
     const { uid } = req.body as { uid: string };
 
     const item = await User.findOne({ uid });
+    const tokenData = authService.decode(req.header('Authorization')!.split('=')[1])!;
 
     if (!item) {
       throw new E400('User with provided ID is not found.');
+    }
+
+    if (tokenData.uid !== uid && !tokenData.roles.includes('root' || 'admin' || 'moderator')) {
+      throw new E403('You can not change not yours data');
     }
 
     for (const i in req.body) {
@@ -182,10 +187,15 @@ export async function remove(req: express.Request, res: express.Response) {
     }
 
     const { uid } = req.body;
+    const tokenData = authService.decode(req.header('Authorization')!.split('=')[1])!;
     const user = await User.findOne({ uid });
 
     if (!user) {
       throw new E400('User with provided ID is not found');
+    }
+
+    if (tokenData.uid !== uid && !tokenData.roles.includes('root' || 'admin' || 'moderator')) {
+      throw new E403('You can not change not yours data');
     }
 
     await User.findOneAndDelete({ uid });

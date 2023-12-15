@@ -13,7 +13,7 @@ import { UploadQueue } from './services/v1/processMedia';
 import https from 'https';
 
 import fs from 'fs';
-import { writeErrorLog } from './handlers/v1/Errors';
+import { E403, writeErrorLog } from './handlers/v1/Errors';
 
 handler.createInitArchitecture();
 
@@ -32,7 +32,7 @@ export const app = express();
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors({}));
+app.use(cors());
 app.use('/v1', router.ApiV1);
 
 if (!devMode) {
@@ -78,6 +78,7 @@ if (devMode) {
 }
 
 
+import { signTokens } from './services/v1/auth';
 
 async function onReady() {
   // await handler.clearTestIDs();

@@ -5,17 +5,42 @@ import Storage from './Models/Storage';
 import fs from 'fs';
 import path from 'path';
 import { getFileExtension } from './handlers/v1/handlers';
+import { TUserRoles } from './core/IUser';
+import * as authService from './services/v1/auth';
 
 const isDev = process.argv.some(el => el === 'devMode');
 const isTest = process.argv.some(el => el === 'testMode');
 
-export async function privateRoute(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function ensureAccess(accessRoles: TUserRoles[], req: express.Request, res: express.Response, next: express.NextFunction) {
   try {
-    if (!req.hostname.includes('animee.club')) {
-      if (!isDev) {
-        throw new E403('This route is accesible only from animee.club domain.');
-      }
+    const token = req.header('Authorization')?.split('=')[1];
+
+    if (!token) {
+      throw new E401('Authorization token is not provided');
     }
+
+    const isValid = authService.verify(token, 'access');
+
+    if (!isValid) {
+      throw new E401('Access token is invalid. Refresh token by GET /refresh');
+    }
+
+    const { roles, uid, username } = authService.decode(token)!;
+
+    if (roles.includes('root')) {
+      return next();
+    }
+
+    let hasAccess = false;
+    roles.forEach(role => {
+      if (accessRoles.includes(role)) hasAccess = true;
+    });
+
+    if (!hasAccess) {
+      throw new E403('You are not permitted to visit that endpoint');
+    }
+
+    next();
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);
@@ -25,8 +50,6 @@ export async function privateRoute(req: express.Request, res: express.Response, 
       return res.status(500).json(e);
     }
   }
-
-  next();
 }
 
 export async function uploadValidity(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -46,6 +69,7 @@ export async function uploadValidity(req: express.Request, res: express.Response
   const quality = req.body.quality as string;
   const type = req.body.type as TUpload;
   const item = await Storage.findOne({ id }, {}, { maxTimeMS: 10000 });
+  const tokenData = authService.decode(req.header('Authorization')!.split('=')[1])!;
 
   try {
     if (type !== 'photo/series' && type !== 'photo/user/avatar' && type !== 'video/series') {
@@ -67,8 +91,13 @@ export async function uploadValidity(req: express.Request, res: express.Response
       if (!quality) {
         return await revert(id, item?.URI, new E400(`Quality must be provided`));
       }
+
+      if (!tokenData.roles.includes('root' || 'admin' || 'dubber')) {
+        return await revert(id, item?.URI, new E403(`You can not upload videos`));
+      }
     }
 
+    next();
   } catch (e) {
     await revert(id, item?.URI, new E500(''), false);
     if (e instanceof ErrorConstructor) {
@@ -79,6 +108,4 @@ export async function uploadValidity(req: express.Request, res: express.Response
       return res.status(500).json(e);
     }
   }
-
-  next();
 }
