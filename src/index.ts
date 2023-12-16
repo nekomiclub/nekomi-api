@@ -77,9 +77,6 @@ if (devMode) {
   }, app).listen(env.HTTPS_PORT, env.IP, () => listen(true, true));
 }
 
-
-import { signTokens } from './services/v1/auth';
-
 async function onReady() {
   // await handler.clearTestIDs();
   // handler.createDubbers();

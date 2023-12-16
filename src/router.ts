@@ -98,6 +98,6 @@ ApiV1.patch(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor
 ApiV1.post(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), titleValidation, v1CTitle.create);
 ApiV1.delete(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), v1CTitle.remove);
 
-ApiV1.post('/titleUpdate', (req, res, next) => ensureAccess(['root'], req, res, next), v1C.titleUpdate);
+ApiV1.post('/titleUpdate', v1C.titleUpdate);
 
 ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);
