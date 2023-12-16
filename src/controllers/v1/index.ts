@@ -65,7 +65,7 @@ export async function media(req: express.Request, res: express.Response) {
 
 export async function upload(req: express.Request, res: express.Response) {
   try {
-    const { id, type, quality } = req.body as { id: string, type: TUpload, quality: processMedia.TPVQuality[] };
+    const { id, type, quality, relevant } = req.body as { id: string, type: TUpload, quality?: processMedia.TPVQuality[], relevant?: boolean };
 
     await processMedia.checkConditions(id);
     const item = await Storage.findOne({ id });
@@ -76,7 +76,7 @@ export async function upload(req: express.Request, res: express.Response) {
 
     try {
       if (type.match(/^video/g)) {
-        uploadQueue.add(id, item.URI, quality, type);
+        uploadQueue.add(id, item.URI, quality!, type, Boolean(relevant || false));
       } else {
         processMedia.processPhoto(id, type);
       }

@@ -39,7 +39,7 @@ ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-
 ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(), v1CUser.remove);
 
 // Private
-ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }]), uploadValidity, v1C.upload);
+ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }, { name: 'quality' }]), uploadValidity, v1C.upload);
 ApiV1.delete('/upload', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor', 'subber'], req, res, next), v1C.deleteUpload);
 
 const titleValidation = [

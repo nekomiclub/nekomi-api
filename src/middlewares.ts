@@ -61,7 +61,7 @@ export async function uploadValidity(req: express.Request, res: express.Response
     }
 
     if (isThrow) {
-      throw err;
+      return res.status(err.code).json(err.msg);
     }
   }
 

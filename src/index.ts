@@ -78,6 +78,6 @@ if (devMode) {
 }
 
 async function onReady() {
-  // await handler.clearTestIDs();
+  await handler.clearTestIDs();
   // handler.createDubbers();
 }

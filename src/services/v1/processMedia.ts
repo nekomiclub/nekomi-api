@@ -26,7 +26,7 @@ export async function checkConditions(id: string) {
   await getFreeDiskURI(fs.statSync(item.URI).size * 3);
 }
 
-interface IUploadQueue { id: string, type: TUpload, quality: TPVQuality[], URI: string, timestamp: number }
+interface IUploadQueue { id: string, type: TUpload, quality: TPVQuality[], URI: string, timestamp: number, relevant: boolean }
 
 export class UploadQueue {
   private queue: IUploadQueue[];
@@ -58,8 +58,8 @@ export class UploadQueue {
     })();
   }
 
-  add(id: string, URI: string, quality: TPVQuality[], type: TUpload) {
-    this.queue.push({ id, URI, quality, type, timestamp: +new Date() });
+  add(id: string, URI: string, quality: TPVQuality[], type: TUpload, relevant: boolean) {
+    this.queue.push({ id, URI, quality, type, timestamp: +new Date(), relevant });
     fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: this.queue }, null, 2));
 
     this.run();
@@ -74,7 +74,7 @@ export class UploadQueue {
     if (!this.queue.length) return devMode ? console.log('queue is empty') : null;
     if (!this.isQueueFree) return devMode ? console.log('queue is not free') : null;
 
-    const { URI, id, quality, timestamp, type } = this.queue[0];
+    const { URI, id, quality, timestamp, type, relevant } = this.queue[0];
 
     this.isQueueFree = false;
 
@@ -82,7 +82,7 @@ export class UploadQueue {
       if (type.match(/^photo\//gi)) {
         await processPhoto(id, type);
       } else if (type.match(/^video\//gi)) {
-        await processVideo(id, quality);
+        await processVideo(id, quality, relevant);
       }
     } catch (e) {
       // @ts-ignore
@@ -179,7 +179,7 @@ async function enchancePoster(id: string, URI: string): Promise<string> {
 
 export type TPVQuality = 240 | 480 | 720 | 1080 | 1440;
 
-export async function processVideo(id: string, quality: TPVQuality[]) {
+export async function processVideo(id: string, quality: TPVQuality[], relevant: boolean) {
   const startedAt = +new Date();
   const item = await Storage.findOne({ id });
   const TID = (Math.random() + 1).toString(36).substring(8);
@@ -188,19 +188,20 @@ export async function processVideo(id: string, quality: TPVQuality[]) {
 
   try {
     const uploadURI = item!.URI;
-    const sourceURI = await convertWebm(id, TID, dto.storageItem(item!));
+    const sourceURI = await convertWebm(id, TID, dto.storageItem(item!), relevant);
 
     await Promise.all([
       createPreview(id, TID, sourceURI),
-      (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720) : null,
-      (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480) : null,
-      (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240) : null,
+      (quality.includes(720)) ? cropWebm(id, TID, sourceURI, 720, relevant) : null,
+      (quality.includes(480)) ? cropWebm(id, TID, sourceURI, 480, relevant) : null,
+      (quality.includes(240)) ? cropWebm(id, TID, sourceURI, 240, relevant) : null,
     ]);
 
     await store(id);
 
     fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true });
     console.log(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
+    writeToLog(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
     fs.rmSync(uploadURI);
   } catch (e) {
     writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
@@ -213,7 +214,7 @@ export async function processVideo(id: string, quality: TPVQuality[]) {
   }
 }
 
-async function convertWebm(id: string, TID: string, item: IStorageItem): Promise<string> {
+async function convertWebm(id: string, TID: string, item: IStorageItem, relevant: boolean): Promise<string> {
   const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const outURI = `${outFolder}/${id}.webm`;
   const sourceURI = item.URI;
@@ -228,13 +229,13 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
     ffmpeg(sourceURI)
       .videoCodec('libvpx')
       .audioCodec('libopus')
-      .videoBitrate('1800k')
+      .videoBitrate(relevant ? '2400k' : '1800k')
       .audioBitrate('128k')
       .outputOptions([
-        '-minrate', '900k',
+        '-minrate', '1800k',
         '-maxrate', '2610k',
         '-crf', '32',
-        '-threads', '1'
+        '-threads', '0'
       ])
       .on('error', e => {
         rej(e);
@@ -258,7 +259,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem): Promise
   return outURI;
 }
 
-export async function cropWebm(id: string, TID: string, sourceURI: string, quality: TPVQuality): Promise<string> {
+export async function cropWebm(id: string, TID: string, sourceURI: string, quality: TPVQuality, relevant: boolean): Promise<string> {
   const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const outURI = `${outFolder}/${id}_q_${quality}.webm`;
   const startTS = +new Date();
@@ -272,13 +273,13 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
     ffmpeg(sourceURI)
       .videoCodec('libvpx')
       .audioCodec('libopus')
-      .videoBitrate('1100k')
+      .videoBitrate(relevant ? '1300k' : '1100k')
       .audioBitrate('128k')
       .outputOptions([
         '-minrate', '900k',
-        '-maxrate', '1300k',
+        '-maxrate', relevant ? '1500k' : '1300k',
         '-crf', '31',
-        '-threads', '1'
+        '-threads', '0'
       ])
       .size(`${quality}x?`)
       .aspect('16:9')
