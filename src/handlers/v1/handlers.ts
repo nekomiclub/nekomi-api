@@ -81,6 +81,7 @@ export async function clearout() {
   const storage = await Storage.find();
   storage.forEach(async item => {
     try {
+      if (devMode && item.URI.match(/\/media/gi)) return;
       await axios.get(devMode ? `http://${ip.address()}/v1/media/${item.id}` : `https://api.animee.club/v1/media/${item.id}`);
     } catch (e) {
       console.log(`${item.id} deleted as unavailable`);

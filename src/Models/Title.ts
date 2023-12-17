@@ -58,7 +58,8 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
     pictureURL: String,
     name: String,
     URL: String
-  } || null
+  } || null,
+  details: String || null
 }));
 
 export default Title; 

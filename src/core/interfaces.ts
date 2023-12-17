@@ -42,7 +42,8 @@ export interface ITitle {
     pictureURL: string,
     name: string,
     URL: string
-  } | null
+  } | null,
+  details: string | null
 }
 
 export interface IDubber {

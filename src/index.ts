@@ -4,14 +4,15 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { devMode, testMode, env } from './config';
 
+import https from 'https';
+import cors from 'cors';
+import fs from 'fs';
+
 import * as router from './router';
 import * as handler from './handlers/v1/handlers';
-import cors from 'cors';
 import { UploadQueue } from './services/v1/processMedia';
-import https from 'https';
-
-import fs from 'fs';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
+import Title from './Models/Title';
 
 
 mongoose.set('strictQuery', false);
@@ -45,7 +46,7 @@ if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
-export const uploadQueue = new UploadQueue(true);
+export const uploadQueue = new UploadQueue();
 
 
 function listen(https?: boolean, showDetails?: boolean) {
@@ -81,8 +82,6 @@ async function onReady() {
     if (!devMode) {
       await handler.clearTestIDs();
     }
-
-    await handler.clearout();
 
     setTimeout(async () => {
       await handler.clearout();
