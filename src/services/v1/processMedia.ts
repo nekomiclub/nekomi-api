@@ -232,7 +232,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
       .videoBitrate(relevant ? '2400k' : '1800k')
       .audioBitrate('128k')
       .outputOptions([
-        '-minrate', '1800k',
+        '-minrate', relevant ? '1800k' : '1300k',
         '-maxrate', '2610k',
         '-crf', '32',
         '-threads', '0'
