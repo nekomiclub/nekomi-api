@@ -26,34 +26,42 @@ export async function checkConditions(id: string) {
   await getFreeDiskURI(fs.statSync(item.URI).size * 3);
 }
 
-interface IUploadQueue { id: string, type: TUpload, quality: TPVQuality[], URI: string, timestamp: number, relevant: boolean }
+export interface IUploadQueue { id: string, type: TUpload, quality: TPVQuality[], URI: string, timestamp: number, relevant: boolean }
 
 export class UploadQueue {
   private queue: IUploadQueue[];
   private isQueueFree = true;
 
-  constructor() {
+  constructor(stopInitialRun?: boolean) {
     // @ts-ignore
     this.queue = (uploadDB.queue as IUploadQueue[]).sort((a, b) => a.timestamp - b.timestamp);
     // eslint-disable-next-line
     const th = this;
 
     (async function () {
-      if (th.queue.length) {
-        await new Promise(res => {
-          th.queue.forEach(async (el, i) => {
-            const item = await Storage.findOne({ id: el.id });
+      if (stopInitialRun) return;
+      try {
+        if (th.queue.length) {
+          await new Promise(res => {
+            th.queue.forEach(async (el, i) => {
+              const item = await Storage.findOne({ id: el.id });
 
-            item!.URI = el.URI;
-            await item!.save();
+              if (!item) return;
 
-            if (i === th.queue.length - 1) {
-              res(1);
-            }
+              item.URI = el.URI;
+              await item.save();
+
+              if (i === th.queue.length - 1) {
+                res(1);
+              }
+            });
           });
-        });
 
-        th.run();
+          th.run();
+        }
+      } catch (e) {
+        // @ts-ignore
+        writeErrorLog(`UploadQueue throw an error: ${e.message}`, 'services/v1/processMedida.ts/UploadQueue');
       }
     })();
   }
@@ -182,7 +190,7 @@ export type TPVQuality = 240 | 480 | 720 | 1080 | 1440;
 export async function processVideo(id: string, quality: TPVQuality[], relevant: boolean) {
   const startedAt = +new Date();
   const item = await Storage.findOne({ id });
-  const TID = (Math.random() + 1).toString(36).substring(8);
+  const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
 
   writeToLog(`Started processing video. ID: ${id}; TID: ${TID}, Q: ${quality}`);
 

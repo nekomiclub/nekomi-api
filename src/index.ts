@@ -6,8 +6,6 @@ import { devMode, testMode, env } from './config';
 
 import * as router from './router';
 import * as handler from './handlers/v1/handlers';
-import { Dubbers } from './Models/Dubber';
-import * as uuid from 'uuid';
 import cors from 'cors';
 import { UploadQueue } from './services/v1/processMedia';
 import https from 'https';
@@ -15,12 +13,9 @@ import https from 'https';
 import fs from 'fs';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 
-handler.createInitArchitecture();
-
 
 mongoose.set('strictQuery', false);
 mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI, {
-  // ssl: true,
   retryWrites: true,
 }).catch(e => {
   console.error(e);
@@ -50,7 +45,7 @@ if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
-export const uploadQueue = new UploadQueue();
+export const uploadQueue = new UploadQueue(true);
 
 
 function listen(https?: boolean, showDetails?: boolean) {
@@ -69,6 +64,10 @@ if (devMode) {
   const hscert = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
   const hschain = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
 
+  if (!hskey || !hscert || !hschain) {
+    throw new Error('SSL certs are not found');
+  }
+
   app.listen(env.HTTP_PORT, env.IP, () => listen());
   https.createServer({
     key: hskey,
@@ -78,6 +77,18 @@ if (devMode) {
 }
 
 async function onReady() {
-  // await handler.clearTestIDs();
-  // handler.createDubbers();
+  try {
+    if (!devMode) {
+      await handler.clearTestIDs();
+    }
+
+    await handler.clearout();
+
+    setTimeout(async () => {
+      await handler.clearout();
+    }, 1000 * 60 * 60 * 24);
+  } catch (e) {
+    // @ts-ignore
+    writeErrorLog(`onReady cb throw an error: ${e.message}`, 'index');
+  }
 }

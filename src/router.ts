@@ -16,7 +16,7 @@ import { TAnimeGenres } from './core/interfaces';
 export const ApiV1 = express.Router();
 const upload = multer({ storage: uploadStorage });
 
-// (req, res, next) => ensureAccess(['ROLE'], req, res, next)
+// TODO (req, res, next) => ensureAccess(['ROLE'], req, res, next)
 
 ApiV1.get(`/title/:id`, v1CTitle.getOne);
 ApiV1.get(`/titles`, v1CTitle.getMany);
@@ -38,8 +38,8 @@ ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-
 
 ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(), v1CUser.remove);
 
-// Private
-ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }, { name: 'quality' }]), uploadValidity, v1C.upload);
+//! Private
+ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }, { name: 'quality' }]), uploadValidity, v1C.upload); //! Half-private, user can upload only picture, root & editor can upload video.
 ApiV1.delete('/upload', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor', 'subber'], req, res, next), v1C.deleteUpload);
 
 const titleValidation = [
@@ -98,6 +98,6 @@ ApiV1.patch(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor
 ApiV1.post(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), titleValidation, v1CTitle.create);
 ApiV1.delete(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), v1CTitle.remove);
 
-ApiV1.post('/titleUpdate', v1C.titleUpdate);
+ApiV1.post('/titleUpdate', v1C.titleUpdate); // TODO Fix access issue
 
 ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);

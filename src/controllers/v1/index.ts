@@ -76,7 +76,7 @@ export async function upload(req: express.Request, res: express.Response) {
 
     try {
       if (type.match(/^video/g)) {
-        uploadQueue.add(id, item.URI, quality!, type, Boolean(relevant || false));
+        uploadQueue.add(id, item.URI, Array.from(quality!), type, Boolean(relevant || false));
       } else {
         processMedia.processPhoto(id, type);
       }
@@ -98,10 +98,13 @@ export async function upload(req: express.Request, res: express.Response) {
   }
 }
 
+import uploadDB from '../../localDB/uploadDB.json' assert {type: 'json'};
 export async function deleteUpload(req: express.Request, res: express.Response) {
   try {
     const { id } = req.body as { id: string };
     const item = await Storage.findOne({ id });
+
+    fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: (uploadDB.queue as processMedia.IUploadQueue[]).filter(el => el.id !== id) }, null, 2));
 
     if (!item) {
       throw new E400('Storage item with provided id is not found');
@@ -109,6 +112,7 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
 
     fs.rmSync(item.URI);
     await item.deleteOne();
+
 
     return res.status(200).json('ok');
   } catch (e) {

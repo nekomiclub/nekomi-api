@@ -7,6 +7,7 @@ import Title from '../../Models/Title';
 import { env, cfg, testMode, devMode } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
+import axios from 'axios';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -60,25 +61,32 @@ export async function clearTestIDs() {
   return true;
 }
 
-export async function createDubbers() {
-  const dubbers = ['Didko Studio', 'Ukrsub', 'Kioto Anime', 'Amanogawa', 'Dzuski', 'FanVoxUA'];
-  const dubbersAvatarURIs = [`${path.resolve()}/test/dubbers/didko.jpg`, `${path.resolve()}/test/dubbers/ukrsub.jpg`, `${path.resolve()}/test/dubbers/kioto-anime.jpg`, `${path.resolve()}/test/dubbers/amanogawa.jpg`, `${path.resolve()}/test/dubbers/dzuski.jpg`, `${path.resolve()}/test/dubbers/fanvoxua.jpg`];
+import uploadDB from '../../localDB/uploadDB.json' assert {type: 'json'};
+export async function clearout() {
+  const root = path.resolve();
 
-  dubbers.forEach(async (dub, i) => await createDubber(dub, await uploadFile(dubbersAvatarURIs[i])));
-}
-
-export async function createDubber(name: string, avatarID: string) {
-  const code = name.toLowerCase().replaceAll(' ', '-');
-  console.log(avatarID);
-
-  const item = new Dubbers({
-    id: testMode ? `testid-${uuid.v4()}` : uuid.v4(),
-    code,
-    name,
-    thumbURL: `http://${devMode ? ip.address() : 'api.animee.club'}:${devMode ? env.PORT : 8080}/v1/media/${avatarID}`
+  fs.readdirSync(`${root}/tmp/processing`).forEach(tid => {
+    fs.readdirSync(`${root}/tmp/processing/${tid}`).forEach(file => {
+      if (+file.split('-')[1] < (+new Date() - 1000 * 60 * 60 * 24 * 3)) {
+        fs.rmSync(`${root}/tmp/processing/${tid}`, { recursive: true, force: true });
+      }
+    });
   });
 
-  await item.save();
+  if (!uploadDB.queue.length) {
+    fs.readdirSync(`${root}/pw`).forEach(tid => fs.rmSync(`${root}/pw/${tid}`, { recursive: true, force: true }));
+    fs.readdirSync(`${root}/tmp/uploads`).forEach(upload => fs.rmSync(`${root}/tmp/uploads/${upload}`, { recursive: true, force: true }));
+  }
+
+  const storage = await Storage.find();
+  storage.forEach(async item => {
+    try {
+      await axios.get(devMode ? `http://${ip.address()}/v1/media/${item.id}` : `https://api.animee.club/v1/media/${item.id}`);
+    } catch (e) {
+      console.log(`${item.id} deleted as unavailable`);
+      await Storage.findOneAndDelete({ id: item.id });
+    }
+  });
 }
 
 export async function uploadFile(path: string): Promise<string> {
