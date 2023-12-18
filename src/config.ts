@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import firebaseAdmin from 'firebase-admin';
+import jwtSecrets from '../secrets/JWT.json' assert {type: 'json'};
+import { TUserRoles } from './core/IUser';
 
 dotenv.config();
 
@@ -20,8 +23,16 @@ interface ICfg {
 
 // @ts-ignore
 export const env = process.env as IEnv;
+
+env.JWT_SECRET_ACCESS = jwtSecrets.accessTokenSecret;
+env.JWT_SECRET_REFRESH = jwtSecrets.refreshTokenSecret;
+
 export const devMode = process.argv.some(el => el === 'devMode');
 export const testMode = process.argv.some(el => el === 'testMode');
+
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.cert(`${path.resolve()}/secrets/firebase.json`)
+});
 
 export const cfg: ICfg = {
   storageURIs: devMode ? [
@@ -37,5 +48,7 @@ export const defaultAvatars: string[] = [
   `https://api.animee.club/v1/media/7069ef7f-1ec9-4867-9fa2-ca1bf9e60643`,
   `https://api.animee.club/v1/media/1ea43878-36f0-416f-9f02-0b6eed54e411`
 ];
+
+export const userDefaultRoles: TUserRoles[] = ['user'];
 
 export default cfg;

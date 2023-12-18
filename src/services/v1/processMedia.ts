@@ -214,11 +214,6 @@ export async function processVideo(id: string, quality: TPVQuality[], relevant: 
     fs.rmSync(uploadURI);
   } catch (e) {
     writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
-
-    if (!devMode) {
-      return;
-    }
-
     console.error(e);
   }
 }
@@ -247,15 +242,17 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
     threads = 2;
   }
 
+  console.log(`CONVERTATION RUN IN ${threads} THREADS.`);
+
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
       .videoCodec('libvpx')
       .audioCodec('libopus')
-      .videoBitrate(relevant ? '2400k' : '1800k')
+      .videoBitrate('1800k')
       .audioBitrate('128k')
       .outputOptions([
-        '-minrate', relevant ? '1800k' : '1300k',
-        '-maxrate', '2610k',
+        '-minrate', relevant ? '1600k' : '1300k',
+        '-maxrate', '2100k',
         '-crf', '32',
         '-threads', `${threads}`
       ])
@@ -293,6 +290,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
 
   const hrs = new Date().getUTCHours();
   let threads = 0;
+  console.log(`CROP RUN IN ${threads} THREADS.`);
 
   if (hrs >= 20) {
     threads = 1;
