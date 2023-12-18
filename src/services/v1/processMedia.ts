@@ -13,6 +13,7 @@ import { getFreeDiskURI, store } from './storage';
 import sharp from 'sharp';
 import { devMode, testMode } from '../../config';
 import * as dto from '../../handlers/v1/dtos';
+import * as handler from '../../handlers/v1/handlers';
 import uploadDB from '../../localDB/uploadDB.json' assert {type: 'json'};
 
 export async function checkConditions(id: string) {
@@ -67,7 +68,7 @@ export class UploadQueue {
   }
 
   add(id: string, URI: string, quality: TPVQuality[], type: TUpload, relevant: boolean) {
-    this.queue.push({ id, URI, quality, type, timestamp: +new Date(), relevant });
+    this.queue.push({ id, URI, quality, type, timestamp: handler.getUTCTime(), relevant });
     fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: this.queue }, null, 2));
 
     this.run();
@@ -188,7 +189,7 @@ async function enchancePoster(id: string, URI: string): Promise<string> {
 export type TPVQuality = 240 | 480 | 720 | 1080 | 1440;
 
 export async function processVideo(id: string, quality: TPVQuality[], relevant: boolean) {
-  const startedAt = +new Date();
+  const startedAt = handler.getUTCTime();
   const item = await Storage.findOne({ id });
   const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
 
@@ -208,8 +209,8 @@ export async function processVideo(id: string, quality: TPVQuality[], relevant: 
     await store(id);
 
     fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true });
-    console.log(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
-    writeToLog(`Video processing finished!\nID: ${id}\nWithin: ${(+new Date() - startedAt) / 1000}s`);
+    console.log(`Video processing finished!\nID: ${id}\nWithin: ${(handler.getUTCTime() - startedAt) / 1000}s`);
+    writeToLog(`Video processing finished!\nID: ${id}\nWithin: ${(handler.getUTCTime() - startedAt) / 1000}s`);
     fs.rmSync(uploadURI);
   } catch (e) {
     writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
@@ -226,12 +227,25 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
   const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const outURI = `${outFolder}/${id}.webm`;
   const sourceURI = item.URI;
-  const startTS = +new Date();
+  const startTS = handler.getUTCTime();
 
   if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
   console.log(`Start compressing video to webm with TID: ${TID}`);
 
   fs.writeFileSync(`${outFolder}/clearout-${startTS}`, ``);
+
+  const hrs = new Date().getUTCHours();
+  let threads = 0;
+
+  if (hrs >= 20) {
+    threads = 1;
+  } else if (hrs >= 7) {
+    threads = 0;
+  } else if (hrs >= 5) {
+    threads = 3;
+  } else if (hrs >= 3) {
+    threads = 2;
+  }
 
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
@@ -243,7 +257,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
         '-minrate', relevant ? '1800k' : '1300k',
         '-maxrate', '2610k',
         '-crf', '32',
-        '-threads', '0'
+        '-threads', `${threads}`
       ])
       .on('error', e => {
         rej(e);
@@ -262,7 +276,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
 
   await db!.save();
 
-  if (devMode || testMode) console.log(`Compressing video with TID ${TID} ended within ${(+new Date() - startTS) / 1000}s`);
+  if (devMode || testMode) console.log(`Compressing video with TID ${TID} ended within ${(handler.getUTCTime() - startTS) / 1000}s`);
 
   return outURI;
 }
@@ -270,12 +284,25 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
 export async function cropWebm(id: string, TID: string, sourceURI: string, quality: TPVQuality, relevant: boolean): Promise<string> {
   const outFolder = `${path.resolve()}/tmp/processing/${TID}`;
   const outURI = `${outFolder}/${id}_q_${quality}.webm`;
-  const startTS = +new Date();
+  const startTS = handler.getUTCTime();
 
   if (!fs.existsSync(outFolder)) fs.mkdirSync(outFolder);
   if (devMode || testMode) console.log(`Start cropping video to ${quality} with TID: ${TID}`);
 
   fs.writeFileSync(outURI, '');
+
+  const hrs = new Date().getUTCHours();
+  let threads = 0;
+
+  if (hrs >= 20) {
+    threads = 1;
+  } else if (hrs >= 7) {
+    threads = 0;
+  } else if (hrs >= 5) {
+    threads = 3;
+  } else if (hrs >= 3) {
+    threads = 2;
+  }
 
   await new Promise((res, rej) => {
     ffmpeg(sourceURI)
@@ -287,7 +314,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
         '-minrate', '900k',
         '-maxrate', relevant ? '1500k' : '1300k',
         '-crf', '31',
-        '-threads', '0'
+        '-threads', `${threads}`
       ])
       .size(`${quality}x?`)
       .aspect('16:9')
@@ -300,11 +327,11 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
       .saveToFile(outURI);
   });
 
-  if (devMode || testMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(+new Date() - startTS) / 1000}s`);
+  if (devMode || testMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(handler.getUTCTime() - startTS) / 1000}s`);
 
   const item = new Storage({
     id: `${id}_q_${quality}`,
-    dateAdded: +new Date(),
+    dateAdded: handler.getUTCTime(),
     URI: outURI
   });
 
@@ -437,7 +464,7 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
     const item = new Storage({
       id: uid,
       URI: outURI,
-      dateAdded: +new Date()
+      dateAdded: handler.getUTCTime()
     });
 
     await item.save();

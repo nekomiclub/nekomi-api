@@ -3,6 +3,7 @@ import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../h
 import { randomNumber } from '../../handlers/v1/handlers';
 import fs from 'fs';
 import * as dto from '../../handlers/v1/dtos';
+import * as handler from '../../handlers/v1/handlers';
 import * as authService from '../../services/v1/auth';
 import User from '../../Models/User';
 import { validationResult } from 'express-validator';
@@ -96,7 +97,7 @@ export async function create(req: express.Request, res: express.Response) {
       password: bcrypt.hashSync(password, 7),
       settings: {},
       stats: {
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         titles: {
           delayed: 0,
           favorites: 0,
@@ -115,7 +116,7 @@ export async function create(req: express.Request, res: express.Response) {
       profileBg: null,
       badgesIDs: null,
       lists: [{
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         description: 'Тайтли, які запали в саме серце',
         hidden: true,
         immortal: true,
@@ -124,7 +125,7 @@ export async function create(req: express.Request, res: express.Response) {
         name: 'Улюблені',
         id: `favorite-${uid}`
       }, {
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         description: 'Ти вже в цій тємі',
         hidden: true,
         immortal: true,
@@ -133,7 +134,7 @@ export async function create(req: express.Request, res: express.Response) {
         name: 'Переглянуті',
         id: `watched-${uid}`
       }, {
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         description: 'Колись вони будуть переглянуті',
         hidden: true,
         immortal: true,
@@ -142,7 +143,7 @@ export async function create(req: express.Request, res: express.Response) {
         name: 'В планах',
         id: `plans-${uid}`
       }, {
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         description: 'Хто зна коли їх перегляд буде закінчений',
         hidden: true,
         immortal: true,
@@ -151,7 +152,7 @@ export async function create(req: express.Request, res: express.Response) {
         name: 'Відкладені',
         id: `delayed-${uid}`
       }, {
-        createdAt: +new Date(),
+        createdAt: handler.getUTCTime(),
         description: 'Побачив, пошкодував, закинув',
         hidden: true,
         immortal: true,

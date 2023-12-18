@@ -53,7 +53,7 @@ function listen(https?: boolean, showDetails?: boolean) {
   console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
 
   if (!showDetails) return;
-  console.log(`DETAILS:\nStartedAt: ${new Date()};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
+  console.log(`DETAILS:\nStartedAt: ${new Date(handler.getUTCTime())};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
 
   onReady();
 }

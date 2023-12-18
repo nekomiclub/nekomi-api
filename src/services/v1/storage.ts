@@ -9,6 +9,7 @@ import { E400, E500 } from '../../handlers/v1/Errors';
 import checkDiskSpace from 'check-disk-space';
 import { exec } from 'child_process';
 import { getFileExtension } from '../../handlers/v1/handlers';
+import * as handler from '../../handlers/v1/handlers';
 
 export const uploadStorage = multer.diskStorage({
   destination(req, file, callback) {
@@ -44,7 +45,7 @@ export const uploadStorage = multer.diskStorage({
     const storage = new Storage({
       id,
       URI: `${path.resolve()}/tmp/uploads/${id}.${ext}`,
-      dateAdded: +new Date()
+      dateAdded: handler.getUTCTime()
     });
 
     req.body = {

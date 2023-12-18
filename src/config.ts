@@ -33,12 +33,9 @@ export const cfg: ICfg = {
 };
 
 export const defaultAvatars: string[] = [
-  `https://api.animee.club/v1/media/31451ae9-c655-4193-bc31-511dacdb5cbd`,
-  `https://api.animee.club/v1/media/76d2c8c8-2eac-497b-83dc-8dd484e9b242`,
-  `https://api.animee.club/v1/media/8b3d7adb-4b33-4e59-a32f-49a8a6cdd343`,
-  `https://api.animee.club/v1/media/df807b70-4969-49ae-bedd-9b9cab3361b8`,
-  `https://api.animee.club/v1/media/d5c85c39-bf64-4cb3-bdbb-cbeeeb425524`,
-  `https://api.animee.club/v1/media/14b36afb-3e65-454b-a1ab-e9290cf484b3`,
+  `https://api.animee.club/v1/media/05ba8cc3-3ede-420c-bc0a-2f6ae663b74f`,
+  `https://api.animee.club/v1/media/7069ef7f-1ec9-4867-9fa2-ca1bf9e60643`,
+  `https://api.animee.club/v1/media/1ea43878-36f0-416f-9f02-0b6eed54e411`
 ];
 
 export default cfg;

@@ -67,7 +67,7 @@ export async function clearout() {
 
   fs.readdirSync(`${root}/tmp/processing`).forEach(tid => {
     fs.readdirSync(`${root}/tmp/processing/${tid}`).forEach(file => {
-      if (+file.split('-')[1] < (+new Date() - 1000 * 60 * 60 * 24 * 3)) {
+      if (+file.split('-')[1] < (getUTCTime() - 1000 * 60 * 60 * 24 * 3)) {
         fs.rmSync(`${root}/tmp/processing/${tid}`, { recursive: true, force: true });
       }
     });
@@ -98,10 +98,14 @@ export async function uploadFile(path: string): Promise<string> {
 
   const item = new Storage({
     id,
-    dateAdded: +new Date(),
+    dateAdded: getUTCTime(),
     URI: destURI
   });
 
   await item.save();
   return item.id;
+}
+
+export function getUTCTime(): number {
+  return +new Date().setUTCHours(new Date().getUTCHours());
 }
