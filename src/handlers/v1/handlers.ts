@@ -77,7 +77,9 @@ export async function clearout() {
     fs.readdirSync(`${root}/pw`).forEach(tid => fs.rmSync(`${root}/pw/${tid}`, { recursive: true, force: true }));
     fs.readdirSync(`${root}/tmp/uploads`).forEach(upload => fs.rmSync(`${root}/tmp/uploads/${upload}`, { recursive: true, force: true }));
   }
+}
 
+export async function dbClearout() {
   const storage = await Storage.find();
   storage.forEach(async item => {
     try {

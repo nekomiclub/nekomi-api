@@ -244,29 +244,34 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
 
   console.log(`CONVERTATION RUN IN ${threads} THREADS.`);
 
-  await new Promise((res, rej) => {
-    ffmpeg(sourceURI)
-      .videoCodec('libvpx')
-      .audioCodec('libopus')
-      .videoBitrate('1800k')
-      .audioBitrate('128k')
-      .outputOptions([
-        '-minrate', relevant ? '1600k' : '1300k',
-        '-maxrate', '2100k',
-        '-crf', '32',
-        '-threads', `${threads}`
-      ])
-      .on('error', e => {
-        rej(e);
-      })
-      .on('progress', progress => {
-        if (devMode || testMode) console.log(`Ready: ${progress.percent}`);
-      })
-      .on('end', () => {
-        res(1);
-      })
-      .saveToFile(outURI);
-  });
+  try {
+    await new Promise((res, rej) => {
+      ffmpeg(sourceURI)
+        .videoCodec('libvpx')
+        .audioCodec('libopus')
+        .videoBitrate('1800k')
+        .audioBitrate('128k')
+        .outputOptions([
+          '-minrate', relevant ? '1600k' : '1300k',
+          '-maxrate', '2100k',
+          '-crf', '32',
+          '-threads', `${threads}`
+        ])
+        .on('error', e => {
+          rej(e);
+        })
+        .on('progress', progress => {
+          if (devMode || testMode) console.log(`Ready: ${progress.percent}`);
+        })
+        .on('end', () => {
+          res(1);
+        })
+        .saveToFile(outURI);
+    });
+  } catch (e) {
+    // @ts-ignore
+    throw new Error(e);
+  }
 
   const db = await Storage.findOne({ id });
   db!.URI = outURI;
@@ -302,28 +307,33 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
     threads = 2;
   }
 
-  await new Promise((res, rej) => {
-    ffmpeg(sourceURI)
-      .videoCodec('libvpx')
-      .audioCodec('libopus')
-      .videoBitrate(relevant ? '1300k' : '1100k')
-      .audioBitrate('128k')
-      .outputOptions([
-        '-minrate', '900k',
-        '-maxrate', relevant ? '1500k' : '1300k',
-        '-crf', '31',
-        '-threads', `${threads}`
-      ])
-      .size(`${quality}x?`)
-      .aspect('16:9')
-      .on('error', e => {
-        rej(e);
-      })
-      .on('end', () => {
-        res(1);
-      })
-      .saveToFile(outURI);
-  });
+  try {
+    await new Promise((res, rej) => {
+      ffmpeg(sourceURI)
+        .videoCodec('libvpx')
+        .audioCodec('libopus')
+        .videoBitrate('1300k')
+        .audioBitrate('128k')
+        .outputOptions([
+          '-minrate', '900k',
+          '-maxrate', relevant ? '1500k' : '1300k',
+          '-crf', '32',
+          '-threads', `${threads}`
+        ])
+        .size(`${quality}x?`)
+        .aspect('16:9')
+        .on('error', e => {
+          rej(e);
+        })
+        .on('end', () => {
+          res(1);
+        })
+        .saveToFile(outURI);
+    });
+  } catch (e) {
+    // @ts-ignore
+    throw new Error(e);
+  }
 
   if (devMode || testMode) console.log(`Video with TID ${TID} cropped to ${quality} within ${(handler.getUTCTime() - startTS) / 1000}s`);
 
@@ -381,18 +391,24 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
   const tempDir = `${path.resolve()}/pw/${TID}`;
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
-  await new Promise(res => {
-    ffmpeg(sourceURI)
-      .screenshots({
-        count: previews,
-        size: '320x240',
-        filename: '%s.webp',
-        folder: `./pw/${TID}`
-      })
-      .on('end', () => {
-        res(1);
-      });
-  });
+  try {
+    await new Promise(res => {
+      ffmpeg(sourceURI)
+        .screenshots({
+          count: previews,
+          size: '320x240',
+          filename: '%s.webp',
+          folder: `${path.resolve()}/pw/${TID}`
+        })
+        .on('end', () => {
+          res(1);
+        })
+        .on('error', e => { throw e; });
+    });
+  } catch (e) {
+    // @ts-ignore
+    throw new Error(e);
+  }
 
   fs.readdirSync(tempDir).forEach(file => fs.copyFileSync(`${tempDir}/${file}`, `${previewsFolder}/${file}`));
   fs.rmSync(tempDir, { recursive: true });
