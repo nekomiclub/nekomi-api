@@ -394,8 +394,6 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
   try {
     await new Promise(res => {
       ffmpeg(sourceURI)
-        .videoBitrate('700k')
-        .noAudio()
         .screenshots({
           count: previews,
           size: '160x120',
