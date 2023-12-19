@@ -394,18 +394,20 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
   try {
     await new Promise(res => {
       ffmpeg(sourceURI)
+        .videoBitrate('700k')
+        .noAudio()
         .screenshots({
           count: previews,
-          size: '320x240',
-          filename: '%s.webp',
-          folder: `${path.resolve()}/pw/${TID}`
-        })
+          size: '160x120',
+          filename: '%s.webp'
+        }, tempDir)
         .on('end', () => {
           res(1);
         })
         .on('error', e => { throw e; });
     });
   } catch (e) {
+    console.log(e);
     // @ts-ignore
     throw new Error(e);
   }
@@ -455,8 +457,8 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
 
     const layer = sharp({
       create: {
-        width: 320 * picArr.length,
-        height: 240,
+        width: 160 * picArr.length,
+        height: 120,
         channels: 3,
         background: '#000'
       }
@@ -465,7 +467,7 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
     layer.composite(picArr.map((pic, i) => {
       return {
         input: pic,
-        left: i * 320,
+        left: i * 160,
         top: 0
       };
     }));

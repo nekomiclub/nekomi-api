@@ -10,18 +10,12 @@ import { validationResult } from 'express-validator';
 
 export async function get(req: express.Request, res: express.Response) {
   try {
-    const valRes = validationResult(req);
+    const { query } = req.params as { query: string };
 
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
-
-    const { uid } = req.params as { uid: string };
-
-    const item = await User.findOne({ uid });
+    const item = await User.findOne({ $or: [{ uid: query }, { username: query }] });
 
     if (!item) {
-      throw new E400('User with provided ID is not found.');
+      throw new E400('User with provided query is not found.');
     }
 
     return res.status(200).json(dto.user(item));

@@ -18,7 +18,7 @@ const upload = multer({ storage: uploadStorage });
 
 // TODO (req, res, next) => ensureAccess(['ROLE'], req, res, next)
 
-ApiV1.get(`/title/:id`, v1CTitle.getOne);
+ApiV1.get(`/title/:query`, v1CTitle.getOne);
 ApiV1.get(`/titles`, v1CTitle.getMany);
 ApiV1.get(`/titles/search`, v1CTitle.search);
 ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
@@ -33,7 +33,7 @@ ApiV1.get(`/refresh`, cookie('refreshToken').notEmpty(), v1CUser.refresh);
 ApiV1.post(`/token/verify`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token', 'method']).notEmpty(), v1C.tokenVerify);
 ApiV1.post(`/token/decode`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token']).notEmpty(), v1C.tokenDecode);
 
-ApiV1.get(`/user/:uid`, param('uid').notEmpty(), v1CUser.get);
+ApiV1.get(`/user/:query`, v1CUser.get);
 ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'), body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'), v1CUser.create);
 
 ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(), v1CUser.remove);

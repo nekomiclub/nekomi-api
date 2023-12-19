@@ -7,6 +7,7 @@ import { devMode, testMode, env } from './config';
 import https from 'https';
 import cors from 'cors';
 import fs from 'fs';
+import path from 'path';
 
 import * as router from './router';
 import * as handler from './handlers/v1/handlers';
@@ -79,9 +80,7 @@ if (devMode) {
 
 async function onReady() {
   try {
-    if (!devMode) {
-      await handler.clearTestIDs();
-    }
+    // await handler.clearTestIDs();
 
     setTimeout(async () => {
       await handler.clearout();

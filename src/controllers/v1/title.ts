@@ -1,27 +1,39 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../handlers/v1/Errors';
-import { randomNumber } from '../../handlers/v1/handlers';
-import Storage from '../../Models/Storage';
 import fs from 'fs';
-import { ITitle } from '../../core/interfaces';
-import { validationResult } from 'express-validator';
 import type { ValidationError } from 'express-validator';
 import * as uuid from 'uuid';
-import Title from '../../Models/Title';
-import * as dto from '../../handlers/v1/dtos';
+import { validationResult } from 'express-validator';
+import Fuse from 'fuse.js';
+
 import { testMode, devMode } from '../../config';
+import { ITitle } from '../../core/interfaces';
+import Storage from '../../Models/Storage';
+import Title from '../../Models/Title';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500 } from '../../handlers/v1/Errors';
+import { randomNumber } from '../../handlers/v1/handlers';
+import * as dto from '../../handlers/v1/dtos';
+
+let fuse: Fuse<ITitle>;
+
+(async function () {
+  const titles = (await Title.find()).map(el => dto.title(el));
+  fuse = new Fuse(titles, {
+    includeScore: true,
+    keys: ['names.eng', 'names.ukr', 'names.alt']
+  });
+})();
+
 
 export async function getOne(req: express.Request, res: express.Response) {
   try {
-    const { id } = req.params;
+    const { query } = req.params as { query: string };
 
-    const db = await Title.findOne({ id });
+    const db = await Title.findOne({ $or: [{ id: query }, { code: query }] });
 
     if (!db) {
-      throw new E400('Title with provided id is not found');
+      throw new E400('Title with provided query not found');
     }
 
-    // @ts-ignore
     let item: ITitle = dto.title(db);
 
     return res.status(200).json(item);
@@ -36,14 +48,35 @@ export async function getOne(req: express.Request, res: express.Response) {
   }
 }
 
+interface ISearch extends ITitle {
+  query: string,
+  page: number,
+  limit: number
+}
+
 export async function search(req: express.Request, res: express.Response) {
   try {
     // @ts-ignore
-    const { ageRate, code, country, id, genres, names, season, estimatedEps, rating, status, type, year, studios } = req.query as ITitle;
+    const { ageRate, code, country, id, genres, season, estimatedEps, rating, status, type, year, started, studios, ended, query } = req.query as ISearch;
+    // @ts-ignore
+    let { page, limit } = req.query as ISearch;
 
-    const items = await Title.find({ year, country: 'null' });
+    page = page || 0;
+    limit = limit || 30;
 
-    return res.status(200).json(dto.title(items[randomNumber(0, items.length - 1)]!));
+    if (!fuse) {
+      throw new E500('Search is not ready now. Try again in few minutes');
+    }
+
+    if (query) {
+      return res.status(200).json({ results: fuse.search(query, { limit: 30 }) });
+    }
+
+    const titles = await Title.find({ $or: [{ ageRate }, { code }, { country }, { id }, { genres }, { season }, { estimatedEps }, { rating }, { status }, { type }, { year }, { started }, { studios }, { ended }] });
+
+    const results = titles.map(el => dto.title(el)).slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
+
+    return res.status(200).json({ results });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);
