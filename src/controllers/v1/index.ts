@@ -78,7 +78,7 @@ export async function upload(req: express.Request, res: express.Response) {
       if (type.match(/^video/g)) {
         //@ts-ignore
         const qualityParsed = JSON.parse(quality!);
-        uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
+        // uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
       } else {
         processMedia.processPhoto(id, type);
       }
@@ -88,7 +88,7 @@ export async function upload(req: express.Request, res: express.Response) {
       writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
     }
 
-    return res.status(201).json({ id: req.body.id, frames: type.match(/^video\//gi) ? Math.ceil(Math.ceil(await getVideoDurationInSeconds(`${path.resolve()}/tmp/uploads/${id}.mp4`) / 5) / 25) : null });
+    return res.status(201).json({ id: req.body.id, frames: type.match(/^video\//gi) ? Math.ceil(Math.ceil(await getVideoDurationInSeconds(item.URI) / 5) / 25) : null });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

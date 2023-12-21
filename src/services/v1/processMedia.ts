@@ -397,7 +397,7 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
         .screenshots({
           count: previews,
           size: '160x120',
-          filename: '%s.webp'
+          filename: '%s.png'
         }, tempDir)
         .on('end', () => {
           res(1);

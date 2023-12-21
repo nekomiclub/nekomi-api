@@ -40,7 +40,7 @@ ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next)
 
 //! Private
 ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }, { name: 'quality' }]), uploadValidity, v1C.upload); //! Half-private, user can upload only picture, root & editor can upload video.
-ApiV1.delete('/upload', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor', 'subber'], req, res, next), v1C.deleteUpload);
+ApiV1.delete('/upload', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next), v1C.deleteUpload);
 
 const titleValidation = [
   body([

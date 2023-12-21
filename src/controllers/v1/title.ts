@@ -51,7 +51,7 @@ export async function getOne(req: express.Request, res: express.Response) {
 interface ISearch extends ITitle {
   query: string,
   page: number,
-  limit: number
+  limit: number,
 }
 
 export async function search(req: express.Request, res: express.Response) {
