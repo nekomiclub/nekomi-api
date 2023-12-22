@@ -28,7 +28,8 @@ ApiV1.get(`/uptime`, v1C.uptime);
 ApiV1.get(`/media/:id`, v1C.media);
 
 ApiV1.post(`/auth`, body(['username', 'password']).notEmpty(), v1CUser.auth);
-ApiV1.get(`/refresh`, cookie('refreshToken').notEmpty(), v1CUser.refresh);
+ApiV1.get(`/auth/refresh`, cookie('refreshToken').notEmpty(), v1CUser.refresh);
+ApiV1.get(`/auth/logout`, v1CUser.logout);
 
 ApiV1.post(`/token/verify`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token', 'method']).notEmpty(), v1C.tokenVerify);
 ApiV1.post(`/token/decode`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token']).notEmpty(), v1C.tokenDecode);

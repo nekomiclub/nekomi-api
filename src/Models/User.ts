@@ -5,6 +5,7 @@ export const User = mongoose.model<IUser>('user', new Schema({
   uid: String,
   avatar: String,
   password: String,
+  email: String,
   profileBg: String,
   username: String,
   providers: Array<'google' | 'telegram' | 'animee' | 'fullkekw'>,

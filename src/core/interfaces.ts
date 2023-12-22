@@ -57,6 +57,7 @@ export interface IUser {
   uid: string,
   username: string,
   password: string,
+  email: string,
   avatar: string,
   profileBg: string | null,
   badgesIDs: string[] | null,

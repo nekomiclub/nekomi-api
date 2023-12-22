@@ -18,7 +18,6 @@ let fuse: Fuse<ITitle>;
 (async function () {
   const titles = (await Title.find()).map(el => dto.title(el));
   fuse = new Fuse(titles, {
-    includeScore: true,
     keys: ['names.eng', 'names.ukr', 'names.alt']
   });
 })();
@@ -69,7 +68,7 @@ export async function search(req: express.Request, res: express.Response) {
     }
 
     if (query) {
-      return res.status(200).json({ results: fuse.search(query, { limit: 30 }) });
+      return res.status(200).json({ results: fuse.search(query, { limit: 30 }).map(el => el.item) });
     }
 
     const titles = await Title.find({ $or: [{ ageRate }, { code }, { country }, { id }, { genres }, { season }, { estimatedEps }, { rating }, { status }, { type }, { year }, { started }, { studios }, { ended }] });

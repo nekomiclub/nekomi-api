@@ -72,8 +72,8 @@ export async function create(req: express.Request, res: express.Response) {
       return res.status(400).json(valRes.array());
     }
 
-    const { password, username } = req.body as { username: string, password: string };
-    const isExist = await User.findOne({ username });
+    const { password, username, email } = req.body as { username: string, password: string, email: string };
+    const isExist = await User.findOne({ $or: [{ username }, { email }] });
 
     if (isExist) {
       throw new E400('User is already exist');
@@ -173,6 +173,20 @@ export async function refresh(req: express.Request, res: express.Response) {
     const tokens = authService.signTokens({ uid, roles, username });
 
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function logout(req: express.Request, res: express.Response) {
+  try {
+    return res.status(200).clearCookie('refreshToken').json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

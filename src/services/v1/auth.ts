@@ -19,7 +19,7 @@ interface ITokenPayload {
 
 export function signTokens(payload: ITokenPayload): { accessToken: string, refreshToken: string } {
   return {
-    accessToken: jwt.sign(payload, env.JWT_SECRET_ACCESS, { expiresIn: '6h' }),
+    accessToken: jwt.sign(payload, env.JWT_SECRET_ACCESS, { expiresIn: '15m' }),
     refreshToken: jwt.sign(payload, env.JWT_SECRET_REFRESH, { expiresIn: '30d' })
   };
 }

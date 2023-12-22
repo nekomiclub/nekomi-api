@@ -78,7 +78,7 @@ export async function upload(req: express.Request, res: express.Response) {
       if (type.match(/^video/g)) {
         //@ts-ignore
         const qualityParsed = JSON.parse(quality!);
-        // uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
+        uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
       } else {
         processMedia.processPhoto(id, type);
       }

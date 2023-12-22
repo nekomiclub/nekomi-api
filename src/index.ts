@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import { devMode, testMode, env } from './config';
 
 import https from 'https';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import fs from 'fs';
 import path from 'path';
 
@@ -27,9 +27,19 @@ mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI, {
 
 export const app = express();
 
+const CORSOpt: CorsOptions = {
+  origin: [
+    'https://animee.club',
+    devMode ? 'http://localhost:3000' : '',
+    devMode ? 'http://192.168.0.106:3000' : '',
+  ],
+  credentials: true,
+};
+
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors(CORSOpt));
+app.options('*', cors(CORSOpt));
 app.use('/v1', router.ApiV1);
 
 if (!devMode) {

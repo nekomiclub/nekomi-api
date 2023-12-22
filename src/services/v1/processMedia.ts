@@ -232,7 +232,7 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
   const hrs = new Date().getUTCHours();
   let threads = 0;
 
-  if (hrs >= 20) {
+  if (hrs >= 19) {
     threads = 1;
   } else if (hrs >= 7) {
     threads = 0;
@@ -297,7 +297,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
   let threads = 0;
   console.log(`CROP RUN IN ${threads} THREADS.`);
 
-  if (hrs >= 20) {
+  if (hrs >= 19) {
     threads = 1;
   } else if (hrs >= 7) {
     threads = 0;
