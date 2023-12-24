@@ -49,6 +49,7 @@ export async function createUser(username: string, password: string, providers?:
   const user: IUser = {
     uid,
     username,
+    email: 'example@example.com',
     password: bcrypt.hashSync(password, 7),
     settings: {},
     stats: {

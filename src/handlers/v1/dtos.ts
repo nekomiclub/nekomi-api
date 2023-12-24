@@ -1,17 +1,20 @@
 import { IStorageItem, IUser, IDubber, ITitle } from '../../core/interfaces';
 
-export function title({ id, ageRate, background, code, country, description, dubs, ended, epsMeta, estimatedEps, genres, linkedManga, linkedTitlesIDs, names, poster, rating, season, started, status, studios, type, year }: ITitle): ITitle {
-  return { id, ageRate, background, code, country, description, dubs, ended, epsMeta, estimatedEps, genres, linkedManga, linkedTitlesIDs, names, poster, rating, season, started, status, studios, type, year };
+export function title(raw: any): ITitle {
+  const { __v, _id, ...title } = raw._doc;
+  return title;
 }
 
-export function dubber({ code, id, name, thumbURL }: IDubber): IDubber {
-  return { code, id, name, thumbURL };
+export function dubber(raw: any): IDubber {
+  const { __v, _id, ...dubber } = raw._doc;
+  return dubber;
 }
 
 export function storageItem({ URI, dateAdded, id }: IStorageItem): IStorageItem {
   return { dateAdded, id, URI };
 }
 
-export function user({ avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, roles }: IUser): IUser {
-  return { avatar, badgesIDs, lists, profileBg, providers, settings, stats, uid, username, password: 'HIDDEN', roles };
+export function user(raw: any): IUser {
+  const { __v, _id, password, ...user } = raw._doc;
+  return user;
 }

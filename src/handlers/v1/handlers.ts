@@ -111,3 +111,33 @@ export async function uploadFile(path: string): Promise<string> {
 export function getUTCTime(): number {
   return +new Date().setUTCHours(new Date().getUTCHours());
 }
+
+export async function updateDubbers() {
+  const dubbers = await Dubbers.find();
+
+  dubbers.forEach(async dubber => {
+    dubber.socials = {
+      instagram: null,
+      telegram: null,
+      tiktok: null,
+      youtube: null
+    };
+
+    dubber.support = {
+      bymeacoffee: null,
+      diaka: null,
+      monobank: null,
+      patreon: null,
+      privatbank: null
+    };
+
+    dubber.createdAt = +new Date();
+    dubber.description = null;
+    dubber.leader = null;
+    dubber.editors = null;
+    dubber.members = null;
+    dubber.rating = 9;
+
+    await dubber.save();
+  });
+}
