@@ -174,7 +174,7 @@ export async function updatePreviewFrames() {
   for (const titleI in titles) {
     // Get title
     const title = titles[titleI];
-    let startTimestamp = +new Date()
+    let startTimestamp = +new Date();
 
     // If no dubs presented skip
     if (!title.dubs?.length) continue;

@@ -96,7 +96,6 @@ if (devMode) {
 async function onReady() {
   try {
     // await handler.clearTestIDs();
-    // await handler.updatePreviewFrames();
 
     setTimeout(async () => {
       await handler.clearout();

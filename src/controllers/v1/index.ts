@@ -133,7 +133,7 @@ import titleUpdateDB from '../../localDB/titleUpdateDB.json' assert {type: 'json
 import { validationResult } from 'express-validator';
 export async function titleUpdate(req: express.Request, res: express.Response) {
   try {
-    const { id, year } = req.query as { id: string, year: string };
+    const { id, year, titleId } = req.query as { id: string, year: string, titleId: string };
 
     const user = titleUpdateDB.users.find(el => el.id === id);
 
@@ -141,16 +141,19 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
       throw new E401('User is not found');
     }
 
-    if (year) {
-      titleUpdateDB.updated[year]++;
-      user.updated++;
+    if (year && titleId) {
+      if (!user.updated.some(el => el === titleId)) {
+        titleUpdateDB.updated[year]++;
+      }
+
+      (user.updated as string[]).filter(el => el !== titleId).push(titleId);
     }
 
     fs.writeFileSync(`${path.resolve()}/src/localDB/titleUpdateDB.json`, JSON.stringify(titleUpdateDB, null, 2));
     let total = 0;
-    titleUpdateDB.users.forEach(usr => total = total + usr.updated);
+    titleUpdateDB.users.map(el => total = el.updated.length + total);
 
-    return res.status(200).json({ id, updated: user.updated, total });
+    return res.status(200).json({ id, total, updated: user.updated.length });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       console.error(e);

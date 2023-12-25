@@ -56,7 +56,7 @@ interface ISearch extends ITitle {
 export async function search(req: express.Request, res: express.Response) {
   try {
     // @ts-ignore
-    const { ageRate, code, country, id, genres, season, estimatedEps, rating, status, type, year, started, studios, ended, query } = req.query as ISearch;
+    const { query, ...props } = req.query as ISearch;
     // @ts-ignore
     let { page, limit } = req.query as ISearch;
 
@@ -71,7 +71,24 @@ export async function search(req: express.Request, res: express.Response) {
       return res.status(200).json({ results: fuse.search(query, { limit: 30 }).map(el => el.item) });
     }
 
-    const titles = await Title.find({ $or: [{ ageRate }, { code }, { country }, { id }, { genres }, { season }, { estimatedEps }, { rating }, { status }, { type }, { year }, { started }, { studios }, { ended }] });
+    let searchArray: any[] = [];
+    for (const key in props) {
+      const prop = props[key];
+
+      if (!isNaN(+prop)) {
+        searchArray.push({ [key]: +prop });
+      } else {
+        searchArray.push({ [key]: prop });
+      }
+    }
+
+    let titles = [];
+
+    if (Object.keys(props).length) {
+      titles = await Title.find({ $and: searchArray });
+    } else {
+      titles = await Title.find();
+    }
 
     const results = titles.map(el => dto.title(el)).slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
 
