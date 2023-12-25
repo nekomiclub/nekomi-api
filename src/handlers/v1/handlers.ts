@@ -8,6 +8,8 @@ import { env, cfg, testMode, devMode } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';
+import inquirer from 'inquirer';
+import { createPreview } from '../../services/v1/processMedia';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -79,7 +81,30 @@ export async function clearout() {
   }
 }
 
+import bcrypt from 'bcrypt';
+import { MONGO_URI } from '../../index';
+import { ITitleEpisodeDubbed, ITitleEpisodesDub } from 'src/core/ITitle';
+
 export async function dbClearout() {
+  console.log(`CLEAROUT DETAILS:\nDevMode: ${devMode}\nTestMode: ${testMode}\nURI: ${MONGO_URI}`);
+  const results = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'dbClearout-confirm',
+      message: 'YOU WANT TO MAKE DB CLEAROUT. PLEASE CONFIRM THAT ACTION.'
+    },
+    {
+      type: 'password',
+      name: 'dbClearout-password',
+      message: 'DB CLEAROUT CONFIRMED. ENTER ROOT PASSWORD.'
+    }
+  ]);
+
+  if (!bcrypt.compareSync(results['dbClearout-password'], '$2b$10$nYa/cYnfjl7V98GZ9pyz4O5mmwmGunetw/FDvvgPRxUkp3BigcQna')) {
+    throw new Error('CLEAROUT FORBIDDEN');
+  }
+
+
   const storage = await Storage.find();
   storage.forEach(async item => {
     try {
@@ -140,4 +165,66 @@ export async function updateDubbers() {
 
     await dubber.save();
   });
+}
+
+export async function updatePreviewFrames() {
+  let titles = await Title.find();
+  // titles = titles.filter(el => el.id === '123');
+
+  for (const titleI in titles) {
+    // Get title
+    const title = titles[titleI];
+    let startTimestamp = +new Date()
+
+    // If no dubs presented skip
+    if (!title.dubs?.length) continue;
+
+    console.log(`Start updating frames for ${title.code}`);
+
+    for (const dubI in title.dubs) {
+      // Get dub
+      const dub = title.dubs[dubI] as ITitleEpisodesDub;
+
+      for (const epI in dub.eps) {
+        const ep = dub.eps[epI];
+        const id = ep.source.q1080!.split('/media/')[1];
+        const updatedFrames: string[] = [];
+        const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
+
+        // Delete all prev frames
+        for (const frameI in ep.framesURL) {
+          const frame = ep.framesURL[frameI];
+          const frameId = frame.split('/media/')[1];
+
+          const item = await Storage.findOne({ id: frameId });
+
+          if (item) {
+            await item.deleteOne();
+
+            try {
+              fs.rmSync(item.URI);
+            } catch (e) {
+              null;
+            }
+          }
+        }
+
+        const frames = await createPreview(id, TID, ep.source.q1080!);
+
+        let i = 0;
+        while (i < frames) {
+          updatedFrames.push(`${devMode ? `http://${ip.address()}` : `https://api.animee.club`}/v1/media/${id}_f_${i}`);
+          i++;
+        }
+
+        title.dubs.find(el => el.id === dub.id)!.eps.find(el => el.order === ep.order)!.framesURL = updatedFrames;
+      }
+
+    }
+
+    console.log(JSON.stringify(title, null, 2));
+    await Title.findOneAndUpdate({ id: title.id }, { dubs: title.dubs });
+
+    console.log(`- - - END UPDATING ${title.code} via ${((+new Date() - startTimestamp) / 1000).toFixed(2)}s - - -`);
+  }
 }

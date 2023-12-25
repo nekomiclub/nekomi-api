@@ -208,10 +208,10 @@ export async function processVideo(id: string, quality: TPVQuality[], relevant: 
 
     await store(id);
 
-    fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true });
+    fs.rmSync(`${path.resolve()}/tmp/processing/${TID}`, { recursive: true, force: true });
     console.log(`Video processing finished!\nID: ${id}\nWithin: ${(handler.getUTCTime() - startedAt) / 1000}s`);
     writeToLog(`Video processing finished!\nID: ${id}\nWithin: ${(handler.getUTCTime() - startedAt) / 1000}s`);
-    fs.rmSync(uploadURI);
+    fs.rmSync(uploadURI, { recursive: true, force: true });
   } catch (e) {
     writeErrorLog(`Service throw an error: ${JSON.stringify(e)}. Reverting...`, 'services/v1/processMedia.ts/processVideo');
     console.error(e);
@@ -357,7 +357,7 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
 }
 
 const previewsInFrame = 25; // TODO: (must be 25)
-async function createPreview(id: string, TID: string, sourceURI: string): Promise<number> {
+export async function createPreview(id: string, TID: string, sourceURI: string): Promise<number> {
   const duration = await getVideoDurationInSeconds(sourceURI);
   const previews = Math.ceil(duration / 5);
   const frames = Math.ceil(previews / previewsInFrame);
@@ -383,7 +383,7 @@ async function createPreview(id: string, TID: string, sourceURI: string): Promis
   await cropPreviews(TID, sourceURI, previews, previewsFolder);
   await createFrames(id, previewsFolder, framesFolder);
 
-  fs.rmSync(previewsFolder, { recursive: true });
+  fs.rmSync(previewsFolder, { recursive: true, force: true });
   return frames;
 }
 
@@ -398,7 +398,7 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
           count: previews,
           size: '160x120',
           filename: '%s.png'
-        }, tempDir)
+        }, `./pw/${TID}`)
         .on('end', () => {
           res(1);
         })
@@ -411,24 +411,20 @@ async function cropPreviews(TID: string, sourceURI: string, previews: number, pr
   }
 
   fs.readdirSync(tempDir).forEach(file => fs.copyFileSync(`${tempDir}/${file}`, `${previewsFolder}/${file}`));
-  fs.rmSync(tempDir, { recursive: true });
+  fs.rmSync(tempDir, { recursive: true, force: true });
 }
 
 async function createFrames(id: string, previewsFolder: string, framesFolder: string) {
   const previews = fs.readdirSync(previewsFolder);
 
-  previews.sort((a: string, b: string) => {
-    const numA: number = parseFloat(a.split('.')[0]);
-    const numB: number = parseFloat(b.split('.')[0]);
-    return numB - numA;
-  });
+  previews.sort((a, b) => +a.split('.')[0] - +b.split('.')[0]);
 
   let previewNow = 0;
   const picsArr: string[][] = [];
   let picsArrTemp: string[] = [];
 
   previews.forEach(preview => {
-    if (previewNow === previewsInFrame) { // TODO: test only (must be 25)
+    if (previewNow === previewsInFrame) {
       previewNow = 0;
 
       picsArr.push(picsArrTemp);
@@ -451,7 +447,8 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
 
   for (const picI in picsArr) {
     const picArr = picsArr[picI];
-    const outURI = `${framesFolder}/${id}_f_${picI}.webp`;
+    const uid = `${id}_f_${picI}`;
+    const outURI = `${framesFolder}/${uid}.webp`;
 
     const layer = sharp({
       create: {
@@ -470,8 +467,6 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
       };
     }));
 
-    const uid = `${id}_f_${picI}`;
-
     await layer.toFile(outURI);
     framesIDsArr.push(uid);
 
@@ -484,14 +479,8 @@ async function createFrames(id: string, previewsFolder: string, framesFolder: st
     await item.save();
   }
 
-  await new Promise(res => {
-    setTimeout(() => {
-      res(1);
-    }, framesIDsArr.length * 500);
-  });
-
   for (const i in framesIDsArr) {
     const frameId = framesIDsArr[i];
-    await store(frameId);
+    await store(frameId, `${framesFolder}/${frameId}.webp`);
   }
 }

@@ -77,22 +77,22 @@ export async function getFreeDiskURI(size: number): Promise<string> {
   return availableStoragesURIs[0];
 }
 
-export async function store(id: string): Promise<string> {
+export async function store(id: string, URI?: string): Promise<string> {
   const item = await Storage.findOne({ id });
 
-  if (!item) {
+  if (!item && !URI) {
     throw new E400('Item with provided id is not found in storage.');
   }
 
-  const freeURI = await getFreeDiskURI(fs.statSync(item.URI).size);
-  const newURI = `${freeURI}/${id}.${getFileExtension(item.URI)}`;
+  const freeURI = await getFreeDiskURI(fs.statSync(URI || item!.URI).size);
+  const newURI = `${freeURI}/${id}.${getFileExtension(URI || item!.URI)}`;
 
   await new Promise(res => {
-    exec(`copyfiles -f ${item.URI} ${freeURI}`, async () => {
-      fs.rmSync(item.URI);
+    exec(`copyfiles -f ${URI || item!.URI} ${freeURI}`, async () => {
+      fs.rmSync(URI || item!.URI);
 
-      item.URI = newURI;
-      await item.save();
+      item!.URI = newURI;
+      await item!.save();
       res(1);
     });
   });

@@ -15,9 +15,11 @@ import { UploadQueue } from './services/v1/processMedia';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 import Title from './Models/Title';
 
+//! DO NOT CHANGE IF NOT NECESSARY
+export const MONGO_URI = (devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI;
 
 mongoose.set('strictQuery', false);
-mongoose.connect((devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI, {
+mongoose.connect(MONGO_URI, {
   retryWrites: true,
 }).catch(e => {
   console.error(e);
@@ -94,8 +96,7 @@ if (devMode) {
 async function onReady() {
   try {
     // await handler.clearTestIDs();
-
-    handler.updateDubbers();
+    // await handler.updatePreviewFrames();
 
     setTimeout(async () => {
       await handler.clearout();
