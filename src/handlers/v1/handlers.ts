@@ -167,64 +167,66 @@ export async function updateDubbers() {
   });
 }
 
-export async function updatePreviewFrames() {
-  let titles = await Title.find();
-  // titles = titles.filter(el => el.id === '123');
+export async function updatePreviewFrames(tid: string, dubs: { id: string, eps: number[] }[]) {
+  // Get title
+  const title = await Title.findOne({ id: tid });
+  let startTimestamp = +new Date();
 
-  for (const titleI in titles) {
-    // Get title
-    const title = titles[titleI];
-    let startTimestamp = +new Date();
+  if (!title) return;
 
-    // If no dubs presented skip
-    if (!title.dubs?.length) continue;
+  // If no dubs presented skip
+  if (!title.dubs?.length) return;
 
-    console.log(`Start updating frames for ${title.code}`);
+  console.log(`Start updating frames for ${title.code}`);
+  let newDubs: ITitleEpisodesDub[] = [];
 
-    for (const dubI in title.dubs) {
-      // Get dub
-      const dub = title.dubs[dubI] as ITitleEpisodesDub;
+  // Take dub
+  for (const dubPI in dubs) {
+    const dubP = dubs[dubPI];
+    const dub = title.dubs.find(el => el.id === dubP.id);
+    const newEps: ITitleEpisodeDubbed[] = [];
 
-      for (const epI in dub.eps) {
-        const ep = dub.eps[epI];
-        const id = ep.source.q1080!.split('/media/')[1];
-        const updatedFrames: string[] = [];
-        const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
+    // Take ep
+    for (const epPI in dubP.eps) {
+      const epP = dubP.eps[epPI];
+      const ep = dub!.eps.find(el => el.order === epP);
+      const epId = ep!.source.q1080!.split('/media/')[1];
+      const newFrames: string[] = ['pisda'];
+      const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
 
-        // Delete all prev frames
-        for (const frameI in ep.framesURL) {
-          const frame = ep.framesURL[frameI];
-          const frameId = frame.split('/media/')[1];
+      for (const frameI in ep?.framesURL) {
+        const frame = ep.framesURL[frameI];
+        const frameId = frame.split('/media/')[1];
+        const frameItem = await Storage.findOne({ id: frameId });
 
-          const item = await Storage.findOne({ id: frameId });
-
-          if (item) {
-            await item.deleteOne();
-
-            try {
-              fs.rmSync(item.URI);
-            } catch (e) {
-              null;
-            }
-          }
+        if (frameItem) {
+          if (fs.existsSync(frameItem.URI)) fs.rmSync(frameItem.URI, { recursive: true, force: true });
+          frameItem.deleteOne();
         }
-
-        const frames = await createPreview(id, TID, ep.source.q1080!);
-
-        let i = 0;
-        while (i < frames) {
-          updatedFrames.push(`${devMode ? `http://${ip.address()}` : `https://api.animee.club`}/v1/media/${id}_f_${i}`);
-          i++;
-        }
-
-        title.dubs.find(el => el.id === dub.id)!.eps.find(el => el.order === ep.order)!.framesURL = updatedFrames;
       }
 
+      const frames = await createPreview(epId, TID, ep!.source.q1080!);
+      let i = 0;
+
+      while (i < frames) {
+        newFrames.push(`${devMode ? `http://${ip.address()}` : `https://api.animee.club`}/v1/media/${epId}_f_${i}`);
+        i++;
+      }
+
+      ep!.framesURL = newFrames;
+      newEps.push(ep!);
     }
 
-    console.log(JSON.stringify(title, null, 2));
-    await Title.findOneAndUpdate({ id: title.id }, { dubs: title.dubs });
-
-    console.log(`- - - END UPDATING ${title.code} via ${((+new Date() - startTimestamp) / 1000).toFixed(2)}s - - -`);
+    dub!.eps = dub!.eps.filter(ep => newEps.some(el => el.order !== ep.order));
+    dub!.eps.push(...newEps);
+    dub!.eps = dub!.eps.sort((a, b) => a.order - b.order);
+    newDubs.push(dub!);
   }
+
+  newDubs = [...title.dubs.filter(el => newDubs.some(dub => dub.id !== el.id)), ...newDubs];
+  title.dubs = newDubs;
+  console.log(JSON.stringify(title, null, 2));
+  await Title.findOneAndUpdate({ id: title.id }, { dubs: newDubs });
+
+  console.log(`- - - END UPDATING ${title.code} via ${((+new Date() - startTimestamp) / 1000).toFixed(2)}s - - -`);
 }

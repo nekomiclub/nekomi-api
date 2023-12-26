@@ -96,6 +96,7 @@ if (devMode) {
 async function onReady() {
   try {
     // await handler.clearTestIDs();
+    await handler.updatePreviewFrames('a96e4c5b-bdb6-41fd-b7b7-1bd3af48e00f', [{ id: 'fd203550-19cc-4fd0-af4c-10050104a4d6', eps: [1] }]);
 
     setTimeout(async () => {
       await handler.clearout();
