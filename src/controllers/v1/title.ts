@@ -38,10 +38,10 @@ export async function getOne(req: express.Request, res: express.Response) {
     return res.status(200).json(item);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -95,10 +95,10 @@ export async function search(req: express.Request, res: express.Response) {
     return res.status(200).json({ results });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -128,10 +128,10 @@ export async function getMany(req: express.Request, res: express.Response) {
     return res.status(200).json({ titles: sliced });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -163,10 +163,10 @@ export async function update(req: express.Request, res: express.Response) {
     return res.status(200).json(title);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -194,10 +194,10 @@ export async function create(req: express.Request, res: express.Response) {
     return res.status(201).json({ id });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -218,10 +218,10 @@ export async function remove(req: express.Request, res: express.Response) {
     return res.status(418).json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }

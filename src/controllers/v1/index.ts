@@ -8,6 +8,7 @@ import * as processMedia from '../../services/v1/processMedia';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import path from 'path';
 import { uploadQueue } from '../../index';
+import { devMode } from '../../config';
 
 const apiUptime = +new Date();
 
@@ -16,10 +17,10 @@ export async function getGS(req: express.Request, res: express.Response) {
     return res.send('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -30,10 +31,10 @@ export async function uptime(req: express.Request, res: express.Response) {
     return res.status(200).json(apiUptime);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -52,10 +53,10 @@ export async function media(req: express.Request, res: express.Response) {
     return res.status(200).sendFile(item.URI);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -83,7 +84,7 @@ export async function upload(req: express.Request, res: express.Response) {
         processMedia.processPhoto(id, type);
       }
     } catch (e) {
-      console.error(e);
+      if (devMode) console.error(e);
       // @ts-ignore
       writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
     }
@@ -91,10 +92,10 @@ export async function upload(req: express.Request, res: express.Response) {
     return res.status(201).json({ id: req.body.id, frames: type.match(/^video\//gi) ? Math.ceil(Math.ceil(await getVideoDurationInSeconds(item.URI) / 5) / 25) : null });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -119,10 +120,10 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
     return res.status(200).json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -156,10 +157,10 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
     return res.status(200).json({ id, total, updated: user.updated.length });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -187,10 +188,10 @@ export async function tokenVerify(req: express.Request, res: express.Response) {
     return res.status(200).json({ verified: serviceResponse });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -211,10 +212,10 @@ export async function tokenDecode(req: express.Request, res: express.Response) {
     return res.status(200).json(serviceResponse);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }

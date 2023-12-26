@@ -191,21 +191,31 @@ export async function updatePreviewFrames(tid: string, dubs: { id: string, eps: 
       const epP = dubP.eps[epPI];
       const ep = dub!.eps.find(el => el.order === epP);
       const epId = ep!.source.q1080!.split('/media/')[1];
-      const newFrames: string[] = ['pisda'];
+      const newFrames: string[] = [];
       const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
+      const item = await Storage.findOne({ id: epId });
+
+      console.log(`Details:\nOrder: ${ep!.order}\nDub: ${dub!.id}\nTID: ${TID}\nID: ${epId}`);
+      if (!fs.existsSync(item!.URI)) continue;
 
       for (const frameI in ep?.framesURL) {
         const frame = ep.framesURL[frameI];
         const frameId = frame.split('/media/')[1];
-        const frameItem = await Storage.findOne({ id: frameId });
+        const frameItems = await Storage.find({ id: frameId });
 
-        if (frameItem) {
-          if (fs.existsSync(frameItem.URI)) fs.rmSync(frameItem.URI, { recursive: true, force: true });
-          frameItem.deleteOne();
+        if (frameItems) {
+          for (const frameII in frameItems) {
+            const frameItem = frameItems[frameII];
+
+            if (!frameItem) continue;
+
+            if (fs.existsSync(frameItem.URI)) fs.rmSync(frameItem.URI, { recursive: true, force: true });
+            await Storage.deleteOne({ id: frameId });
+          }
         }
       }
 
-      const frames = await createPreview(epId, TID, ep!.source.q1080!);
+      const frames = await createPreview(epId, TID, item!.URI);
       let i = 0;
 
       while (i < frames) {
@@ -225,7 +235,6 @@ export async function updatePreviewFrames(tid: string, dubs: { id: string, eps: 
 
   newDubs = [...title.dubs.filter(el => newDubs.some(dub => dub.id !== el.id)), ...newDubs];
   title.dubs = newDubs;
-  console.log(JSON.stringify(title, null, 2));
   await Title.findOneAndUpdate({ id: title.id }, { dubs: newDubs });
 
   console.log(`- - - END UPDATING ${title.code} via ${((+new Date() - startTimestamp) / 1000).toFixed(2)}s - - -`);

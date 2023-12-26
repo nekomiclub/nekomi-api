@@ -14,6 +14,7 @@ import * as handler from './handlers/v1/handlers';
 import { UploadQueue } from './services/v1/processMedia';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 import Title from './Models/Title';
+import ffmpeg from 'fluent-ffmpeg';
 
 //! DO NOT CHANGE IF NOT NECESSARY
 export const MONGO_URI = (devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI;
@@ -56,6 +57,8 @@ if (!devMode) {
 
     next();
   });
+
+  ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
 }
 
 if (!process.env.HTTP_PORT) {
@@ -96,13 +99,12 @@ if (devMode) {
 async function onReady() {
   try {
     // await handler.clearTestIDs();
-    await handler.updatePreviewFrames('a96e4c5b-bdb6-41fd-b7b7-1bd3af48e00f', [{ id: 'fd203550-19cc-4fd0-af4c-10050104a4d6', eps: [1] }]);
 
     setTimeout(async () => {
       await handler.clearout();
     }, 1000 * 60 * 60 * 24);
   } catch (e) {
     // @ts-ignore
-    writeErrorLog(`onReady cb throw an error: ${e.message}`, 'index');
+    writeErrorLog(`onReady cb throw an error: ${e.message || e.msg}`, 'index');
   }
 }

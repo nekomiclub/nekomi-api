@@ -4,6 +4,7 @@ import fs from 'fs';
 import { ITitle } from '../../core/interfaces';
 import * as dto from '../../handlers/v1/dtos';
 import Dubbers from '../../Models/Dubber';
+import { devMode } from '../../config';
 
 export async function getOne(req: express.Request, res: express.Response) {
   try {
@@ -18,10 +19,10 @@ export async function getOne(req: express.Request, res: express.Response) {
     return res.status(200).json(dto.dubber(dubber));
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }

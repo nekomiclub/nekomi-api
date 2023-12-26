@@ -7,6 +7,7 @@ import * as handler from '../../handlers/v1/handlers';
 import * as authService from '../../services/v1/auth';
 import User from '../../Models/User';
 import { validationResult } from 'express-validator';
+import { devMode } from '../../config';
 
 export async function get(req: express.Request, res: express.Response) {
   try {
@@ -21,10 +22,10 @@ export async function get(req: express.Request, res: express.Response) {
     return res.status(200).json(dto.user(item));
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -55,10 +56,10 @@ export async function update(req: express.Request, res: express.Response) {
     return res.status(200).json({ uid });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -86,10 +87,10 @@ export async function create(req: express.Request, res: express.Response) {
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ msg: 'Created', uid, token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -120,10 +121,10 @@ export async function remove(req: express.Request, res: express.Response) {
     return res.status(200).json(`UID: ${uid} deleted`);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -144,10 +145,10 @@ export async function auth(req: express.Request, res: express.Response) {
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -175,10 +176,10 @@ export async function refresh(req: express.Request, res: express.Response) {
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -189,10 +190,10 @@ export async function logout(req: express.Request, res: express.Response) {
     return res.status(200).clearCookie('refreshToken').json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
