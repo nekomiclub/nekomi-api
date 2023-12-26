@@ -33,6 +33,7 @@ export const app = express();
 const CORSOpt: CorsOptions = {
   origin: [
     'https://animee.club',
+    'https://www.animee.club',
     'https://updater.animee.club',
     'https://auth.animee.club',
     'https://api.animee.club',
@@ -99,6 +100,7 @@ if (devMode) {
 async function onReady() {
   try {
     // await handler.clearTestIDs();
+    await handler.deleteDoubledEps();
 
     setTimeout(async () => {
       await handler.clearout();

@@ -178,20 +178,17 @@ export async function updatePreviewFrames(tid: string, dubs: { id: string, eps: 
   if (!title.dubs?.length) return;
 
   console.log(`Start updating frames for ${title.code}`);
-  let newDubs: ITitleEpisodesDub[] = [];
 
   // Take dub
   for (const dubPI in dubs) {
     const dubP = dubs[dubPI];
     const dub = title.dubs.find(el => el.id === dubP.id);
-    const newEps: ITitleEpisodeDubbed[] = [];
 
     // Take ep
     for (const epPI in dubP.eps) {
       const epP = dubP.eps[epPI];
       const ep = dub!.eps.find(el => el.order === epP);
       const epId = ep!.source.q1080!.split('/media/')[1];
-      const newFrames: string[] = [];
       const TID = testMode ? `testid-${(Math.random() + 1).toString(36).substring(8)}` : (Math.random() + 1).toString(36).substring(8);
       const item = await Storage.findOne({ id: epId });
 
@@ -215,27 +212,30 @@ export async function updatePreviewFrames(tid: string, dubs: { id: string, eps: 
         }
       }
 
-      const frames = await createPreview(epId, TID, item!.URI);
-      let i = 0;
-
-      while (i < frames) {
-        newFrames.push(`${devMode ? `http://${ip.address()}` : `https://api.animee.club`}/v1/media/${epId}_f_${i}`);
-        i++;
-      }
-
-      ep!.framesURL = newFrames;
-      newEps.push(ep!);
+      await createPreview(epId, TID, item!.URI);
     }
-
-    dub!.eps = dub!.eps.filter(ep => newEps.some(el => el.order !== ep.order));
-    dub!.eps.push(...newEps);
-    dub!.eps = dub!.eps.sort((a, b) => a.order - b.order);
-    newDubs.push(dub!);
   }
 
-  newDubs = [...title.dubs.filter(el => newDubs.some(dub => dub.id !== el.id)), ...newDubs];
-  title.dubs = newDubs;
-  await Title.findOneAndUpdate({ id: title.id }, { dubs: newDubs });
-
   console.log(`- - - END UPDATING ${title.code} via ${((+new Date() - startTimestamp) / 1000).toFixed(2)}s - - -`);
+}
+
+export async function deleteDoubledEps() {
+  let titles = await Title.find();
+
+  titles.forEach(title => {
+    const dubs: ITitleEpisodesDub[] = [];
+
+    title.dubs?.forEach(dub => !dubs.some(el => el.id === dub.id) ? dubs.push(dub) : null);
+    dubs.forEach(dub => {
+      const eps: ITitleEpisodeDubbed[] = [];
+
+      dub.eps.forEach(ep => !eps.some(el => el.order === ep.order) ? eps.push(ep) : null);
+
+      dubs.find(el => el.id === dub.id)!.eps = eps;
+    });
+
+    Title.findOneAndUpdate({ id: title.id }, { dubs }).catch(e => console.error(e)).then(() => {
+      console.log(`${title.code} was successfully beautified`);
+    });
+  });
 }
