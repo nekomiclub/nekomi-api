@@ -43,8 +43,8 @@ export const wss = devMode ? new WebSocketServer({
   server: https.createServer({
     key: hskey,
     cert: hscert,
-    ca: [hschain]
-  })
+    ca: [hschain],
+  }).listen(env.WS_PORT, env.IP)
 });
 
 const CORSOpt: CorsOptions = {
@@ -55,7 +55,7 @@ const CORSOpt: CorsOptions = {
     'https://auth.animee.club',
     'https://api.animee.club',
     devMode ? 'http://localhost:3000' : '',
-    devMode ? 'http://192.168.0.106:3000' : '',
+    // devMode ? 'http://192.168.0.106:3000' : '',
   ],
   credentials: true,
 };
@@ -85,12 +85,12 @@ if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
-export const uploadQueue = new UploadQueue();
+export const uploadQueue = new UploadQueue(true);
 
 
 function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
   if (ws) {
-    console.log(`Websocket is listening on ws://${devMode ? env.IP : 'api.animee.club'}:${env.WS_PORT}`);
+    console.log(`Websocket is listening on ${https ? 'wss' : 'ws'}://${env.IP}:${env.WS_PORT}`);
   } else {
     console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
   }
@@ -101,7 +101,8 @@ function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
   onReady();
 }
 
-wss.on('listening', () => listen(false, false, true));
+wss.on('listening', () => listen(true, false, true));
+wss.on('error', e => { throw e; });
 
 if (devMode) {
   app.listen(env.HTTP_PORT, env.IP, () => listen(false, true));
