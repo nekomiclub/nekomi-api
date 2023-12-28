@@ -15,12 +15,14 @@ import * as dto from '../../handlers/v1/dtos';
 
 let fuse: Fuse<ITitle>;
 
-(async function () {
+async function updateFuse() {
   const titles = (await Title.find()).map(el => dto.title(el));
   fuse = new Fuse(titles, {
     keys: ['names.eng', 'names.ukr', 'names.alt']
   });
-})();
+}
+
+updateFuse();
 
 
 export async function getOne(req: express.Request, res: express.Response) {
@@ -158,6 +160,7 @@ export async function update(req: express.Request, res: express.Response) {
       db[key] = title[key];
     }
 
+    updateFuse();
     await db.save();
 
     return res.status(200).json(title);

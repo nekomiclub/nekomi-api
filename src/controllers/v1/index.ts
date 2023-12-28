@@ -142,15 +142,17 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
       throw new E401('User is not found');
     }
 
+    let filtered: string[] = []
     if (year && titleId) {
       if (!user.updated.some(el => el === titleId)) {
         titleUpdateDB.updated[year]++;
       }
 
-      (user.updated as string[]).filter(el => el !== titleId).push(titleId);
+      filtered = (user.updated as string[]).filter(el => el !== titleId)
+      filtered.push(titleId);
     }
 
-    fs.writeFileSync(`${path.resolve()}/src/localDB/titleUpdateDB.json`, JSON.stringify(titleUpdateDB, null, 2));
+    fs.writeFileSync(`${path.resolve()}/src/localDB/titleUpdateDB.json`, JSON.stringify({ updated: titleUpdateDB.updated, users: filtered }, null, 2));
     let total = 0;
     titleUpdateDB.users.map(el => total = el.updated.length + total);
 
