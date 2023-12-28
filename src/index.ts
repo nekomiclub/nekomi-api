@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { devMode, testMode, env } from './config';
 
 import https from 'https';
+import http from 'http';
 import cors, { CorsOptions } from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -15,6 +16,12 @@ import { UploadQueue } from './services/v1/processMedia';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 import Title from './Models/Title';
 import ffmpeg from 'fluent-ffmpeg';
+import { WebSocketServer } from 'ws';
+import { listenWSS } from './controllers/v1/ws';
+
+const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
+const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
+const hschain = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
 
 //! DO NOT CHANGE IF NOT NECESSARY
 export const MONGO_URI = (devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI;
@@ -29,6 +36,16 @@ mongoose.connect(MONGO_URI, {
 });
 
 export const app = express();
+export const wss = devMode ? new WebSocketServer({
+  host: env.IP,
+  port: env.WS_PORT,
+}) : new WebSocketServer({
+  server: https.createServer({
+    key: hskey,
+    cert: hscert,
+    ca: [hschain]
+  })
+});
 
 const CORSOpt: CorsOptions = {
   origin: [
@@ -47,7 +64,9 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
+
 app.use('/v1', router.ApiV1);
+
 
 if (!devMode) {
   app.enable('trust proxy');
@@ -69,8 +88,12 @@ if (!process.env.HTTP_PORT) {
 export const uploadQueue = new UploadQueue();
 
 
-function listen(https?: boolean, showDetails?: boolean) {
-  console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
+function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
+  if (ws) {
+    console.log(`Websocket is listening on ws://${devMode ? env.IP : 'api.animee.club'}:${env.WS_PORT}`);
+  } else {
+    console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
+  }
 
   if (!showDetails) return;
   console.log(`DETAILS:\nStartedAt: ${new Date(handler.getUTCTime())};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
@@ -78,13 +101,11 @@ function listen(https?: boolean, showDetails?: boolean) {
   onReady();
 }
 
+wss.on('listening', () => listen(false, false, true));
+
 if (devMode) {
   app.listen(env.HTTP_PORT, env.IP, () => listen(false, true));
 } else {
-  const hskey = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
-  const hscert = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
-  const hschain = fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
-
   if (!hskey || !hscert || !hschain) {
     throw new Error('SSL certs are not found');
   }
@@ -99,8 +120,8 @@ if (devMode) {
 
 async function onReady() {
   try {
+    listenWSS();
     // await handler.clearTestIDs();
-    await handler.deleteDoubledEps();
 
     setTimeout(async () => {
       await handler.clearout();

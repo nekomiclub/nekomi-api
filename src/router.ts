@@ -3,6 +3,7 @@ import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CUser from './controllers/v1/user';
+import * as v1CWS from './controllers/v1/ws';
 
 import multer from 'multer';
 import path from 'path';

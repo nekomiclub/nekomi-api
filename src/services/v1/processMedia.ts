@@ -249,10 +249,10 @@ async function convertWebm(id: string, TID: string, item: IStorageItem, relevant
       ffmpeg(sourceURI)
         .videoCodec('libvpx')
         .audioCodec('libopus')
-        .videoBitrate('1800k')
+        .videoBitrate(relevant ? '2300k' : '1800k')
         .audioBitrate('128k')
         .outputOptions([
-          '-minrate', relevant ? '1800k' : '1500k',
+          '-minrate', relevant ? '2100k' : '1500k',
           '-maxrate', relevant ? '2610k' : '2000k',
           '-crf', relevant ? '29' : '32',
           '-threads', `${threads}`
@@ -312,10 +312,10 @@ export async function cropWebm(id: string, TID: string, sourceURI: string, quali
       ffmpeg(sourceURI)
         .videoCodec('libvpx')
         .audioCodec('libopus')
-        .videoBitrate('1500k')
+        .videoBitrate('1600k')
         .audioBitrate('128k')
         .outputOptions([
-          '-minrate', relevant ? '1300k' : '1000k',
+          '-minrate', relevant ? '1500k' : '1300k',
           '-maxrate', relevant ? '1800k' : '1600k',
           '-crf', '32',
           '-threads', `${threads}`

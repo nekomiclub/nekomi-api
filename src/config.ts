@@ -10,6 +10,7 @@ dotenv.config();
 interface IEnv {
   HTTP_PORT: number,
   HTTPS_PORT: number,
+  WS_PORT: number,
   IP: string,
   MONGODB_PROD_URI: string
   MONGODB_DEV_URI: string,

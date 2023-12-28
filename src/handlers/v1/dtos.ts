@@ -15,6 +15,6 @@ export function storageItem({ URI, dateAdded, id }: IStorageItem): IStorageItem 
 }
 
 export function user(raw: any): IUser {
-  const { __v, _id, password, ...user } = raw._doc;
+  const { __v, _id, password, email, ...user } = raw._doc;
   return user;
 }
