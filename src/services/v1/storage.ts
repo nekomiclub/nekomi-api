@@ -13,7 +13,8 @@ import * as handler from '../../handlers/v1/handlers';
 
 export const uploadStorage = multer.diskStorage({
   destination(req, file, callback) {
-    callback(null, `${path.resolve()}/tmp/uploads`);
+    // callback(null, `${path.resolve()}/tmp/uploads`);
+    return callback(null, cfg.uploadsURI[0]);
   },
   async filename(req, file, callback) {
     const filename = file.originalname;
@@ -28,7 +29,7 @@ export const uploadStorage = multer.diskStorage({
         return callback(new Error('Update reverted. Provided update id is not found in db.'), `123`);
       } else {
         const id = req.query.update;
-        item!.URI = `${path.resolve()}/tmp/uploads/${id}.${ext}`;
+        item!.URI = `${cfg.uploadsURI[0]}/${id}.${ext}`;
         await item.save();
 
         req.body = {
@@ -44,7 +45,7 @@ export const uploadStorage = multer.diskStorage({
 
     const storage = new Storage({
       id,
-      URI: `${path.resolve()}/tmp/uploads/${id}.${ext}`,
+      URI: `${cfg.uploadsURI[0]}/${id}.${ext}`,
       dateAdded: handler.getUTCTime()
     });
 

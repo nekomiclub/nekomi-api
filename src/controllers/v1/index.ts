@@ -142,13 +142,13 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
       throw new E401('User is not found');
     }
 
-    let filtered: string[] = []
+    let filtered: string[] = [];
     if (year && titleId) {
       if (!user.updated.some(el => el === titleId)) {
         titleUpdateDB.updated[year]++;
       }
 
-      filtered = (user.updated as string[]).filter(el => el !== titleId)
+      filtered = (user.updated as string[]).filter(el => el !== titleId);
       filtered.push(titleId);
     }
 

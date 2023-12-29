@@ -3,6 +3,7 @@ dist
 tmp
 pw
 testStorage
+testUploads
 test
 .log
 src/localDB

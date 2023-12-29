@@ -19,7 +19,8 @@ interface IEnv {
 }
 
 interface ICfg {
-  storageURIs: string[]
+  storageURIs: string[],
+  uploadsURI: string[],
 }
 
 // @ts-ignore
@@ -41,6 +42,11 @@ export const cfg: ICfg = {
   ] : [
     `/media/unniiiverse/Storage_0/animee-storage`,
     `/media/unniiiverse/Storage_1/animee-storage`,
+  ],
+  uploadsURI: devMode ? [
+    `${path.resolve()}/testUploads`
+  ] : [
+    `/media/unniiiverse/Storage_0/animee-uploads`
   ]
 };
 
