@@ -9,7 +9,7 @@ import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';
 import inquirer from 'inquirer';
-import { createPreview } from '../../services/v1/processMedia';
+import { IUploadQueue, createPreview } from '../../services/v1/processMedia';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -236,6 +236,38 @@ export async function deleteDoubledEps() {
 
     Title.findOneAndUpdate({ id: title.id }, { dubs }).catch(e => console.error(e)).then(() => {
       console.log(`${title.code} was successfully beautified`);
+    });
+  });
+}
+
+export async function returnToUploadDB() {
+  const storages: string[] = [...cfg.uploadsURI, `${path.resolve()}/tmp/uploads`];
+
+  storages.forEach(storage => {
+    fs.readdirSync(storage).forEach(filePath => {
+      const ext = getFileExtension(filePath);
+      const id = filePath.replace(`.${ext}`, '');
+
+      // Match ext
+      if (ext !== 'mp4' && ext !== 'mov' && ext !== 'mkv') return;
+
+      // Match item not exist in udb
+      if (uploadDB.queue.some(el => el.id === id)) return;
+
+      const newRecord: IUploadQueue = {
+        id,
+        quality: [
+          1080,
+          480
+        ],
+        relevant: false,
+        timestamp: +new Date(),
+        type: 'video/series',
+        URI: `${storage}/${filePath}`
+      };
+
+      uploadDB.queue.push(newRecord);
+      fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify(uploadDB, null, 2));
     });
   });
 }

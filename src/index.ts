@@ -85,7 +85,7 @@ if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
-export const uploadQueue = new UploadQueue(true);
+export const uploadQueue = new UploadQueue(true); //! TMP
 
 
 function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
@@ -123,6 +123,7 @@ async function onReady() {
   try {
     listenWSS();
     // await handler.clearTestIDs();
+    await handler.returnToUploadDB();
 
     setTimeout(async () => {
       await handler.clearout();
