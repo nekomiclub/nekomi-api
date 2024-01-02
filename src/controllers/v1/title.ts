@@ -108,26 +108,24 @@ export async function search(req: express.Request, res: express.Response) {
 
 export async function getMany(req: express.Request, res: express.Response) {
   try {
-    const { limit, page } = req.query;
+    let { limit, page } = req.query as { limit: number | undefined, page: number | undefined };
 
-    if (!limit || !page) {
-      throw new E400('No limit or page provided');
+    let titles = await Title.find();
+    let results: ITitle[] = [];
+
+    // Assign default values or make turn to number
+    if (!limit || +limit <= 0 || +limit > 30) { limit = 30; } else {
+      if (isNaN(+limit)) throw new E400('Limit can not be NaN');
+      limit = +limit;
+    }
+    if (!page || page == 0) { page = 1; } else {
+      if (isNaN(+page)) throw new E400('Page can not be NaN');
+      page = +page;
     }
 
-    if (+limit >= 30) {
-      throw new E400('Limit can not be greater than 30');
-    } else if (+limit < 0) {
-      throw new E400('Limit can not be less than 0');
-    }
+    results = titles.slice(page === 1 ? 0 : page === 2 ? limit + 1 : ((page - 1) * limit) + 1, page === 1 ? limit : (limit * page) + 1);
 
-    const titles = Array.from(await Title.find()).slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
-    const sliced: ITitle[] = [];
-
-    titles.forEach(title => {
-      sliced.push(dto.title(title));
-    });
-
-    return res.status(200).json({ titles: sliced });
+    return res.status(200).json({ results, total: titles.length });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
