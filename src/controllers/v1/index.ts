@@ -9,6 +9,7 @@ import { getVideoDurationInSeconds } from 'get-video-duration';
 import path from 'path';
 import { uploadQueue } from '../../index';
 import { devMode } from '../../config';
+import { dayStat } from '../../services/v1/stats';
 
 const apiUptime = +new Date();
 
@@ -75,14 +76,17 @@ export async function upload(req: express.Request, res: express.Response) {
       throw new E500('Item with provided id is not found');
     }
 
+    // Add one to uploaded series stat
+    dayStat.seriesUploaded++;
+
     try {
-      if (type.match(/^video/g)) {
-        //@ts-ignore
-        const qualityParsed = JSON.parse(quality!);
-        uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
-      } else {
-        processMedia.processPhoto(id, type);
-      }
+      // if (type.match(/^video/g)) {
+      //   //@ts-ignore
+      //   const qualityParsed = JSON.parse(quality!);
+      //   uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
+      // } else {
+      //   processMedia.processPhoto(id, type);
+      // }
     } catch (e) {
       if (devMode) console.error(e);
       // @ts-ignore
@@ -146,6 +150,8 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
     if (year && titleId) {
       if (!user.updated.some(el => el === titleId)) {
         titleUpdateDB.updated[year]++;
+        // Add title updated
+        dayStat.titlesUpdated++;
       }
 
       filtered = (user.updated as string[]).filter(el => el !== titleId);
@@ -173,6 +179,7 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
 //
 
 import * as authService from '../../services/v1/auth';
+import { IStatRecord } from '../../core/interfaces';
 export async function tokenVerify(req: express.Request, res: express.Response) {
   try {
     const valRes = validationResult(req);
@@ -214,6 +221,37 @@ export async function tokenDecode(req: express.Request, res: express.Response) {
     const serviceResponse = authService.decode(token.split('=')[1]);
 
     return res.status(200).json(serviceResponse);
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      if (devMode) console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      if (devMode) console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function saveStatRecord(req: express.Request, res: express.Response) {
+  try {
+    const { selectedDub, title, watchtime } = req.body as IStatRecord;
+
+    const valRes = validationResult(req);
+
+    if (!valRes.isEmpty()) {
+      return res.status(400).json(valRes.array());
+    }
+
+    const record = dayStat.titles.total.find(el => el.id === title);
+
+    if (record) {
+      const dub = record.dubs.find(el => el.id === selectedDub);
+      dub ? dub.watchtimeS += watchtime : record.dubs.push({ id: selectedDub, watchtimeS: watchtime });
+    } else {
+      dayStat.titles.total.push({ dubs: [{ id: selectedDub, watchtimeS: watchtime }], id: title, watchtimeS: 0 });
+    }
+
+    return res.status(200).json('ok');
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);

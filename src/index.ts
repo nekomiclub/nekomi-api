@@ -119,11 +119,16 @@ if (devMode) {
   }, app).listen(env.HTTPS_PORT, env.IP, () => listen(true, true));
 }
 
+import { sendDayStat } from './services/v1/stats';
+
 async function onReady() {
   try {
     listenWSS();
     // await handler.clearTestIDs();
-    await handler.returnToUploadDB();
+
+    setInterval(() => {
+      sendDayStat();
+    }, 30000); // 30000 // 30s
 
     setTimeout(async () => {
       await handler.clearout();

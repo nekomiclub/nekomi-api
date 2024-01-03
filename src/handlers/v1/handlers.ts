@@ -83,7 +83,7 @@ export async function clearout() {
 
 import bcrypt from 'bcrypt';
 import { MONGO_URI } from '../../index';
-import { ITitleEpisodeDubbed, ITitleEpisodesDub } from 'src/core/ITitle';
+import { ITitleEpisodeDubbed, ITitleEpisodesDub } from '../../core/ITitle';
 
 export async function dbClearout() {
   console.log(`CLEAROUT DETAILS:\nDevMode: ${devMode}\nTestMode: ${testMode}\nURI: ${MONGO_URI}`);

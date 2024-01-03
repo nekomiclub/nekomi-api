@@ -1,4 +1,4 @@
-export type TWS = 'echo' | 'presence';
+export type TWS = 'echo' | 'presence' | 'presence/audience';
 
 export interface IWSPresence {
   sid: string,

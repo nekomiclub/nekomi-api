@@ -86,3 +86,40 @@ export interface IUser {
   providers: TAuthProviders[],
   roles: TUserRoles[]
 }
+
+export interface IStat {
+  id: string,
+  timestamp: number,
+  online: {
+    total: number,
+    peak: number,
+    avg: number
+  },
+  createdAccounts: number,
+  seriesUploaded: number,
+  titlesCreated: number,
+  titlesUpdated: number,
+  popularDub: string,
+  totalWatchtimeS: number,
+  titles: {
+    popularTitle: string,
+    popularDub: string,
+    top30: IStatTitle[],
+    total: IStatTitle[],
+  }
+}
+
+export interface IStatTitle {
+  id: string,
+  watchtimeS: number,
+  dubs: {
+    id: string,
+    watchtimeS: number
+  }[]
+}
+
+export interface IStatRecord {
+  title: string,
+  selectedDub: string,
+  watchtime: number
+}

@@ -101,5 +101,6 @@ ApiV1.post(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'
 ApiV1.delete(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), v1CTitle.remove);
 
 ApiV1.post('/titleUpdate', v1C.titleUpdate); // TODO Fix access issue
+ApiV1.post('/stat/record', (req, res, next) => ensureAccess(['user', 'root'], req, res, next), body(['title', 'selectedDub', 'watchtime']).notEmpty(), v1C.saveStatRecord);
 
 ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);

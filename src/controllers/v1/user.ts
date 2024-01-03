@@ -8,6 +8,7 @@ import * as authService from '../../services/v1/auth';
 import User from '../../Models/User';
 import { validationResult } from 'express-validator';
 import { devMode } from '../../config';
+import { dayStat } from '../../services/v1/stats';
 
 export async function get(req: express.Request, res: express.Response) {
   try {
@@ -79,6 +80,9 @@ export async function create(req: express.Request, res: express.Response) {
     if (isExist) {
       throw new E400('User is already exist');
     }
+
+    // Update created accounts day stat
+    dayStat.createdAccounts++;
 
     const uid = await authService.createUser(username, password);
     const tokens = await authService.auth(username, password);
