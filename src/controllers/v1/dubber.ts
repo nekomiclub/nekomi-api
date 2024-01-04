@@ -10,7 +10,7 @@ export async function getOne(req: express.Request, res: express.Response) {
   try {
     const { id } = req.params;
 
-    const dubber = await Dubbers.findOne({ id });
+    const dubber = await Dubbers.findOne({ $or: [{ id }, { code: id }] });
 
     if (!dubber) {
       throw new E400('Dubber with provided id is not found');

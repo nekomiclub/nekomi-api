@@ -64,8 +64,7 @@ function updateDayStat() {
 export async function sendDayStat() {
   const time = getUTCTime();
 
-  console.log('round');
-  if (new Date(time).getUTCHours() === 17) {
+  if (new Date(time).getUTCHours() === 23) {
     if (isDayStatSended) return;
   } else return;
   updateDayStat();

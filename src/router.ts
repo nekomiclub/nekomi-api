@@ -65,7 +65,7 @@ const titleValidation = [
       'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music',
       'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural',
       'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller',
-      'erotica'
+      'erotica', 'gourmet'
     ];
 
     input.forEach(genre => {

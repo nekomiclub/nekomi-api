@@ -7,6 +7,7 @@ import path from 'path';
 import { getFileExtension } from './handlers/v1/handlers';
 import { TUserRoles } from './core/IUser';
 import * as authService from './services/v1/auth';
+import { devMode } from './config';
 
 const isDev = process.argv.some(el => el === 'devMode');
 const isTest = process.argv.some(el => el === 'testMode');
@@ -43,10 +44,10 @@ export async function ensureAccess(accessRoles: TUserRoles[], req: express.Reque
     next();
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
@@ -101,10 +102,10 @@ export async function uploadValidity(req: express.Request, res: express.Response
   } catch (e) {
     await revert(id, item?.URI, new E500(''), false);
     if (e instanceof ErrorConstructor) {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else {
-      console.error(e);
+      if (devMode) console.error(e);
       return res.status(500).json(e);
     }
   }
