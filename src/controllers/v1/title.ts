@@ -220,7 +220,24 @@ export async function remove(req: express.Request, res: express.Response) {
 
     await Title.deleteOne({ id });
 
-    return res.status(418).json('ok');
+    return res.status(200).json('ok');
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      if (devMode) console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      if (devMode) console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function total(req: express.Request, res: express.Response) {
+  try {
+    const total = await Title.find();
+    const renewed = total.filter(el => el.country !== 'null').length;
+
+    return res.status(200).json({ total: total.length, renewed });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);

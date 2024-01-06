@@ -22,6 +22,7 @@ const upload = multer({ storage: uploadStorage });
 ApiV1.get(`/title/:query`, v1CTitle.getOne);
 ApiV1.get(`/titles`, v1CTitle.getMany);
 ApiV1.get(`/titles/search`, v1CTitle.search);
+ApiV1.get(`/titles/total`, v1CTitle.total);
 ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
 
 ApiV1.get(`/global_stats`, v1C.getGS);
@@ -78,7 +79,7 @@ const titleValidation = [
   }),
   body('ageRate').isIn(['G', 'PG', 'PG-13', 'R-17', 'R+']),
   body('season').isIn(['summer', 'autumn', 'winter', 'spring']),
-  body('type').isIn(['serial', 'ONA', 'OVA', 'film']),
+  body('type').isIn(['serial', 'ONA', 'OVA', 'film', 'special']),
   body([
     'rating',
     'started',

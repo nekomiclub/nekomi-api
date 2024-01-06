@@ -160,7 +160,7 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
 
     (titleUpdateDB.users.find(el => el.id === id)!.updated as string[]) = filtered;
 
-    fs.writeFileSync(`${path.resolve()}/src/localDB/titleUpdateDB.json`, JSON.stringify({ titleUpdateDB }, null, 2));
+    fs.writeFileSync(`${path.resolve()}/src/localDB/titleUpdateDB.json`, JSON.stringify(titleUpdateDB, null, 2));
     let total = 0;
     titleUpdateDB.users.map(el => total = el.updated.length + total);
 
