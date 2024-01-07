@@ -4,6 +4,7 @@ import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CUser from './controllers/v1/user';
 import * as v1CWS from './controllers/v1/ws';
+import * as v1CTMP from './controllers/v1/tmp';
 
 import multer from 'multer';
 import path from 'path';
@@ -105,3 +106,6 @@ ApiV1.post('/titleUpdate', v1C.titleUpdate); // TODO Fix access issue
 ApiV1.post('/stat/record', (req, res, next) => ensureAccess(['user', 'root'], req, res, next), body(['title', 'selectedDub', 'watchtime']).notEmpty(), v1C.saveStatRecord);
 
 ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);
+
+// TODO TMP
+ApiV1.post('/tmp/parseMetadata', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.parseMetadata);
