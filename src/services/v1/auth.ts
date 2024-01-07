@@ -9,7 +9,7 @@ import bcrypt from 'bcrypt';
 import User from '../../Models/User';
 import { E400 } from '../../handlers/v1/Errors';
 import firebaseAdmin from 'firebase-admin';
-import { TAuthProviders } from 'src/core/IAuth';
+import { TAuthProviders } from '../../core/IAuth';
 
 interface ITokenPayload {
   username: string,
@@ -109,13 +109,13 @@ export async function createUser(username: string, password: string, providers?:
       id: `delayed-${uid}`
     }, {
       createdAt: handler.getUTCTime(),
-      description: 'Побачив, пошкодував, закинув',
+      description: 'Ого, так багато?',
       hidden: true,
       immortal: true,
       thumb: '',
       titles: [],
-      name: 'Закинуті',
-      id: `threwn-${uid}`
+      name: 'Переглядаю',
+      id: `watching-${uid}`
     }],
     roles: userDefaultRoles
   };

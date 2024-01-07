@@ -84,6 +84,7 @@ export async function clearout() {
 import bcrypt from 'bcrypt';
 import { MONGO_URI } from '../../index';
 import { ITitleEpisodeDubbed, ITitleEpisodesDub } from '../../core/ITitle';
+import User from '../../Models/User';
 
 export async function dbClearout() {
   console.log(`CLEAROUT DETAILS:\nDevMode: ${devMode}\nTestMode: ${testMode}\nURI: ${MONGO_URI}`);
@@ -252,7 +253,7 @@ export async function returnToUploadDB() {
       if (ext !== 'mp4' && ext !== 'mov' && ext !== 'mkv') return;
 
       // Match item not exist in udb
-      if (uploadDB.queue.some(el => el.id === id)) return;
+      if ((uploadDB.queue as IUploadQueue[]).some(el => el.id === id)) return;
 
       const newRecord: IUploadQueue = {
         id,
@@ -266,8 +267,28 @@ export async function returnToUploadDB() {
         URI: `${storage}/${filePath}`
       };
 
-      uploadDB.queue.push(newRecord);
+      (uploadDB.queue as IUploadQueue[]).push(newRecord);
       fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify(uploadDB, null, 2));
     });
+  });
+}
+
+export async function replaceThrewnWatched() {
+  const users = await User.find();
+
+  users.forEach(user => {
+    user.lists.splice(user.lists.findIndex(el => el.id.match(/^threwn/gi)));
+    user.lists.push({
+      createdAt: getUTCTime(),
+      description: 'Ого, так багато?',
+      hidden: true,
+      immortal: true,
+      thumb: '',
+      titles: [],
+      name: 'Переглядаю',
+      id: `watching-${user.id}`
+    });
+
+    user.save();
   });
 }

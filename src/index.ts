@@ -126,6 +126,8 @@ async function onReady() {
     listenWSS();
     // await handler.clearTestIDs();
 
+    // await handler.replaceThrewnWatched();
+
     setInterval(() => {
       sendDayStat();
     }, 30000); // 30000 // 30s
