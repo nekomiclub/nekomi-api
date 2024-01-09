@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import path from 'path';
 import type { ValidationError } from 'express-validator';
 import * as uuid from 'uuid';
 import { validationResult } from 'express-validator';
@@ -140,6 +141,14 @@ export async function getMany(req: express.Request, res: express.Response) {
 
 // 
 
+import weekTitles from '../../localDB/weekTitles.json' assert {type: 'json'};
+
+interface WeekTitle {
+  names: string,
+  link: string,
+  poster: string
+}
+
 export async function update(req: express.Request, res: express.Response) {
   try {
     const title = req.body as ITitle;
@@ -153,6 +162,17 @@ export async function update(req: express.Request, res: express.Response) {
 
     if (!db) {
       throw new E400('Title with provided id is not found');
+    }
+
+    // Title updated in first time
+    if (db.country === 'null') {
+      (weekTitles.weekTitles as WeekTitle[]).push({
+        names: `${title.names.ukr} / ${title.names.eng}`,
+        poster: title.poster,
+        link: `https://animee.club/w/${title.code}`
+      });
+
+      fs.writeFileSync(`${path.resolve()}/src/localDB/weekTitles.json`, JSON.stringify(weekTitles, null, 2));
     }
 
     for (const key in title) {
