@@ -76,17 +76,17 @@ export async function upload(req: express.Request, res: express.Response) {
       throw new E500('Item with provided id is not found');
     }
 
-    // Add one to uploaded series stat
-    dayStat.seriesUploaded++;
-
     try {
-      // if (type.match(/^video/g)) {
-      //   //@ts-ignore
-      //   const qualityParsed = JSON.parse(quality!);
-      //   uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
-      // } else {
-      //   processMedia.processPhoto(id, type);
-      // }
+      if (type.match(/^video/g)) {
+        // Add one to uploaded series stat
+        dayStat.seriesUploaded++;
+
+        //@ts-ignore
+        const qualityParsed = JSON.parse(quality!);
+        uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
+      } else {
+        processMedia.processPhoto(id, type);
+      }
     } catch (e) {
       if (devMode) console.error(e);
       // @ts-ignore

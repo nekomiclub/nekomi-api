@@ -9,7 +9,7 @@ import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';
 import inquirer from 'inquirer';
-import { IUploadQueue, createPreview } from '../../services/v1/processMedia';
+import { IUploadQueue, createPreview, processPhoto } from '../../services/v1/processMedia';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -273,22 +273,18 @@ export async function returnToUploadDB() {
   });
 }
 
-export async function replaceThrewnWatched() {
-  const users = await User.find();
+export async function reuploadImages() {
+  const storages: string[] = [...cfg.uploadsURI, `${path.resolve()}/tmp/uploads`];
 
-  users.forEach(user => {
-    user.lists.splice(user.lists.findIndex(el => el.id.match(/^threwn/gi)));
-    user.lists.push({
-      createdAt: getUTCTime(),
-      description: 'Ого, так багато?',
-      hidden: true,
-      immortal: true,
-      thumb: '',
-      titles: [],
-      name: 'Переглядаю',
-      id: `watching-${user.id}`
+  storages.forEach(storage => {
+    fs.readdirSync(storage).forEach(filePath => {
+      const ext = getFileExtension(filePath);
+      const id = filePath.replace(`.${ext}`, '');
+
+      // Match ext
+      if (ext !== 'png' && ext !== 'jpg' && ext !== 'jpeg') return;
+
+      processPhoto(id, 'photo/series');
     });
-
-    user.save();
   });
 }

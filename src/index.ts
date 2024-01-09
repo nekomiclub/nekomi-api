@@ -124,9 +124,7 @@ import { sendDayStat } from './services/v1/stats';
 async function onReady() {
   try {
     listenWSS();
-    // await handler.clearTestIDs();
-
-    // await handler.replaceThrewnWatched();
+    // handler.reuploadImages();
 
     setInterval(() => {
       sendDayStat();

@@ -13,12 +13,16 @@ import * as handler from '../../handlers/v1/handlers';
 
 export const uploadStorage = multer.diskStorage({
   destination(req, file, callback) {
-    // callback(null, `${path.resolve()}/tmp/uploads`);
+    console.log('dest');
+    console.log(cfg.uploadsURI);
     return callback(null, cfg.uploadsURI[0]);
   },
   async filename(req, file, callback) {
     const filename = file.originalname;
     const ext = filename.substring(filename.lastIndexOf('.') + 1, filename.length);
+
+    console.log('file');
+    console.log(filename);
 
     const id = `${(process.argv.some(el => el === 'testMode')) ? 'testid-' : ''}${uuid.v4()}`;
 
