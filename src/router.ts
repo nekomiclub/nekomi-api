@@ -87,8 +87,6 @@ const titleValidation = [
     'ended',
     'dubs',
     'epsMeta',
-    'linkedManga',
-    'linkedTitlesIDs'
   ]).custom(input => {
     if (input === undefined) {
       throw new Error('Field must be notEmpty or null');

@@ -288,3 +288,19 @@ export async function reuploadImages() {
     });
   });
 }
+
+export async function updateTitles() {
+  const titles = await Title.find();
+  const started = +new Date();
+
+  titles.forEach(title => {
+    title.set('linkedTitlesIDs', undefined, { strict: false });
+    title.set('linkedManga', undefined, { strict: false });
+
+    title.updatedAt = +new Date();
+
+    title.save();
+  });
+
+  console.log(`Title updating ended via ${+new Date() - started}ms`);
+}

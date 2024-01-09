@@ -52,13 +52,7 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
     },
     dateOut: number
   }> || null,
-  linkedTitlesIDs: Array<string> || null,
-  linkedManga: {
-    id: String,
-    pictureURL: String,
-    name: String,
-    URL: String
-  } || null,
+  updatedAt: Number,
   details: String || null
 }));
 

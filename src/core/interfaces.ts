@@ -36,13 +36,7 @@ export interface ITitle {
   ended: number | null,
   dubs: ITitleEpisodesDub[] | null,
   epsMeta: ITitleEpisodeMeta[] | null,
-  linkedTitlesIDs: string[] | null,
-  linkedManga: {
-    id: string,
-    pictureURL: string,
-    name: string,
-    URL: string
-  } | null,
+  updatedAt: number,
   details: string | null
 }
 

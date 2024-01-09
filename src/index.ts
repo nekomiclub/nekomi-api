@@ -125,6 +125,7 @@ async function onReady() {
   try {
     listenWSS();
     // handler.reuploadImages();
+    // await handler.updateTitles();
 
     setInterval(() => {
       sendDayStat();
