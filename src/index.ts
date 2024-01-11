@@ -56,6 +56,7 @@ const CORSOpt: CorsOptions = {
     'https://api.animee.club',
     devMode ? 'http://localhost:3000' : '',
     devMode ? 'http://192.168.0.106:3000' : '',
+    'https://animee-git-dev-unniiiverse.vercel.app'
   ],
   credentials: true,
 };

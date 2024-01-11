@@ -165,7 +165,7 @@ export async function update(req: express.Request, res: express.Response) {
     }
 
     // Title updated in first time
-    if (db.country === 'null') {
+    if (db.country === 'null' && db.country !== 'null') {
       (weekTitles.weekTitles as WeekTitle[]).push({
         names: `${title.names.ukr} / ${title.names.eng}`,
         poster: title.poster,
