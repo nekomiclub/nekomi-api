@@ -3,6 +3,12 @@ import { ErrorConstructor } from '../../handlers/v1/Errors';
 import { devMode } from '../../config';
 import { ITitleEpisodeMeta } from '../../core/ITitle';
 import puppeteer from 'puppeteer';
+import path from 'path';
+import * as uuid from 'uuid';
+import fs from 'fs';
+import { uploadFile } from '../../handlers/v1/handlers';
+import ip from 'ip';
+import Storage from '../../Models/Storage';
 
 function parseCustomDateString(dateString: string): number {
   const months = {
@@ -64,6 +70,52 @@ export async function parseMetadata(req: express.Request, res: express.Response)
     });
 
     return res.status(200).json({ results });
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      if (devMode) console.error(e);
+      return res.status(e.code).json(e);
+    } else {
+      if (devMode) console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function createSnap(req: express.Request, res: express.Response) {
+  try {
+    const { url } = req.body as { url: string };
+
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+    await page.setViewport({
+      width: 1920,
+      height: 1080,
+      deviceScaleFactor: 1
+    });
+
+    // Navigate & wait for loading
+    await page.goto(url);
+    await page.waitForSelector('#content');
+
+    // Take screenshot
+    const snapURL = `${path.resolve()}/tmp/uploads/${uuid.v4()}.png`;
+    await page.screenshot({ fullPage: true, path: snapURL });
+
+    await browser.close();
+
+    const snapID = await uploadFile(snapURL);
+    fs.rmSync(snapURL);
+
+    setTimeout(async () => {
+      const item = await Storage.findOne({ id: snapID });
+
+      fs.rmSync(item!.URI);
+      await item!.deleteOne();
+    }, 120000);
+
+    return res.status(200).json({ url: `${devMode ? `http://${ip.address()}` : 'https://api.animee.club'}/v1/media/${snapID}` });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);

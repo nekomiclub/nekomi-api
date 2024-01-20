@@ -107,3 +107,4 @@ ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 
 
 // TODO TMP
 ApiV1.post('/tmp/parseMetadata', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.parseMetadata);
+ApiV1.post('/tmp/createSnap', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.createSnap);
