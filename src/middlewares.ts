@@ -78,7 +78,7 @@ export async function uploadValidity(req: express.Request, res: express.Response
     }
 
     const tPhotoExts: string[] = ['png', 'jpg', 'jpeg'];
-    const tVideoExts: string[] = ['mp4', 'mkv', 'mov'];
+    const tVideoExts: string[] = ['mp4', 'mkv', 'mov', 'm4v'];
 
     if (type.match(/^photo\//gi)) {
       if (!tPhotoExts.includes(getFileExtension(item!.URI))) {

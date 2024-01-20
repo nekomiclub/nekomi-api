@@ -9,6 +9,7 @@ import User from '../../Models/User';
 import { validationResult } from 'express-validator';
 import { devMode } from '../../config';
 import { dayStat } from '../../services/v1/stats';
+import ip from 'ip';
 
 export async function get(req: express.Request, res: express.Response) {
   try {
@@ -88,7 +89,7 @@ export async function create(req: express.Request, res: express.Response) {
     const tokens = await authService.auth(username, password);
 
     // todo auth
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ msg: 'Created', uid, token: tokens.accessToken });
+    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ msg: 'Created', uid, token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
@@ -146,7 +147,7 @@ export async function auth(req: express.Request, res: express.Response) {
 
     const tokens = await authService.auth(username, password, token);
 
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
+    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
@@ -177,7 +178,7 @@ export async function refresh(req: express.Request, res: express.Response) {
     const { roles, uid, username } = authService.decode(refreshToken)!;
     const tokens = authService.signTokens({ uid, roles, username });
 
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30 }).json({ token: tokens.accessToken });
+    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
