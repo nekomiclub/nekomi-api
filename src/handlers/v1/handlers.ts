@@ -85,6 +85,7 @@ import bcrypt from 'bcrypt';
 import { MONGO_URI } from '../../index';
 import { ITitleEpisodeDubbed, ITitleEpisodesDub } from '../../core/ITitle';
 import User from '../../Models/User';
+import { store } from '../../services/v1/storage';
 
 export async function dbClearout() {
   console.log(`CLEAROUT DETAILS:\nDevMode: ${devMode}\nTestMode: ${testMode}\nURI: ${MONGO_URI}`);
@@ -120,18 +121,17 @@ export async function dbClearout() {
 
 export async function uploadFile(path: string): Promise<string> {
   const id = testMode ? `testid-${uuid.v4()}` : uuid.v4();
-  const destURI = `${cfg.storageURIs[0]}/${id}.${getFileExtension(path.split('/')[3])}`;
-
-  fs.copyFileSync(path, destURI);
 
   const item = new Storage({
     id,
     dateAdded: getUTCTime(),
-    URI: destURI
+    URI: path
   });
 
   await item.save();
-  return item.id;
+  const newPath = await store(id);
+
+  return id;
 }
 
 export function getUTCTime(): number {

@@ -1,6 +1,6 @@
 import express from 'express';
 import { ErrorConstructor } from '../../handlers/v1/Errors';
-import { devMode } from '../../config';
+import { devMode, testMode } from '../../config';
 import { ITitleEpisodeMeta } from '../../core/ITitle';
 import puppeteer from 'puppeteer';
 import path from 'path';
@@ -105,13 +105,17 @@ export async function createSnap(req: express.Request, res: express.Response) {
 
     await browser.close();
 
-    const snapID = await uploadFile(snapURL);
-    fs.rmSync(snapURL);
+    const snapID = testMode ? `testid-${uuid.v4()}` : uuid.v4();
+    const item = new Storage({
+      id: snapID,
+      dateAdded: +new Date(),
+      URI: snapURL
+    });
+
+    await item.save();
 
     setTimeout(async () => {
-      const item = await Storage.findOne({ id: snapID });
-
-      fs.rmSync(item!.URI);
+      fs.rmSync(snapURL);
       await item!.deleteOne();
     }, 120000);
 
