@@ -7,6 +7,8 @@ import { TUserRoles } from './core/IUser';
 
 dotenv.config();
 
+export type TOSPlatform = 'win32' | 'linux' | 'aix' | 'darwin' | 'freebsd' | 'openbsd' | 'sunos'; // See https://nodejs.org/api/os.html#osplatform
+
 interface IEnv {
   HTTP_PORT: number,
   HTTPS_PORT: number,
@@ -16,6 +18,7 @@ interface IEnv {
   MONGODB_DEV_URI: string,
   JWT_SECRET_ACCESS: string,
   JWT_SECRET_REFRESH: string,
+  platform: TOSPlatform
 }
 
 interface ICfg {
@@ -26,6 +29,7 @@ interface ICfg {
 // @ts-ignore
 export const env = process.env as IEnv;
 
+env.platform = process.platform as TOSPlatform;
 env.JWT_SECRET_ACCESS = jwtSecrets.accessTokenSecret;
 env.JWT_SECRET_REFRESH = jwtSecrets.refreshTokenSecret;
 
@@ -40,7 +44,7 @@ export const cfg: ICfg = {
   storageURIs: devMode ? [
     `${path.resolve()}/testStorage`,
   ] : [
-    `/media/unniiiverse/Storage_0/animee-storage`,
+    `/media/unniiiverse/Storage_0/animee-storage`, //! STORAGE IS READ ONLY FOR NOW.
     `/media/unniiiverse/Storage_1/animee-storage`,
   ],
   uploadsURI: devMode ? [

@@ -3,9 +3,9 @@ import path from 'path';
 import * as uuid from 'uuid';
 import Storage from '../../Models/Storage';
 import { IUploadRequest, IUploadResponse } from '../../core/IUpload';
-import cfg from '../../config';
+import cfg, { devMode, env } from '../../config';
 import multer from 'multer';
-import { E400, E500 } from '../../handlers/v1/Errors';
+import { E400, E500, writeErrorLog } from '../../handlers/v1/Errors';
 import checkDiskSpace from 'check-disk-space';
 import { exec } from 'child_process';
 import { getFileExtension } from '../../handlers/v1/handlers';
@@ -84,11 +84,18 @@ export async function store(id: string, URI?: string): Promise<string> {
     throw new E400('Item with provided id is not found in storage.');
   }
 
-  const freeURI = await getFreeDiskURI(fs.statSync(URI || item!.URI).size);
+  // const freeURI = await getFreeDiskURI(fs.statSync(URI || item!.URI).size); //! STORAGE 0 IS INVALID TO WRITE (CAUSE ENOSPC) 
+  const freeURI = devMode ? cfg.storageURIs[0] : cfg.storageURIs[1];
   const newURI = `${freeURI}/${id}.${getFileExtension(URI || item!.URI)}`;
 
   await new Promise(res => {
-    exec(`copyfiles -f ${URI || item!.URI} ${freeURI}`, async () => {
+    exec(env.platform === 'win32' ? `copyfiles -f ${URI || item!.URI} ${freeURI}` : `cp ${URI || item!.URI} ${freeURI}`, async (e) => {
+      if (e) {
+        console.error(e);
+        writeErrorLog(`Copy/RM error - ${JSON.stringify(e)}`, 'services/v1/storage');
+        return;
+      }
+
       fs.rmSync(URI || item!.URI);
 
       item!.URI = newURI;

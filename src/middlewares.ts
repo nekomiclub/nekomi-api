@@ -9,9 +9,6 @@ import { TUserRoles } from './core/IUser';
 import * as authService from './services/v1/auth';
 import { devMode } from './config';
 
-const isDev = process.argv.some(el => el === 'devMode');
-const isTest = process.argv.some(el => el === 'testMode');
-
 export async function ensureAccess(accessRoles: TUserRoles[], req: express.Request, res: express.Response, next: express.NextFunction) {
   try {
     const token = req.header('Authorization')?.split('=')[1];
