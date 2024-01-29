@@ -5,11 +5,11 @@ import Storage from '../../Models/Storage';
 import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
 import * as processMedia from '../../services/v1/processMedia';
-import { getVideoDurationInSeconds } from 'get-video-duration';
 import path from 'path';
 import { uploadQueue } from '../../index';
 import { devMode } from '../../config';
 import { dayStat } from '../../services/v1/stats';
+import ip from 'ip';
 
 const apiUptime = +new Date();
 
@@ -67,37 +67,34 @@ export async function media(req: express.Request, res: express.Response) {
 
 export async function upload(req: express.Request, res: express.Response) {
   try {
-    const { id, type, quality, relevant } = req.body as { id: string, type: TUpload, quality?: processMedia.TPVQuality[], relevant?: boolean };
+    const file = req.file;
+    const { type, qualities } = req.body;
 
-    await processMedia.checkConditions(id);
-    const item = await Storage.findOne({ id });
+    const token = req.header('Authorization')?.split('=')[1];
+    const { roles, uid, username } = authService.decode(token!)!;
 
-    if (!item) {
-      throw new E500('Item with provided id is not found');
+    if (!file) {
+      throw new E400(`File is not provided`);
     }
 
-    try {
-      if (type.match(/^video/g)) {
-        // Add one to uploaded series stat
-        dayStat.seriesUploaded++;
+    const { buffer, originalname, mimetype } = file;
+    const formData = new FormData();
 
-        //@ts-ignore
-        const qualityParsed = JSON.parse(quality!);
-        uploadQueue.add(id, item.URI, qualityParsed, type, Boolean(relevant || false));
-      } else {
-        processMedia.processPhoto(id, type);
-      }
-    } catch (e) {
-      if (devMode) console.error(e);
-      // @ts-ignore
-      writeErrorLog(`An uncaught error thrown while processing ${id}. Error message: ${e.msg}`, 'controllers/v1/v1.ts/upload (RES SENDED BEFORE)');
-    }
+    formData.set('file', new Blob([buffer], { type: mimetype }), originalname);
+    formData.set('type', type);
+    formData.set('qualities', qualities);
+    formData.set('createdBy', uid);
 
-    return res.status(201).json({ id: req.body.id, frames: type.match(/^video\//gi) ? Math.ceil(Math.ceil(await getVideoDurationInSeconds(item.URI) / 5) / 25) : null });
+    const response = await axios.post(`http://${ip.address()}:43320/v1/upload`, formData);
+
+    return res.status(response.status).json(response.data);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
+    } else if (e instanceof AxiosError) {
+      if (devMode) console.error(e.response!.data);
+      return res.status(e.response!.status).json(e.response!.data);
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -105,27 +102,58 @@ export async function upload(req: express.Request, res: express.Response) {
   }
 }
 
-import uploadDB from '../../localDB/uploadDB.json' assert {type: 'json'};
-export async function deleteUpload(req: express.Request, res: express.Response) {
+export async function updateUpload(req: express.Request, res: express.Response) {
   try {
-    const { id } = req.body as { id: string };
-    const item = await Storage.findOne({ id });
+    const file = req.file;
+    const { type, qualities } = req.body;
+    const { id } = req.params;
 
-    fs.writeFileSync(`${path.resolve()}/src/localDB/uploadDB.json`, JSON.stringify({ queue: (uploadDB.queue as processMedia.IUploadQueue[]).filter(el => el.id !== id) }, null, 2));
+    const token = req.header('Authorization')?.split('=')[1];
+    const { roles, uid, username } = authService.decode(token!)!;
 
-    if (!item) {
-      throw new E400('Storage item with provided id is not found');
+    if (!file) {
+      throw new E400(`File is not provided`);
     }
 
-    fs.rmSync(item.URI);
-    await item.deleteOne();
+    const { buffer, originalname, mimetype } = file;
+    const formData = new FormData();
 
+    formData.set('file', new Blob([buffer], { type: mimetype }), originalname);
+    formData.set('type', type);
+    formData.set('qualities', qualities);
+    formData.set('createdBy', uid);
 
-    return res.status(200).json('ok');
+    const response = await axios.put(`http://${ip.address()}:43320/v1/upload/${id}`, formData);
+
+    return res.status(response.status).json(response.data);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
+    } else if (e instanceof AxiosError) {
+      if (devMode) console.error(e.response!.data);
+      return res.status(e.response!.status).json(e.response!.data);
+    } else {
+      if (devMode) console.error(e);
+      return res.status(500).json(e);
+    }
+  }
+}
+
+export async function deleteUpload(req: express.Request, res: express.Response) {
+  try {
+    const { id } = req.params;
+
+    const response = await axios.delete(`http://${ip.address()}:43320/v1/upload/${id}`);
+
+    return res.status(response.status).json(response.data);
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      if (devMode) console.error(e);
+      return res.status(e.code).json(e);
+    } else if (e instanceof AxiosError) {
+      if (devMode) console.error(e.response!.data);
+      return res.status(e.response!.status).json(e.response!.data);
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -180,6 +208,7 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
 
 import * as authService from '../../services/v1/auth';
 import { IStatRecord } from '../../core/interfaces';
+import axios, { AxiosError } from 'axios';
 export async function tokenVerify(req: express.Request, res: express.Response) {
   try {
     const valRes = validationResult(req);

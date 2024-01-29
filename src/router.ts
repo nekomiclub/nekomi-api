@@ -10,13 +10,12 @@ import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
 import Storage from './Models/Storage';
-import { uploadValidity, ensureAccess } from './middlewares';
+import { ensureAccess } from './middlewares';
 import { uploadStorage } from './services/v1/storage';
 import { body, cookie, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 
 export const ApiV1 = express.Router();
-const upload = multer({ storage: uploadStorage });
 
 // TODO (req, res, next) => ensureAccess(['ROLE'], req, res, next)
 
@@ -43,8 +42,9 @@ ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-
 ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(), v1CUser.remove);
 
 //! Private
-ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), upload.fields([{ name: 'file' }, { name: 'type' }, { name: 'quality' }]), uploadValidity, v1C.upload); //! Half-private, user can upload only picture, root & editor can upload video.
-ApiV1.delete('/upload', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next), v1C.deleteUpload);
+ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file'), v1C.upload);
+ApiV1.put('/upload/:id', (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file'), v1C.updateUpload);
+ApiV1.delete('/upload/:id', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next), v1C.deleteUpload);
 
 const titleValidation = [
   body([
