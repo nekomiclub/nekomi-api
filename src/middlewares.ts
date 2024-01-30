@@ -1,7 +1,6 @@
 import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E500 } from './handlers/v1/Errors';
 import { TUpload } from './core/IUpload';
-import Storage from './Models/Storage';
 import fs from 'fs';
 import path from 'path';
 import { getFileExtension } from './handlers/v1/handlers';

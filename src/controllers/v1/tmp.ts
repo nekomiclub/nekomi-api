@@ -6,9 +6,7 @@ import puppeteer from 'puppeteer';
 import path from 'path';
 import * as uuid from 'uuid';
 import fs from 'fs';
-import { uploadFile } from '../../handlers/v1/handlers';
 import ip from 'ip';
-import Storage from '../../Models/Storage';
 
 function parseCustomDateString(dateString: string): number {
   const months = {
@@ -83,43 +81,44 @@ export async function parseMetadata(req: express.Request, res: express.Response)
 
 export async function createSnap(req: express.Request, res: express.Response) {
   try {
-    const { url } = req.body as { url: string };
+    // const { url } = req.body as { url: string };
 
-    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
+    // const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    // const page = await browser.newPage();
 
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
-    await page.setViewport({
-      width: 1920,
-      height: 1080,
-      deviceScaleFactor: 1
-    });
+    // await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+    // await page.setViewport({
+    //   width: 1920,
+    //   height: 1080,
+    //   deviceScaleFactor: 1
+    // });
 
-    // Navigate & wait for loading
-    await page.goto(url);
-    await page.waitForSelector('#content');
+    // // Navigate & wait for loading
+    // await page.goto(url);
+    // await page.waitForSelector('#content');
 
-    // Take screenshot
-    const snapURL = `${path.resolve()}/tmp/uploads/${uuid.v4()}.png`;
-    await page.screenshot({ fullPage: true, path: snapURL });
+    // // Take screenshot
+    // const snapURL = `${path.resolve()}/tmp/uploads/${uuid.v4()}.png`;
+    // await page.screenshot({ fullPage: true, path: snapURL });
 
-    await browser.close();
+    // await browser.close();
 
-    const snapID = testMode ? `testid-${uuid.v4()}` : uuid.v4();
-    const item = new Storage({
-      id: snapID,
-      dateAdded: +new Date(),
-      URI: snapURL
-    });
+    // const snapID = testMode ? `testid-${uuid.v4()}` : uuid.v4();
+    // const item = new Storage({
+    //   id: snapID,
+    //   dateAdded: +new Date(),
+    //   URI: snapURL
+    // });
 
-    await item.save();
+    // await item.save();
 
-    setTimeout(async () => {
-      fs.rmSync(snapURL);
-      await item!.deleteOne();
-    }, 120000);
+    // setTimeout(async () => {
+    //   fs.rmSync(snapURL);
+    //   await item!.deleteOne();
+    // }, 120000);
 
-    return res.status(200).json({ url: `${devMode ? `http://${ip.address()}` : 'https://api.animee.club'}/v1/media/${snapID}` });
+    // return res.status(200).json({ url: `${devMode ? `http://${ip.address()}` : 'https://api.animee.club'}/v1/media/${snapID}` });
+    return res.status(501).json({ msg: 'Service is temporary unavailable' });
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);

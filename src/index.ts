@@ -12,7 +12,6 @@ import path from 'path';
 
 import * as router from './router';
 import * as handler from './handlers/v1/handlers';
-import { UploadQueue } from './services/v1/processMedia';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 import Title from './Models/Title';
 import ffmpeg from 'fluent-ffmpeg';
@@ -86,8 +85,6 @@ if (!process.env.HTTP_PORT) {
   throw new Error('PORT ENV IS NOT DEFINED');
 }
 
-export const uploadQueue = new UploadQueue(true); //! TMP
-
 
 function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
   if (ws) {
@@ -131,10 +128,6 @@ async function onReady() {
     setInterval(() => {
       sendDayStat();
     }, 30000); // 30000 // 30s
-
-    setTimeout(async () => {
-      await handler.clearout();
-    }, 1000 * 60 * 60 * 24);
   } catch (e) {
     // @ts-ignore
     writeErrorLog(`onReady cb throw an error: ${e.message || e.msg}`, 'index');

@@ -9,9 +9,7 @@ import * as v1CTMP from './controllers/v1/tmp';
 import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
-import Storage from './Models/Storage';
 import { ensureAccess } from './middlewares';
-import { uploadStorage } from './services/v1/storage';
 import { body, cookie, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 

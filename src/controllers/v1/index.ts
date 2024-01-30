@@ -1,17 +1,25 @@
 import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500 } from '../../handlers/v1/Errors';
-import * as service from '../../services/v1/storage';
-import Storage from '../../Models/Storage';
 import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
-import * as processMedia from '../../services/v1/processMedia';
 import path from 'path';
-import { uploadQueue } from '../../index';
-import { devMode } from '../../config';
+import { config, devMode } from '../../config';
 import { dayStat } from '../../services/v1/stats';
 import ip from 'ip';
 
 const apiUptime = +new Date();
+
+let isUploadMicroserviceAvailable = false;
+
+setInterval(() => {
+  checkUploadsAvailability();
+}, 180000);
+
+checkUploadsAvailability();
+
+function checkUploadsAvailability() {
+  axios.options(`${config.microservices.uploadsURL}/v1/upload`).then(() => isUploadMicroserviceAvailable = true).catch(() => isUploadMicroserviceAvailable = false);
+}
 
 export async function getGS(req: express.Request, res: express.Response) {
   try {
@@ -41,21 +49,23 @@ export async function uptime(req: express.Request, res: express.Response) {
   }
 }
 
+//
+
 export async function media(req: express.Request, res: express.Response) {
   try {
     const { id } = req.params;
 
-    const item = await Storage.findOne({ id });
+    const response = await axios.get(`${config.microservices.uploadsURL}/v1/media/${id}`);
 
-    if (!item) {
-      throw new E400('Media with that id is not found.');
-    }
-
-    return res.status(200).sendFile(item.URI);
+    return res.status(response.status).sendFile(response.headers['x-storedpath']);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
+    } else if (e instanceof AxiosError) {
+      isUploadMicroserviceAvailable = false;
+      if (devMode) console.error(e.response!.data);
+      return res.status(e.response!.status).json(e.response!.data);
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -63,12 +73,14 @@ export async function media(req: express.Request, res: express.Response) {
   }
 }
 
-//
-
 export async function upload(req: express.Request, res: express.Response) {
   try {
     const file = req.file;
     const { type, qualities } = req.body;
+
+    if (!isUploadMicroserviceAvailable) {
+      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
+    }
 
     const token = req.header('Authorization')?.split('=')[1];
     const { roles, uid, username } = authService.decode(token!)!;
@@ -85,7 +97,7 @@ export async function upload(req: express.Request, res: express.Response) {
     formData.set('qualities', qualities);
     formData.set('createdBy', uid);
 
-    const response = await axios.post(`http://${ip.address()}:43320/v1/upload`, formData);
+    const response = await axios.post(`${config.microservices.uploadsURL}/v1/upload`, formData);
 
     return res.status(response.status).json(response.data);
   } catch (e) {
@@ -93,6 +105,7 @@ export async function upload(req: express.Request, res: express.Response) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
+      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response!.data);
       return res.status(e.response!.status).json(e.response!.data);
     } else {
@@ -108,6 +121,10 @@ export async function updateUpload(req: express.Request, res: express.Response) 
     const { type, qualities } = req.body;
     const { id } = req.params;
 
+    if (!isUploadMicroserviceAvailable) {
+      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
+    }
+
     const token = req.header('Authorization')?.split('=')[1];
     const { roles, uid, username } = authService.decode(token!)!;
 
@@ -123,7 +140,7 @@ export async function updateUpload(req: express.Request, res: express.Response) 
     formData.set('qualities', qualities);
     formData.set('createdBy', uid);
 
-    const response = await axios.put(`http://${ip.address()}:43320/v1/upload/${id}`, formData);
+    const response = await axios.put(`${config.microservices.uploadsURL}/v1/upload/${id}`, formData);
 
     return res.status(response.status).json(response.data);
   } catch (e) {
@@ -131,6 +148,7 @@ export async function updateUpload(req: express.Request, res: express.Response) 
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
+      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response!.data);
       return res.status(e.response!.status).json(e.response!.data);
     } else {
@@ -144,7 +162,11 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
   try {
     const { id } = req.params;
 
-    const response = await axios.delete(`http://${ip.address()}:43320/v1/upload/${id}`);
+    if (!isUploadMicroserviceAvailable) {
+      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
+    }
+
+    const response = await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${id}`);
 
     return res.status(response.status).json(response.data);
   } catch (e) {
@@ -152,6 +174,7 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
+      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response!.data);
       return res.status(e.response!.status).json(e.response!.data);
     } else {

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import cfg, { env, userDefaultRoles } from '../../config';
+import { env, userDefaultRoles } from '../../config';
 import { TUserRoles } from '../../core/IUser';
 import * as handler from '../../handlers/v1/handlers';
 import { testMode, devMode, defaultAvatars } from '../../config';

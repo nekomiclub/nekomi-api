@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import firebaseAdmin from 'firebase-admin';
 import jwtSecrets from '../secrets/JWT.json' assert {type: 'json'};
 import { TUserRoles } from './core/IUser';
+import ip from 'ip';
 
 dotenv.config();
 
@@ -21,10 +22,17 @@ interface IEnv {
   platform: TOSPlatform
 }
 
-interface ICfg {
-  storageURIs: string[],
-  uploadsURI: string[],
+interface IConfig {
+  microservices: {
+    uploadsURL: string
+  }
 }
+
+export const config: IConfig = {
+  microservices: {
+    uploadsURL: `http://${ip.address()}:43320`
+  }
+};
 
 // @ts-ignore
 export const env = process.env as IEnv;
@@ -40,20 +48,6 @@ firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(`${path.resolve()}/secrets/firebase.json`)
 });
 
-export const cfg: ICfg = {
-  storageURIs: devMode ? [
-    `${path.resolve()}/testStorage`,
-  ] : [
-    `/media/unniiiverse/Storage_0/animee-storage`, //! STORAGE IS READ ONLY FOR NOW.
-    `/media/unniiiverse/Storage_1/animee-storage`,
-  ],
-  uploadsURI: devMode ? [
-    `${path.resolve()}/testUploads`
-  ] : [
-    `/media/unniiiverse/Storage_0/animee-uploads`
-  ]
-};
-
 export const defaultAvatars: string[] = [
   `https://api.animee.club/v1/media/05ba8cc3-3ede-420c-bc0a-2f6ae663b74f`,
   `https://api.animee.club/v1/media/7069ef7f-1ec9-4867-9fa2-ca1bf9e60643`,
@@ -61,5 +55,3 @@ export const defaultAvatars: string[] = [
 ];
 
 export const userDefaultRoles: TUserRoles[] = ['user'];
-
-export default cfg;
