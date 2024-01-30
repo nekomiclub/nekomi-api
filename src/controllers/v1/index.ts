@@ -55,7 +55,11 @@ export async function media(req: express.Request, res: express.Response) {
   try {
     const { id } = req.params;
 
-    const response = await axios.get(`${config.microservices.uploadsURL}/v1/media/${id}`);
+    if (!isUploadMicroserviceAvailable) {
+      return res.status(502).json({ msg: 'Media access is temporary unavailable.', code: 502 });
+    }
+
+    const response = await axios.get(`${config.microservices.uploadsURL}/v1/media/${id}?pathOnly=true`);
 
     return res.status(response.status).sendFile(response.headers['x-storedpath']);
   } catch (e) {
@@ -64,8 +68,8 @@ export async function media(req: express.Request, res: express.Response) {
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
       isUploadMicroserviceAvailable = false;
-      if (devMode) console.error(e.response!.data);
-      return res.status(e.response!.status).json(e.response!.data);
+      if (devMode) console.error(e.response?.data);
+      return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -106,8 +110,8 @@ export async function upload(req: express.Request, res: express.Response) {
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
       isUploadMicroserviceAvailable = false;
-      if (devMode) console.error(e.response!.data);
-      return res.status(e.response!.status).json(e.response!.data);
+      if (devMode) console.error(e.response?.data);
+      return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -149,8 +153,8 @@ export async function updateUpload(req: express.Request, res: express.Response) 
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
       isUploadMicroserviceAvailable = false;
-      if (devMode) console.error(e.response!.data);
-      return res.status(e.response!.status).json(e.response!.data);
+      if (devMode) console.error(e.response?.data);
+      return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);
@@ -175,8 +179,8 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
       isUploadMicroserviceAvailable = false;
-      if (devMode) console.error(e.response!.data);
-      return res.status(e.response!.status).json(e.response!.data);
+      if (devMode) console.error(e.response?.data);
+      return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
       if (devMode) console.error(e);
       return res.status(500).json(e);

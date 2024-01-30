@@ -42,8 +42,6 @@ import bcrypt from 'bcrypt';
 import { MONGO_URI } from '../../index';
 import { ITitleEpisodeDubbed, ITitleEpisodesDub } from '../../core/ITitle';
 import User from '../../Models/User';
-import Storage from '../../Models/Storage';
-
 
 export function getUTCTime(): number {
   return +new Date().setUTCHours(new Date().getUTCHours());
@@ -114,27 +112,4 @@ export async function updateTitles() {
   });
 
   console.log(`Title updating ended via ${+new Date() - started}ms`);
-}
-
-export async function transferDB() {
-  const items = await Storage.find();
-  const startedAd = +new Date();
-
-  await new Promise(res => {
-    items.slice(0, 3).forEach(async (el, i) => {
-      if (i === items.slice(0, 3).length - 1) {
-        res(1);
-      }
-
-      console.log(`Transfer ${el.id}`);
-
-      await axios.post(`${config.microservices.uploadsURL}/v1/tmp/transfer`, {
-        id: el.id,
-        dateAdded: el.dateAdded,
-        URI: el.URI
-      });
-    });
-  });
-
-  console.log(`Ended within ${(+new Date() - startedAd) / 1000}s`);
 }

@@ -125,8 +125,6 @@ async function onReady() {
     // handler.reuploadImages();
     // await handler.updateTitles();
 
-    await handler.transferDB();
-
     setInterval(() => {
       sendDayStat();
     }, 30000); // 30000 // 30s
