@@ -9,18 +9,6 @@ import ip from 'ip';
 
 const apiUptime = +new Date();
 
-let isUploadMicroserviceAvailable = false;
-
-setInterval(() => {
-  checkUploadsAvailability();
-}, 180000);
-
-checkUploadsAvailability();
-
-function checkUploadsAvailability() {
-  axios.options(`${config.microservices.uploadsURL}/v1/upload`).then(() => isUploadMicroserviceAvailable = true).catch(() => isUploadMicroserviceAvailable = false);
-}
-
 export async function getGS(req: express.Request, res: express.Response) {
   try {
     return res.send('ok');
@@ -55,10 +43,6 @@ export async function media(req: express.Request, res: express.Response) {
   try {
     const { id } = req.params;
 
-    if (!isUploadMicroserviceAvailable) {
-      return res.status(502).json({ msg: 'Media access is temporary unavailable.', code: 502 });
-    }
-
     const response = await axios.get(`${config.microservices.uploadsURL}/v1/media/${id}?pathOnly=true`);
 
     return res.status(response.status).sendFile(response.headers['x-storedpath']);
@@ -67,7 +51,6 @@ export async function media(req: express.Request, res: express.Response) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
-      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response?.data);
       return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
@@ -81,10 +64,6 @@ export async function upload(req: express.Request, res: express.Response) {
   try {
     const file = req.file;
     const { type, qualities } = req.body;
-
-    if (!isUploadMicroserviceAvailable) {
-      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
-    }
 
     const token = req.header('Authorization')?.split('=')[1];
     const { roles, uid, username } = authService.decode(token!)!;
@@ -109,7 +88,6 @@ export async function upload(req: express.Request, res: express.Response) {
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
-      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response?.data);
       return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
@@ -124,10 +102,6 @@ export async function updateUpload(req: express.Request, res: express.Response) 
     const file = req.file;
     const { type, qualities } = req.body;
     const { id } = req.params;
-
-    if (!isUploadMicroserviceAvailable) {
-      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
-    }
 
     const token = req.header('Authorization')?.split('=')[1];
     const { roles, uid, username } = authService.decode(token!)!;
@@ -152,7 +126,6 @@ export async function updateUpload(req: express.Request, res: express.Response) 
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
-      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response?.data);
       return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {
@@ -165,11 +138,6 @@ export async function updateUpload(req: express.Request, res: express.Response) 
 export async function deleteUpload(req: express.Request, res: express.Response) {
   try {
     const { id } = req.params;
-
-    if (!isUploadMicroserviceAvailable) {
-      return res.status(502).json({ msg: 'Uploads microservice is temporary unavailable.', code: 502 });
-    }
-
     const response = await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${id}`);
 
     return res.status(response.status).json(response.data);
@@ -178,7 +146,6 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
       if (devMode) console.error(e);
       return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
-      isUploadMicroserviceAvailable = false;
       if (devMode) console.error(e.response?.data);
       return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
     } else {

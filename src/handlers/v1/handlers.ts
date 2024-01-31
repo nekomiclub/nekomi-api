@@ -113,3 +113,11 @@ export async function updateTitles() {
 
   console.log(`Title updating ended via ${+new Date() - started}ms`);
 }
+
+export async function updateFrames() {
+  const titles = await Title.find();
+
+  // titles.forEach(title => {})
+  const title = titles.find(el => el.code === 'konosuba-3');
+  await axios.post(`${config.microservices.uploadsURL}/v1/updateFrame`, { dubs: title!.dubs });
+}
