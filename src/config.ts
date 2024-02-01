@@ -22,15 +22,41 @@ interface IEnv {
   platform: TOSPlatform
 }
 
+interface IANIMEE_CONFIG {
+  PORTS: {
+    BASE_PORT: number,
+
+    CORE: {
+      HTTP: number,
+      HTTPS: number
+    },
+
+    ANIMEE_UPLOADS: {
+      MSID: number
+    },
+    ANIMEE_UPLOADS_BOT: {
+      MSID: number
+    },
+    MONGODB: {
+      PORT: number,
+      HOST: string
+    }
+  }
+}
+
+const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
+
 interface IConfig {
   microservices: {
-    uploadsURL: string
+    uploadsURL: string,
+    postSnap: string
   }
 }
 
 export const config: IConfig = {
   microservices: {
-    uploadsURL: `http://${ip.address()}:43320`
+    uploadsURL: `http://${ip.address()}:43320`,
+    postSnap: `http://${ip.address()}:${ANIMEE_CONFIG.PORTS.BASE_PORT}${ANIMEE_CONFIG.PORTS.ANIMEE_UPLOADS_BOT.MSID}0`,
   }
 };
 

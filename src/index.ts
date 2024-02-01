@@ -66,6 +66,7 @@ app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 app.use('/v1', router.ApiV1);
+app.use('/proxy', router.ProxyRouter);
 
 
 if (!devMode) {
@@ -124,7 +125,6 @@ async function onReady() {
     listenWSS();
     // handler.reuploadImages();
     // await handler.updateTitles();
-    // await handler.updateFrames();
 
     setInterval(() => {
       sendDayStat();

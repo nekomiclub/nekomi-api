@@ -5,6 +5,7 @@ import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CUser from './controllers/v1/user';
 import * as v1CWS from './controllers/v1/ws';
 import * as v1CTMP from './controllers/v1/tmp';
+import * as v1CProxy from './controllers/v1/proxy';
 
 import multer from 'multer';
 import path from 'path';
@@ -14,6 +15,7 @@ import { body, cookie, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 
 export const ApiV1 = express.Router();
+export const ProxyRouter = express.Router();
 
 // TODO (req, res, next) => ensureAccess(['ROLE'], req, res, next)
 
@@ -105,4 +107,6 @@ ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 
 
 // TODO TMP
 ApiV1.post('/tmp/parseMetadata', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.parseMetadata);
-ApiV1.post('/tmp/createSnap', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.createSnap);
+
+//* - - - PROXY ROUTES - - -
+ProxyRouter.post('/postSnap', v1CProxy.createSnap);

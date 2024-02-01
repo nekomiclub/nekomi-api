@@ -8,6 +8,7 @@ import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';
 import inquirer from 'inquirer';
+import express from 'express';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -42,6 +43,7 @@ import bcrypt from 'bcrypt';
 import { MONGO_URI } from '../../index';
 import { ITitleEpisodeDubbed, ITitleEpisodesDub } from '../../core/ITitle';
 import User from '../../Models/User';
+import { ErrorConstructor } from './Errors';
 
 export function getUTCTime(): number {
   return +new Date().setUTCHours(new Date().getUTCHours());
@@ -114,24 +116,19 @@ export async function updateTitles() {
   console.log(`Title updating ended via ${+new Date() - started}ms`);
 }
 
-export async function updateFrames() {
-  const titles = await Title.find();
 
-  console.log(`Started with ${titles.filter(el => el.dubs?.length).length} titles`);
-
-  for (const i in titles) {
-    const title = titles[i];
-
-    if (!title.dubs!.length) {
-      console.log(`Title ${title.id} skipped (no dubs provided).`);
-      continue;
-    }
-
-    try {
-      console.log(`Send ${title.id}`);
-      await axios.post(`${config.microservices.uploadsURL}/v1/updateFrame`, { dubs: title!.dubs || [] });
-    } catch (e) {
-      console.error(e);
+export async function catchError(req: express.Request, res: express.Response, at: string, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
+  try {
+    await cb(req, res);
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      devMode ? console.error(e) : null; // Console error if dev mode
+      return res.status(e.code).json({ ...e });
+    } else {
+      // @ts-expect-error message can be in the error object
+      writeLog(`Internal Error at ${at}.\n  JSON: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}\n  EMSG: ${e?.msg || e?.message || 'msg is not provided'}`, 'error');
+      // @ts-expect-error message can be in the error object
+      return res.status(500).json({ name: 'E500 - Server Error', msg: `Unexpected server error occured. Please create ticket of that error: ${e?.msg || e?.message || 'msg is not provided'}`, at, code: 500 });
     }
   }
 }
