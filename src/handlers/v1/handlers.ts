@@ -117,7 +117,21 @@ export async function updateTitles() {
 export async function updateFrames() {
   const titles = await Title.find();
 
-  // titles.forEach(title => {})
-  const title = titles.find(el => el.code === 'konosuba-3');
-  await axios.post(`${config.microservices.uploadsURL}/v1/updateFrame`, { dubs: title!.dubs });
+  console.log(`Started with ${titles.filter(el => el.dubs?.length).length} titles`);
+
+  for (const i in titles) {
+    const title = titles[i];
+
+    if (!title.dubs!.length) {
+      console.log(`Title ${title.id} skipped (no dubs provided).`);
+      continue;
+    }
+
+    try {
+      console.log(`Send ${title.id}`);
+      await axios.post(`${config.microservices.uploadsURL}/v1/updateFrame`, { dubs: title!.dubs || [] });
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }
