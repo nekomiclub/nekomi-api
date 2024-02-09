@@ -4,7 +4,6 @@ import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CUser from './controllers/v1/user';
 import * as v1CWS from './controllers/v1/ws';
-import * as v1CTMP from './controllers/v1/tmp';
 import * as v1CProxy from './controllers/v1/proxy';
 
 import multer from 'multer';
@@ -105,8 +104,6 @@ ApiV1.post('/stat/record', (req, res, next) => ensureAccess(['user', 'root'], re
 
 ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);
 
-// TODO TMP
-ApiV1.post('/tmp/parseMetadata', (req, res, next) => ensureAccess(['root'], req, res, next), v1CTMP.parseMetadata);
-
 //* - - - PROXY ROUTES - - -
 ProxyRouter.post('/postSnap', v1CProxy.createSnap);
+ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata);

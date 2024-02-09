@@ -95,7 +95,7 @@ function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
   }
 
   if (!showDetails) return;
-  console.log(`DETAILS:\nStartedAt: ${new Date(handler.getUTCTime())};\nDevMode: ${devMode};\nTestMode: ${testMode};\n`);
+  console.log(`ANIMEE CORE STARTED. DETAILS:\n  - StartedAt: ${new Date(handler.getUTCTime())};\n  - Mode: ${devMode ? 'DevMode' : testMode ? 'TestMode' : 'ProdMode'}`);
 
   onReady();
 }
@@ -125,7 +125,6 @@ async function onReady() {
     listenWSS();
     // handler.reuploadImages();
     // await handler.updateTitles();
-    await handler.updateFrames();
 
     setInterval(() => {
       sendDayStat();
