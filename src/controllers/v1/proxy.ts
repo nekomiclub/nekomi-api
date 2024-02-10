@@ -1,5 +1,5 @@
 import express from 'express';
-import { catchError } from '../../handlers/v1/handlers';
+import { catchError } from '../../handlers/v1/Errors';
 import axios from 'axios';
 import { config } from '../../config';
 

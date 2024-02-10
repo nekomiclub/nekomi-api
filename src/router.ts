@@ -16,35 +16,6 @@ import { TAnimeGenres } from './core/interfaces';
 export const ApiV1 = express.Router();
 export const ProxyRouter = express.Router();
 
-// TODO (req, res, next) => ensureAccess(['ROLE'], req, res, next)
-
-ApiV1.get(`/title/:query`, v1CTitle.getOne);
-ApiV1.get(`/titles`, v1CTitle.getMany);
-ApiV1.get(`/titles/search`, v1CTitle.search);
-ApiV1.get(`/titles/total`, v1CTitle.total);
-ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
-
-ApiV1.get(`/global_stats`, v1C.getGS);
-ApiV1.get(`/uptime`, v1C.uptime);
-ApiV1.get(`/media/:id`, v1C.media);
-
-ApiV1.post(`/auth`, body(['username', 'password']).notEmpty(), v1CUser.auth);
-ApiV1.get(`/auth/refresh`, cookie('refreshToken').notEmpty(), v1CUser.refresh);
-ApiV1.get(`/auth/logout`, v1CUser.logout);
-
-ApiV1.post(`/token/verify`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token', 'method']).notEmpty(), v1C.tokenVerify);
-ApiV1.post(`/token/decode`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['token']).notEmpty(), v1C.tokenDecode);
-
-ApiV1.get(`/user/:query`, v1CUser.get);
-ApiV1.post(`/user`, body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'), body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'), v1CUser.create);
-
-ApiV1.delete(`/user`, (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(), v1CUser.remove);
-
-//! Private
-ApiV1.post('/upload', (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file'), v1C.upload);
-ApiV1.put('/upload/:id', (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file'), v1C.updateUpload);
-ApiV1.delete('/upload/:id', (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next), v1C.deleteUpload);
-
 const titleValidation = [
   body([
     'names.eng',
@@ -95,15 +66,101 @@ const titleValidation = [
   })
 ];
 
-ApiV1.patch(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), titleValidation, v1CTitle.update);
-ApiV1.post(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), titleValidation, v1CTitle.create);
-ApiV1.delete(`/title`, (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next), v1CTitle.remove);
+//* - - - Title routes - - -
+ApiV1.get(`/title/:query`, v1CTitle.getOne);
+ApiV1.get(`/titles`, v1CTitle.getMany);
+ApiV1.get(`/titles/search`, v1CTitle.search);
+ApiV1.get(`/titles/total`, v1CTitle.total);
 
-ApiV1.post('/titleUpdate', v1C.titleUpdate); // TODO Fix access issue
-ApiV1.post('/stat/record', (req, res, next) => ensureAccess(['user', 'root'], req, res, next), body(['title', 'selectedDub', 'watchtime']).notEmpty(), v1C.saveStatRecord);
+//! Private
+ApiV1.patch(`/title`, ...[
+  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
+  titleValidation,
+], v1CTitle.update);
 
-ApiV1.patch(`/user`, (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next), body('uid').notEmpty(), v1CUser.update);
+ApiV1.post(`/title`, ...[
+  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
+  titleValidation,
+], v1CTitle.create);
 
-//* - - - PROXY ROUTES - - -
+ApiV1.delete(`/title`, ...[
+  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
+], v1CTitle.remove);
+
+
+
+//* - - - Dubber routes - - -
+ApiV1.get(`/dubber/:id`, v1CDubber.getOne);
+
+
+
+//* - - - User routes - - -
+ApiV1.get(`/user/:query`, v1CUser.get);
+
+ApiV1.post(`/auth`, ...[
+  body(['username', 'password']).notEmpty(),
+], v1CUser.auth);
+
+ApiV1.get(`/auth/refresh`, ...[
+  cookie('refreshToken').notEmpty(),
+], v1CUser.refresh);
+
+ApiV1.get(`/auth/logout`, v1CUser.logout);
+
+//! Private
+ApiV1.post(`/user`, ...[
+  body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'),
+  body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'),
+], v1CUser.create);
+
+ApiV1.delete(`/user`, ...[
+  (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(),
+], v1CUser.remove);
+
+ApiV1.patch(`/user`, ...[
+  (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next),
+  body('uid').notEmpty(),
+], v1CUser.update);
+
+
+
+//* - - - Proxy routes - - -
 ProxyRouter.post('/postSnap', v1CProxy.createSnap);
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata);
+
+//* Media proxy
+ApiV1.get(`/media/:id`, v1C.media);
+
+ApiV1.post('/upload', ...[
+  (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
+], v1C.upload);
+
+ApiV1.put('/upload/:id', ...[
+  (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
+], v1C.updateUpload);
+
+ApiV1.delete('/upload/:id', ...[
+  (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next)
+], v1C.deleteUpload);
+
+
+
+//* - - - Service routes - - -
+ApiV1.get(`/global_stats`, v1C.getGS);
+
+ApiV1.get(`/uptime`, v1C.uptime);
+
+ApiV1.post(`/token/verify`, ...[
+  (req, res, next) => ensureAccess(['user'], req, res, next), body(['token', 'method']).notEmpty()
+], v1C.tokenVerify);
+
+ApiV1.post(`/token/decode`, ...[
+  (req, res, next) => ensureAccess(['user'], req, res, next), body(['token']).notEmpty()
+], v1C.tokenDecode);
+
+ApiV1.post('/titleUpdate', v1C.titleUpdate); // TODO Fix access issue
+
+ApiV1.post('/stat/record', ...[
+  (req, res, next) => ensureAccess(['user', 'root'], req, res, next),
+  body(['title', 'selectedDub', 'watchtime']).notEmpty()
+], v1C.saveStatRecord);

@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500 } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError, validateFields } from '../../handlers/v1/Errors';
 import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
 import path from 'path';
@@ -10,31 +10,11 @@ import ip from 'ip';
 const apiUptime = +new Date();
 
 export async function getGS(req: express.Request, res: express.Response) {
-  try {
-    return res.send('ok');
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  return res.send('ok');
 }
 
 export async function uptime(req: express.Request, res: express.Response) {
-  try {
-    return res.status(200).json(apiUptime);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  return res.status(200).json(apiUptime);
 }
 
 //
@@ -159,7 +139,9 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
 import titleUpdateDB from '../../localDB/titleUpdateDB.json' assert {type: 'json'};
 import { validationResult } from 'express-validator';
 export async function titleUpdate(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Service/UpdateTitle';
+
+  await catchError(req, res, routeCode, async () => {
     const { id, year, titleId } = req.query as { id: string, year: string, titleId: string };
 
     const user = titleUpdateDB.users.find(el => el.id === id);
@@ -187,15 +169,7 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
     titleUpdateDB.users.map(el => total = el.updated.length + total);
 
     return res.status(200).json({ id, total, updated: user.updated.length });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 //
@@ -204,7 +178,9 @@ import * as authService from '../../services/v1/auth';
 import { IStatRecord } from '../../core/interfaces';
 import axios, { AxiosError } from 'axios';
 export async function tokenVerify(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Service/VerifyToken';
+
+  await catchError(req, res, routeCode, async () => {
     const valRes = validationResult(req);
 
     if (!valRes.isEmpty()) {
@@ -220,19 +196,13 @@ export async function tokenVerify(req: express.Request, res: express.Response) {
     const serviceResponse = authService.verify(token.split('=')[1], method);
 
     return res.status(200).json({ verified: serviceResponse });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function tokenDecode(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = ' Service/DecodeToken';
+
+  await catchError(req, res, routeCode, async () => {
     const valRes = validationResult(req);
 
     if (!valRes.isEmpty()) {
@@ -244,26 +214,16 @@ export async function tokenDecode(req: express.Request, res: express.Response) {
     const serviceResponse = authService.decode(token.split('=')[1]);
 
     return res.status(200).json(serviceResponse);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function saveStatRecord(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Service/SaveStatRecord';
+
+  await catchError(req, res, routeCode, async () => {
+    validateFields(req);
+
     const { selectedDub, title, watchtime } = req.body as IStatRecord;
-
-    const valRes = validationResult(req);
-
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
 
     const record = dayStat.titles.total.find(el => el.id === title);
 
@@ -275,13 +235,5 @@ export async function saveStatRecord(req: express.Request, res: express.Response
     }
 
     return res.status(200).json('ok');
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }

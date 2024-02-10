@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, validateFields } from '../../handlers/v1/Errors';
 import { randomNumber } from '../../handlers/v1/handlers';
 import fs from 'fs';
 import * as dto from '../../handlers/v1/dtos';
@@ -12,7 +12,9 @@ import { dayStat } from '../../services/v1/stats';
 import ip from 'ip';
 
 export async function get(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'User/Get';
+
+  await catchError(req, res, routeCode, async () => {
     const { query } = req.params as { query: string };
 
     const item = await User.findOne({ $or: [{ uid: query }, { username: query }] });
@@ -22,19 +24,15 @@ export async function get(req: express.Request, res: express.Response) {
     }
 
     return res.status(200).json(dto.user(item));
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function update(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'User/Update';
+
+  await catchError(req, res, routeCode, async () => {
+    validateFields(req);
+
     const { uid } = req.body as { uid: string };
 
     const item = await User.findOne({ uid });
@@ -56,24 +54,14 @@ export async function update(req: express.Request, res: express.Response) {
     await item.save();
 
     return res.status(200).json({ uid });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function create(req: express.Request, res: express.Response) {
-  try {
-    const valRes = validationResult(req);
+  const routeCode = 'User/Create';
 
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
+  await catchError(req, res, routeCode, async () => {
+    validateFields(req);
 
     const { password, username, email } = req.body as { username: string, password: string, email: string };
     const isExist = await User.findOne({ $or: [{ username }, { email }] });
@@ -90,19 +78,13 @@ export async function create(req: express.Request, res: express.Response) {
 
     // todo auth
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ msg: 'Created', uid, token: tokens.accessToken });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function remove(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'User/Delete';
+
+  await catchError(req, res, routeCode, async () => {
     const valRes = validationResult(req);
 
     if (!valRes.isEmpty()) {
@@ -124,48 +106,28 @@ export async function remove(req: express.Request, res: express.Response) {
     await User.findOneAndDelete({ uid });
 
     return res.status(200).json(`UID: ${uid} deleted`);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function auth(req: express.Request, res: express.Response) {
-  try {
-    const valRes = validationResult(req);
+  const routeCode = 'User/Auth';
 
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
+  await catchError(req, res, routeCode, async () => {
+    validateFields(req);
 
     const { password, username, token } = req.body as { username: string, password: string, token?: string };
 
     const tokens = await authService.auth(username, password, token);
 
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function refresh(req: express.Request, res: express.Response) {
-  try {
-    const valRes = validationResult(req);
+  const routeCode = 'User/Refresh';
 
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
+  await catchError(req, res, routeCode, async () => {
+    validateFields(req);
 
     const { refreshToken } = req.cookies as { refreshToken: string };
 
@@ -179,27 +141,9 @@ export async function refresh(req: express.Request, res: express.Response) {
     const tokens = authService.signTokens({ uid, roles, username });
 
     return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function logout(req: express.Request, res: express.Response) {
-  try {
-    return res.status(200).clearCookie('refreshToken').json('ok');
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  return res.status(200).clearCookie('refreshToken').json('ok');
 }

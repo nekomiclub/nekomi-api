@@ -9,7 +9,7 @@ import Fuse from 'fuse.js';
 import { testMode, devMode } from '../../config';
 import { ITitle } from '../../core/interfaces';
 import Title from '../../Models/Title';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500 } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError } from '../../handlers/v1/Errors';
 import { randomNumber } from '../../handlers/v1/handlers';
 import * as dto from '../../handlers/v1/dtos';
 import { dayStat } from '../../services/v1/stats';
@@ -27,7 +27,9 @@ updateFuse();
 
 
 export async function getOne(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Get';
+
+  await catchError(req, res, routeCode, async () => {
     const { query } = req.params as { query: string };
 
     const db = await Title.findOne({ $or: [{ id: query }, { code: query }] });
@@ -39,15 +41,7 @@ export async function getOne(req: express.Request, res: express.Response) {
     let item: ITitle = dto.title(db);
 
     return res.status(200).json(item);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 interface ISearch extends ITitle {
@@ -57,7 +51,9 @@ interface ISearch extends ITitle {
 }
 
 export async function search(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Search';
+
+  await catchError(req, res, routeCode, async () => {
     // @ts-ignore
     const { query, ...props } = req.query as ISearch;
     // @ts-ignore
@@ -96,19 +92,13 @@ export async function search(req: express.Request, res: express.Response) {
     const results = titles.map(el => dto.title(el)).slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
 
     return res.status(200).json({ results });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function getMany(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Titles/Get';
+
+  await catchError(req, res, routeCode, async () => {
     let { limit, page } = req.query as { limit: number | undefined, page: number | undefined };
 
     let titles = await Title.find();
@@ -127,15 +117,7 @@ export async function getMany(req: express.Request, res: express.Response) {
     results = titles.slice(page === 1 ? 0 : page === 2 ? limit + 1 : ((page - 1) * limit) + 1, page === 1 ? limit : (limit * page) + 1);
 
     return res.status(200).json({ results, total: titles.length });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 // 
@@ -149,7 +131,9 @@ interface WeekTitle {
 }
 
 export async function update(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Update';
+
+  await catchError(req, res, routeCode, async () => {
     const title = req.body as ITitle;
 
     const validation = validationResult(req);
@@ -182,19 +166,13 @@ export async function update(req: express.Request, res: express.Response) {
     await db.save();
 
     return res.status(200).json(title);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function create(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Create';
+
+  await catchError(req, res, routeCode, async () => {
     const titleRaw = req.body as ITitle;
 
     const validation = validationResult(req);
@@ -216,19 +194,13 @@ export async function create(req: express.Request, res: express.Response) {
     dayStat.titlesCreated++;
 
     return res.status(201).json({ id });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function remove(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Delete';
+
+  await catchError(req, res, routeCode, async () => {
     const { id } = req.body;
 
     const db = await Title.findOne({ id });
@@ -240,30 +212,16 @@ export async function remove(req: express.Request, res: express.Response) {
     await Title.deleteOne({ id });
 
     return res.status(200).json('ok');
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
 
 export async function total(req: express.Request, res: express.Response) {
-  try {
+  const routeCode = 'Title/Total';
+
+  await catchError(req, res, routeCode, async () => {
     const total = await Title.find();
     const renewed = total.filter(el => el.country !== 'null').length;
 
     return res.status(200).json({ total: total.length, renewed });
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
+  });
 }
