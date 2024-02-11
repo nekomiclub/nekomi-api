@@ -88,7 +88,7 @@ function listen(https?: boolean, showDetails?: boolean) {
   --------------------------------------------
   ANIMEE-CORE STARTED:
   -  Mode: ${prodMode ? 'ProdMode' : devMode ? 'DevMode' : testMode ? 'TestMode' : 'Mode is unknown'}
-  -  HTTP: ${config.service.HOST}:${config.service.PORTS.HTTPS!} 
+  -  HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP!} 
   ${https ? `-  HTTPS: ${config.service.HOST}:${config.service.PORTS.HTTPS}` : `-  HTTPS: Disabled`} 
   -  WS: ${config.service.HOST}:${config.service.PORTS.WS}
   --------------------------------------------
@@ -101,13 +101,13 @@ wss.on('listening', () => listen(true, false));
 wss.on('error', e => { throw e; });
 
 if (devMode) {
-  app.listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen(false, true));
+  app.listen(config.service.PORTS.HTTP!, config.service.HOST, () => listen(false, true));
 } else {
   if (!hskey || !hscert || !hschain) {
     throw new Error('SSL certs are not found');
   }
 
-  app.listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen());
+  app.listen(config.service.PORTS.HTTP!, config.service.HOST, () => listen());
   https.createServer({
     key: hskey,
     cert: hscert,

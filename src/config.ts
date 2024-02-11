@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import firebaseAdmin from 'firebase-admin';
-import jwtSecrets from '../secrets/JWT.json' assert {type: 'json'};
 import { TUserRoles } from './core/IUser';
 import ip from 'ip';
 import { IANIMEE_CONFIG } from './core/interfaces';
 
+const jwtSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/JWT.json`).toString()) as { accessTokenSecret: string, refreshTokenSecret: string };
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
 export const config = {
