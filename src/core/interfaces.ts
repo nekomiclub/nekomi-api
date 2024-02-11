@@ -114,7 +114,40 @@ export interface IStatRecord {
 
 
 
-export interface IANIMEE_CONFIG_SERVICE {
+export interface IANIMEE_CONFIG {
+  PORTS: {
+    BASE_PORT: number,
+
+    CORE: {
+      HTTP: number,
+      HTTPS: number
+    },
+
+    ANIMEE_UPLOADS: {
+      MSID: number
+    },
+    ANIMEE_UPLOADS_BOT: {
+      MSID: number
+    },
+    MONGODB: {
+      PORT: number,
+      HOST: string
+    }
+  },
+  SERVICES: {
+    DB: {
+      PORT: number,
+      HOST: number,
+    },
+
+    ANIMEE_CORE: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_MEDIA: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_UPLOADS: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_UPLOADS_BOT: IANIMEE_CONFIG_SERVICE,
+  }
+}
+
+interface IANIMEE_CONFIG_SERVICE {
   HOST: string,
   PORTS: {
     HTTP: number,

@@ -3,7 +3,7 @@ import path from 'path';
 import mongoose from 'mongoose';
 import Dubbers from '../../Models/Dubber';
 import Title from '../../Models/Title';
-import { env, testMode, devMode, config } from '../../config';
+import { testMode, devMode, config } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';

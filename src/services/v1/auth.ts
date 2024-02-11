@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { env, userDefaultRoles } from '../../config';
+import { config, userDefaultRoles } from '../../config';
 import { TUserRoles } from '../../core/IUser';
 import * as handler from '../../handlers/v1/handlers';
 import { testMode, devMode, defaultAvatars } from '../../config';
@@ -19,14 +19,14 @@ interface ITokenPayload {
 
 export function signTokens(payload: ITokenPayload): { accessToken: string, refreshToken: string } {
   return {
-    accessToken: jwt.sign(payload, env.JWT_SECRET_ACCESS, { expiresIn: '15m' }),
-    refreshToken: jwt.sign(payload, env.JWT_SECRET_REFRESH, { expiresIn: '30d' })
+    accessToken: jwt.sign(payload, config.secrets.jwtAccess, { expiresIn: '15m' }),
+    refreshToken: jwt.sign(payload, config.secrets.jwtRefresh, { expiresIn: '30d' })
   };
 }
 
 export function verify(token: string, method: 'access' | 'refresh'): boolean {
   try {
-    jwt.verify(token, method === 'access' ? env.JWT_SECRET_ACCESS : env.JWT_SECRET_REFRESH);
+    jwt.verify(token, method === 'access' ? config.secrets.jwtAccess : config.secrets.jwtRefresh);
     return true;
   } catch (e) {
     return false;
