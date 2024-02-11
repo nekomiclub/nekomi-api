@@ -95,7 +95,15 @@ function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
   }
 
   if (!showDetails) return;
-  console.log(`ANIMEE CORE STARTED. DETAILS:\n  - StartedAt: ${new Date(handler.getUTCTime())};\n  - Mode: ${devMode ? 'DevMode' : testMode ? 'TestMode' : 'ProdMode'}`);
+  console.log(`
+  --------------------------------------------
+  ANIMEE-CORE STARTED:
+  -  Mode: ${devMode ? 'DevMode' : testMode ? 'TestMoode' : 'ProdMode'}
+  -  HTTP: ${env.IP}:${env.HTTP_PORT} 
+  -  HTTPS: ${env.IP}:${env.HTTPS_PORT} 
+  -  WS: ${env.IP}:${env.WS_PORT}
+  --------------------------------------------
+  `);
 
   onReady();
 }

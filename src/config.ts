@@ -49,7 +49,8 @@ const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.js
 interface IConfig {
   microservices: {
     uploadsURL: string,
-    uploadsBotURL: string
+    uploadsBotURL: string,
+    media: string
   }
 }
 
@@ -57,6 +58,7 @@ export const config: IConfig = {
   microservices: {
     uploadsURL: `http://${ip.address()}:43320`,
     uploadsBotURL: `http://${ip.address()}:${ANIMEE_CONFIG.PORTS.BASE_PORT}${ANIMEE_CONFIG.PORTS.ANIMEE_UPLOADS_BOT.MSID}0`,
+    media: `http://${ip.address()}:43120`
   }
 };
 

@@ -19,27 +19,6 @@ export async function uptime(req: express.Request, res: express.Response) {
 
 //
 
-export async function media(req: express.Request, res: express.Response) {
-  try {
-    const { id } = req.params;
-
-    const response = await axios.get(`${config.microservices.uploadsURL}/v1/media/${id}?pathOnly=true`);
-
-    return res.status(response.status).sendFile(response.headers['x-storedpath']);
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else if (e instanceof AxiosError) {
-      if (devMode) console.error(e.response?.data);
-      return res.status(e.response?.status || 500).json(e.response?.data || { msg: 'Internal error' });
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
-}
-
 export async function upload(req: express.Request, res: express.Response) {
   try {
     const file = req.file;

@@ -129,7 +129,7 @@ ProxyRouter.post('/postSnap', v1CProxy.createSnap);
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata);
 
 //* Media proxy
-ApiV1.get(`/media/:id`, v1C.media);
+ProxyRouter.get(`/media/:id`, v1CProxy.getMedia);
 
 ApiV1.post('/upload', ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
@@ -147,6 +147,7 @@ ApiV1.delete('/upload/:id', ...[
 
 //* - - - Service routes - - -
 ApiV1.get(`/global_stats`, v1C.getGS);
+ApiV1.get(`/media/:id`, v1CProxy.getMedia);
 
 ApiV1.get(`/uptime`, v1C.uptime);
 
