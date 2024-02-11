@@ -5,6 +5,7 @@ import firebaseAdmin from 'firebase-admin';
 import jwtSecrets from '../secrets/JWT.json' assert {type: 'json'};
 import { TUserRoles } from './core/IUser';
 import ip from 'ip';
+import { IANIMEE_CONFIG_SERVICE } from './core/interfaces';
 
 dotenv.config();
 
@@ -41,24 +42,31 @@ interface IANIMEE_CONFIG {
       PORT: number,
       HOST: string
     }
+  },
+  SERVICES: {
+    DB: {
+      PORT: number,
+      HOST: number,
+    },
+
+    ANIMEE_CORE: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_MEDIA: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_UPLOADS: IANIMEE_CONFIG_SERVICE,
+    ANIMEE_UPLOADS_BOT: IANIMEE_CONFIG_SERVICE,
   }
 }
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
-interface IConfig {
-  microservices: {
-    uploadsURL: string,
-    uploadsBotURL: string,
-    media: string
-  }
-}
+export const config = {
+  db: ANIMEE_CONFIG.SERVICES.DB,
+  service: ANIMEE_CONFIG.SERVICES.ANIMEE_CORE,
+  services: ANIMEE_CONFIG.SERVICES,
 
-export const config: IConfig = {
   microservices: {
-    uploadsURL: `http://${ip.address()}:43320`,
-    uploadsBotURL: `http://${ip.address()}:${ANIMEE_CONFIG.PORTS.BASE_PORT}${ANIMEE_CONFIG.PORTS.ANIMEE_UPLOADS_BOT.MSID}0`,
-    media: `http://${ip.address()}:43120`
+    uploadsURL: `http://${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
+    uploadsBotURL: `http://${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.HOST}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.PORTS.HTTP}`,
+    media: `http://${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`
   }
 };
 
@@ -69,8 +77,9 @@ env.platform = process.platform as TOSPlatform;
 env.JWT_SECRET_ACCESS = jwtSecrets.accessTokenSecret;
 env.JWT_SECRET_REFRESH = jwtSecrets.refreshTokenSecret;
 
-export const devMode = process.argv.some(el => el === 'devMode');
-export const testMode = process.argv.some(el => el === 'testMode');
+export const devMode = process.argv.includes('devMode');
+export const prodMode = process.argv.includes('prodMode');
+export const testMode = process.argv.includes('testMode');
 
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(`${path.resolve()}/secrets/firebase.json`)

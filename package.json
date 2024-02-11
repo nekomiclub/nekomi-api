@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "npx nodemon devMode",
     "dev-test": "npx nodemon devMode testMode",
-    "start": "npx nodemon",
-    "start-test": "npx nodemon testMode",
+    "start": "npx nodemon prodMode",
+    "start-test": "npx nodemon testMode prodMode",
     "build": "npm i && rm -rf dist && npx tsc && node changeExt.js",
     "test": "jest"
   },

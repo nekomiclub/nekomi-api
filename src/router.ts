@@ -147,7 +147,7 @@ ApiV1.delete('/upload/:id', ...[
 
 //* - - - Service routes - - -
 ApiV1.get(`/global_stats`, v1C.getGS);
-ApiV1.get(`/media/:id`, v1CProxy.getMedia);
+ApiV1.get(`/media/:id`, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id
 
 ApiV1.get(`/uptime`, v1C.uptime);
 

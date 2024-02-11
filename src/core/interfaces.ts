@@ -111,3 +111,26 @@ export interface IStatRecord {
   selectedDub: string,
   watchtime: number
 }
+
+
+
+export interface IANIMEE_CONFIG_SERVICE {
+  HOST: string,
+  PORTS: {
+    HTTP: number,
+    HTTPS: number | null,
+    WS: number | null
+  },
+  DB: {
+    DEV: {
+      DB_NAME: string,
+      USR: string,
+      PWD: string
+    },
+    PROD: {
+      DB_NAME: string,
+      USR: string,
+      PWD: string
+    }
+  } | null
+}

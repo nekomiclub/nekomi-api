@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import { devMode, testMode, env } from './config';
+import { devMode, testMode, config, prodMode } from './config';
 
 import https from 'https';
 import http from 'http';
@@ -23,7 +23,7 @@ const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.
 const hschain = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
 
 //! DO NOT CHANGE IF NOT NECESSARY
-export const MONGO_URI = (devMode) ? env.MONGODB_DEV_URI : env.MONGODB_PROD_URI;
+const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}`;
 
 mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_URI, {
@@ -36,14 +36,14 @@ mongoose.connect(MONGO_URI, {
 
 export const app = express();
 export const wss = devMode ? new WebSocketServer({
-  host: env.IP,
-  port: env.WS_PORT,
+  host: config.service.HOST,
+  port: config.service.PORTS.WS!,
 }) : new WebSocketServer({
   server: https.createServer({
     key: hskey,
     cert: hscert,
     ca: [hschain],
-  }).listen(env.WS_PORT, env.IP)
+  }).listen(config.service.PORTS.WS!, config.service.HOST)
 });
 
 const CORSOpt: CorsOptions = {
@@ -82,48 +82,37 @@ if (!devMode) {
   ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
 }
 
-if (!process.env.HTTP_PORT) {
-  throw new Error('PORT ENV IS NOT DEFINED');
-}
-
-
-function listen(https?: boolean, showDetails?: boolean, ws?: boolean) {
-  if (ws) {
-    console.log(`Websocket is listening on ${https ? 'wss' : 'ws'}://${env.IP}:${env.WS_PORT}`);
-  } else {
-    console.log(`Server is listening on ${https ? 'https://' : 'http://'}${env.IP}:${https ? env.HTTPS_PORT : env.HTTP_PORT} ...`);
-  }
-
+function listen(https?: boolean, showDetails?: boolean) {
   if (!showDetails) return;
   console.log(`
   --------------------------------------------
   ANIMEE-CORE STARTED:
-  -  Mode: ${devMode ? 'DevMode' : testMode ? 'TestMoode' : 'ProdMode'}
-  -  HTTP: ${env.IP}:${env.HTTP_PORT} 
-  -  HTTPS: ${env.IP}:${env.HTTPS_PORT} 
-  -  WS: ${env.IP}:${env.WS_PORT}
+  -  Mode: ${prodMode ? 'ProdMode' : devMode ? 'DevMode' : testMode ? 'TestMode' : 'Mode is unknown'}
+  -  HTTP: ${config.service.HOST}:${config.service.PORTS.HTTPS!} 
+  ${https ? `-  HTTPS: ${config.service.HOST}:${config.service.PORTS.HTTPS}` : `-  HTTPS: Disabled`} 
+  -  WS: ${config.service.HOST}:${config.service.PORTS.WS}
   --------------------------------------------
   `);
 
   onReady();
 }
 
-wss.on('listening', () => listen(true, false, true));
+wss.on('listening', () => listen(true, false));
 wss.on('error', e => { throw e; });
 
 if (devMode) {
-  app.listen(env.HTTP_PORT, env.IP, () => listen(false, true));
+  app.listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen(false, true));
 } else {
   if (!hskey || !hscert || !hschain) {
     throw new Error('SSL certs are not found');
   }
 
-  app.listen(env.HTTP_PORT, env.IP, () => listen());
+  app.listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen());
   https.createServer({
     key: hskey,
     cert: hscert,
     ca: [hschain]
-  }, app).listen(env.HTTPS_PORT, env.IP, () => listen(true, true));
+  }, app).listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen(true, true));
 }
 
 import { sendDayStat } from './services/v1/stats';
