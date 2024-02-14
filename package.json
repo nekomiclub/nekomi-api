@@ -7,9 +7,8 @@
   "scripts": {
     "dev": "npx nodemon devMode",
     "dev-test": "npx nodemon devMode testMode",
-    "start": "npx nodemon prodMode",
-    "start-test": "npx nodemon testMode prodMode",
-    "build": "npm i && rm -rf dist && npx tsc && node changeExt.js",
+    "start": "npx node --loader ts-node/esm ./src/index.ts prodMode",
+    "start-test": "npx node --loader ts-node/esm ./src/index.ts testMode prodMode",
     "test": "jest"
   },
   "keywords": [],
