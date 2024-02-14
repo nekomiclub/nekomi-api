@@ -12,6 +12,7 @@ import * as uuid from 'uuid';
 import { ensureAccess } from './middlewares';
 import { body, cookie, param } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
+import cors from 'cors';
 
 export const ApiV1 = express.Router();
 export const ProxyRouter = express.Router();
@@ -131,7 +132,7 @@ ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-b
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
 
 //* Media proxy
-ProxyRouter.get(`/media/:id`, v1CProxy.getMedia); //* Require animee-media microservice
+ProxyRouter.get(`/media/:id`, cors({ origin: '*', credentials: false }), v1CProxy.getMedia); //* Require animee-media microservice
 
 ApiV1.post('/upload', ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
@@ -170,4 +171,4 @@ ApiV1.post('/stat/record', ...[
 
 
 //* - - - ALLIASES - - -
-ApiV1.get(`/media/:id`, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;
+ApiV1.get(`/media/:id`, cors({ origin: '*', credentials: false }), v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;

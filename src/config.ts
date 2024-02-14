@@ -28,6 +28,11 @@ export const devMode = process.argv.includes('devMode');
 export const prodMode = process.argv.includes('prodMode');
 export const testMode = process.argv.includes('testMode');
 
+//! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
+if (devMode) {
+  config.service.PORTS.HTTP = 80;
+}
+
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(`${path.resolve()}/secrets/firebase.json`)
 });
