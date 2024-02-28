@@ -18,9 +18,9 @@ import ffmpeg from 'fluent-ffmpeg';
 import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
 
-const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/privkey.pem', 'utf8');
-const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/cert.pem', 'utf8');
-const hschain = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/api.animee.club/chain.pem', 'utf8');
+const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8');
+const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8');
+const hschain = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8');
 
 //! DO NOT CHANGE IF NOT NECESSARY
 const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}`;
