@@ -42,7 +42,8 @@ export const User = mongoose.model<IUser>('user', new Schema({
       }> || null
     }
   },
-  roles: ['admin' || 'dubber' || 'editor' || 'moderator' || 'root' || 'subber' || 'subscriber' || 'user']
+  roles: ['admin' || 'dubber' || 'editor' || 'moderator' || 'root' || 'subber' || 'subscriber' || 'user'],
+  accountType: String
 }));
 
 export default User; 

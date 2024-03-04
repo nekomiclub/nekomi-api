@@ -9,6 +9,7 @@ import ip from 'ip';
 import axios from 'axios';
 import inquirer from 'inquirer';
 import express from 'express';
+import User from '../../Models/User';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -47,4 +48,18 @@ export async function updateFrames() {
       console.error(e);
     }
   }
+}
+
+export async function modifyUsers() {
+  console.log('Users modify started');
+  const users = await User.find();
+
+  for (const i in users) {
+    const user = users[i];
+
+    user.accountType = 'old';
+    await user.save();
+  }
+
+  console.log('Users modify ended');
 }

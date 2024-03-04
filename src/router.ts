@@ -27,7 +27,6 @@ const titleValidation = [
     'description',
     'estimatedEps',
     'year',
-    'studios',
     'country',
   ]).notEmpty(),
   body('status').isIn(['announcement', 'ongoing', 'out', 'delayed']),
@@ -97,6 +96,11 @@ ApiV1.get(`/dubber/:id`, v1CDubber.getOne); // Test-covered
 
 //* - - - User routes - - -
 ApiV1.get(`/user/:query`, v1CUser.get); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future; Test-covered
+// ApiV1.post('/user/upgrade', [
+//   body([
+//     'usapiToken'
+//   ]).notEmpty().withMessage('usapiToken is required')
+// ], v1CUser.upgrade);
 
 ApiV1.post(`/auth`, ...[
   body(['username', 'password']).notEmpty(),

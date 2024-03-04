@@ -72,7 +72,8 @@ export interface IUser {
   stats: IUserStats,
   lists: IUserList[],
   providers: TAuthProviders[],
-  roles: TUserRoles[]
+  roles: TUserRoles[],
+  accountType: 'old' | 'new'
 }
 
 export interface IStat {

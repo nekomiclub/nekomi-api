@@ -7,9 +7,10 @@ import { IUser } from '../../core/interfaces';
 import * as uuid from 'uuid';
 import bcrypt from 'bcrypt';
 import User from '../../Models/User';
-import { E400 } from '../../handlers/v1/Errors';
+import { E400, E403 } from '../../handlers/v1/Errors';
 import firebaseAdmin from 'firebase-admin';
 import { TAuthProviders } from '../../core/IAuth';
+import axios from 'axios';
 
 interface ITokenPayload {
   username: string,
@@ -117,7 +118,8 @@ export async function createUser(username: string, password: string, providers?:
       name: 'Переглядаю',
       id: `watching-${uid}`
     }],
-    roles: userDefaultRoles
+    roles: userDefaultRoles,
+    accountType: 'new'
   };
 
   const item = new User(user);
@@ -138,8 +140,7 @@ export async function auth(username: string, password: string, token?: string): 
       const data = await firebaseAdmin.auth().verifyIdToken(token)!.catch(e => { throw new E400('Token privided by google is not valid'); });
 
       if (!user) {
-        const uid = await createUser(username, uuid.v4().split('-').slice(0, 1).join(''), ['google']);
-        return signTokens({ uid, username, roles: userDefaultRoles });
+        throw new E400('Account registration via google is disabled due to new account api');
       } else {
         if (data.email!.split('@')[0] !== username) {
           throw new E400('Username provided by token is not equal to provided');
@@ -147,6 +148,38 @@ export async function auth(username: string, password: string, token?: string): 
 
         if (!user.providers.includes('google')) {
           throw new E400('User does not have google provider');
+        }
+      }
+    } else if (password.match(/~usapi/gi)) {
+      const tokenRes = await axios.post(`${config.microservices.usapi}/token/decode`, {
+        token,
+        method: 'access'
+      });
+
+      const tokenPayload = tokenRes.data as { payload: { id: string, username: string, photoURL: string }, info: any, msg: string, verified: boolean };
+
+      if (!tokenPayload.verified) {
+        throw new E400('Usapi token is invalid');
+      }
+
+      if (!user) {
+        const uid = await createUser(username, `~usapi_${+new Date() + (Math.random() * 100)}`, ['fullkekw']);
+        return signTokens({ uid, username, roles: userDefaultRoles });
+      } else {
+        if (user.accountType === 'new' && user.uid !== tokenPayload.payload.id) {
+          throw new E400('Token is invalid for that user');
+        }
+
+        if (user.accountType === 'old' && user.username !== tokenPayload.payload.username) {
+          throw new E400('Token is invalid for that user');
+        }
+
+        if (user.accountType !== 'new') {
+          user.uid = tokenPayload.payload.id;
+          user.accountType = 'new';
+          user.avatar = tokenPayload.payload.photoURL;
+
+          await user.save();
         }
       }
     }

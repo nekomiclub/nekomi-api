@@ -7,9 +7,55 @@ import * as handler from '../../handlers/v1/handlers';
 import * as authService from '../../services/v1/auth';
 import User from '../../Models/User';
 import { validationResult } from 'express-validator';
-import { devMode } from '../../config';
+import { config, devMode } from '../../config';
 import { dayStat } from '../../services/v1/stats';
 import ip from 'ip';
+import * as tokenService from '../../services/v1/auth';
+import axios from 'axios';
+
+// export async function upgrade(req: express.Request, res: express.Response) {
+//   const routeCode = 'User/Upgrade';
+
+//   await catchError(req, res, routeCode, async () => {
+//     validateFields(req);
+
+//     const { usapiToken } = req.body as { usapiToken: string, refreshToken: string | null };
+//     const { refreshToken } = req.cookies as { refreshToken: string | undefined };
+
+//     const usapiTokenRes = await axios.post(`${config.microservices.usapi}/token/decode`, {
+//       token: usapiToken,
+//       method: 'access'
+//     });
+
+//     const usapiPayload = usapiTokenRes.data as { payload: { id: string, username: string, photoURL: string }, verified: boolean };
+
+//     if (refreshToken && tokenService.verify(refreshToken, 'refresh') && usapiPayload.verified) {
+//       const refreshPayload = tokenService.decode(refreshToken);
+
+//       const user = await User.findOne({ uid: refreshPayload!.uid });
+
+//       if (user?.accountType === 'new' || !user) {
+//         const tokens = await authService.auth(refreshPayload!.username, '~usapi', usapiToken);
+
+//         return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken, msg: 'Upgrade is not required' });
+//       }
+
+//       user!.uid = usapiPayload.payload.id;
+//       user!.username = usapiPayload.payload.username;
+//       user!.avatar = usapiPayload.payload.photoURL;
+//       user!.accountType = 'new';
+
+//       await user!.save();
+//       const tokens = await authService.auth(refreshPayload!.username, '~usapi', usapiToken);
+
+//       return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken, msg: 'User upgraded' });
+//     } else {
+//       throw new E400('User not found or tokens are invalid');
+//     }
+
+//   });
+// }
+
 
 export async function get(req: express.Request, res: express.Response) {
   const routeCode = 'User/Get';

@@ -53,8 +53,8 @@ const CORSOpt: CorsOptions = {
     'https://updater.animee.club',
     'https://auth.animee.club',
     'https://api.animee.club',
-    devMode ? 'http://localhost:3000' : '',
-    devMode ? 'http://192.168.0.106:3000' : '',
+    devMode ? 'http://localhost:3001' : '',
+    devMode ? 'http://192.168.0.106:3001' : '',
     'https://animee-git-dev-unniiiverse.vercel.app'
   ],
   credentials: true,
@@ -122,6 +122,7 @@ async function onReady() {
     listenWSS();
     // handler.reuploadImages();
     // await handler.updateTitles();
+    // await handler.modifyUsers();
 
     setInterval(() => {
       sendDayStat();

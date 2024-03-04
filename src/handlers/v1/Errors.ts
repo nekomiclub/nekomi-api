@@ -62,6 +62,7 @@ export async function catchError(req: express.Request, res: express.Response, at
       devMode ? console.error(e) : null; // Console error if dev mode
       return res.status(e.code).json({ ...e });
     } else {
+      devMode ? console.error(e) : null;
       // @ts-expect-error message can be in the error object
       return res.status(500).json({ name: 'E500 - Server Error', msg: `Unexpected server error occured. Please create ticket of that error: ${e?.msg || e?.message || 'msg is not provided'}`, at, code: 500 });
     }
