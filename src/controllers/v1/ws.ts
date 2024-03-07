@@ -20,11 +20,6 @@ export function listenWSS() {
       clearTimeout(timeout);
     });
 
-    timeout = setTimeout(() => {
-      // Add new connection every day
-      dayStat.online.total++;
-    }, 86400000);
-
     ws.on('message', data => {
       const message = JSON.parse(data.toString()) as { type: TWS, payload: any };
 

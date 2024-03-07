@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, validateFields } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../../handlers/v1/Errors';
 import { randomNumber } from '../../handlers/v1/handlers';
 import fs from 'fs';
 import * as dto from '../../handlers/v1/dtos';
@@ -12,49 +12,9 @@ import { dayStat } from '../../services/v1/stats';
 import ip from 'ip';
 import * as tokenService from '../../services/v1/auth';
 import axios from 'axios';
+import Title from '../../Models/Title';
+import { IUserList } from '../../core/IUser';
 
-// export async function upgrade(req: express.Request, res: express.Response) {
-//   const routeCode = 'User/Upgrade';
-
-//   await catchError(req, res, routeCode, async () => {
-//     validateFields(req);
-
-//     const { usapiToken } = req.body as { usapiToken: string, refreshToken: string | null };
-//     const { refreshToken } = req.cookies as { refreshToken: string | undefined };
-
-//     const usapiTokenRes = await axios.post(`${config.microservices.usapi}/token/decode`, {
-//       token: usapiToken,
-//       method: 'access'
-//     });
-
-//     const usapiPayload = usapiTokenRes.data as { payload: { id: string, username: string, photoURL: string }, verified: boolean };
-
-//     if (refreshToken && tokenService.verify(refreshToken, 'refresh') && usapiPayload.verified) {
-//       const refreshPayload = tokenService.decode(refreshToken);
-
-//       const user = await User.findOne({ uid: refreshPayload!.uid });
-
-//       if (user?.accountType === 'new' || !user) {
-//         const tokens = await authService.auth(refreshPayload!.username, '~usapi', usapiToken);
-
-//         return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken, msg: 'Upgrade is not required' });
-//       }
-
-//       user!.uid = usapiPayload.payload.id;
-//       user!.username = usapiPayload.payload.username;
-//       user!.avatar = usapiPayload.payload.photoURL;
-//       user!.accountType = 'new';
-
-//       await user!.save();
-//       const tokens = await authService.auth(refreshPayload!.username, '~usapi', usapiToken);
-
-//       return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken, msg: 'User upgraded' });
-//     } else {
-//       throw new E400('User not found or tokens are invalid');
-//     }
-
-//   });
-// }
 
 
 export async function get(req: express.Request, res: express.Response) {
@@ -77,8 +37,6 @@ export async function update(req: express.Request, res: express.Response) {
   const routeCode = 'User/Update';
 
   await catchError(req, res, routeCode, async () => {
-    validateFields(req);
-
     const { uid } = req.body as { uid: string };
 
     const item = await User.findOne({ uid });
@@ -107,8 +65,6 @@ export async function create(req: express.Request, res: express.Response) {
   const routeCode = 'User/Create';
 
   await catchError(req, res, routeCode, async () => {
-    validateFields(req);
-
     const { password, username, email } = req.body as { username: string, password: string, email: string };
     const isExist = await User.findOne({ $or: [{ username }, { email }] });
 
@@ -159,8 +115,6 @@ export async function auth(req: express.Request, res: express.Response) {
   const routeCode = 'User/Auth';
 
   await catchError(req, res, routeCode, async () => {
-    validateFields(req);
-
     const { password, username, token } = req.body as { username: string, password: string, token?: string };
 
     const tokens = await authService.auth(username, password, token);
@@ -173,8 +127,6 @@ export async function refresh(req: express.Request, res: express.Response) {
   const routeCode = 'User/Refresh';
 
   await catchError(req, res, routeCode, async () => {
-    validateFields(req);
-
     const { refreshToken } = req.cookies as { refreshToken: string };
 
     const isValid = authService.verify(refreshToken, 'refresh');

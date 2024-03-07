@@ -10,7 +10,7 @@ import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
 import { ensureAccess } from './middlewares';
-import { body, cookie, param } from 'express-validator';
+import { body, cookie, param, query } from 'express-validator';
 import { TAnimeGenres } from './core/interfaces';
 import cors from 'cors';
 
@@ -90,17 +90,17 @@ ApiV1.delete(`/title`, ...[
 
 
 //* - - - Dubber routes - - -
-ApiV1.get(`/dubber/:id`, v1CDubber.getOne); // Test-covered
+ApiV1.get(`/dubber/:query`, v1CDubber.getOne); // Test-covered
+ApiV1.post(`/dubber/parse`, ...[
+  body([
+    'queries'
+  ]).notEmpty().withMessage('IDs are required')
+], v1CDubber.parse); // Test-covered
 
 
 
 //* - - - User routes - - -
 ApiV1.get(`/user/:query`, v1CUser.get); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future; Test-covered
-// ApiV1.post('/user/upgrade', [
-//   body([
-//     'usapiToken'
-//   ]).notEmpty().withMessage('usapiToken is required')
-// ], v1CUser.upgrade);
 
 ApiV1.post(`/auth`, ...[
   body(['username', 'password']).notEmpty(),

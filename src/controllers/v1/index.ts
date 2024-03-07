@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError, validateFields } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError } from '../../handlers/v1/Errors';
 import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
 import path from 'path';
@@ -200,8 +200,6 @@ export async function saveStatRecord(req: express.Request, res: express.Response
   const routeCode = 'Service/SaveStatRecord';
 
   await catchError(req, res, routeCode, async () => {
-    validateFields(req);
-
     const { selectedDub, title, watchtime } = req.body as IStatRecord;
 
     const record = dayStat.titles.total.find(el => el.id === title);

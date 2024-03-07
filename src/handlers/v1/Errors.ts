@@ -44,8 +44,9 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 
-import { devMode } from '../../config';
+import { devMode, prodMode } from '../../config';
 import { validationResult } from 'express-validator';
+import { AxiosError } from 'axios';
 
 export function writeErrorLog(msg: string, at: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -56,42 +57,36 @@ export function writeErrorLog(msg: string, at: string) {
 
 export async function catchError(req: express.Request, res: express.Response, at: string, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
+    const valRes = validationResult(req);
+
+    const errors: IValidationError[] = valRes.array().map(el => {
+      return {
+        msg: el.msg || '',
+        // @ts-ignore
+        at: el.location,
+        // @ts-ignore
+        curr: el.value || 'Value is not provided'
+      } as IValidationError;
+    });
+
+    if (!valRes.isEmpty()) {
+      return res.status(400).json({ msg: 'Validation failed.', errors });
+    }
+
     await cb(req, res);
   } catch (e) {
+    if (devMode) console.error(e);
+
     if (e instanceof ErrorConstructor) {
-      devMode ? console.error(e) : null; // Console error if dev mode
-      return res.status(e.code).json({ ...e });
+      return res.status(e.code).json(e);
+    } else if (e instanceof AxiosError) {
+      return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
     } else {
-      devMode ? console.error(e) : null;
-      // @ts-expect-error message can be in the error object
-      return res.status(500).json({ name: 'E500 - Server Error', msg: `Unexpected server error occured. Please create ticket of that error: ${e?.msg || e?.message || 'msg is not provided'}`, at, code: 500 });
+      if (prodMode) console.error(e);
+      return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
     }
   }
 }
-
-export function validateFields(req: express.Request) {
-  const res = validationResult(req);
-
-  // Skip if empty
-  if (res.isEmpty()) {
-    return;
-  }
-
-  const errors: IValidationError[] = res.array().map(el => {
-    return {
-      msg: el.msg || '',
-      // @ts-ignore
-      at: el.location,
-      // @ts-ignore
-      curr: el.value || 'Value is not provided'
-    } as IValidationError;
-  });
-
-  throw new E400(errors);
-}
-
-
-
 
 interface IValidationError {
   curr: string,
