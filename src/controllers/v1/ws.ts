@@ -1,7 +1,7 @@
 import { IWS, IWSPresence, TWS } from '../../core/IWS';
 import { wss } from '../../index';
 import { WebSocket } from 'ws';
-import { dayStat } from '../../services/v1/stats';
+import { DAY_STAT } from '../../services/v1/stats';
 
 export let onlineSIDs: string[] = [];
 
@@ -18,7 +18,14 @@ export function listenWSS() {
       onlineSIDs = onlineSIDs.filter(el => el !== sid);
       broadcast({ type: 'presence', payload: { audience: onlineSIDs.length } });
       clearTimeout(timeout);
+
+      if (DAY_STAT.online.min > onlineSIDs.length) DAY_STAT.online.min = onlineSIDs.length;
     });
+
+    timeout = setTimeout(() => {
+      // Add new connection every day
+      DAY_STAT.online.total++;
+    }, 86400000);
 
     ws.on('message', data => {
       const message = JSON.parse(data.toString()) as { type: TWS, payload: any };
@@ -29,9 +36,10 @@ export function listenWSS() {
           onlineSIDs.push(sid);
 
           // Add new connection
-          dayStat.online.total++;
+          DAY_STAT.online.total++;
 
-          if (dayStat.online.peak < onlineSIDs.length) dayStat.online.peak = onlineSIDs.length;
+          if (DAY_STAT.online.max < onlineSIDs.length) DAY_STAT.online.max = onlineSIDs.length;
+          if (DAY_STAT.online.min < onlineSIDs.length) DAY_STAT.online.min = onlineSIDs.length;
         }
 
         broadcast({ type: 'presence', payload: { audience: onlineSIDs.length } });

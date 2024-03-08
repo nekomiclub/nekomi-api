@@ -77,25 +77,23 @@ export interface IUser {
 }
 
 export interface IStat {
-  id: string,
   timestamp: number,
   online: {
+    min: number,
+    max: number,
     total: number,
-    peak: number,
     avg: number
   },
-  createdAccounts: number,
-  seriesUploaded: number,
-  titlesCreated: number,
-  titlesUpdated: number,
-  popularDub: string,
-  totalWatchtimeS: number,
   titles: {
-    popularTitle: string,
-    popularDub: string,
-    top30: IStatTitle[],
-    total: IStatTitle[],
-  }
+    id: string,
+    dubs: {
+      id: string
+      watchtime: number
+    }[],
+    totalWatchtime: number
+  }[],
+  seriesUploaded: number,
+  titlesUpdated: number
 }
 
 export interface IStatTitle {

@@ -12,7 +12,6 @@ import Title from '../../Models/Title';
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError } from '../../handlers/v1/Errors';
 import { randomNumber } from '../../handlers/v1/handlers';
 import * as dto from '../../handlers/v1/dtos';
-import { dayStat } from '../../services/v1/stats';
 
 let fuse: Fuse<ITitle>;
 
@@ -170,9 +169,6 @@ export async function create(req: express.Request, res: express.Response) {
 
     const dbItem = new Title(title);
     await dbItem.save();
-
-    // Add title created
-    dayStat.titlesCreated++;
 
     return res.status(201).json({ id });
   });

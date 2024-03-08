@@ -17,6 +17,7 @@ import Title from './Models/Title';
 import ffmpeg from 'fluent-ffmpeg';
 import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
+import { sendDayStat } from './services/v1/stats';
 
 const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8');
 const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8');
@@ -115,8 +116,6 @@ if (devMode) {
   }, app).listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen(true, true));
 }
 
-import { sendDayStat } from './services/v1/stats';
-
 async function onReady() {
   try {
     listenWSS();
@@ -124,9 +123,7 @@ async function onReady() {
     // await handler.updateTitles();
     // await handler.modifyUsers();
 
-    setInterval(() => {
-      sendDayStat();
-    }, 30000); // 30000 // 30s
+    await sendDayStat();
   } catch (e) {
     // @ts-ignore
     writeErrorLog(`onReady cb throw an error: ${e.message || e.msg}`, 'index');

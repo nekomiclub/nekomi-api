@@ -4,14 +4,9 @@ import fs from 'fs';
 import { IUploadRequest, TUpload } from '../../core/IUpload';
 import path from 'path';
 import { config, devMode } from '../../config';
-import { dayStat } from '../../services/v1/stats';
 import ip from 'ip';
 
 const apiUptime = +new Date();
-
-export async function getGS(req: express.Request, res: express.Response) {
-  return res.send('ok');
-}
 
 export async function uptime(req: express.Request, res: express.Response) {
   return res.status(200).json(apiUptime);
@@ -133,13 +128,13 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
     if (year && titleId) {
       if (!user.updated.some(el => el === titleId)) {
         titleUpdateDB.updated[year]++;
-        // Add title updated
-        dayStat.titlesUpdated++;
       }
 
       filtered = (user.updated as string[]).filter(el => el !== titleId);
       filtered.push(titleId);
     }
+
+    const title = await Title.findOne({ id: titleId });
 
     (titleUpdateDB.users.find(el => el.id === id)!.updated as string[]) = filtered;
 
@@ -156,6 +151,8 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
 import * as authService from '../../services/v1/auth';
 import { IStatRecord } from '../../core/interfaces';
 import axios, { AxiosError } from 'axios';
+import { DAY_STAT } from '../../services/v1/stats';
+import Title from '../../Models/Title';
 export async function tokenVerify(req: express.Request, res: express.Response) {
   const routeCode = 'Service/VerifyToken';
 
@@ -193,24 +190,5 @@ export async function tokenDecode(req: express.Request, res: express.Response) {
     const serviceResponse = authService.decode(token.split('=')[1]);
 
     return res.status(200).json(serviceResponse);
-  });
-}
-
-export async function saveStatRecord(req: express.Request, res: express.Response) {
-  const routeCode = 'Service/SaveStatRecord';
-
-  await catchError(req, res, routeCode, async () => {
-    const { selectedDub, title, watchtime } = req.body as IStatRecord;
-
-    const record = dayStat.titles.total.find(el => el.id === title);
-
-    if (record) {
-      const dub = record.dubs.find(el => el.id === selectedDub);
-      dub ? dub.watchtimeS += watchtime : record.dubs.push({ id: selectedDub, watchtimeS: watchtime });
-    } else {
-      dayStat.titles.total.push({ dubs: [{ id: selectedDub, watchtimeS: watchtime }], id: title, watchtimeS: 0 });
-    }
-
-    return res.status(200).json('ok');
   });
 }

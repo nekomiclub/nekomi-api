@@ -24,6 +24,7 @@ export function randomNumber(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
 }
 
+/** @deprecated Use getUTC() instead */
 export function getUTCTime(): number {
   return +new Date().setUTCHours(new Date().getUTCHours());
 }
@@ -48,6 +49,27 @@ export async function updateFrames() {
       console.error(e);
     }
   }
+}
+
+export function addZeroIfNumberSingle(num: number): string {
+  return num <= 9 ? `0${num}` : `${num}`;
+}
+
+export function getUTC(): { y: number, m: number, d: number, hrs: number, mins: number, secs: number, ms: number, date: string, time: string, timestamp: number } {
+  const now = new Date();
+
+  return {
+    y: now.getUTCFullYear(),
+    m: now.getUTCMonth() + 1,
+    d: now.getUTCDate(),
+    hrs: now.getUTCHours(),
+    mins: now.getUTCMinutes(),
+    secs: now.getUTCSeconds(),
+    ms: now.getUTCMilliseconds(),
+    date: `${now.getUTCFullYear()}.${addZeroIfNumberSingle(now.getUTCMonth() + 1)}.${addZeroIfNumberSingle(now.getUTCDate())}`,
+    time: `${addZeroIfNumberSingle(now.getUTCHours())}:${addZeroIfNumberSingle(now.getUTCMinutes())}`,
+    timestamp: now.getTime()
+  };
 }
 
 export async function modifyUsers() {

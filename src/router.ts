@@ -153,8 +153,6 @@ ApiV1.delete('/upload/:id', ...[
 
 
 //* - - - Service routes - - -
-ApiV1.get(`/global_stats`, v1C.getGS); // TODO Deprecated. Will deleted in near future
-
 ApiV1.get(`/uptime`, v1C.uptime);
 
 ApiV1.post(`/token/verify`, ...[
@@ -166,11 +164,6 @@ ApiV1.post(`/token/decode`, ...[
 ], v1C.tokenDecode); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
 
 ApiV1.post('/titleUpdate', v1C.titleUpdate);
-
-ApiV1.post('/stat/record', ...[
-  (req, res, next) => ensureAccess(['user', 'root'], req, res, next),
-  body(['title', 'selectedDub', 'watchtime']).notEmpty()
-], v1C.saveStatRecord); // TODO Deprecated. Will be refactored in near future
 
 
 

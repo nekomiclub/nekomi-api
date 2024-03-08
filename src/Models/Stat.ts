@@ -1,40 +1,18 @@
 import mongoose, { Schema } from 'mongoose';
 import { IStat } from '../core/interfaces';
+import { prodMode } from '../config';
 
-export const Stats = mongoose.model<IStat>('stat', new Schema({
-  id: String,
-  createdAccounts: Number,
-  online: Array<{
-    avg: number,
-    peak: number,
-    total: number,
-  }>,
-  popularDub: String,
-  seriesUploaded: Number,
-  titlesCreated: Number,
-  titlesUpdated: Number,
+export const Stats = mongoose.model<IStat>(prodMode ? 'stat' : 'dev_stat', new Schema({
   timestamp: Number,
-  totalWatchtimeS: Number,
-  titles: {
-    popularTitle: String,
-    popularDub: String,
-    top30: Array<{
-      id: string,
-      watchtimeS: number,
-      dubs: Array<{
-        id: string,
-        watchtimeS: number
-      }>
-    }>,
-    total: Array<{
-      id: string,
-      watchtimeS: number,
-      dubs: Array<{
-        id: string,
-        watchtimeS: number
-      }>
-    }>
-  }
+  online: {
+    min: Number,
+    max: Number,
+    avg: Number,
+    total: Number
+  },
+  titles: Array,
+  seriesUploaded: Number,
+  titlesUpdated: Number
 }));
 
 export default Stats; 
