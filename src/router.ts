@@ -107,7 +107,7 @@ ApiV1.post(`/auth`, ...[
 ], v1CUser.auth); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
 
 ApiV1.get(`/auth/refresh`, ...[
-  cookie('refreshToken').notEmpty(),
+  cookie('oldRefreshToken').notEmpty(),
 ], v1CUser.refresh); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
 
 ApiV1.get(`/auth/logout`, v1CUser.logout); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future

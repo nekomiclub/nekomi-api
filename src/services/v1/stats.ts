@@ -27,7 +27,7 @@ export async function sendDayStat() {
     statSended = true;
 
     DAY_STAT.online.avg = Math.round((DAY_STAT.online.max + DAY_STAT.online.min) / 24);
-    DAY_STAT.timestamp = getUTC().timestamp
+    DAY_STAT.timestamp = getUTC().timestamp;
 
     const stat = new Stats(DAY_STAT);
     await stat.save();
@@ -36,7 +36,7 @@ export async function sendDayStat() {
       DAY_STAT[i] = defaultDayStat[i];
     }
 
-    DAY_STAT.timestamp = getUTC().timestamp
+    DAY_STAT.timestamp = getUTC().timestamp;
   } else if (!isTimeToSend && statSended) {
     statSended = false;
   }

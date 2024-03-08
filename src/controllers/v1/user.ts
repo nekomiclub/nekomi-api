@@ -75,7 +75,7 @@ export async function create(req: express.Request, res: express.Response) {
     const tokens = await authService.auth(username, password);
 
     // todo auth
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : 'animee.club' }).json({ msg: 'Created', uid, token: tokens.accessToken });
+    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ msg: 'Created', uid, token: tokens.accessToken });
   });
 }
 
@@ -115,7 +115,7 @@ export async function auth(req: express.Request, res: express.Response) {
 
     const tokens = await authService.auth(username, password, token);
 
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : 'animee.club' }).json({ token: tokens.accessToken });
+    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
   });
 }
 
@@ -134,10 +134,10 @@ export async function refresh(req: express.Request, res: express.Response) {
     const { roles, uid, username } = authService.decode(refreshToken)!;
     const tokens = authService.signTokens({ uid, roles, username });
 
-    return res.status(200).cookie('refreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : 'animee.club' }).json({ token: tokens.accessToken });
+    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
   });
 }
 
 export async function logout(req: express.Request, res: express.Response) {
-  return res.status(200).clearCookie('refreshToken').json('ok');
+  return res.status(200).clearCookie('oldRefreshToken').json('ok');
 }
