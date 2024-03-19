@@ -123,15 +123,15 @@ export async function refresh(req: express.Request, res: express.Response) {
   const routeCode = 'User/Refresh';
 
   await catchError(req, res, routeCode, async () => {
-    const { refreshToken } = req.cookies as { refreshToken: string };
+    const { oldRefreshToken } = req.cookies as { oldRefreshToken: string };
 
-    const isValid = authService.verify(refreshToken, 'refresh');
+    const isValid = authService.verify(oldRefreshToken, 'refresh');
 
     if (!isValid) {
       throw new E401('Refresh token is invalid. Re-login');
     }
 
-    const { roles, uid, username } = authService.decode(refreshToken)!;
+    const { roles, uid, username } = authService.decode(oldRefreshToken)!;
     const tokens = authService.signTokens({ uid, roles, username });
 
     return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
