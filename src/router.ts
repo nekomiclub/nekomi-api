@@ -76,7 +76,7 @@ ApiV1.get(`/titles/total`, v1CTitle.total); // Test-covered
 ApiV1.patch(`/title`, ...[
   (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
   titleValidation,
-], v1CTitle.update);
+], v1CTitle.update); //! MUST BE REFACTORED DUE DANGEROUS IMPACT
 
 ApiV1.post(`/title`, ...[
   (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
@@ -116,7 +116,7 @@ ApiV1.get(`/auth/logout`, v1CUser.logout); // TODO Deprecated. Will be replaced 
 ApiV1.post(`/user`, ...[
   body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'),
   body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'),
-], v1CUser.create); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
+], v1CUser.create); // TODO Deprecated. 
 
 ApiV1.delete(`/user`, ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(),
@@ -125,7 +125,7 @@ ApiV1.delete(`/user`, ...[
 ApiV1.patch(`/user`, ...[
   (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next),
   body('uid').notEmpty(),
-], v1CUser.update); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
+], v1CUser.update); //! MUST BE REFACTORED DUE DANGEROUS IMPACT
 
 
 

@@ -15,7 +15,7 @@ export async function getOne(req: express.Request, res: express.Response) {
     const dubber = await Dubbers.findOne({ $or: [{ id: query }, { code: query }] });
 
     if (!dubber) {
-      throw new E400(`Dubber ${query} is not found`);
+      throw new E404(`Dubber ${query} is not found`);
     }
 
     return res.status(200).json(dto.dubber(dubber));

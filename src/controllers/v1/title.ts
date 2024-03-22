@@ -34,7 +34,7 @@ export async function getOne(req: express.Request, res: express.Response) {
     const db = await Title.findOne({ $or: [{ id: query }, { code: query }] });
 
     if (!db) {
-      throw new E400('Title with provided query not found');
+      throw new E404(`Title ${query} is not found`);
     }
 
     let item: ITitle = dto.title(db);
@@ -135,7 +135,7 @@ export async function update(req: express.Request, res: express.Response) {
     const db = await Title.findOne({ id: title.id });
 
     if (!db) {
-      throw new E400('Title with provided id is not found');
+      throw new E404('Title with provided id is not found');
     }
 
     for (const key in title) {
@@ -183,7 +183,7 @@ export async function remove(req: express.Request, res: express.Response) {
     const db = await Title.findOne({ id });
 
     if (!db) {
-      throw new E400('Title with provided id is not found');
+      throw new E404('Title with provided id is not found');
     }
 
     await Title.deleteOne({ id });
