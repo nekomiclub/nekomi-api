@@ -16,10 +16,16 @@ export function writeToLog(msg: string) {
   fs.appendFileSync(`${path.resolve()}/.log`, `\nINFO (UTC ${time}): ${msg}`);
 }
 
+/** Get file extension from file name
+ * @example
+ * getFileExtension('file.txt') => txt
+ * getFileExtension('file.test.txt') => txt
+ */
 export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
 }
 
+/** Get random number in range */
 export function randomNumber(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
 }
@@ -29,6 +35,7 @@ export function getUTCTime(): number {
   return +new Date().setUTCHours(new Date().getUTCHours());
 }
 
+/** @deprecated Idk */
 export async function updateFrames() {
   const titles = await Title.find();
 
@@ -51,11 +58,13 @@ export async function updateFrames() {
   }
 }
 
+/** Turn number to string & add zero before number if it less than 10 */
 export function addZeroIfNumberSingle(num: number): string {
   return num <= 9 ? `0${num}` : `${num}`;
 }
 
-export function getUTC(): { y: number, m: number, d: number, hrs: number, mins: number, secs: number, ms: number, date: string, time: string, timestamp: number } {
+/** Get full UTC0 time */
+export function getUTC() {
   const now = new Date();
 
   return {
@@ -72,6 +81,7 @@ export function getUTC(): { y: number, m: number, d: number, hrs: number, mins: 
   };
 }
 
+/** @deprecated Idk */
 export async function modifyUsers() {
   console.log('Users modify started');
   const users = await User.find();

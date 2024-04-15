@@ -55,13 +55,15 @@ const CORSOpt: CorsOptions = {
     'https://auth.animee.club',
     'https://api.animee.club',
     devMode ? 'http://localhost:3001' : '',
+    devMode ? 'http://localhost:3000' : '',
     devMode ? 'http://192.168.0.106:3001' : '',
+    devMode ? 'http://192.168.0.106:3000' : '',
     'https://animee-git-dev-unniiiverse.vercel.app'
   ],
   credentials: true,
 };
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));

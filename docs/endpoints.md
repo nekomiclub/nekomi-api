@@ -7,11 +7,13 @@
 
 ### GET /v1/title/:query
 [Back to tree](./tree.md)
+
+Get title with code or id
+
+
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
 |   false    | false |   *   |   -   |  1.0.3  |     true     |
-
-Get title with query (code or id)
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION |
@@ -30,11 +32,13 @@ Get title with query (code or id)
 
 ### GET /v1/titles
 [Back to tree](./tree.md)
+
+Get titles in range.
+
+
 |  DEPRECATED  | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :----------: | :---: | :---: | :---: | :-----: | :----------: |
 | true (1.1.2) | false |   *   |   -   |  1.0.3  |     true     |
-
-Get titles in range.
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                |
@@ -60,11 +64,15 @@ Get titles in range.
 
 ### GET /v1/titles/search
 [Back to tree](./tree.md)
-|  DEPRECATED  | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :----------: | :---: | :---: | :---: | :-----: | :----------: |
-| true (1.1.2) | false |   *   |   -   |  1.0.3  |     true     |
 
-Search titles with query
+Search titles with name, code or id.
+
+**Will be refactored in 1.1.2**
+
+
+|     DEPRECATED     | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
+| :----------------: | :---: | :---: | :---: | :-----: | :----------: |
+| true (since 1.1.2) | false |   *   |   -   |  1.0.3  |     true     |
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                      |
@@ -91,11 +99,13 @@ Search titles with query
 
 ### GET /v1/titles/total
 [Back to tree](./tree.md)
+
+Get total count of titles & renewed (where country != 'null')
+
+
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
 |   false    | false |   *   |   -   |  1.0.3  |     true     |
-
-Get total titles
 
 #### Params
 | NAME | TYPE | DESCRIPTION |
@@ -118,13 +128,14 @@ Get total titles
 
 ### PATCH /v1/title
 [Back to tree](./tree.md)
-|    DEPRECATED    | CSRF  |     CORS      |                     CAPS                     | VERSION | TEST COVERED |
-| :--------------: | :---: | :-----------: | :------------------------------------------: | :-----: | :----------: |
-| true (due 1.1.0) | true  | *.animee.club | titleEdit, titleEditEpsMeta, titleEditLinked |  1.0.3  |    false     |
 
 Update title. Replaces EVERY FIELD PROVIDED.
 
-**MUST BE REFACTORED in 1.1.0 due to dangerous impact**
+**MUST BE REFACTORED in 1.1.0 due to dangerous impact (all provided keys will replace present data)**
+
+|    DEPRECATED     | CSRF  |     CORS      |                     CAPS                     | VERSION | TEST COVERED |
+| :---------------: | :---: | :-----------: | :------------------------------------------: | :-----: | :----------: |
+| true (till 1.1.0) | true  | *.animee.club | titleEdit, titleEditEpsMeta, titleEditLinked |  1.0.3  |    false     |
 
 #### Params
 | NAME     | TYPE   | DESCRIPTION                         |
@@ -143,11 +154,14 @@ Update title. Replaces EVERY FIELD PROVIDED.
 
 ### POST /v1/title
 [Back to tree](./tree.md)
+
+Create a new title
+
+
 | DEPRECATED | CSRF  |     CORS      |   CAPS   | VERSION | TEST COVERED |
 | :--------: | :---: | :-----------: | :------: | :-----: | :----------: |
 |   false    | true  | *.animee.club | titleAdd |  1.0.3  |    false     |
 
-Create a title
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION                                   |
@@ -166,11 +180,13 @@ Create a title
 
 ### DELETE /v1/title
 [Back to tree](./tree.md)
+
+Delete title
+
+
 | DEPRECATED | CSRF  |     CORS      |    CAPS     | VERSION | TEST COVERED |
 | :--------: | :---: | :-----------: | :---------: | :-----: | :----------: |
 |   false    | true  | *.animee.club | titleDelete |  1.0.3  |    false     |
-
-Delete title
 
 #### Params
 | NAME | TYPE   | DESCRIPTION |
@@ -187,17 +203,18 @@ Delete title
 
 --------------------------------------------------------------
 
-## User Controller
+## User Controller (1.1.0)
 
 --------------------------------------------------------------
 
 ### GET /user/:query
 [Back to tree](./tree.md)
+
+Get user with query (username or id)
+
 | DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
 |   false    | false | *.animee.club |   -   |  1.1.0  |    false     |
-
-Get user with query (username or id)
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION    |
@@ -216,17 +233,19 @@ Get user with query (username or id)
 
 ### POST /user
 [Back to tree](./tree.md)
+
+Create a new user with fullkekw usapi tokens
+
 | DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
 |   false    | true  | *.animee.club |   -   |  1.1.0  |    false     |
 
-Create a new user via fullkekw account
 
 #### Params
-| NAME  | TYPE   | DESCRIPTION  |
-| ----- | ------ | ------------ |
-| id    | string | User id      |
-| token | string | Access token |
+| NAME  | TYPE   | DESCRIPTION                       |
+| ----- | ------ | --------------------------------- |
+| id    | string | User id                           |
+| token | string | Access token provided by fullkekw |
 
 #### Success response
 - Code: 201
@@ -247,16 +266,18 @@ Create a new user via fullkekw account
 
 ### PATCH /user/:id
 [Back to tree](./tree.md)
-| DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
-|   false    | true  | *.animee.club | basic |  1.1.0  |    false     |
 
-Update user. 
+Update user. User can update only own info, staff can edit any user info
+
+| DEPRECATED | CSRF  |     CORS      |           CAPS           | VERSION | TEST COVERED |
+| :--------: | :---: | :-----------: | :----------------------: | :-----: | :----------: |
+|   false    | true  | *.animee.club | basic, staffEditUserInfo |  1.1.0  |    false     |
+
 
 #### Methods (Describes TMethod)
 | NAME           | DESCRIPTION                      |
 | -------------- | -------------------------------- |
-| editFolder     | Adds / removes title from folder |
+| editFolderItem | Adds / removes title from folder |
 | editBio        | Edits bio (username, avatar)     |
 | editBackground | Set new background               |
 | editPassword   | Edit password                    |
@@ -266,8 +287,8 @@ Update user.
 | ---------- | ------------------------- | -------------- |
 | id         | string                    | None / User id |
 | method     | TMethod                   | None           |
-| titleId    | string / undefined        | editFolder     |
-| folderId   | string / undefined        | editFolder     |
+| titleId    | string / undefined        | editFolderItem |
+| folderId   | string / undefined        | editFolderItem |
 | username   | string / null / undefined | editBio        |
 | bio        | string / null / undefined | editBio        |
 | avatar     | string / null / undefined | editBio        |
@@ -302,16 +323,18 @@ Update user.
 
 ### DELETE /user/:id
 [Back to tree](./tree.md)
-| DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
-|   false    | true  | *.animee.club | basic |  1.1.0  |    false     |
 
-Delete user
+Delete user. User can delete only own account, staff can delete any account
+
+| DEPRECATED | CSRF  |     CORS      |          CAPS          | VERSION | TEST COVERED |
+| :--------: | :---: | :-----------: | :--------------------: | :-----: | :----------: |
+|   false    | true  | *.animee.club | basic, staffDeleteUser |  1.1.0  |    false     |
 
 #### Params
-| NAME | TYPE   | DESCRIPTION |
-| ---- | ------ | ----------- |
-| id   | string | User id     |
+| NAME   | TYPE   | DESCRIPTION |
+| ------ | ------ | ----------- |
+| id     | string | User id     |
+| reason | string | Reason      |
 
 #### Success response
 - Code: 205
@@ -333,51 +356,6 @@ Delete user
 
 --------------------------------------------------------------
 
-## Authorization Controller (1.1.0)
-
---------------------------------------------------------------
-
-### GET /auth/refresh
-[Back to tree](./tree.md)
-| DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
-|   false    | true  | *.animee.club |   -   |  1.1.0  |    false     |
-
-Refresh access
-
-#### Params
-| NAME         | TYPE          | DESCRIPTION                              |
-| ------------ | ------------- | ---------------------------------------- |
-| refreshToken | cookie/string | Refresh token issued from fullkekw-usapi |
-
-#### Success response
-- Code: 200
-- Body:
-```ts
-{
-  token: string
-}
-```
-
-#### Error response
-- Code: 400
-- Body: Token is invalid
-
-<br>
-
-- Code: 401
-- Body: Token is not provided
-
-<br>
-
-- Code: 403
-- Body: Refresh forbidden (pwd has changed for eg)
-
-<br>
-
-- Code: 404
-- Body: Account is no longer available
-
 --------------------------------------------------------------
 
 ## Dubber Controller
@@ -390,11 +368,12 @@ Refresh access
 
 ### GET /v1/dubber/:query
 [Back to tree](./tree.md)
+
+Get dubber by name, code or id
+
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
 |   false    | false |   *   |   -   |  1.0.3  |    false     |
-
-Get dubber by query (name/code/id)
 
 #### Params
 | NAME   | TYPE   | DESCRIPTION      |
@@ -412,11 +391,12 @@ Get dubber by query (name/code/id)
 
 ### POST /v1/dubber/parse
 [Back to tree](./tree.md)
+
+Get dubbers with array of queries
+
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
 |   false    | false |   *   |   -   |  1.0.3  |    false     |
-
-Get dubbers with array of queries
 
 #### Params
 | NAME    | TYPE     | DESCRIPTION                       |

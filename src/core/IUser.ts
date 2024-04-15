@@ -1,7 +1,9 @@
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 export interface IUserSettings {
   notCreated?: undefined
 }
 
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 export interface IUserList {
   titles: string[],
   createdAt: number,
@@ -13,6 +15,7 @@ export interface IUserList {
   id: string
 }
 
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 export interface IUserStats {
   createdAt: number,
   titles: {
@@ -29,14 +32,17 @@ export interface IUserStats {
   }
 }
 
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 interface IUserStatsWatchedTitles {
   title: string,
   dubs: IUserStatsWatchedTitlesDub[]
 }
 
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 interface IUserStatsWatchedTitlesDub {
   id: string,
   totalWatch: number
 }
 
+/** @deprecated use new IUser interface from interfaces/User.ts/IUser */
 export type TUserRoles = 'root' | 'admin' | 'moderator' | 'dubber' | 'subber' | 'subscriber' | 'editor' | 'user'

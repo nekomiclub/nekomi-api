@@ -2,9 +2,13 @@ import { TAuthProviders } from './IAuth';
 import { ITitleEpisodeMeta, ITitleEpisodesDub } from './ITitle';
 import { IUserList, IUserSettings, IUserStats, TUserRoles } from './IUser';
 
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export type TAnimeGenres = 'chinese' | '3D' | 'shonen' | 'shounenAi' | 'seinen' | 'shoujoAi' | 'shoujo' | 'comedy' | 'romance' | 'school' | 'martial arts' | 'vampires' | 'military' | 'harem' | 'demons' | 'detective' | 'drama' | 'games' | 'historical' | 'isekai' | 'magic' | 'mecha' | 'music' | 'parody' | 'sliceOfLife' | 'adventure' | 'psychological' | 'samurai' | 'supernatural' | 'sports' | 'superpower' | 'horror' | 'sciFi' | 'fantasy' | 'action' | 'ecchi' | 'thriller' | 'erotica' | 'gourmet';
+
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export type TAnimeAgeRatings = 'G' | 'PG' | 'PG-13' | 'R-17' | 'R+' // G - All; Ages PG - Children; PG-13 - Teens 13 or older; R17 - 17+ (violence & profanity) R+ - Mild Nudity;
 
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export interface ITitle {
   id: string,
   names: {
@@ -60,6 +64,9 @@ export interface IDubber {
   rating: number
 }
 
+/** User object interface
+ * @deprecated use interfaces/User.ts/IUser insead
+ */
 export interface IUser {
   uid: string,
   username: string,
@@ -114,6 +121,7 @@ export interface IStatRecord {
 
 
 export interface IANIMEE_CONFIG {
+  /** @deprecated use data in services instead */
   PORTS: {
     BASE_PORT: number,
 

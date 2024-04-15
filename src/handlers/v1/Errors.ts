@@ -1,3 +1,13 @@
+import fs from 'fs';
+import path from 'path';
+import express from 'express';
+
+import { devMode, prodMode } from '../../config';
+import { validationResult } from 'express-validator';
+import { AxiosError } from 'axios';
+
+
+
 type THTTPErrorCodes = 200 | 400 | 401 | 403 | 404 | 500;
 
 export class ErrorConstructor {
@@ -40,13 +50,7 @@ export class E500 extends ErrorConstructor {
   }
 }
 
-import fs from 'fs';
-import path from 'path';
-import express from 'express';
 
-import { devMode, prodMode } from '../../config';
-import { validationResult } from 'express-validator';
-import { AxiosError } from 'axios';
 
 export function writeErrorLog(msg: string, at: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;

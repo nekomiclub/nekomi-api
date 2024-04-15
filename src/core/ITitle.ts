@@ -1,3 +1,4 @@
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export interface ITitleEpisodesDub {
   id: string,
   includeSub: boolean,
@@ -5,6 +6,7 @@ export interface ITitleEpisodesDub {
   eps: ITitleEpisodeDubbed[]
 }
 
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export interface ITitleEpisodeDubbed {
   order: number,
   source: {
@@ -18,6 +20,7 @@ export interface ITitleEpisodeDubbed {
   framesURL: string[] | null
 }
 
+/** @deprecated use new ITitle interface from interfaces/Title.ts/ITitle */
 export interface ITitleEpisodeMeta {
   order: number,
   names: {

@@ -1,6 +1,6 @@
 # ANIMEE API 1.1.0
 
-### [FLOWS](./docs/flows.md) | [ENDPOINTS](./docs/endpoints.md) |  [ENDPOINTS TREE](./docs/tree.md) | [ROLES](./docs/roles.md) | [CHANGELOG](./docs/changelog.md)
+## [ENDPOINTS](./docs/endpoints.md) |  [ENDPOINTS TREE](./docs/tree.md) | [ROLES](./docs/roles.md)
 
 ## Dependencies
 - fk-usapi
