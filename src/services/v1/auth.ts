@@ -18,6 +18,7 @@ interface ITokenPayload {
   uid: string
 }
 
+/** @deprecated */
 export function signTokens(payload: ITokenPayload): { accessToken: string, refreshToken: string } {
   return {
     accessToken: jwt.sign(payload, config.secrets.jwtAccess, { expiresIn: '15m' }),
@@ -25,6 +26,7 @@ export function signTokens(payload: ITokenPayload): { accessToken: string, refre
   };
 }
 
+/** @deprecated */
 export function verify(token: string, method: 'access' | 'refresh'): boolean {
   try {
     jwt.verify(token, method === 'access' ? config.secrets.jwtAccess : config.secrets.jwtRefresh);
@@ -34,6 +36,7 @@ export function verify(token: string, method: 'access' | 'refresh'): boolean {
   }
 }
 
+/** @deprecated */
 export function decode(token: string): ITokenPayload | null {
   const decoded = jwt.decode(token) as ITokenPayload | null;
 
@@ -44,6 +47,7 @@ export function decode(token: string): ITokenPayload | null {
   return { uid: decoded.uid, roles: decoded.roles, username: decoded.username };
 }
 
+/** @deprecated */
 export async function createUser(username: string, password: string, providers?: TAuthProviders[]): Promise<string> {
   const uid = testMode ? `testid-${uuid.v4()}` : uuid.v4();
 
@@ -128,6 +132,7 @@ export async function createUser(username: string, password: string, providers?:
   return uid;
 }
 
+/** @deprecated */
 export async function auth(username: string, password: string, token?: string): Promise<{ accessToken: string, refreshToken: string }> {
   const user = await User.findOne({ username });
 

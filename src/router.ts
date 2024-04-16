@@ -1,4 +1,11 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import * as uuid from 'uuid';
+import { body, cookie, param, query } from 'express-validator';
+import cors from 'cors';
+
+import * as RouteValidation from './handlers/v1/routeValidation';
 import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
@@ -6,17 +13,31 @@ import * as v1CUser from './controllers/v1/user';
 import * as v1CWS from './controllers/v1/ws';
 import * as v1CProxy from './controllers/v1/proxy';
 
-import multer from 'multer';
-import path from 'path';
-import * as uuid from 'uuid';
-import { ensureAccess } from './middlewares';
-import { body, cookie, param, query } from 'express-validator';
-import { TAnimeGenres } from './core/interfaces';
-import cors from 'cors';
+import { TAnimeGenre } from './interfaces/Title';
+import { AccessControl, ensureAccess } from './middlewares';
+
+
 
 export const ApiV1 = express.Router();
 export const ProxyRouter = express.Router();
 
+export const DevRouter = express.Router();
+
+/** CORS that pass any request but without cookies */
+const publicCORS = cors({
+  origin: '*',
+  credentials: false
+});
+
+/** CORS that works with cookies and pass only specified origins */
+const privateCORS = cors({
+  origin: [
+
+  ],
+  credentials: true
+});
+
+/** @deprecated */
 const titleValidation = [
   body([
     'names.eng',
@@ -30,8 +51,8 @@ const titleValidation = [
     'country',
   ]).notEmpty(),
   body('status').isIn(['announcement', 'ongoing', 'out', 'delayed']),
-  body('genres').custom((input: TAnimeGenres[]) => {
-    const genres: TAnimeGenres[] = [
+  body('genres').custom((input: TAnimeGenre[]) => {
+    const genres: TAnimeGenre[] = [
       'chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy',
       'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons',
       'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music',
@@ -66,13 +87,22 @@ const titleValidation = [
   })
 ];
 
+//* ------------------ DEV ROUTER ------------------
+import * as DevController from './controllers/dev';
+
+DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevController.getAccessControl);
+
+
+
+
 //* - - - Title routes - - -
-ApiV1.get(`/title/:query`, v1CTitle.getOne); // Test-covered
-ApiV1.get(`/titles`, v1CTitle.getMany); // Test-covered
-ApiV1.get(`/titles/search`, v1CTitle.search); // Test-covered
-ApiV1.get(`/titles/total`, v1CTitle.total); // Test-covered
+ApiV1.get(`/title/:query`, publicCORS, v1CTitle.getOne); // Test-covered
+ApiV1.get(`/titles`, publicCORS, v1CTitle.getMany); // Test-covered
+ApiV1.get(`/titles/search`, publicCORS, v1CTitle.search); // Test-covered
+ApiV1.get(`/titles/total`, publicCORS, v1CTitle.total); // Test-covered
 
 //! Private
+/** @deprecated All patch requests must be refactored in 1.1.0 */
 ApiV1.patch(`/title`, ...[
   (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
   titleValidation,
@@ -90,12 +120,8 @@ ApiV1.delete(`/title`, ...[
 
 
 //* - - - Dubber routes - - -
-ApiV1.get(`/dubber/:query`, v1CDubber.getOne); // Test-covered
-ApiV1.post(`/dubber/parse`, ...[
-  body([
-    'queries'
-  ]).notEmpty().withMessage('IDs are required')
-], v1CDubber.parse); // Test-covered
+ApiV1.get(`/dubber/:query`, publicCORS, v1CDubber.getOne); // Test-covered
+ApiV1.post(`/dubber/parse`, publicCORS, RouteValidation.postDubbersParse, v1CDubber.parse); // Test-covered
 
 
 
@@ -122,6 +148,7 @@ ApiV1.delete(`/user`, ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(),
 ], v1CUser.remove); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
 
+/** @deprecated All patch requests must be refactored in 1.1.0 */
 ApiV1.patch(`/user`, ...[
   (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next),
   body('uid').notEmpty(),
@@ -136,7 +163,7 @@ ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-b
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
 
 //* Media proxy
-ProxyRouter.get(`/media/:id`, cors({ origin: '*', credentials: false }), v1CProxy.getMedia); //! DEPRECATED. Use media.animee.club/:id instead.
+ProxyRouter.get(`/media/:id`, publicCORS, v1CProxy.getMedia); //! DEPRECATED. Use media.animee.club/:id instead.
 
 ApiV1.post('/upload', ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
@@ -168,4 +195,4 @@ ApiV1.post('/titleUpdate', v1C.titleUpdate);
 
 
 //* - - - ALLIASES - - -
-ApiV1.get(`/media/:id`, cors({ origin: '*', credentials: false }), v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;
+ApiV1.get(`/media/:id`, publicCORS, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;

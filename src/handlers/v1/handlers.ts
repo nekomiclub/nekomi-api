@@ -3,13 +3,15 @@ import path from 'path';
 import mongoose from 'mongoose';
 import Dubbers from '../../Models/Dubber';
 import Title from '../../Models/Title';
-import { testMode, devMode, config } from '../../config';
+import { testMode, devMode, config, prodMode } from '../../config';
 import * as uuid from 'uuid';
 import ip from 'ip';
 import axios from 'axios';
-import inquirer from 'inquirer';
 import express from 'express';
 import User from '../../Models/User';
+import { user } from './dtos';
+import Role from '../../Models/Role';
+import { TRoleCapability } from '../../interfaces/Roles';
 
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
@@ -23,6 +25,13 @@ export function writeToLog(msg: string) {
  */
 export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
+}
+
+/** Create UUID v4 id
+ * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default
+ */
+export function createID(preventPrefix?: boolean): string {
+  return preventPrefix || prodMode ? uuid.v4() : `devid-${uuid.v4()}`;
 }
 
 /** Get random number in range */
@@ -81,17 +90,62 @@ export function getUTC() {
   };
 }
 
-/** @deprecated Idk */
+
+
 export async function modifyUsers() {
-  console.log('Users modify started');
+  const startedAt = getUTC().timestamp;
+  let modified = 0;
+
+  console.log(`User modifying started`);
+
   const users = await User.find();
+  const basicRole = await Role.findOne({ code: 'user' });
+
+  if (!basicRole) {
+    const basicRole = new Role({
+      capabilities: ['basic'],
+      code: 'user',
+      id: createID(true),
+      title: 'User'
+    });
+
+    await basicRole.save();
+  }
 
   for (const i in users) {
     const user = users[i];
 
-    user.accountType = 'old';
+    // Skip if user has new field
+    if (user.id) {
+      continue;
+    }
+
+    user.id = user.uid;
+    user.roles = ['user'];
+    modified += 1;
+
     await user.save();
   }
 
-  console.log('Users modify ended');
+  console.log(`Users modifying finished within ${((getUTC().timestamp - startedAt) / 1000).toFixed(0)} s. Total modified - ${modified}`);
+}
+
+
+/** Parse user roles and return capabilities */
+export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]> {
+  const caps: TRoleCapability[] = [];
+
+  const roles = await Role.find({
+    code: {
+      '$in': rolesArr
+    }
+  });
+
+  roles.forEach(role => {
+    role.capabilities.forEach(cap => {
+      if (!caps.includes(cap)) caps.push(cap);
+    });
+  });
+
+  return caps;
 }

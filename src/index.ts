@@ -72,7 +72,8 @@ app.use('/v1', router.ApiV1);
 app.use('/proxy', router.ProxyRouter);
 
 
-if (!devMode) {
+
+if (prodMode) {
   app.enable('trust proxy');
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (!req.secure) {
@@ -84,6 +85,12 @@ if (!devMode) {
 
   ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
 }
+
+if (devMode) {
+  app.use('/dev', router.DevRouter);
+}
+
+
 
 function listen(https?: boolean, showDetails?: boolean) {
   if (!showDetails) return;
@@ -121,9 +128,11 @@ if (devMode) {
 async function onReady() {
   try {
     listenWSS();
-    // handler.reuploadImages();
-    // await handler.updateTitles();
-    // await handler.modifyUsers();
+
+    if (prodMode) {
+      // Modify only on production mode
+      await handler.modifyUsers();
+    }
 
     await sendDayStat();
   } catch (e) {

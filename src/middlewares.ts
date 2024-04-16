@@ -1,13 +1,17 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E500 } from './handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E500, E404 } from './handlers/v1/Errors';
 import { TUpload } from './core/IUpload';
 import fs from 'fs';
 import path from 'path';
-import { getFileExtension } from './handlers/v1/handlers';
+import { getFileExtension, parseRoles } from './handlers/v1/handlers';
 import { TUserRoles } from './core/IUser';
 import * as authService from './services/v1/auth';
-import { devMode } from './config';
+import { config, devMode, prodMode } from './config';
+import axios, { AxiosError } from 'axios';
+import { TRoleCapability } from './interfaces/Roles';
+import User from './Models/User';
 
+/** @deprecated use AccessControl instead */
 export async function ensureAccess(accessRoles: TUserRoles[], req: express.Request, res: express.Response, next: express.NextFunction) {
   try {
     const token = req.header('Authorization')?.split('=')[1];
@@ -47,4 +51,86 @@ export async function ensureAccess(accessRoles: TUserRoles[], req: express.Reque
       return res.status(500).json(e);
     }
   }
+}
+
+
+
+/** Controll access of routes. Compare user capabilities with required
+ * Will check only authorization token if capabilities array is empty
+ */
+export function AccessControl(capabilities: TRoleCapability[]) {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const token = req.header('Authorization' || 'authorization')?.split('=')[1];
+
+      // Reject if authorization token is missing
+      if (!token) {
+        throw new E401('No authorization token provided');
+      }
+
+      // Pass if no capabilities required
+      if (!capabilities || !capabilities.length) {
+        return next();
+      }
+
+      let id = '';
+
+      try {
+        // Verify, refresh and decode session
+        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
+          session: token
+        });
+
+        id = sessionData.data.id;
+      } catch (e) {
+
+        if (e instanceof AxiosError) {
+          if (devMode) console.error(e.response?.data.msg || e.response?.data.message);
+          return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
+        } else {
+          if (devMode) console.error(e);
+          throw new E500(`Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+        }
+
+      }
+
+      const user = await User.findOne({ id });
+
+      // TODO fallback that find user by email (get email from usapi, split by @, try to find in db by username), if fail create new
+      if (!user) {
+        throw new E404(`User with id provided by session token (${id}) is not found`);
+      }
+
+      /** User roles capabilities */
+      const caps = await parseRoles(user.roles);
+
+      // Pass anyway if user is root
+      if (caps.includes('root')) {
+        return next();
+      }
+
+      let pass = false;
+
+      // Check if user has all required capabilities
+      capabilities!.forEach(cap => {
+        if (caps.includes(cap)) {
+          pass = true;
+        }
+      });
+
+      if (!pass) {
+        throw new E403('You are not permitted to do that');
+      }
+
+      next();
+    } catch (e) {
+      if (e instanceof ErrorConstructor) {
+        if (devMode) console.error(e);
+        return res.status(e.code).json(e);
+      } else {
+        console.error(e);
+        return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+      }
+    }
+  };
 }

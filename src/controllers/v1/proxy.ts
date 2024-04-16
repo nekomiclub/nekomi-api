@@ -2,6 +2,8 @@ import express from 'express';
 import { catchError } from '../../handlers/v1/Errors';
 import axios from 'axios';
 import { config } from '../../config';
+import Role from '../../Models/Role';
+import { createID } from '../../handlers/v1/handlers';
 
 export async function createSnap(req: express.Request, res: express.Response) {
   const routeCode = 'PROXY createSnap';

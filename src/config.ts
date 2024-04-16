@@ -1,10 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import firebaseAdmin from 'firebase-admin';
-import { TUserRoles } from './core/IUser';
 import ip from 'ip';
+
+import { TUserRoles } from './core/IUser';
 import { IANIMEE_CONFIG } from './core/interfaces';
 
+/** @deprecated */
 const jwtSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/JWT.json`).toString()) as { accessTokenSecret: string, refreshTokenSecret: string };
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
@@ -19,13 +21,13 @@ export const config = {
   /** All service objects in global config */
   services: ANIMEE_CONFIG.SERVICES,
 
-  /** JWT secrets
-   * @deprecated Due to security update in 1.1.0
-   * @since 1.1.0
-   */
+  /** Secrets */
   secrets: {
+    /** @deprecated */
     jwtAccess: jwtSecrets.accessTokenSecret,
-    jwtRefresh: jwtSecrets.refreshTokenSecret,
+
+    /** @deprecated */
+    jwtRefresh: jwtSecrets.refreshTokenSecret
   },
 
   /** Microservices local URLs */

@@ -55,10 +55,8 @@ export interface IUser {
    */
   providers: TAuthProviders[]
 
-  /** User roles
-   * @deprecated in 1.1.0 roles system will be refactored
-   */
-  roles: TUserRoles[]
+  /** User roles */
+  roles: string[]
 
   /** User account type
    * @deprecated impact on nothing, was actual for migration
