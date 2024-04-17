@@ -10,7 +10,7 @@ import axios from 'axios';
 import express from 'express';
 import User from '../../Models/User';
 import { user } from './dtos';
-import Role from '../../Models/Role';
+import Role, { createRole } from '../../Models/Role';
 import { TRoleCapability } from '../../interfaces/Roles';
 
 export function writeToLog(msg: string) {
@@ -148,4 +148,128 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
   });
 
   return caps;
+}
+
+interface IRole {
+  code: string,
+  caps: TRoleCapability[],
+  title: string
+}
+
+export async function createRoles() {
+  console.log(`Roles creation started`);
+
+  // Support keyword $extend [CODE].
+  // It will add caps of specified role to current
+  // $extend keyword will be deleted in result array
+  const roles: IRole[] = [
+    {
+      code: 'usr',
+      caps: [
+        'root'
+      ],
+      title: 'User'
+    }, {
+      code: 'admin',
+      caps: [
+        'admin',
+        'staffCreateDubber',
+        'staffDeleteDubber',
+        'staffDeleteUser',
+        // @ts-expect-error this is keyword
+        '$extend mod',
+        // @ts-expect-error this is keyword
+        '$extend editor'
+      ],
+      title: 'Administrator'
+    }, {
+      code: 'mod',
+      caps: [
+        'mod',
+        'staffEditDubbers',
+        'staffEditUserInfo',
+        'staffRestrictUser',
+      ],
+      title: 'Moderator'
+    }, {
+      code: 'editor',
+      caps: [
+        'editor',
+        'titleAdd',
+        'titleDelete',
+        'titleEdit',
+        'titleEditEpsMeta',
+        'titleEditLinked',
+        'seriesAdd',
+        'seriesDelete',
+      ],
+      title: 'Editor'
+    }, {
+      code: 'user',
+      caps: [
+        'basic'
+      ],
+      title: 'User'
+    }, {
+      code: 'dubber_leader',
+      caps: [
+        // @ts-expect-error this is keyword
+        '$extend dubber_editor',
+        'dubberEditEditors'
+      ],
+      title: 'Dubber/Leader'
+    }, {
+      code: 'dubber_editor',
+      caps: [
+        // @ts-expect-error this is keyword
+        '$extend dubber_member',
+        'seriesAdd',
+        'seriesDelete',
+        'dubberEditProfile',
+        'dubberEditMembers'
+      ],
+      title: 'Dubber/Editor'
+    }, {
+      code: 'dubber_member',
+      caps: [
+        'dubber'
+      ],
+      title: 'Dubber/Member'
+    }
+  ];
+
+  // Extend caps
+  roles.forEach(role => {
+    role.caps.forEach(cap => {
+      if (cap.match(/\$extend\s/gi)) {
+        const extendByCode = cap.split(' ')[1];
+
+        role.caps = role.caps.filter(el => el !== cap);
+
+        const extendBy = roles.find(el => el.code === extendByCode);
+
+        if (extendBy) {
+          extendBy.caps.forEach(cap => !role.caps.includes(cap) ? role.caps.push(cap) : null);
+        }
+      }
+    });
+  });
+
+  for (const key in roles) {
+    const role = roles[key];
+
+    // Skip if role with this code is already exist
+    if (await Role.findOne({ code: role.code })) {
+      continue;
+    }
+
+    await createRole({
+      id: createID(),
+      capabilities: role.caps,
+      code: role.code,
+      title: role.title
+    });
+  }
+
+  console.log(`Roles created`);
 }

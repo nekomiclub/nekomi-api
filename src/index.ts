@@ -95,13 +95,17 @@ if (devMode) {
 function listen(https?: boolean, showDetails?: boolean) {
   if (!showDetails) return;
   console.log(`
-  --------------------------------------------
-  ANIMEE-CORE STARTED:
-  -  Mode: ${prodMode ? 'ProdMode' : 'DevMode'} ${testMode ? '+ test mode' : ''}
-  -  HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP!} ${devMode ? 'Changed from 43080. Details - config.ts.' : ''} 
-  ${https ? `-  HTTPS: ${config.service.HOST}:${config.service.PORTS.HTTPS}` : `-  HTTPS: Disabled`} 
-  -  WS: ${config.service.HOST}:${config.service.PORTS.WS}
-  --------------------------------------------
+    -------------------
+
+    ANIMEE-API STARTED
+
+    At: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
+    Mode: ${prodMode ? 'ProdMode' : 'DevMode'} ${testMode ? '+ test mode' : ''}
+    HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
+    HTTPS: ${prodMode ? 'NGINX serve' : 'Disabled in dev mode'}
+    WS: ${config.service.HOST}:${config.service.PORTS.WS}
+    
+    -------------------
   `);
 
   onReady();
@@ -131,8 +135,13 @@ async function onReady() {
 
     if (prodMode) {
       // Modify only on production mode
+      //! WILL SET EVERYONE ROLES TO "user". MUST BE DELETED IN ZERO-DAY PATCH
       await handler.modifyUsers();
+
+      // Create basic roles
+      await handler.createRoles();
     }
+
 
     await sendDayStat();
   } catch (e) {

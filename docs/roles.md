@@ -33,20 +33,20 @@
 
 ## ROLES 1.1.0
 
-| NAME      | DESCRIPTION                                                            | CAPABILITIES                                                       |
-| --------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| ROOT      | Root role. Can bypass everything, can impact anything                  | root                                                               |
-| Admin     | Administrator has CRUD access to titles, series, dubbers & UD to users | basic, mod, admin, editor                                          |
-| Moderator | Moderator can restrict users, edit their info & edit dubbers bio       | basic, mod, staffEditUserInfo, staffRestrictUser, staffEditDubbers |
-| Editor    | Editor has CRUD access to titles & series                              | basic, editor                                                      |
-| User      | User can only modify own profile if not restricted                     | basic                                                              |
+| NAME       | DESCRIPTION                                                            | CAPABILITIES                                                       |
+| ---------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ROOT (usr) | Root role. Can bypass everything, can impact anything                  | root                                                               |
+| Admin      | Administrator has CRUD access to titles, series, dubbers & UD to users | basic, ...Moderator, admin, ...Editor, staff*                      |
+| Moderator  | Moderator can restrict users, edit their info & edit dubbers bio       | basic, mod, staffEditUserInfo, staffRestrictUser, staffEditDubbers |
+| Editor     | Editor has CRUD access to titles & series                              | basic, editor, title*, series*                                     |
+| User       | User can only modify own profile if not restricted                     | basic                                                              |
 
 ### Dubbers 1.1.0
-| NAME          | DESCRIPTION                                                                        | CAPABILITIES                                                                     |
-| ------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Dubber/Leader | Leader can edit dub profile, assing editors & members, upload/delete OWN TITLE EPS | dubberEditMembers, dubberEditEditors, seriesAdd, seriesDelete, dubberEditProfile |
-| Dubber/Editor | Editor can assing members, upload/delete OWN TITLE EPS                             | seriesAdd, seriesDelete, dubberEditProfile, dubberEditMembers                    |
-| Dubber/Member | No authority provided                                                              | None                                                                             |
+| NAME          | DESCRIPTION                                                                        | CAPABILITIES                                                  |
+| ------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Dubber/Leader | Leader can edit dub profile, assing editors & members, upload/delete OWN TITLE EPS | dubberEditEditors, ...Dubber/Editor                           |
+| Dubber/Editor | Editor can assing members, upload/delete OWN TITLE EPS                             | seriesAdd, seriesDelete, dubberEditProfile, dubberEditMembers |
+| Dubber/Member | No authority provided                                                              | None                                                          |
 
 --------------------------------------------------------------
 
