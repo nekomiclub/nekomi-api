@@ -11,6 +11,11 @@ export const postDubbersParse = [
 
 
 
+export const getUserAuth = [
+  body('session')
+    .notEmpty().withMessage('Session can not be empty')
+];
+
 export const devGetAccessControll = [
   AccessControl(['dubber'])
 ];

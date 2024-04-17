@@ -39,7 +39,7 @@ describe('DevController', () => {
     beforeAll(async () => {
       const role = new Role({
         capabilities: ['dubber'],
-        code: 'dubber',
+        code: 'dummy_dubber_member',
         id: roleID,
         title: 'Dubber'
       });
@@ -50,7 +50,7 @@ describe('DevController', () => {
         email: testData.dummyRightID,
         id: testData.dummyRightID,
         lists: [],
-        roles: ['user', 'dubber'],
+        roles: ['user', 'dummy_dubber_member'],
         settings: {},
         username: testData.dummyRightID
       });
@@ -80,18 +80,9 @@ describe('DevController', () => {
       await dummy2.save();
     });
 
-    afterAll(async () => {
-      await Role.findOneAndDelete({ id: roleID });
-      await User.findOneAndDelete({ id: testData.dummyRightID });
-      await User.findOneAndDelete({ id: testData.dummyRootID });
-      await User.findOneAndDelete({ id: testData.dummyID });
-    });
-
-
-
     // Pass
     test('200 - User with correct role should be passed', async () => {
-      await request(baseUrl)
+      request(baseUrl)
         .get(testingRoute)
         .set({
           'Authorization': `Bearer=${testData.dummyRightID}`
@@ -135,6 +126,12 @@ describe('DevController', () => {
         .expect(401);
     });
 
+    afterAll(async () => {
+      await Role.findOneAndDelete({ id: roleID });
+      await User.findOneAndDelete({ id: testData.dummyRightID });
+      await User.findOneAndDelete({ id: testData.dummyRootID });
+      await User.findOneAndDelete({ id: testData.dummyID });
+    });
   });
 
   afterAll(async () => {

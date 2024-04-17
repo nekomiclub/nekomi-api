@@ -250,6 +250,8 @@ export async function createRoles() {
 
         if (extendBy) {
           extendBy.caps.forEach(cap => !role.caps.includes(cap) ? role.caps.push(cap) : null);
+        } else {
+          console.log(`[Role]: Extending by ${extendByCode} is not possible (code not found)`);
         }
       }
     });

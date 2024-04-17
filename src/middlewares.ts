@@ -61,11 +61,11 @@ export async function ensureAccess(accessRoles: TUserRoles[], req: express.Reque
 export function AccessControl(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-      const token = req.header('Authorization' || 'authorization')?.split('=')[1];
+      const token = req.cookies[config.vars.sessionCookieName] || req.header('Authorization' || 'authorization')?.split('=')[1];
 
       // Reject if authorization token is missing
       if (!token) {
-        throw new E401('No authorization token provided');
+        throw new E401('No authorization provided');
       }
 
       // Pass if no capabilities required
@@ -131,7 +131,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
     } catch (e) {
       if (e instanceof ErrorConstructor) {
         if (devMode) console.error(e);
-        return res.status(e.code).json(e);
+        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(`[HTTP ${e.code}]: ${e}`);
       } else {
         console.error(e);
         return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });

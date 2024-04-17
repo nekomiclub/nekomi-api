@@ -5,6 +5,11 @@ import { IUploadRequest, TUpload } from '../../core/IUpload';
 import path from 'path';
 import { config, devMode } from '../../config';
 import ip from 'ip';
+import * as authService from '../../services/v1/auth';
+import { IStatRecord } from '../../core/interfaces';
+import axios, { AxiosError } from 'axios';
+import { DAY_STAT } from '../../services/v1/stats';
+import Title from '../../Models/Title';
 
 const apiUptime = +new Date();
 
@@ -143,52 +148,5 @@ export async function titleUpdate(req: express.Request, res: express.Response) {
     titleUpdateDB.users.map(el => total = el.updated.length + total);
 
     return res.status(200).json({ id, total, updated: user.updated.length });
-  });
-}
-
-//
-
-import * as authService from '../../services/v1/auth';
-import { IStatRecord } from '../../core/interfaces';
-import axios, { AxiosError } from 'axios';
-import { DAY_STAT } from '../../services/v1/stats';
-import Title from '../../Models/Title';
-export async function tokenVerify(req: express.Request, res: express.Response) {
-  const routeCode = 'Service/VerifyToken';
-
-  await catchError(req, res, routeCode, async () => {
-    const valRes = validationResult(req);
-
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
-
-    const { method, token } = req.body as { token: string, method: 'access' | 'refresh' };
-
-    if (method !== 'access' && method !== 'refresh') {
-      throw new E400('Token method is invalid');
-    }
-
-    const serviceResponse = authService.verify(token.split('=')[1], method);
-
-    return res.status(200).json({ verified: serviceResponse });
-  });
-}
-
-export async function tokenDecode(req: express.Request, res: express.Response) {
-  const routeCode = ' Service/DecodeToken';
-
-  await catchError(req, res, routeCode, async () => {
-    const valRes = validationResult(req);
-
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
-
-    const { token } = req.body as { token: string };
-
-    const serviceResponse = authService.decode(token.split('=')[1]);
-
-    return res.status(200).json(serviceResponse);
   });
 }

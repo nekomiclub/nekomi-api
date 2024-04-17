@@ -11,11 +11,13 @@ export interface IUser {
   username: string
 
   /** User password
+   * * userDTO will hide this field
    * @deprecated in 1.1.0 fullkekw usapi will manage this
    */
   password: string
 
   /** User email
+   * * userDTO will hide this field
    * May be deprecated in future
    */
   email: string
@@ -36,6 +38,7 @@ export interface IUser {
   badgesIDs: string[] | null
 
   /** User settings
+   * * userDTO will hide this field (in future only owner can get this object)
    * May be deprecated in future
    */
   settings: IUserSettings
@@ -51,14 +54,18 @@ export interface IUser {
   lists: IUserList[]
 
   /** User auth providers
+   * * userDTO will hide this field
    * @deprecated in 1.1.0 fullkekw usapi will manage this
    */
   providers: TAuthProviders[]
 
-  /** User roles */
+  /** User roles
+   * * userDTO will hide this field
+   */
   roles: string[]
 
   /** User account type
+   * * userDTO will hide this field
    * @deprecated impact on nothing, was actual for migration
    */
   accountType: 'old' | 'new'

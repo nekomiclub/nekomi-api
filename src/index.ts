@@ -69,6 +69,7 @@ app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 app.use('/v1', router.ApiV1);
+app.use('/user', router.UserRouter);
 app.use('/proxy', router.ProxyRouter);
 
 

@@ -60,6 +60,12 @@ export const config = {
         dummyID: 'dummy-devcontroller-2',
       }
     }
+  },
+
+  /** Service variables */
+  vars: {
+    /** Animee cookie with fullkekw usapi session */
+    sessionCookieName: 'SEC_31N'
   }
 };
 

@@ -207,6 +207,48 @@ Delete title
 
 --------------------------------------------------------------
 
+### POST /user/signin
+[Back to tree](./tree.md)
+
+Authorize user & get session cookie
+
+| DEPRECATED | CSRF  |    CORS     | CAPS  | VERSION | TEST COVERED |
+| :--------: | :---: | :---------: | :---: | :-----: | :----------: |
+|   false    | false | animee.club |   -   |  1.1.0  |     true     |
+
+#### Params
+| NAME    | TYPE   | DESCRIPTION                  |
+| ------- | ------ | ---------------------------- |
+| session | string | Fullkekw usapi session token |
+
+#### Success response
+- Code: 200
+- Body: Ok
+
+#### Error response
+- Code: 400
+- Body: Payload invalid
+
+--------------------------------------------------------------
+
+### GET /user/logout
+[Back to tree](./tree.md)
+
+Remove session cookie
+
+| DEPRECATED | CSRF  |    CORS     | CAPS  | VERSION | TEST COVERED |
+| :--------: | :---: | :---------: | :---: | :-----: | :----------: |
+|   false    | false | animee.club |   -   |  1.1.0  |  Not needed  |
+
+#### Success response
+- Code: 200
+- Body: Ok
+
+### Notes
+In dev mode session verifying will be skipped
+
+--------------------------------------------------------------
+
 ### GET /user/:query
 [Back to tree](./tree.md)
 
@@ -228,39 +270,6 @@ Get user with query (username or id)
 #### Error response
 - Code: 404
 - Body: User is not found
-
---------------------------------------------------------------
-
-### POST /user
-[Back to tree](./tree.md)
-
-Create a new user with fullkekw usapi tokens
-
-| DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
-|   false    | true  | *.animee.club |   -   |  1.1.0  |    false     |
-
-
-#### Params
-| NAME  | TYPE   | DESCRIPTION                       |
-| ----- | ------ | --------------------------------- |
-| id    | string | User id                           |
-| token | string | Access token provided by fullkekw |
-
-#### Success response
-- Code: 201
-- Body:
-```ts
-{
-  msg: "Account created",
-  id: string,
-  token: string
-}
-```
-
-#### Error response
-- Code: 400
-- Body: Validation failed / Registration denied
 
 --------------------------------------------------------------
 

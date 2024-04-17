@@ -1,39 +1,78 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../../handlers/v1/Errors';
-import { randomNumber } from '../../handlers/v1/handlers';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../handlers/v1/Errors';
+import { randomNumber } from '../handlers/v1/handlers';
 import fs from 'fs';
-import * as dto from '../../handlers/v1/dtos';
-import * as handler from '../../handlers/v1/handlers';
-import * as authService from '../../services/v1/auth';
-import User from '../../Models/User';
+import * as dto from '../handlers/v1/dtos';
+import * as handler from '../handlers/v1/handlers';
+import * as authService from '../services/v1/auth';
+import User from '../Models/User';
 import { validationResult } from 'express-validator';
-import { config, devMode } from '../../config';
+import { config, devMode, testMode } from '../config';
 import ip from 'ip';
-import * as tokenService from '../../services/v1/auth';
+import * as tokenService from '../services/v1/auth';
 import axios from 'axios';
-import Title from '../../Models/Title';
-import { IUserList } from '../../core/IUser';
+import Title from '../Models/Title';
 
 
 
-export async function get(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Get';
+export async function postSignin(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, routeCode, async () => {
+    const { session } = req.body as { session: string };
+    let id = '';
+
+    try {
+      if (testMode) {
+        id = session;
+      } else {
+        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
+          session
+        });
+
+        id = sessionData.data.id;
+      }
+    } catch (e) {
+      throw new E400('Session token invalid');
+    }
+
+    const user = await User.findOne({ id });
+
+    if (!user) {
+      // TODO Create new user
+      throw new E404('User with ID provided by token is not found');
+    }
+
+    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31 }).json({ msg: 'ok' });
+  });
+}
+
+export async function getLogout(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, routeCode, async () => {
+    return res.status(205).clearCookie(config.vars.sessionCookieName).json({ msg: 'ok' });
+  });
+}
+
+export async function getQuery(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { query } = req.params as { query: string };
 
-    const item = await User.findOne({ $or: [{ uid: query }, { username: query }] });
+    const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
 
-    if (!item) {
-      throw new E400('User with provided query is not found.');
+    if (!user) {
+      throw new E400(`User ${query} is not found.`);
     }
 
-    return res.status(200).json(dto.user(item));
+    return res.status(200).json(dto.user(user.toObject()));
   });
 }
 
 export async function update(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Update';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { uid } = req.body as { uid: string };
@@ -61,7 +100,7 @@ export async function update(req: express.Request, res: express.Response) {
 }
 
 export async function create(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Create';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { password, username, email } = req.body as { username: string, password: string, email: string };
@@ -80,7 +119,7 @@ export async function create(req: express.Request, res: express.Response) {
 }
 
 export async function remove(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Delete';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const valRes = validationResult(req);
@@ -105,39 +144,4 @@ export async function remove(req: express.Request, res: express.Response) {
 
     return res.status(200).json(`UID: ${uid} deleted`);
   });
-}
-
-export async function auth(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Auth';
-
-  await catchError(req, res, routeCode, async () => {
-    const { password, username, token } = req.body as { username: string, password: string, token?: string };
-
-    const tokens = await authService.auth(username, password, token);
-
-    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
-  });
-}
-
-export async function refresh(req: express.Request, res: express.Response) {
-  const routeCode = 'User/Refresh';
-
-  await catchError(req, res, routeCode, async () => {
-    const { oldRefreshToken } = req.cookies as { oldRefreshToken: string };
-
-    const isValid = authService.verify(oldRefreshToken, 'refresh');
-
-    if (!isValid) {
-      throw new E401('Refresh token is invalid. Re-login');
-    }
-
-    const { roles, uid, username } = authService.decode(oldRefreshToken)!;
-    const tokens = authService.signTokens({ uid, roles, username });
-
-    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ token: tokens.accessToken });
-  });
-}
-
-export async function logout(req: express.Request, res: express.Response) {
-  return res.status(200).clearCookie('oldRefreshToken').json('ok');
 }

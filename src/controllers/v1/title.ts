@@ -26,7 +26,7 @@ updateFuse();
 
 
 export async function getOne(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Get';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { query } = req.params as { query: string };
@@ -50,7 +50,7 @@ interface ISearch extends ITitle {
 }
 
 export async function search(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Search';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     // @ts-ignore
@@ -95,7 +95,7 @@ export async function search(req: express.Request, res: express.Response) {
 }
 
 export async function getMany(req: express.Request, res: express.Response) {
-  const routeCode = 'Titles/Get';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     let { limit, page } = req.query as { limit: number | undefined, page: number | undefined };
@@ -122,7 +122,7 @@ export async function getMany(req: express.Request, res: express.Response) {
 // 
 
 export async function update(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Update';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const title = req.body as ITitle;
@@ -150,7 +150,7 @@ export async function update(req: express.Request, res: express.Response) {
 }
 
 export async function create(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Create';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const titleRaw = req.body as ITitle;
@@ -175,7 +175,7 @@ export async function create(req: express.Request, res: express.Response) {
 }
 
 export async function remove(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Delete';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { id } = req.body;
@@ -193,7 +193,7 @@ export async function remove(req: express.Request, res: express.Response) {
 }
 
 export async function total(req: express.Request, res: express.Response) {
-  const routeCode = 'Title/Total';
+  const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const total = await Title.find();
