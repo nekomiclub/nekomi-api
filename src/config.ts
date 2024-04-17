@@ -43,6 +43,23 @@ export const config = {
 
     /** Fullkekw user api url */
     usapi: `http://${getIP('0.0.0.0')}:45660`
+  },
+
+  /** Tests data */
+  tests: {
+    /** Tests data for DevController */
+    DevController: {
+      $1: {
+        /** Dummy user with correct role */
+        dummyRightID: 'dummy-devcontroller-1',
+
+        /** Dummy user with root role */
+        dummyRootID: 'dummy-devcontroller-0',
+
+        /** Dummy user without required role */
+        dummyID: 'dummy-devcontroller-2',
+      }
+    }
   }
 };
 

@@ -13,7 +13,7 @@ Get title with code or id
 
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |     true     |
+|   false    | false |   *   |   -   |  1.0.3  |    false     |
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION |
@@ -38,7 +38,7 @@ Get titles in range.
 
 |  DEPRECATED  | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :----------: | :---: | :---: | :---: | :-----: | :----------: |
-| true (1.1.2) | false |   *   |   -   |  1.0.3  |     true     |
+| true (1.1.2) | false |   *   |   -   |  1.0.3  |    false     |
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                |
@@ -72,7 +72,7 @@ Search titles with name, code or id.
 
 |     DEPRECATED     | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :----------------: | :---: | :---: | :---: | :-----: | :----------: |
-| true (since 1.1.2) | false |   *   |   -   |  1.0.3  |     true     |
+| true (since 1.1.2) | false |   *   |   -   |  1.0.3  |    false     |
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                      |
@@ -105,7 +105,7 @@ Get total count of titles & renewed (where country != 'null')
 
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |     true     |
+|   false    | false |   *   |   -   |  1.0.3  |    false     |
 
 #### Params
 | NAME | TYPE | DESCRIPTION |

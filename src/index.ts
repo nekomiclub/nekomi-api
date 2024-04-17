@@ -97,7 +97,7 @@ function listen(https?: boolean, showDetails?: boolean) {
   console.log(`
   --------------------------------------------
   ANIMEE-CORE STARTED:
-  -  Mode: ${prodMode ? 'ProdMode' : devMode ? 'DevMode' : testMode ? 'TestMode' : 'Mode is unknown'}
+  -  Mode: ${prodMode ? 'ProdMode' : 'DevMode'} ${testMode ? '+ test mode' : ''}
   -  HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP!} ${devMode ? 'Changed from 43080. Details - config.ts.' : ''} 
   ${https ? `-  HTTPS: ${config.service.HOST}:${config.service.PORTS.HTTPS}` : `-  HTTPS: Disabled`} 
   -  WS: ${config.service.HOST}:${config.service.PORTS.WS}

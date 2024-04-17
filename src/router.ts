@@ -5,7 +5,7 @@ import * as uuid from 'uuid';
 import { body, cookie, param, query } from 'express-validator';
 import cors from 'cors';
 
-import * as RouteValidation from './handlers/v1/routeValidation';
+import * as RouteValidation from './handlers/routeValidation';
 import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
@@ -88,6 +88,8 @@ const titleValidation = [
 ];
 
 //* ------------------ DEV ROUTER ------------------
+//! CHANGE SENSITIVE ROUTES. CHANGE THEM WITH CAUTION
+
 import * as DevController from './controllers/dev';
 
 DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevController.getAccessControl);

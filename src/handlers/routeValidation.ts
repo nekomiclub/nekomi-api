@@ -1,7 +1,7 @@
 import { query, body } from 'express-validator';
-import express from 'express';
 
-import { AccessControl } from '../../middlewares';
+import { AccessControl } from '../middlewares';
+import { config } from '../config';
 
 //* Validation
 export const postDubbersParse = [
