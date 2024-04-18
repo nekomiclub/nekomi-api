@@ -210,7 +210,7 @@ Delete title
 ### POST /user/signin
 [Back to tree](./tree.md)
 
-Authorize user & get session cookie
+Authorize user & get session cookie, if user is not found, will try to find exist by username (email splitted by @), if not will create a new one
 
 | DEPRECATED | CSRF  |    CORS     | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---------: | :---: | :-----: | :----------: |
@@ -245,7 +245,7 @@ Remove session cookie
 - Body: Ok
 
 ### Notes
-In dev mode session verifying will be skipped
+In dev mode session verifying will be skipped, user id will be taken from session
 
 --------------------------------------------------------------
 
@@ -273,7 +273,7 @@ Get user with query (username or id)
 
 --------------------------------------------------------------
 
-### PATCH /user/:id
+### PATCH /user
 [Back to tree](./tree.md)
 
 Update user. User can update only own info, staff can edit any user info
@@ -287,28 +287,24 @@ Update user. User can update only own info, staff can edit any user info
 | NAME           | DESCRIPTION                      |
 | -------------- | -------------------------------- |
 | editFolderItem | Adds / removes title from folder |
-| editBio        | Edits bio (username, avatar)     |
-| editBackground | Set new background               |
-| editPassword   | Edit password                    |
 
 #### Params
-| NAME       | TYPE                      | METHOD         |
-| ---------- | ------------------------- | -------------- |
-| id         | string                    | None / User id |
-| method     | TMethod                   | None           |
-| titleId    | string / undefined        | editFolderItem |
-| folderId   | string / undefined        | editFolderItem |
-| username   | string / null / undefined | editBio        |
-| bio        | string / null / undefined | editBio        |
-| avatar     | string / null / undefined | editBio        |
-| background | string / undefined        | editBackground |
-| oldPwd     | string / undefined        | editPassword   |
-| newPwd     | string / undefined        | editPassword   |
+| NAME     | TYPE               | METHOD         |
+| -------- | ------------------ | -------------- |
+| method   | TMethod            | None           |
+| titleId  | string / undefined | editFolderItem |
+| folderId | string / undefined | editFolderItem |
 
 
 #### Success response
 - Code: 205
-- Body: 'ok'
+- Body: 
+```ts
+{
+  msg: 'User modified',
+  stack: '' // Modify stack
+}
+```
 
 #### Error response
 - Code: 400
@@ -328,6 +324,10 @@ Update user. User can update only own info, staff can edit any user info
 
 - Code: 404
 - Body: User is not found
+  
+## Notes
+User ID will taken from decoding session cookie or from session cookie in test mode
+
 --------------------------------------------------------------
 
 ### DELETE /user/:id

@@ -130,8 +130,8 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       next();
     } catch (e) {
       if (e instanceof ErrorConstructor) {
-        if (devMode) console.error(e);
-        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(`[HTTP ${e.code}]: ${e}`);
+        if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(e);
       } else {
         console.error(e);
         return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });

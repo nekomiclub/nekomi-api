@@ -86,10 +86,11 @@ export async function catchError(req: express.Request, res: express.Response, at
       null;
     }
   } catch (e) {
-    if (devMode) console.error(e);
+    if (devMode && !(e instanceof ErrorConstructor)) console.error(e);
 
     if (e instanceof ErrorConstructor) {
-      return res.status(e.code).json(`[HTTP ${e.code}]: ${e}`);
+      if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+      return res.status(e.code).json(e);
     } else if (e instanceof AxiosError) {
       return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
     } else {

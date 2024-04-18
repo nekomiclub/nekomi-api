@@ -14,6 +14,10 @@ describe('DevController', () => {
     await mongoose.connect(`mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}`);
   });
 
+  afterAll(async () => {
+    await mongoose.disconnect();
+  });
+
   describe('$1 AccessControll', () => {
     /*
       * AccessControll is a middleware, that checks user auth by it`s Authorization token (session provided by fullkekw usapi)
@@ -132,9 +136,5 @@ describe('DevController', () => {
       await User.findOneAndDelete({ id: testData.dummyRootID });
       await User.findOneAndDelete({ id: testData.dummyID });
     });
-  });
-
-  afterAll(async () => {
-    await mongoose.disconnect();
   });
 });

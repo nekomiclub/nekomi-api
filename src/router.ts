@@ -140,21 +140,13 @@ UserRouter.get(`/logout`, UserController.getLogout);
 
 UserRouter.get(`/:query`, UserController.getQuery);
 
-//! Private
-ApiV1.post(`/user`, ...[
-  body('username').isLength({ min: 3, max: 32 }).matches(/^[A-Za-z\s]+$/).withMessage('Name must be alphabetic.'),
-  body('password').isLength({ min: 6, max: 32 }).withMessage('Password is too short/long. Min: 6, max: 32'),
-], UserController.create); // TODO Deprecated. 
+UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
+
+
 
 ApiV1.delete(`/user`, ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(),
-], UserController.remove); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near future
-
-/** @deprecated All patch requests must be refactored in 1.1.0 */
-ApiV1.patch(`/user`, ...[
-  (req, res, next) => ensureAccess(['user', 'admin', 'root', 'moderator'], req, res, next),
-  body('uid').notEmpty(),
-], UserController.update); //! MUST BE REFACTORED DUE DANGEROUS IMPACT
+], UserController.remove); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near futureST BE REFACTORED DUE DANGEROUS IMPACT
 
 
 

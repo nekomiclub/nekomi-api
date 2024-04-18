@@ -1,16 +1,16 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../handlers/v1/Errors';
-import { randomNumber } from '../handlers/v1/handlers';
-import fs from 'fs';
+import axios from 'axios';
+import { validationResult } from 'express-validator';
+
 import * as dto from '../handlers/v1/dtos';
 import * as handler from '../handlers/v1/handlers';
 import * as authService from '../services/v1/auth';
+import * as TokenService from '../services/TokenService';
+
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../handlers/v1/Errors';
 import User from '../Models/User';
-import { validationResult } from 'express-validator';
 import { config, devMode, testMode } from '../config';
-import ip from 'ip';
-import * as tokenService from '../services/v1/auth';
-import axios from 'axios';
+import { IFKSessionToken } from '../interfaces/Fullkekw';
 import Title from '../Models/Title';
 
 
@@ -47,6 +47,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
   });
 }
 
+
+
 export async function getLogout(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
 
@@ -54,6 +56,8 @@ export async function getLogout(req: express.Request, res: express.Response) {
     return res.status(205).clearCookie(config.vars.sessionCookieName).json({ msg: 'ok' });
   });
 }
+
+
 
 export async function getQuery(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
@@ -71,52 +75,105 @@ export async function getQuery(req: express.Request, res: express.Response) {
   });
 }
 
-export async function update(req: express.Request, res: express.Response) {
+
+
+/** PATCH /user methods. 
+ * @see PATCH /user in docs/endpoints.md
+ */
+export const patchUserMethods = ['editFolderItem'] as const;
+
+/** Type of patchUserMethods array */
+type TPatchUserMethod = typeof patchUserMethods[number]
+
+interface IPatchUserBody {
+  /** Method */
+  method: TPatchUserMethod
+
+  //* editFolderItem method
+  /** Title id to be patched */
+  titleId?: string
+
+  /** Folder id to be patched */
+  folderId?: string
+}
+
+export async function patchUser(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
-    const { uid } = req.body as { uid: string };
+    // Session cookie
+    const token = req.cookies[config.vars.sessionCookieName];
+    const { method, folderId, titleId } = req.body as IPatchUserBody;
 
-    const item = await User.findOne({ uid });
-    const tokenData = authService.decode(req.header('Authorization')!.split('=')[1])!;
+    let userId = '';
 
-    if (!item) {
-      throw new E400('User with provided ID is not found.');
+    if (testMode) {
+      userId = token;
+    } else {
+      const { payload: session } = TokenService.decodeToken<IFKSessionToken>(token);
+      userId = session.userId;
     }
 
-    if (tokenData.uid !== uid && !tokenData.roles.includes('root' || 'admin' || 'moderator')) {
-      throw new E403('You can not change not yours data');
+    const user = await User.findOne({ id: userId });
+    let modifyStack: string[] = [];
+
+    if (!user) {
+      throw new E404(`User ${userId} is not found`);
     }
 
-    for (const i in req.body) {
-      if (i === 'id') return;
-      item[i] = req.body[i];
+    // Invalid method will be denied by validator
+    if (method === 'editFolderItem') {
+      await editFolderItem();
     }
 
-    await item.save();
+    return res.status(200).json({ msg: 'User modified', stack: modifyStack.join('\n') });
 
-    return res.status(200).json({ uid });
+    /** Patch folder */
+    async function editFolderItem() {
+      if (!folderId || !titleId || !user) {
+        throw new E400(`Payload invalid${devMode && ' (see docs/endpoints.md)'}`);
+      }
+
+      const folder = user.lists.find(el => el.id === folderId);
+      const title = await Title.findOne({ id: titleId });
+      let modifyMsg = '';
+
+      if (!folder) {
+        throw new E400(`Folder ${folderId} is not found`);
+      }
+
+      if (!title) {
+        throw new E400(`Title ${titleId} is not found`);
+      }
+
+      if (folder.titles.includes(titleId)) {
+        // Delete title
+        folder.titles = folder.titles.filter(el => el !== titleId);
+        modifyMsg = `Title (${titleId}) deleted from folder (${folderId})`;
+      } else {
+        // Add title
+        folder.titles.push(titleId);
+        modifyMsg = `Title (${titleId}) pushed to folder (${folderId})`;
+      }
+
+      modifyStack.push(modifyMsg);
+      if (devMode) console.log(`[User]: User (${userId}) modified - ${modifyMsg}`);
+
+      try {
+        user.markModified('lists');
+        await user.save();
+      } catch (e) {
+        // Ignore
+      }
+    }
   });
 }
 
-export async function create(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
 
-  await catchError(req, res, routeCode, async () => {
-    const { password, username, email } = req.body as { username: string, password: string, email: string };
-    const isExist = await User.findOne({ $or: [{ username }, { email }] });
 
-    if (isExist) {
-      throw new E400('User is already exist');
-    }
 
-    const uid = await authService.createUser(username, password);
-    const tokens = await authService.auth(username, password);
 
-    // todo auth
-    return res.status(200).cookie('oldRefreshToken', tokens.refreshToken, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 30, domain: devMode ? ip.address() : '.animee.club' }).json({ msg: 'Created', uid, token: tokens.accessToken });
-  });
-}
+
 
 export async function remove(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
