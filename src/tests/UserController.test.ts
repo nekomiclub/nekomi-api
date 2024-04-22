@@ -62,10 +62,10 @@ describe('UserController', () => {
     //* editFolderItem
     test('EditFolderItem should add title to folder', async () => {
 
-    })
+    });
 
     test('EditFolderItem should remove title from folder', async () => {
 
-    })
-  })
+    });
+  });
 });

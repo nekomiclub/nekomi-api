@@ -29,6 +29,6 @@ Refactored
 - All tests that written before 1.1.0
 - User roles/permissions system
 - User router changed from /v1/user/* > /user/*
-- User router (full RUD)
+- User router patch changed, see PATCH /user for migration guide
 
 ### [Return](../README.md)

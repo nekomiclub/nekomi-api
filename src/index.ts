@@ -18,6 +18,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
 import { sendDayStat } from './services/v1/stats';
+import { createUser } from './Models/User';
 
 const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8');
 const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8');

@@ -8,7 +8,7 @@ import { AxiosError } from 'axios';
 
 
 
-type THTTPErrorCodes = 200 | 400 | 401 | 403 | 404 | 500;
+type THTTPErrorCodes = 200 | 400 | 401 | 403 | 404 | 500 | 501;
 
 export class ErrorConstructor {
   msg: string | Array<any>;
@@ -49,6 +49,13 @@ export class E500 extends ErrorConstructor {
     super(msg, 500);
   }
 }
+
+export class E501 extends ErrorConstructor {
+  constructor(msg: string | Array<any>) {
+    super(msg, 501);
+  }
+}
+
 
 
 

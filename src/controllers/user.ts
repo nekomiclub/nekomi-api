@@ -1,5 +1,5 @@
 import express from 'express';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { validationResult } from 'express-validator';
 
 import * as dto from '../handlers/v1/dtos';
@@ -7,8 +7,8 @@ import * as handler from '../handlers/v1/handlers';
 import * as authService from '../services/v1/auth';
 import * as TokenService from '../services/TokenService';
 
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../handlers/v1/Errors';
-import User from '../Models/User';
+import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, E501, E500 } from '../handlers/v1/Errors';
+import User, { createUser } from '../Models/User';
 import { config, devMode, testMode } from '../config';
 import { IFKSessionToken } from '../interfaces/Fullkekw';
 import Title from '../Models/Title';
@@ -36,11 +36,42 @@ export async function postSignin(req: express.Request, res: express.Response) {
       throw new E400('Session token invalid');
     }
 
-    const user = await User.findOne({ id });
+    let user = await User.findOne({ id });
 
+    // Deep find user if not find by usapi ID
     if (!user) {
-      // TODO Create new user
-      throw new E404('User with ID provided by token is not found');
+      try {
+        const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.microservices.usapi}/user/${id}`);
+
+        const { user: data } = res.data;
+        user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });
+
+        if (!user) {
+          // Deep find does not found user, create new one
+          if (devMode) console.log(`[User]: User does not founded deeply, creating new one with id - ${id}`);
+
+          await createUser({
+            email: data.email,
+            avatarURL: data.photoURL,
+            customId: id,
+            username: data.username
+          });
+
+          user = await User.findOne({ id });
+        } else {
+          // Deep find found user, assing usapi id to it
+          if (devMode) console.log(`[User]: User deep find match user by email/username, assigning new id to it`);
+
+          user.id = id;
+          user.uid = id;
+
+          await user.save();
+        }
+      } catch (e) {
+        const emsg = `Unknown error occured while getting user with id ${id}. Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`;
+        console.error(emsg);
+        throw new E500(emsg);
+      }
     }
 
     return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31 }).json({ msg: 'ok' });
@@ -124,6 +155,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
     // Invalid method will be denied by validator
     if (method === 'editFolderItem') {
       await editFolderItem();
+    } else {
+      throw new E501('Method is not implemented');
     }
 
     return res.status(200).json({ msg: 'User modified', stack: modifyStack.join('\n') });
