@@ -3,7 +3,7 @@ import request from 'supertest';
 import ip from 'ip';
 
 import { config, prodMode } from '../config';
-import User from '../Models/User';
+import User, { createUser } from '../Models/User';
 import Role from '../Models/Role';
 import { createID } from '../handlers/v1/handlers';
 
@@ -21,6 +21,15 @@ describe('UserController', () => {
 
 
   describe('POST /user/auth', () => {
+    /*
+      Authorize user (set usapi token in cookie)
+
+      If provided user id does not exist in animee DB, it will send GET request, then will try to find user by its email.
+      If user with email will be founded, it will assing new user id (from usapi)
+      If not, it will create new user
+
+      User creation methods can not be tested due to standalone tests. 
+    */
     const testingRoute = '/user/auth';
 
     test('Should set cookie', () => {
@@ -42,7 +51,7 @@ describe('UserController', () => {
     });
   });
 
-  describe('PATCH /user', () => {
+  describe('$ PATCH /user', () => {
     /*
       User can patch it`s own account
 
@@ -58,14 +67,65 @@ describe('UserController', () => {
 
     const testingRoute = '/user';
     const titleId = '1cbc1ef7-8d88-433a-908b-4df859770ab4';
+    let folderId = '';
+    const dummyID = config.tests.UserController.$1.dummyUser;
 
-    //* editFolderItem
-    test('EditFolderItem should add title to folder', async () => {
+    // Create dummy user
+    beforeAll(async () => {
+      await createUser({
+        avatarURL: '',
+        email: `${dummyID}@animee.club`,
+        customId: dummyID,
+        username: dummyID
+      });
 
+      const user = await User.findOne({ id: dummyID });
+
+      folderId = user!.lists[0].id;
     });
 
-    test('EditFolderItem should remove title from folder', async () => {
+    // Delete dummy user
+    afterAll(async () => {
+      await User.findOneAndDelete({ id: dummyID });
+    });
 
+    //* editFolderItem
+    test('$1 EditFolderItem should add/remove title to folder', async () => {
+      //* Add title
+      await request(baseUrl)
+        .patch(testingRoute)
+        .set('Cookie', `${config.vars.sessionCookieName}=${dummyID}`)
+        .send({
+          method: 'editFolderItem',
+          folderId,
+          titleId
+        })
+        .expect(200);
+
+      // Get user object
+      const user1 = await User.findOne({ id: dummyID });
+
+      // Ensure that method add title to folder
+      expect(user1!.lists.find(el => el.id === folderId)!.titles.includes(titleId)).toBeTruthy();
+
+
+
+      //* Remove title
+      await request(baseUrl)
+        .patch(testingRoute)
+        .set('Cookie', `${config.vars.sessionCookieName}=${dummyID}`)
+        .send({
+          method: 'editFolderItem',
+          folderId,
+          titleId
+        })
+        .expect(200);
+
+      // Get user object
+      const user2 = await User.findOne({ id: dummyID });
+
+      // Ensure that method remove title from folder
+      expect(user2!.lists.find(el => el.id === folderId)!.titles.includes(titleId)).toBeFalsy();
     });
   });
 });

@@ -59,6 +59,15 @@ export const config = {
         /** Dummy user without required role */
         dummyID: 'dummy-devcontroller-2',
       }
+    },
+    UserController: {
+      $1: {
+        /** Dummy user for PATCH /user */
+        dummyUser: 'dummy-usercontroller-0',
+
+        /** Required for this test title id */
+        titleId: '0fc90fe6-8dcf-4eaa-8080-f0d933e76266',
+      }
     }
   },
 

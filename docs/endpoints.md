@@ -276,17 +276,17 @@ Get user with query (username or id)
 ### PATCH /user
 [Back to tree](./tree.md)
 
-Update user. User can update only own info, staff can edit any user info
+Update user. User can update only own info, staff can edit any user info (indev)
 
-| DEPRECATED | CSRF  |     CORS      |           CAPS           | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :----------------------: | :-----: | :----------: |
-|   false    | true  | *.animee.club | basic, staffEditUserInfo |  1.1.0  |    false     |
+| DEPRECATED | CSRF  |     CORS      |           CAPS           | VERSION |          TEST COVERED           |
+| :--------: | :---: | :-----------: | :----------------------: | :-----: | :-----------------------------: |
+|   false    | true  | *.animee.club | basic, staffEditUserInfo |  1.1.0  | partially (see Methods section) |
 
 
 #### Methods (Describes TMethod)
-| NAME           | DESCRIPTION                      |
-| -------------- | -------------------------------- |
-| editFolderItem | Adds / removes title from folder |
+| NAME           | DESCRIPTION                      | IS TESTED |
+| -------------- | -------------------------------- | --------- |
+| editFolderItem | Adds / removes title from folder | true      |
 
 #### Params
 | NAME     | TYPE               | METHOD         |
