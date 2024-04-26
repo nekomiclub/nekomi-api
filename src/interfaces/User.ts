@@ -7,7 +7,9 @@ export interface IUser {
    */
   uid: string
 
-  /** User username */
+  /** User username
+   * @deprecated in 1.1.0 fullkekw usapi will manage this
+   */
   username: string
 
   /** User password
@@ -59,9 +61,7 @@ export interface IUser {
    */
   providers: TAuthProviders[]
 
-  /** User roles
-   * * userDTO will hide this field
-   */
+  /** User roles */
   roles: string[]
 
   /** User account type

@@ -94,7 +94,17 @@ export async function getQuery(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
-    const { query } = req.params as { query: string };
+    let { query } = req.params as { query: string };
+
+    // Get query from session
+    if (query === '*') {
+      const cookie = req.cookies[config.vars.sessionCookieName];
+
+      if (!cookie) throw new E401(`Session cookie is not provided`);
+
+      const token = TokenService.decodeToken<{ userId: string }>(cookie);
+      query = token.payload.userId;
+    }
 
     const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
 
@@ -188,6 +198,15 @@ export async function patchUser(req: express.Request, res: express.Response) {
         folder.titles.push(titleId);
         modifyMsg = `Title (${titleId}) pushed to folder (${folderId})`;
       }
+
+      // Filter same
+      let filteredTitles: string[] = [];
+
+      folder.titles.forEach(title => {
+        if (!filteredTitles.includes(title)) filteredTitles.push(title);
+      });
+
+      folder.titles = filteredTitles;
 
       modifyStack.push(modifyMsg);
       if (devMode) console.log(`[User]: User (${userId}) modified - ${modifyMsg}`);

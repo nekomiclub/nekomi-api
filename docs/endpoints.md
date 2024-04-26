@@ -268,8 +268,14 @@ Get user with query (username or id)
 - Body: IUser (after DTO)
 
 #### Error response
+- Code: 401
+- Body: Authorization not provided
+
 - Code: 404
 - Body: User is not found
+
+### Notes
+If query equals to *, will take user ID from session cookie
 
 --------------------------------------------------------------
 
