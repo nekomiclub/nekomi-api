@@ -2,7 +2,7 @@ import express from 'express';
 import axios, { AxiosError } from 'axios';
 import { validationResult } from 'express-validator';
 
-import * as dto from '../handlers/v1/dtos';
+import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/v1/handlers';
 import * as authService from '../services/v1/auth';
 import * as TokenService from '../services/TokenService';

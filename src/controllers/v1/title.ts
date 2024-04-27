@@ -7,16 +7,16 @@ import { validationResult } from 'express-validator';
 import Fuse from 'fuse.js';
 
 import { testMode, devMode } from '../../config';
-import { ITitle } from '../../core/interfaces';
 import Title from '../../Models/Title';
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError } from '../../handlers/v1/Errors';
 import { randomNumber } from '../../handlers/v1/handlers';
-import * as dto from '../../handlers/v1/dtos';
+import * as dto from '../../handlers/dtos';
+import { ITitle } from '../../interfaces/Title';
 
 let fuse: Fuse<ITitle>;
 
 async function updateFuse() {
-  const titles = (await Title.find()).map(el => dto.title(el));
+  const titles = (await Title.find()).map(el => dto.title(el.toObject()));
   fuse = new Fuse(titles, {
     keys: ['names.eng', 'names.ukr', 'names.alt']
   });
@@ -24,24 +24,6 @@ async function updateFuse() {
 
 updateFuse();
 
-
-export async function getOne(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
-    const { query } = req.params as { query: string };
-
-    const db = await Title.findOne({ $or: [{ id: query }, { code: query }] });
-
-    if (!db) {
-      throw new E404(`Title ${query} is not found`);
-    }
-
-    let item: ITitle = dto.title(db);
-
-    return res.status(200).json(item);
-  });
-}
 
 interface ISearch extends ITitle {
   query: string,
@@ -101,7 +83,7 @@ export async function getMany(req: express.Request, res: express.Response) {
     let { limit, page } = req.query as { limit: number | undefined, page: number | undefined };
 
     let titles = await Title.find();
-    let results: ITitle[] = [];
+    let results: any[] = [];
 
     // Assign default values or make turn to number
     if (!limit || +limit <= 0 || +limit > 30) { limit = 30; } else {
@@ -189,16 +171,5 @@ export async function remove(req: express.Request, res: express.Response) {
     await Title.deleteOne({ id });
 
     return res.status(200).json('ok');
-  });
-}
-
-export async function total(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
-    const total = await Title.find();
-    const renewed = total.filter(el => el.country !== 'null').length;
-
-    return res.status(200).json({ total: total.length, renewed });
   });
 }

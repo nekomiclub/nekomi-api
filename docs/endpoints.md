@@ -5,7 +5,7 @@
 
 --------------------------------------------------------------
 
-### GET /v1/title/:query
+### GET /title/:query
 [Back to tree](./tree.md)
 
 Get title with code or id
@@ -126,7 +126,7 @@ Get total count of titles & renewed (where country != 'null')
 
 --------------------------------------------------------------
 
-### PATCH /v1/title
+### PATCH /title
 [Back to tree](./tree.md)
 
 Update title. Replaces EVERY FIELD PROVIDED.
@@ -152,7 +152,7 @@ Update title. Replaces EVERY FIELD PROVIDED.
 
 --------------------------------------------------------------
 
-### POST /v1/title
+### POST /title
 [Back to tree](./tree.md)
 
 Create a new title
@@ -178,7 +178,7 @@ Create a new title
 
 --------------------------------------------------------------
 
-### DELETE /v1/title
+### DELETE /title
 [Back to tree](./tree.md)
 
 Delete title

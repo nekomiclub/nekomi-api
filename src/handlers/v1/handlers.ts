@@ -9,7 +9,7 @@ import ip from 'ip';
 import axios from 'axios';
 import express from 'express';
 import User from '../../Models/User';
-import { user } from './dtos';
+import { user } from '../dtos';
 import Role, { createRole } from '../../Models/Role';
 import { TRoleCapability } from '../../interfaces/Roles';
 

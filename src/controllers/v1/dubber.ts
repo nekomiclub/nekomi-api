@@ -2,7 +2,7 @@ import express from 'express';
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../../handlers/v1/Errors';
 import fs from 'fs';
 import { IDubber, ITitle } from '../../core/interfaces';
-import * as dto from '../../handlers/v1/dtos';
+import * as dto from '../../handlers/dtos';
 import Dubbers from '../../Models/Dubber';
 import { devMode } from '../../config';
 

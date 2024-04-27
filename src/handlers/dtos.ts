@@ -1,5 +1,6 @@
-import { IDubber, ITitle } from '../../core/interfaces';
-import { IUser } from '../../interfaces/User';
+import { IDubber } from '../core/interfaces';
+import { ITitle } from '../interfaces/Title';
+import { IUser } from '../interfaces/User';
 
 interface IMongodbDocument {
   __v: number,
@@ -7,7 +8,7 @@ interface IMongodbDocument {
   [key: string]: any
 }
 
-// Replace private info with blanks
+// Replace private info with blanks, mutates provided object
 function hideKeys(excludeKeys: string[], obj: object) {
   for (const key in obj) {
     const val = obj[key];
@@ -29,8 +30,14 @@ function hideKeys(excludeKeys: string[], obj: object) {
   }
 }
 
-export function title(raw: any): ITitle {
-  const { __v, _id, ...title } = raw._doc;
+/** Title DTO */
+export function title(raw: IMongodbDocument): ITitle {
+  const { __v, _id, ...payload } = raw;
+  const title = payload as ITitle;
+
+  const excludeKeys: (keyof ITitle)[] = [];
+  hideKeys(excludeKeys, user);
+
   return title;
 }
 

@@ -22,6 +22,8 @@ export const ApiV1 = express.Router();
 export const ProxyRouter = express.Router();
 
 export const UserRouter = express.Router();
+export const TitleRouter = express.Router();
+
 export const DevRouter = express.Router();
 
 /** CORS that pass any request but without cookies */
@@ -102,10 +104,21 @@ DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevContro
 
 
 //* ------------------ TITLE ROUTER ------------------
-ApiV1.get(`/title/:query`, publicCORS, v1CTitle.getOne);
+import * as TitleController from './controllers/title';
+
+TitleRouter.get('/total', TitleController.getTotal);
+
+
+
+/** @deprecated */
 ApiV1.get(`/titles`, publicCORS, v1CTitle.getMany);
+/** @deprecated */
 ApiV1.get(`/titles/search`, publicCORS, v1CTitle.search);
-ApiV1.get(`/titles/total`, publicCORS, v1CTitle.total);
+
+
+
+//! Must be below all endpoints
+TitleRouter.get('/:query', TitleController.getTitleQuery);
 
 //! Private
 /** @deprecated All patch requests must be refactored in 1.1.0 */
@@ -134,12 +147,9 @@ ApiV1.post(`/dubber/parse`, publicCORS, RouteValidation.postDubbersParse, v1CDub
 //* ------------------ USER ROUTER ------------------
 import * as UserController from './controllers/user';
 
-UserRouter.post(`/signin`, RouteValidation.getUserAuth, UserController.postSignin);
-
 UserRouter.get(`/logout`, UserController.getLogout);
-
 UserRouter.get(`/:query`, UserController.getQuery);
-
+UserRouter.post(`/signin`, RouteValidation.getUserAuth, UserController.postSignin);
 UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
 
 
