@@ -1,10 +1,17 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
+import { convert as urlSlugConvert } from 'url-slug';
 
 import * as dto from '../handlers/dtos';
 
-import { E404, catchError } from '../handlers/v1/Errors';
+import { E400, E403, E404, catchError } from '../handlers/v1/Errors';
 import Title from '../Models/Title';
+import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
+import { config, devMode } from '../config';
+import { decodeToken } from '../services/TokenService';
+import User from '../Models/User';
+import { parseRoles } from '../handlers/v1/handlers';
+import { TRoleCapability } from '../interfaces/Roles';
 
 
 
@@ -33,5 +40,365 @@ export async function getTotal(req: express.Request, res: express.Response) {
     const titles = await Title.find();
 
     return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.map(el => el.country !== 'null').length });
+  });
+}
+
+
+
+export async function postTitle(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, routeCode, async () => {
+
+  });
+}
+
+
+
+interface IPatchTitleBody {
+  changeNames?: {
+    ukr: string | null
+    eng: string | null
+    alt: string[] | null
+  }
+
+  setRating?: number
+  setDescription?: string
+  setStatus?: string
+  setEps?: number
+  setGenres?: string[]
+  setAgeRate?: string
+  setSeason?: string
+  setType?: string
+  setYear?: number
+  setStudios?: string[]
+  setCountry?: string
+  setDetails?: string
+
+  editEpMeta?: ITitleEpisodeMeta
+
+  deleteEpisode?: {
+    episodeOrder: number
+    dubID: string
+  },
+}
+
+export async function patchTitle(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, routeCode, async () => {
+    const { id } = req.params as { id: string };
+    const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, } = req.body as IPatchTitleBody;
+
+    const title = await Title.findOne({ id });
+    const changes: string[] = [];
+
+    if (!title) throw new E404(`Title ${id} is not found`);
+
+    const session = decodeToken<{ userId: string }>(req.cookies[config.vars.sessionCookieName]);
+    const user = await User.findOne({ id: session.payload.userId });
+
+    if (!user) {
+      throw new E404('User with this session is not exist');
+    }
+
+    const caps = await parseRoles(user.roles);
+
+    // titleEdit
+    if (changeNames) await changeNamesHandler('titleEdit');
+    if (editEpMeta) await editEpMetaHandler('titleEdit');
+    if (setAgeRate) await setAgeRateHandler('titleEdit');
+    if (setCountry) await setCountryHandler('titleEdit');
+    if (setDescription) await setDescriptionHandler('titleEdit');
+    if (setDetails) await setDetailsHandler('titleEdit');
+    if (setEps) await setEpsHandler('titleEdit');
+    if (setGenres) await setGenresHandler('titleEdit');
+    if (setRating) await setRatingHandler('titleEdit');
+    if (setSeason) await setSeasonHandler('titleEdit');
+    if (setStatus) await setStatusHandler('titleEdit');
+    if (setStudios) await setStudiosHandler('titleEdit');
+    if (setType) await setTypeHandler('titleEdit');
+    if (setYear) await setYearHandler('titleEdit');
+
+    // seriesDelete
+    if (deleteEpisode) await deleteEpisodeHandler('seriesDelete');
+
+    try {
+      await title.save();
+    } catch (e) {
+      // ignore
+    }
+
+    if (devMode) console.log(`Title patched. Changes - ${changes.join(', ')}`);
+
+    return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed...` });
+
+
+
+    // Handlers
+    async function changeNamesHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[ChangeNames]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+      if (changeNames?.ukr) {
+        changes.push(`${handlerName}: Name changed (ukr): ${title.names.ukr} > ${changeNames.ukr.trim()}`);
+        title.names.ukr = changeNames.ukr.trim();
+      }
+
+      if (changeNames?.eng) {
+        const newName = changeNames.eng.trim();
+        const code = urlSlugConvert(newName, {
+          camelCase: true,
+          separator: '-'
+        });
+
+        changes.push(`${handlerName}: Name changed (eng): ${title.names.eng} > ${newName}`);
+        changes.push(`${handlerName}: Code changed - ${title.code} > ${code}`);
+        title.names.eng = newName;
+        title.code = code;
+
+        title.markModified('code');
+      }
+
+      if (changeNames?.alt) {
+        changes.push(`${handlerName}: Names changed (alt): ${title.names!.alt?.join(', ')} > ${changeNames.alt.map(el => el.trim()).join(', ')}`);
+        title.names.alt = changeNames.alt.map(el => el.trim());
+      }
+
+      title.markModified('names');
+    }
+
+    async function setAgeRateHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetAgeRate]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      // Hardcoded, setAgeRate can be any string
+      if (!AnimeAgeRates.includes(setAgeRate! as TAnimeAgeRate)) throw new E400(`${handlerName}: Age rate ${setAgeRate} is invalid`);
+
+      changes.push(`${handlerName}: Age rate changed - ${title.ageRate} > ${setAgeRate}`);
+      title.ageRate = setAgeRate as TAnimeAgeRate;
+
+      title.markModified('ageRate');
+    }
+
+    async function setCountryHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetCountry]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      const acceptableCountries = ['japan', 'china', 'south corea'];
+      if (!acceptableCountries.includes(setCountry!)) throw new E400(`${handlerName}: Country ${setCountry} is not acceptable${devMode && 'See docs about this endpoint. Acceptable countries are hardcoded at controllers/title.ts/setAgeRateHandler'}`);
+
+      changes.push(`${handlerName}: Country changed - ${title.country} > ${setCountry}`);
+      title.country = setCountry!;
+
+      title.markModified('country');
+    }
+
+    async function setDescriptionHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetDescription]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (setDescription!.trim().length > 5000) throw new E400(`${handlerName}: Description can not be longer than 5 thousand symbols`);
+
+      changes.push(`${handlerName}: Description changed`);
+      title.description = setDescription!.trim();
+
+      title.markModified('description');
+    }
+
+    async function setDetailsHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetDetails]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (setDetails!.trim().length > 2000) throw new E400(`${handlerName}: Details can not be longer than 2 thousand symbols`);
+
+      changes.push(`${handlerName}: Description changed`);
+      title.description = setDetails!.trim();
+
+      title.markModified('details');
+    }
+
+    async function setEpsHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetEps]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (isNaN(+setEps!)) throw new E400(`${handlerName}: Eps can not be NaN`);
+
+      changes.push(`${handlerName}: Estimated eps changed - ${title.estimatedEps} > ${setEps}`);
+      title.estimatedEps = +setEps!;
+
+      title.markModified('estimatedEps');
+    }
+
+    async function setGenresHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetGenres]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+      const genres: TAnimeGenre[] = [];
+
+      if (!Array.isArray(setGenres)) throw new E400(`${handlerName}: SetGenres is not Array`);
+
+      setGenres?.forEach(genre => {
+        if (AnimeGenres.includes(genre as TAnimeGenre)) genres.push(genre as TAnimeGenre);
+      });
+
+      changes.push(`${handlerName}: Genres changed - ${title.genres.join(', ')} > ${genres.join(', ')}`);
+      title.genres = genres;
+
+      title.markModified('genres');
+    }
+
+    async function setRatingHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetRating]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (isNaN(+setRating!)) throw new E400(`${handlerName}: Rating can not be NaN`);
+
+      if (setRating! < 0 || setRating! > 10) throw new E400('[SetRating]: Rating can not be lower than 0 or greater than 10');
+
+      changes.push(`${handlerName}: Rating changed - ${title.rating} > ${setRating}`);
+      title.rating = +setRating!;
+
+      title.markModified('rating');
+    }
+
+    async function setSeasonHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetSeason]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (!AnimeSeasons.includes(setSeason as TAnimeSeason)) throw new E400(`${handlerName}: Seasion ${setSeason} is invalid`);
+
+      changes.push(`${handlerName}: Season changed - ${title.season} > ${setSeason}`);
+      title.season = setSeason as TAnimeSeason;
+
+      title.markModified('season');
+    }
+
+    async function setStatusHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetStatus]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (!AnimeStatuses.includes(setStatus as TAnimeStatus)) throw new E400(`${handlerName}: Status ${setStatus} is invalid`);
+
+      changes.push(`${handlerName}: Type changed - ${title.status} > ${setStatus}`);
+      title.status = setStatus as TAnimeStatus;
+
+      title.markModified('status');
+    }
+
+    async function setStudiosHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetStudios]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (!Array.isArray(setStudios)) throw new E400(`${handlerName}: SetStudios is not Array`);
+
+      changes.push(`${handlerName}: Studio changed - ${title.studios.join(', ')} > ${setStudios.map(el => el.trim())}`);
+      title.studios = setStudios.map(el => el.trim());
+
+      title.markModified('studios');
+    }
+
+    async function setTypeHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetType]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (!TitleTypes.includes(setType as TTitleType)) throw new E400(`${handlerName}: Type ${setType} is invalid`);
+
+      changes.push(`${handlerName}: Type changed - ${title.type} > ${setType}`);
+      title.type = setType as TTitleType;
+
+      title.markModified('type');
+    }
+
+    async function setYearHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[SetYear]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+      if (isNaN(+setYear!)) throw new E400(`${handlerName}: Eps can not be NaN`);
+
+      changes.push(`${handlerName}: Year changed - ${title.year} > ${setYear}`);
+      title.year = +setYear!;
+
+      title.markModified('year');
+    }
+
+    async function deleteEpisodeHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[DeleteEpisode]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+    }
+
+    async function editEpMetaHandler(requiredCap: TRoleCapability) {
+      const handlerName = '[EditEpMeta]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+
+    }
+  });
+}
+
+
+
+export async function deleteTitle(req: express.Request, res: express.Response) {
+  const routeCode = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, routeCode, async () => {
+    const { id } = req.params as { id: string };
   });
 }

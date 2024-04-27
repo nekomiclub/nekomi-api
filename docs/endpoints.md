@@ -13,7 +13,7 @@ Get title with code or id
 
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |    false     |
+|   false    | false |   *   |   -   |  1.1.0  |    false     |
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION |
@@ -22,7 +22,13 @@ Get title with code or id
 
 #### Success response
 - Code: 200
-- Body: ITitle
+- Body: 
+```ts
+{
+  msg: 'ok',
+  title: ITitle
+}
+```
 
 #### Error response
 - Code: 404
@@ -97,7 +103,7 @@ Search titles with name, code or id.
 
 --------------------------------------------------------------
 
-### GET /v1/titles/total
+### GET /title/total
 [Back to tree](./tree.md)
 
 Get total count of titles & renewed (where country != 'null')
@@ -105,7 +111,7 @@ Get total count of titles & renewed (where country != 'null')
 
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |    false     |
+|   false    | false |   *   |   -   |  1.1.0  |    false     |
 
 #### Params
 | NAME | TYPE | DESCRIPTION |
@@ -126,28 +132,74 @@ Get total count of titles & renewed (where country != 'null')
 
 --------------------------------------------------------------
 
-### PATCH /title
+### PATCH /title/:id
 [Back to tree](./tree.md)
 
-Update title. Replaces EVERY FIELD PROVIDED.
+Update title info
 
-**MUST BE REFACTORED in 1.1.0 due to dangerous impact (all provided keys will replace present data)**
+| DEPRECATED | CSRF  |    CORS     |    CAPS    | VERSION | TEST COVERED |
+| :--------: | :---: | :---------: | :--------: | :-----: | :----------: |
+|   false    | true  | animee.club | See params |  1.1.0  |    false     |
 
-|    DEPRECATED     | CSRF  |     CORS      |                     CAPS                     | VERSION | TEST COVERED |
-| :---------------: | :---: | :-----------: | :------------------------------------------: | :-----: | :----------: |
-| true (till 1.1.0) | true  | *.animee.club | titleEdit, titleEditEpsMeta, titleEditLinked |  1.0.3  |    false     |
+## Interfaces
+```ts
+// Change names interface
+// Set null to prevent field from changing, otherwise it will rewrite it
+// Changing eng title will change title code
+interface IChangeNames {
+  ukr: string | null
+  eng: string | null
+  alt: string[] | null
+} 
+
+interface IUploadEpisode {
+  file: File,
+  episodeOrder: number,
+  dubID: string,
+}
+
+interface IDeleteEpisode {
+  episodeOrder: number,
+  dubID: string,
+}
+```
 
 #### Params
-| NAME     | TYPE   | DESCRIPTION                         |
-| -------- | ------ | ----------------------------------- |
-| ...props | ITitle | All of ITitle props must be present |
+| NAME            | TYPE                                 | DESCRIPTION                                                                       | CAP REQUIRED     |
+| --------------- | ------------------------------------ | --------------------------------------------------------------------------------- | ---------------- |
+| (query) id      | string                               | Title ID                                                                          | -                |
+| ?changeNames    | IChangeName                          | Change title names                                                                | titleEdit        |
+| ?changePoster   | File                                 | Upload file that replace exist poster                                             | titleEdit        |
+| ?setRating      | number                               | Set new title rating                                                              | titleEdit        |
+| ?setDescription | string                               | Set new title description                                                         | titleEdit        |
+| ?setStatus      | string                               | Set new title status                                                              | titleEdit        |
+| ?setEps         | number                               | Set new title eps                                                                 | titleEdit        |
+| ?setGenres      | string[]                             | Genres will be parsed into TAnimeGenre[], not equal genres will be skipped        | titleEdit        |
+| ?setAgeRate     | TAnimeAgeRate                        | If string will not equal to TAnimeAgeRate, it will throw 400                      | titleEdit        |
+| ?setSeason      | TAnimeSeason                         | If string will not equal to TAnimeSeason, it will throw 400                       | titleEdit        |
+| ?setType        | TTitleType                           | If string will not equal to TTitleType, it will throw 400                         | titleEdit        |
+| ?setYear        | number                               | Set new title aired year                                                          | titleEdit        |
+| ?setStudios     | string[]                             | Set new title studios                                                             | titleEdit        |
+| ?setCountry     | string                               | Will reject if county not equal "japan", "south corea" or "china"                 | titleEdit        |
+| ?setDetails     | string                               | Set title details (poster translators, etc)                                       | titleEdit        |
+| ---             | ---                                  | ---                                                                               | ---              |
+| ?editEpMeta     | ITitleEpisodeMeta                    | Change episode meta by it's order, will create new one if not exist               | titleEditEpsMeta |
+| ---             | ---                                  | ---                                                                               | ---              |
+| ?uploadEpisode  | IUploadEpisode (multipart/form-data) | Upload new episode. Dubber can only add eps in own dub, editor can add for anyone | seriesAdd        |
+| ?deleteEpisode  | IDeleteEpisode                       | Delete exist episode. Same behaviour  as uploadEpisode                            | seriesDelete     |
 
 #### Success response
 - Code: 200
-- Body: ITitle
+- Body: 
+```ts
+{
+  msg: 'ok',
+  changes: string[]
+}
+```
 
 #### Error response
-- Code: 400
+- Code: 400 / 404
 - Body: Validation failed / Title not found
 
 --------------------------------------------------------------
@@ -158,15 +210,15 @@ Update title. Replaces EVERY FIELD PROVIDED.
 Create a new title
 
 
-| DEPRECATED | CSRF  |     CORS      |   CAPS   | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :------: | :-----: | :----------: |
-|   false    | true  | *.animee.club | titleAdd |  1.0.3  |    false     |
+| DEPRECATED | CSRF  |    CORS     |   CAPS   | VERSION | TEST COVERED |
+| :--------: | :---: | :---------: | :------: | :-----: | :----------: |
+|   false    | true  | animee.club | titleAdd |  1.1.0  |    false     |
 
 
 #### Params
-| NAME  | TYPE   | DESCRIPTION                                   |
-| ----- | ------ | --------------------------------------------- |
-| title | ITitle | Title object (id will generated automaticaly) |
+| NAME | TYPE | DESCRIPTION |
+| ---- | ---- | ----------- |
+|      |      |             |
 
 #### Success response
 - Code: 200
@@ -178,20 +230,20 @@ Create a new title
 
 --------------------------------------------------------------
 
-### DELETE /title
+### DELETE /title/:id
 [Back to tree](./tree.md)
 
 Delete title
 
 
-| DEPRECATED | CSRF  |     CORS      |    CAPS     | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---------: | :-----: | :----------: |
-|   false    | true  | *.animee.club | titleDelete |  1.0.3  |    false     |
+| DEPRECATED | CSRF  |    CORS     |    CAPS     | VERSION | TEST COVERED |
+| :--------: | :---: | :---------: | :---------: | :-----: | :----------: |
+|   false    | true  | animee.club | titleDelete |  1.1.0  |    false     |
 
 #### Params
-| NAME | TYPE   | DESCRIPTION |
-| ---- | ------ | ----------- |
-| id   | string | Title id    |
+| NAME       | TYPE   | DESCRIPTION |
+| ---------- | ------ | ----------- |
+| (query) id | string | Title id    |
 
 #### Success response
 - Code: 200

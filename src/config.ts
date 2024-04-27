@@ -10,6 +10,12 @@ import { IANIMEE_CONFIG } from './core/interfaces';
 const jwtSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/JWT.json`).toString()) as { accessTokenSecret: string, refreshTokenSecret: string };
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
+export const devMode = process.argv.includes('devMode');
+export const prodMode = process.argv.includes('prodMode');
+
+/** Test mode. In test mode some validation will pass in other ways */
+export const testMode = process.argv.includes('testMode');
+
 /** Main service config */
 export const config = {
   /** DB object from global config */
@@ -45,6 +51,12 @@ export const config = {
     usapi: `http://${getIP('0.0.0.0')}:45660`
   },
 
+  /** URLs */
+  URL: {
+    /** Animee client URL */
+    client: prodMode ? `https://animee.club` : `http://${getIP('0.0.0.0')}:3001`
+  },
+
   /** Tests data */
   tests: {
     /** Tests data for DevController */
@@ -77,12 +89,6 @@ export const config = {
     sessionCookieName: 'SEC_31N'
   }
 };
-
-export const devMode = process.argv.includes('devMode');
-export const prodMode = process.argv.includes('prodMode');
-
-/** Test mode. In test mode some validation will pass in other ways */
-export const testMode = process.argv.includes('testMode');
 
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (devMode) {

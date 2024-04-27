@@ -1,13 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import { ITitle } from '../core/interfaces';
+import { ITitle } from '../interfaces/Title';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,
-  names: {
-    eng: String,
-    ukr: String,
-    alt: Array<string>
-  },
+  names: Object,
   code: String,
   poster: String,
   background: String,
@@ -24,34 +20,8 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
   country: String,
   started: Number || null,
   ended: Number || null,
-  dubs: Array<{
-    id: string,
-    includeSub: boolean,
-    include2K: boolean,
-    eps: Array<{
-      id: string,
-      dubID: string,
-      titleID: string,
-      order: number,
-      source: {
-        q240: string | null,
-        q480: string | null,
-        q720: string | null,
-        q1080: string | null,
-        q2k: string | null
-      },
-      subIDs: Array<string> | null,
-      framesURL: Array<string> | null
-    }>
-  }> || null,
-  epsMeta: Array<{
-    order: number,
-    names: {
-      ukr: string,
-      eng: string
-    },
-    dateOut: number
-  }> || null,
+  dubs: Array || null,
+  epsMeta: Array || null,
   updatedAt: Number,
   details: String || null
 }));

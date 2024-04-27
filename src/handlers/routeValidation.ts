@@ -1,4 +1,4 @@
-import { query, body } from 'express-validator';
+import { query, body, param } from 'express-validator';
 
 import { AccessControl } from '../middlewares';
 import { config } from '../config';
@@ -31,4 +31,12 @@ export const userPatch = [
   body('method')
     .notEmpty().withMessage('Method can not be empty')
     .isIn(patchUserMethods).withMessage('Method invalid')
+];
+
+//* ------------------ TITLE MIDDLEWARES ------------------
+
+export const patchTitleId = [
+  AccessControl(['basic']),
+  param('id')
+    .notEmpty().withMessage('ID can not be empty')
 ];

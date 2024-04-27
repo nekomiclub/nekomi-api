@@ -4,6 +4,7 @@ import path from 'path';
 import * as uuid from 'uuid';
 import { body, cookie, param, query } from 'express-validator';
 import cors from 'cors';
+import ip from 'ip';
 
 import * as RouteValidation from './handlers/routeValidation';
 import * as v1C from './controllers/v1/index';
@@ -35,7 +36,7 @@ const publicCORS = cors({
 /** CORS that works with cookies and pass only specified origins */
 const privateCORS = cors({
   origin: [
-
+    config.URL.client
   ],
   credentials: true
 });
@@ -107,18 +108,21 @@ DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevContro
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
+TitleRouter.post('/', privateCORS, TitleController.postTitle);
+TitleRouter.patch('/:id', privateCORS, RouteValidation.patchTitleId, TitleController.patchTitle);
+TitleRouter.delete('/:id', privateCORS, TitleController.deleteTitle);
 
 
 
 /** @deprecated */
-ApiV1.get(`/titles`, publicCORS, v1CTitle.getMany);
+ApiV1.get(`/titles`, privateCORS, v1CTitle.getMany);
 /** @deprecated */
-ApiV1.get(`/titles/search`, publicCORS, v1CTitle.search);
+ApiV1.get(`/titles/search`, privateCORS, v1CTitle.search);
 
 
 
 //! Must be below all endpoints
-TitleRouter.get('/:query', TitleController.getTitleQuery);
+TitleRouter.get('/:query', privateCORS, TitleController.getTitleQuery);
 
 //! Private
 /** @deprecated All patch requests must be refactored in 1.1.0 */
@@ -139,18 +143,19 @@ ApiV1.delete(`/title`, ...[
 
 
 //* ------------------ DUBBER ROUTER ------------------
-ApiV1.get(`/dubber/:query`, publicCORS, v1CDubber.getOne);
-ApiV1.post(`/dubber/parse`, publicCORS, RouteValidation.postDubbersParse, v1CDubber.parse);
+ApiV1.get(`/dubber/:query`, privateCORS, v1CDubber.getOne);
+ApiV1.post(`/dubber/parse`, privateCORS, RouteValidation.postDubbersParse, v1CDubber.parse);
 
 
 
 //* ------------------ USER ROUTER ------------------
 import * as UserController from './controllers/user';
+import { config } from './config';
 
-UserRouter.get(`/logout`, UserController.getLogout);
-UserRouter.get(`/:query`, UserController.getQuery);
-UserRouter.post(`/signin`, RouteValidation.getUserAuth, UserController.postSignin);
-UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
+UserRouter.get(`/logout`, privateCORS, UserController.getLogout);
+UserRouter.get(`/:query`, privateCORS, UserController.getQuery);
+UserRouter.post(`/signin`, privateCORS, RouteValidation.getUserAuth, UserController.postSignin);
+UserRouter.patch(`/`, privateCORS, RouteValidation.userPatch, UserController.patchUser);
 
 
 
