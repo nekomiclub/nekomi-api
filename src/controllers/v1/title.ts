@@ -62,15 +62,21 @@ export async function search(req: express.Request, res: express.Response) {
       }
     }
 
-    let titles = [];
+    let titles: ITitle[] = [];
 
     if (Object.keys(props).length) {
-      titles = await Title.find({ $and: searchArray });
+      const titlesRaw = await Title.find({ $and: searchArray });
+      titlesRaw.forEach(title => {
+        titles.push(dto.title(title.toObject()));
+      });
     } else {
-      titles = await Title.find();
+      const titlesRaw = await Title.find();
+      titlesRaw.forEach(title => {
+        titles.push(dto.title(title.toObject()));
+      });
     }
 
-    const results = titles.map(el => dto.title(el)).slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
+    const results = titles.slice((+page === 0) ? 0 : ((+page + 1) * +limit) - (+limit - 1), (+page === 0) ? +limit : (+page + 1) * +limit);
 
     return res.status(200).json({ results });
   });

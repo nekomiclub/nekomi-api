@@ -11,7 +11,7 @@ import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeD
 import { config, devMode } from '../config';
 import { decodeToken } from '../services/TokenService';
 import User from '../Models/User';
-import { parseRoles } from '../handlers/v1/handlers';
+import { getUTC, parseRoles } from '../handlers/v1/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubbers from '../Models/Dubber';
 
@@ -114,6 +114,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       throw new E404('User with this session is not exist');
     }
 
+    title.updatedAt = getUTC().timestamp;
     const caps = await parseRoles(user.roles);
 
     if (contentType.match('multipart/form-data')) {
@@ -162,9 +163,9 @@ export async function patchTitle(req: express.Request, res: express.Response) {
                 // ignore
               }
 
-              return res.status(201).json({ msg: 'Poster is unavailable, creating new..' });
+              return res.status(201).json({ msg: 'Poster is unavailable, creating new..', id });
             } else {
-              return res.status(200).json({ msg: 'Poster changed' });
+              return res.status(200).json({ msg: 'Poster changed', id });
             }
           } else {
             //* Upload new
@@ -229,7 +230,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         // Default dub instance
         let dub: ITitleEpisodesDub = {
           id: dubber.id,
-          eps: [defaultEp],
+          eps: [],
           include2K: false,
           includeSub: false,
         };
@@ -253,7 +254,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           title.dubs = [dub];
         }
 
-        if (dub.eps.find(el => el.order === order)) {
+        if (dub.eps.find(el => el.order === order) && dub.eps.find(el => el.source.q1080)) {
           // Reject if episode exist
           throw new E400(`Episode ${episodeOrder} in ${dubber.name} is already exist`);
         } else {
@@ -606,29 +607,29 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
 
       try {
-        await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.source.q1080}`);
+        const res = await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.source.q1080.split('/')[ep.source.q1080.split('/').length - 1]}`, { validateStatus: (s) => s < 500 });
+        console.log(res);
       } catch (e) {
         if (e instanceof AxiosError) {
           if (e.code === 'ECONNREFUSED') {
             throw new E503('Animee-uploads is not available. Try in a few minutes');
           }
 
-          if (e.response?.data.code === 404) {
-            // ignore
-            return;
-          }
-
-          return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+          throw e;
         } else {
-          throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+          throw new E500(`An error occured while deleting episode ${order} in ${dubber.name} for ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
         }
       }
 
       changes.push(`${handlerName}: Episode ${order} in ${dubber.name} deleted`);
       title.dubs!.find(el => el.id === dubber.id)!.eps = title.dubs!.find(el => el.id === dubber.id)!.eps.filter(el => el.order !== order);
-      title.markModified('dubs');
 
-      console.log(title.dubs?.find(el => el.id === dubber.id));
+      if (!title.dubs!.find(el => el.id === dubber.id)!.eps.length) {
+        changes.push(`${handlerName}: Dub ${dubID} deleted due to no episodes`);
+        title.dubs = title.dubs!.filter(el => el.id !== dubID);
+      }
+
+      title.markModified('dubs');
     }
 
     async function editEpMetaHandler(requiredCap: TRoleCapability) {

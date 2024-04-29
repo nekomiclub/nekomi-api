@@ -211,7 +211,8 @@ interface IEditEpMeta extends ITitleEpisodeMeta {
 ```ts
 {
   msg: 'ok',
-  changes: string[]
+  changes: string[],
+  id?: string // appears only when changing poster
 }
 ```
 
