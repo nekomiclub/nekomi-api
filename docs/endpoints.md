@@ -175,6 +175,10 @@ interface IDeleteEpisode {
   episodeOrder: number,
   dubID: string,
 }
+
+interface IEditEpMeta extends ITitleEpisodeMeta {
+  action: 'edit' | 'delete' | 'add'
+}
 ```
 
 #### Params
@@ -196,7 +200,7 @@ interface IDeleteEpisode {
 | ?setCountry     | string                               | Will reject if county not equal "japan", "south corea" or "china"                 | titleEdit        |
 | ?setDetails     | string                               | Set title details (poster translators, etc)                                       | titleEdit        |
 | ---             | ---                                  | ---                                                                               | ---              |
-| ?editEpMeta     | ITitleEpisodeMeta                    | Change episode meta by it's order, will create new one if not exist               | titleEditEpsMeta |
+| ?editEpMeta     | IEditEpMeta                          | Change episode meta by it's order, will create new one if not exist               | titleEditEpsMeta |
 | ---             | ---                                  | ---                                                                               | ---              |
 | ?uploadEpisode  | IUploadEpisode (multipart/form-data) | Upload new episode. Dubber can only add eps in own dub, editor can add for anyone | seriesAdd        |
 | ?deleteEpisode  | IDeleteEpisode                       | Delete exist episode. Same behaviour  as uploadEpisode                            | seriesDelete     |

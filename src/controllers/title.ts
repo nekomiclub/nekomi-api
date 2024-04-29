@@ -57,6 +57,10 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
 
 
+interface IChangeEpMeta extends ITitleEpisodeMeta {
+  action: 'edit' | 'delete' | 'add'
+}
+
 interface IPatchTitleBody {
   changeNames?: {
     ukr?: string | null
@@ -77,7 +81,7 @@ interface IPatchTitleBody {
   setCountry?: string
   setDetails?: string
 
-  editEpMeta?: ITitleEpisodeMeta
+  editEpMeta?: IChangeEpMeta
 
   deleteEpisode?: {
     episodeOrder?: string
@@ -618,7 +622,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         }
       }
 
-      changes.push(`Episode ${order} in ${dubber.name} deleted`);
+      changes.push(`${handlerName}: Episode ${order} in ${dubber.name} deleted`);
       title.dubs!.find(el => el.id === dubber.id)!.eps = title.dubs!.find(el => el.id === dubber.id)!.eps.filter(el => el.order !== order);
       title.markModified('dubs');
 
@@ -630,6 +634,48 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
       if (!title) throw new E404(`Title ${id} is not found`);
       if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
+
+      const { dateOut, names, order, action } = editEpMeta!;
+
+      if (!dateOut || !names || !names.eng || !names.ukr || !order || !action) throw new E400('Date out, names, action and order are required');
+      if (isNaN(+dateOut) || isNaN(+order)) throw new E400('Date out and order can not be NaN');
+
+      if (!title.epsMeta) {
+        title.epsMeta = [];
+      }
+
+      const ep = title.epsMeta!.find(el => el.order === order);
+      title.markModified('epsMeta');
+
+      if (action === 'add') {
+        if (ep) throw new E400(`Ep ${order} is already exist`);
+        changes.push(`${handlerName}: Meta for ${order} episode added`);
+
+        title.epsMeta.push({
+          dateOut,
+          names: {
+            eng: names.eng.trim(),
+            ukr: names.ukr.trim(),
+          },
+          order,
+        });
+      } else if (action === 'delete') {
+        if (!ep) throw new E400(`Ep ${order} is not exist`);
+        changes.push(`${handlerName}: Meta for ${order} episode deleted`);
+
+        title.epsMeta = title.epsMeta.filter(el => el.order !== order);
+      } else if (action === 'edit') {
+        if (!ep) throw new E400(`Ep ${order} is not exist`);
+        changes.push(`${handlerName}: Meta for ${order} episode changed`);
+
+        ep.dateOut = dateOut;
+        ep.names = {
+          eng: names.eng.trim(),
+          ukr: names.ukr.trim(),
+        };
+      } else {
+        throw new E400(`Action ${action} is invalid`);
+      }
     }
   });
 }
