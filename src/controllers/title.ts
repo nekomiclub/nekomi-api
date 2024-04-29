@@ -1,10 +1,11 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
 import { convert as urlSlugConvert } from 'url-slug';
+import ip from 'ip';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E403, E404, catchError } from '../handlers/v1/Errors';
+import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/Errors';
 import Title from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
@@ -83,11 +84,15 @@ interface IPatchTitleBody {
   },
 }
 
+/** PATCH title form data type */
+type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
+
 export async function patchTitle(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
     const { id } = req.params as { id: string };
+    const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
     const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, } = req.body as IPatchTitleBody;
 
     const title = await Title.findOne({ id });
@@ -103,6 +108,89 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
     const caps = await parseRoles(user.roles);
+
+    if (contentType.match('multipart/form-data')) {
+      const file = req.file;
+      const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: number, dubID?: string };
+
+      if (!file) {
+        throw new E400('File is not provided');
+      }
+
+      if (!type) {
+        throw new E400('Type is not provided');
+      }
+
+      if (type === 'change_poster') {
+        if (!caps.includes('root') && !caps.includes('titleEdit')) throw new E403('You do not have access to change poster');
+
+        const { buffer, originalname, filename, mimetype } = file;
+        const formData = new FormData();
+
+        formData.append('file', new Blob([buffer], {
+          type: mimetype
+        }), originalname);
+        formData.set('type', 'photo/title/poster');
+        formData.set('createdBy', user.id);
+
+        try {
+          if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
+            //* Update
+            const id = title.poster.split('/')[title.poster.split('/').length - 1];
+
+            const { data: putData } = await axios.put(`${config.microservices.uploadsURL}/v1/upload/${id}`, formData, { validateStatus: (s) => s < 500 });
+
+            // If poster unavailable
+            if (putData.code === 404) {
+              const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
+
+              title.poster = `${config.URL.media}/${postData.id}`;
+              title.markModified('poster');
+
+              try {
+                await title.save();
+              } catch (e) {
+                // ignore
+              }
+
+              return res.status(201).json({ msg: 'Poster is unavailable, creating new..' });
+            } else {
+              return res.status(200).json({ msg: 'Poster changed' });
+            }
+          } else {
+            //* Upload new
+            const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
+
+            title.poster = `${config.URL.media}/${postData.id}`;
+            title.markModified('poster');
+
+            try {
+              await title.save();
+            } catch (e) {
+              // ignore
+            }
+
+            return res.status(200).json({ msg: 'Poster uploaded' });
+          }
+        } catch (e) {
+          if (e instanceof AxiosError) {
+            if (e.code === 'ECONNRESET') {
+              throw new E503('Animee-uploads is not available. Try in a few minutes');
+            }
+
+            return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+          } else {
+            throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+          }
+        }
+      } else if (type === 'upload_episode') {
+        if (!caps.includes('root') && !caps.includes('seriesAdd')) throw new E403('You do not have access to uploading episodes');
+
+      }
+
+      return;
+    }
+
 
     // titleEdit
     if (changeNames) await changeNamesHandler('titleEdit');
@@ -371,6 +459,16 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       title.markModified('year');
     }
 
+    async function uploadFile(requiredCap: TRoleCapability): Promise<string> {
+      const handlerName = '[$FileUploading]';
+
+      if (!title) throw new E404(`Title ${id} is not found`);
+      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+
+
+      return 'ID';
+    }
+
     async function deleteEpisodeHandler(requiredCap: TRoleCapability) {
       const handlerName = '[DeleteEpisode]';
 
@@ -400,5 +498,11 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
   await catchError(req, res, routeCode, async () => {
     const { id } = req.params as { id: string };
+
+    const title = await Title.findOne({ id });
+
+    if (!title) throw new E404(`Title ${id} is not found`);
+
+    await title.deleteOne();
   });
 }

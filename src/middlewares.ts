@@ -101,7 +101,6 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       const user = await User.findOne({ id });
 
-      // TODO fallback that find user by email (get email from usapi, split by @, try to find in db by username), if fail create new
       if (!user) {
         throw new E404(`User with id provided by session token (${id}) is not found`);
       }

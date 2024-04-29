@@ -152,12 +152,23 @@ interface IChangeNames {
   alt: string[] | null
 } 
 
+type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
+
+// multipart/form-data
+interface IChangePoster {
+  file: File,
+  type: TPatchTitleFormDataType // 'change_poster'
+}
+
+// multipart/form-data
 interface IUploadEpisode {
   file: File,
   episodeOrder: number,
   dubID: string,
+  type: TPatchTitleFormDataType // 'upload_episode'
 }
 
+// application/json
 interface IDeleteEpisode {
   episodeOrder: number,
   dubID: string,
@@ -169,7 +180,7 @@ interface IDeleteEpisode {
 | --------------- | ------------------------------------ | --------------------------------------------------------------------------------- | ---------------- |
 | (query) id      | string                               | Title ID                                                                          | -                |
 | ?changeNames    | IChangeName                          | Change title names                                                                | titleEdit        |
-| ?changePoster   | File                                 | Upload file that replace exist poster                                             | titleEdit        |
+| ?changePoster   | IChangePoster                        | Upload file that replace exist poster                                             | titleEdit        |
 | ?setRating      | number                               | Set new title rating                                                              | titleEdit        |
 | ?setDescription | string                               | Set new title description                                                         | titleEdit        |
 | ?setStatus      | string                               | Set new title status                                                              | titleEdit        |

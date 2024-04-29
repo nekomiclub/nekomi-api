@@ -54,7 +54,10 @@ export const config = {
   /** URLs */
   URL: {
     /** Animee client URL */
-    client: prodMode ? `https://animee.club` : `http://${getIP('0.0.0.0')}:3001`
+    client: prodMode ? `https://animee.club` : `http://${getIP('0.0.0.0')}:3001`,
+
+    /** Media URL */
+    media: prodMode ? `https://media.animee.club` : `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`
   },
 
   /** Tests data */

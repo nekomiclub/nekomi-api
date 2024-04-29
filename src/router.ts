@@ -3,7 +3,6 @@ import multer from 'multer';
 import path from 'path';
 import * as uuid from 'uuid';
 import { body, cookie, param, query } from 'express-validator';
-import cors from 'cors';
 import ip from 'ip';
 
 import * as RouteValidation from './handlers/routeValidation';
@@ -26,20 +25,6 @@ export const UserRouter = express.Router();
 export const TitleRouter = express.Router();
 
 export const DevRouter = express.Router();
-
-/** CORS that pass any request but without cookies */
-const publicCORS = cors({
-  origin: '*',
-  credentials: false
-});
-
-/** CORS that works with cookies and pass only specified origins */
-const privateCORS = cors({
-  origin: [
-    config.URL.client
-  ],
-  credentials: true
-});
 
 
 
@@ -108,21 +93,21 @@ DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevContro
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
-TitleRouter.post('/', privateCORS, TitleController.postTitle);
-TitleRouter.patch('/:id', privateCORS, RouteValidation.patchTitleId, TitleController.patchTitle);
-TitleRouter.delete('/:id', privateCORS, TitleController.deleteTitle);
+TitleRouter.post('/', RouteValidation.privateCORS, TitleController.postTitle);
+TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
+TitleRouter.delete('/:id', RouteValidation.privateCORS, RouteValidation.deleteTitleId, TitleController.deleteTitle);
 
 
 
 /** @deprecated */
-ApiV1.get(`/titles`, privateCORS, v1CTitle.getMany);
+ApiV1.get(`/titles`, RouteValidation.privateCORS, v1CTitle.getMany);
 /** @deprecated */
-ApiV1.get(`/titles/search`, privateCORS, v1CTitle.search);
+ApiV1.get(`/titles/search`, RouteValidation.privateCORS, v1CTitle.search);
 
 
 
 //! Must be below all endpoints
-TitleRouter.get('/:query', privateCORS, TitleController.getTitleQuery);
+TitleRouter.get('/:query', RouteValidation.privateCORS, TitleController.getTitleQuery);
 
 //! Private
 /** @deprecated All patch requests must be refactored in 1.1.0 */
@@ -143,8 +128,8 @@ ApiV1.delete(`/title`, ...[
 
 
 //* ------------------ DUBBER ROUTER ------------------
-ApiV1.get(`/dubber/:query`, privateCORS, v1CDubber.getOne);
-ApiV1.post(`/dubber/parse`, privateCORS, RouteValidation.postDubbersParse, v1CDubber.parse);
+ApiV1.get(`/dubber/:query`, RouteValidation.privateCORS, v1CDubber.getOne);
+ApiV1.post(`/dubber/parse`, RouteValidation.privateCORS, RouteValidation.postDubbersParse, v1CDubber.parse);
 
 
 
@@ -152,10 +137,10 @@ ApiV1.post(`/dubber/parse`, privateCORS, RouteValidation.postDubbersParse, v1CDu
 import * as UserController from './controllers/user';
 import { config } from './config';
 
-UserRouter.get(`/logout`, privateCORS, UserController.getLogout);
-UserRouter.get(`/:query`, privateCORS, UserController.getQuery);
-UserRouter.post(`/signin`, privateCORS, RouteValidation.getUserAuth, UserController.postSignin);
-UserRouter.patch(`/`, privateCORS, RouteValidation.userPatch, UserController.patchUser);
+UserRouter.get(`/logout`, RouteValidation.privateCORS, UserController.getLogout);
+UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);
+UserRouter.post(`/signin`, RouteValidation.privateCORS, RouteValidation.getUserAuth, UserController.postSignin);
+UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, UserController.patchUser);
 
 
 
@@ -172,7 +157,7 @@ ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-b
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
 
 //* Media proxy
-ProxyRouter.get(`/media/:id`, publicCORS, v1CProxy.getMedia); //! DEPRECATED. Use media.animee.club/:id instead.
+ProxyRouter.get(`/media/:id`, RouteValidation.publicCORS, v1CProxy.getMedia); //! DEPRECATED. Use media.animee.club/:id instead.
 
 ApiV1.post('/upload', ...[
   (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
@@ -196,4 +181,4 @@ ApiV1.post('/titleUpdate', v1C.titleUpdate);
 
 
 //* ------------------ ALLIASES ------------------
-ApiV1.get(`/media/:id`, publicCORS, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;
+ApiV1.get(`/media/:id`, RouteValidation.publicCORS, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;
