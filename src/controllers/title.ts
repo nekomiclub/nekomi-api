@@ -7,12 +7,13 @@ import * as dto from '../handlers/dtos';
 
 import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/Errors';
 import Title from '../Models/Title';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
+import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeDubbed, ITitleEpisodeMeta, ITitleEpisodesDub, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken } from '../services/TokenService';
 import User from '../Models/User';
 import { parseRoles } from '../handlers/v1/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
+import Dubbers from '../Models/Dubber';
 
 
 
@@ -111,7 +112,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
     if (contentType.match('multipart/form-data')) {
       const file = req.file;
-      const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: number, dubID?: string };
+      const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: string, dubID?: string };
+      let { qualities } = req.body as { qualities?: string | number[] };
 
       if (!file) {
         throw new E400('File is not provided');
@@ -121,17 +123,18 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         throw new E400('Type is not provided');
       }
 
+      const { buffer, originalname, filename, mimetype } = file;
+      const formData = new FormData();
+
+      formData.append('file', new Blob([buffer], {
+        type: mimetype
+      }), originalname);
+      formData.set('createdBy', user.id);
+
       if (type === 'change_poster') {
         if (!caps.includes('root') && !caps.includes('titleEdit')) throw new E403('You do not have access to change poster');
 
-        const { buffer, originalname, filename, mimetype } = file;
-        const formData = new FormData();
-
-        formData.append('file', new Blob([buffer], {
-          type: mimetype
-        }), originalname);
         formData.set('type', 'photo/title/poster');
-        formData.set('createdBy', user.id);
 
         try {
           if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
@@ -186,6 +189,120 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       } else if (type === 'upload_episode') {
         if (!caps.includes('root') && !caps.includes('seriesAdd')) throw new E403('You do not have access to uploading episodes');
 
+        if (!dubID || !episodeOrder || !qualities) throw new E400('DubID, episode order and qualities are not required');
+
+        try {
+          qualities = JSON.parse(qualities as string) as number[];
+        } catch (e) {
+          throw new E400(`An error occured while parsing qualities field - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+        }
+
+        const dubber = await Dubbers.findOne({ id: dubID });
+
+        // Reject if dub is not found
+        if (!dubber) throw new E404(`Dub ${dubID} is not found`);
+
+        // Reject if episode is NaN
+        if (isNaN(+episodeOrder)) throw new E400('Episode can not be NaN');
+        const order = +episodeOrder;
+
+        // Default ep instance
+        const defaultEp: ITitleEpisodeDubbed = {
+          framesURL: [],
+          order: order,
+          source: {
+            q2k: null,
+            q1080: '',
+            q720: null,
+            q480: null,
+            q240: null,
+          },
+          subIDs: null
+        };
+
+        // Default dub instance
+        let dub: ITitleEpisodesDub = {
+          id: dubber.id,
+          eps: [defaultEp],
+          include2K: false,
+          includeSub: false,
+        };
+
+        if (title.dubs) {
+          // Title dubs is not null
+
+          const titleDub = title.dubs.find(el => el.id === dubID);
+
+          if (titleDub) {
+            // If dub exist set it as operational
+            dub = titleDub;
+          } else {
+            // If dub not exist, create it
+            title.dubs.push(dub);
+          }
+        } else {
+          // Title dubs is null
+
+          // Set dubs
+          title.dubs = [dub];
+        }
+
+        if (dub.eps.find(el => el.order === order)) {
+          // Reject if episode exist
+          throw new E400(`Episode ${episodeOrder} in ${dubber.name} is already exist`);
+        } else {
+          // Ep is not found. Push default
+          dub.eps.push(defaultEp);
+        }
+
+        // Upload episode
+        formData.set('type', 'video/title/episode');
+        formData.set('qualities', JSON.stringify(qualities));
+
+        try {
+          const ep = dub.eps.find(el => el.order === order);
+
+          // Upload
+          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
+          const id = data.id;
+          // const id = 'id';
+          const frames = data.frames;
+          // const frames = 12;
+
+          ep!.source.q2k = qualities!.includes(1440) ? `${config.URL.media}/${id}_q_1440` : null;
+          ep!.source.q1080 = `${config.URL.media}/${id}`;
+          ep!.source.q720 = qualities!.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
+          ep!.source.q480 = qualities!.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
+          ep!.source.q240 = qualities!.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
+
+          let i = 0;
+
+          while (i < frames) {
+            ep!.framesURL!.push(`${config.URL.media}/${id}_f_${i}`);
+            i++;
+          }
+
+          dub.eps.sort((a, b) => a.order - b.order);
+          title.markModified('dubs');
+
+          try {
+            await title.save();
+          } catch (e) {
+            // ignore
+          }
+
+          return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!` });
+        } catch (e) {
+          if (e instanceof AxiosError) {
+            if (e.code === 'ECONNRESET') {
+              throw new E503('Animee-uploads is not available. Try in a few minutes');
+            }
+
+            return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+          } else {
+            throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+          }
+        }
       }
 
       return;
