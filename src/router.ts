@@ -12,7 +12,6 @@ import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CWS from './controllers/v1/ws';
 import * as v1CProxy from './controllers/v1/proxy';
 
-import { TAnimeGenre } from './interfaces/Title';
 import { ensureAccess } from './middlewares';
 
 
@@ -25,58 +24,6 @@ export const UserRouter = express.Router();
 export const TitleRouter = express.Router();
 
 export const DevRouter = express.Router();
-
-
-
-/** @deprecated */
-const titleValidation = [
-  body([
-    'names.eng',
-    'names.ukr',
-    'code',
-    'poster',
-    'background',
-    'description',
-    'estimatedEps',
-    'year',
-    'country',
-  ]).notEmpty(),
-  body('status').isIn(['announcement', 'ongoing', 'out', 'delayed']),
-  body('genres').custom((input: TAnimeGenre[]) => {
-    const genres: TAnimeGenre[] = [
-      'chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy',
-      'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons',
-      'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music',
-      'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural',
-      'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller',
-      'erotica', 'gourmet'
-    ];
-
-    input.forEach(genre => {
-      if (!genres.includes(genre)) {
-        throw new Error(`Input includes wrong genre (${genre})`);
-      }
-    });
-
-    return true;
-  }),
-  body('ageRate').isIn(['G', 'PG', 'PG-13', 'R-17', 'R+']),
-  body('season').isIn(['summer', 'autumn', 'winter', 'spring']),
-  body('type').isIn(['serial', 'ONA', 'OVA', 'film', 'special']),
-  body([
-    'rating',
-    'started',
-    'ended',
-    'dubs',
-    'epsMeta',
-  ]).custom(input => {
-    if (input === undefined) {
-      throw new Error('Field must be notEmpty or null');
-    }
-
-    return true;
-  })
-];
 
 
 
@@ -93,7 +40,7 @@ DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevContro
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
-TitleRouter.post('/', RouteValidation.privateCORS, TitleController.postTitle);
+TitleRouter.post('/', RouteValidation.postTitle, RouteValidation.privateCORS, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.privateCORS, RouteValidation.deleteTitleId, TitleController.deleteTitle);
 
@@ -109,22 +56,6 @@ ApiV1.get(`/titles/search`, RouteValidation.privateCORS, v1CTitle.search);
 //! Must be below all endpoints
 TitleRouter.get('/:query', RouteValidation.privateCORS, TitleController.getTitleQuery);
 
-//! Private
-/** @deprecated All patch requests must be refactored in 1.1.0 */
-ApiV1.patch(`/title`, ...[
-  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
-  titleValidation,
-], v1CTitle.update); //! MUST BE REFACTORED DUE DANGEROUS IMPACT
-
-ApiV1.post(`/title`, ...[
-  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
-  titleValidation,
-], v1CTitle.create);
-
-ApiV1.delete(`/title`, ...[
-  (req, res, next) => ensureAccess(['root', 'admin', 'editor'], req, res, next),
-], v1CTitle.remove);
-
 
 
 //* ------------------ DUBBER ROUTER ------------------
@@ -135,7 +66,6 @@ ApiV1.post(`/dubber/parse`, RouteValidation.privateCORS, RouteValidation.postDub
 
 //* ------------------ USER ROUTER ------------------
 import * as UserController from './controllers/user';
-import { config } from './config';
 
 UserRouter.get(`/logout`, RouteValidation.privateCORS, UserController.getLogout);
 UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);

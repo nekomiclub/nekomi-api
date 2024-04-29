@@ -58,6 +58,11 @@ export const userPatch = [
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
+export const postTitle = [
+  AccessControl(['titleAdd']),
+  privateCORS,
+];
+
 export const patchTitleId = [
   AccessControl(['basic']),
   privateCORS,

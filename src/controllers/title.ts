@@ -6,7 +6,7 @@ import ip, { or } from 'ip';
 import * as dto from '../handlers/dtos';
 
 import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/Errors';
-import Title from '../Models/Title';
+import Title, { createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeDubbed, ITitleEpisodeMeta, ITitleEpisodesDub, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken } from '../services/TokenService';
@@ -51,7 +51,9 @@ export async function postTitle(req: express.Request, res: express.Response) {
   const routeCode = `${req.method} ${req.baseUrl}`;
 
   await catchError(req, res, routeCode, async () => {
+    const id = await createTitle();
 
+    return res.status(201).json({ msg: 'Title created!', id });
   });
 }
 

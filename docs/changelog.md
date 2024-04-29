@@ -30,5 +30,6 @@ Refactored
 - User roles/permissions system
 - User router changed from /v1/user/* > /user/*
 - User router patch changed, see PATCH /user for migration guide
+- Title router changed from /v1/title/* > /title/*
 
 ### [Return](../README.md)
