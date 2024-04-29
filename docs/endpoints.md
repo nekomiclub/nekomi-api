@@ -153,6 +153,7 @@ interface IChangeNames {
 } 
 
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
+type TPatchTitleFormDataQualities = 1440 | 1080 | 720 | 480 | 240
 
 // multipart/form-data
 interface IChangePoster {
@@ -165,7 +166,8 @@ interface IUploadEpisode {
   file: File,
   episodeOrder: number,
   dubID: string,
-  type: TPatchTitleFormDataType // 'upload_episode'
+  type: TPatchTitleFormDataType, // 'upload_episode'
+  qualities: TPatchTitleFormDataQualities[]
 }
 
 // application/json

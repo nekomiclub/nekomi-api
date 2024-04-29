@@ -1,7 +1,7 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
 import { convert as urlSlugConvert } from 'url-slug';
-import ip from 'ip';
+import ip, { or } from 'ip';
 
 import * as dto from '../handlers/dtos';
 
@@ -59,9 +59,9 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
 interface IPatchTitleBody {
   changeNames?: {
-    ukr: string | null
-    eng: string | null
-    alt: string[] | null
+    ukr?: string | null
+    eng?: string | null
+    alt?: string[] | null
   }
 
   setRating?: number
@@ -80,8 +80,8 @@ interface IPatchTitleBody {
   editEpMeta?: ITitleEpisodeMeta
 
   deleteEpisode?: {
-    episodeOrder: number
-    dubID: string
+    episodeOrder?: string
+    dubID?: string
   },
 }
 
@@ -177,7 +177,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
         } catch (e) {
           if (e instanceof AxiosError) {
-            if (e.code === 'ECONNRESET') {
+            if (e.code === 'ECONNREFUSED') {
               throw new E503('Animee-uploads is not available. Try in a few minutes');
             }
 
@@ -265,16 +265,16 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           // Upload
           const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
           const id = data.id;
-          // const id = 'id';
           const frames = data.frames;
-          // const frames = 12;
 
+          // Set sources
           ep!.source.q2k = qualities!.includes(1440) ? `${config.URL.media}/${id}_q_1440` : null;
           ep!.source.q1080 = `${config.URL.media}/${id}`;
           ep!.source.q720 = qualities!.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
           ep!.source.q480 = qualities!.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
           ep!.source.q240 = qualities!.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
 
+          // Set frames URLs
           let i = 0;
 
           while (i < frames) {
@@ -282,6 +282,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             i++;
           }
 
+          // Sort episodes in order
           dub.eps.sort((a, b) => a.order - b.order);
           title.markModified('dubs');
 
@@ -294,7 +295,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!` });
         } catch (e) {
           if (e instanceof AxiosError) {
-            if (e.code === 'ECONNRESET') {
+            if (e.code === 'ECONNREFUSED') {
               throw new E503('Animee-uploads is not available. Try in a few minutes');
             }
 
@@ -304,6 +305,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
         }
       }
+
 
       return;
     }
@@ -345,7 +347,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[ChangeNames]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
       if (changeNames?.ukr) {
         changes.push(`${handlerName}: Name changed (ukr): ${title.names.ukr} > ${changeNames.ukr.trim()}`);
@@ -379,7 +381,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetAgeRate]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -396,7 +398,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetCountry]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -413,7 +415,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetDescription]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -429,7 +431,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetDetails]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -445,7 +447,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetEps]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -461,7 +463,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetGenres]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
       const genres: TAnimeGenre[] = [];
@@ -482,7 +484,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetRating]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -500,7 +502,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetSeason]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -516,7 +518,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetStatus]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -532,7 +534,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetStudios]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -548,7 +550,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetType]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -564,7 +566,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const handlerName = '[SetYear]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
 
 
@@ -576,34 +578,58 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       title.markModified('year');
     }
 
-    async function uploadFile(requiredCap: TRoleCapability): Promise<string> {
-      const handlerName = '[$FileUploading]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
-
-
-      return 'ID';
-    }
-
     async function deleteEpisodeHandler(requiredCap: TRoleCapability) {
       const handlerName = '[DeleteEpisode]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
 
+      const { dubID, episodeOrder } = deleteEpisode as { episodeOrder?: string, dubID?: string };
 
+      if (!dubID || !episodeOrder) throw new E400('Episode order and dub id are required');
+      if (isNaN(+episodeOrder)) throw new E400('Episode order can not be NaN');
 
+      const order = +episodeOrder;
+      const dubber = await Dubbers.findOne({ id: dubID });
+
+      // Reject if dub is not found
+      if (!dubber) throw new E404(`Dub ${dubID} is not found`);
+
+      const ep = title.dubs?.find(el => el.id === dubber.id)?.eps.find(el => el.order === order);
+
+      if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
+
+      try {
+        await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.source.q1080}`);
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.code === 'ECONNREFUSED') {
+            throw new E503('Animee-uploads is not available. Try in a few minutes');
+          }
+
+          if (e.response?.data.code === 404) {
+            // ignore
+            return;
+          }
+
+          return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+        } else {
+          throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+        }
+      }
+
+      changes.push(`Episode ${order} in ${dubber.name} deleted`);
+      title.dubs!.find(el => el.id === dubber.id)!.eps = title.dubs!.find(el => el.id === dubber.id)!.eps.filter(el => el.order !== order);
+      title.markModified('dubs');
+
+      console.log(title.dubs?.find(el => el.id === dubber.id));
     }
 
     async function editEpMetaHandler(requiredCap: TRoleCapability) {
       const handlerName = '[EditEpMeta]';
 
       if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap)) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
+      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
     }
   });
 }
