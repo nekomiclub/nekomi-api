@@ -42,7 +42,7 @@ import * as TitleController from './controllers/title';
 TitleRouter.get('/total', TitleController.getTotal);
 TitleRouter.post('/', RouteValidation.postTitle, RouteValidation.privateCORS, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
-TitleRouter.delete('/:id', RouteValidation.privateCORS, RouteValidation.deleteTitleId, TitleController.deleteTitle);
+TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
 
 
 
@@ -69,7 +69,7 @@ import * as UserController from './controllers/user';
 
 UserRouter.get(`/logout`, RouteValidation.privateCORS, UserController.getLogout);
 UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);
-UserRouter.post(`/signin`, RouteValidation.privateCORS, RouteValidation.getUserAuth, UserController.postSignin);
+UserRouter.post(`/signin`, RouteValidation.userSignin, RouteValidation.getUserAuth, UserController.postSignin);
 UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, UserController.patchUser);
 
 

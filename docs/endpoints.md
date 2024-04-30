@@ -137,9 +137,11 @@ Get total count of titles & renewed (where country != 'null')
 
 Update title info
 
-| DEPRECATED | CSRF  |    CORS     |    CAPS    | VERSION | TEST COVERED |
-| :--------: | :---: | :---------: | :--------: | :-----: | :----------: |
-|   false    | true  | animee.club | See params |  1.1.0  |    false     |
+| DEPRECATED | CSRF  | CORS  |    CAPS    | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :--------: | :-----: | :----------: |
+|   false    | true  | CSRF  | See params |  1.1.0  |    false     |
+
+CSRF: animee.club, updater.animee.club
 
 ## Interfaces
 ```ts
@@ -227,16 +229,11 @@ interface IEditEpMeta extends ITitleEpisodeMeta {
 
 Create a new title
 
+| DEPRECATED | CSRF  | CORS  |   CAPS   | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :------: | :-----: | :----------: |
+|   false    | true  | CSRF  | titleAdd |  1.1.0  |    false     |
 
-| DEPRECATED | CSRF  |    CORS     |   CAPS   | VERSION | TEST COVERED |
-| :--------: | :---: | :---------: | :------: | :-----: | :----------: |
-|   false    | true  | animee.club | titleAdd |  1.1.0  |    false     |
-
-
-#### Params
-| NAME | TYPE | DESCRIPTION |
-| ---- | ---- | ----------- |
-|      |      |             |
+CSRF: animee.club, updater.animee.club
 
 #### Success response
 - Code: 200
@@ -253,10 +250,11 @@ Create a new title
 
 Delete title
 
+| DEPRECATED | CSRF  | CORS  |    CAPS     | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :---------: | :-----: | :----------: |
+|   false    | true  | CSRF  | titleDelete |  1.1.0  |    false     |
 
-| DEPRECATED | CSRF  |    CORS     |    CAPS     | VERSION | TEST COVERED |
-| :--------: | :---: | :---------: | :---------: | :-----: | :----------: |
-|   false    | true  | animee.club | titleDelete |  1.1.0  |    false     |
+CSRF: animee.club, updater.animee.club
 
 #### Params
 | NAME       | TYPE   | DESCRIPTION |
@@ -282,9 +280,11 @@ Delete title
 
 Authorize user & get session cookie, if user is not found, will try to find exist by username (email splitted by @), if not will create a new one
 
-| DEPRECATED | CSRF  |    CORS     | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---------: | :---: | :-----: | :----------: |
-|   false    | false | animee.club |   -   |  1.1.0  |     true     |
+| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :---: | :-----: | :----------: |
+|   false    | true  | CSRF  |   -   |  1.1.0  |     true     |
+
+CSRF: animee.club, updater.animee.club
 
 #### Params
 | NAME    | TYPE   | DESCRIPTION                  |
@@ -306,9 +306,9 @@ Authorize user & get session cookie, if user is not found, will try to find exis
 
 Remove session cookie
 
-| DEPRECATED | CSRF  |    CORS     | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---------: | :---: | :-----: | :----------: |
-|   false    | false | animee.club |   -   |  1.1.0  |  Not needed  |
+| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :---: | :-----: | :----------: |
+|   false    | false |   *   |   -   |  1.1.0  |  Not needed  |
 
 #### Success response
 - Code: 200

@@ -19,6 +19,7 @@ import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
 import { sendDayStat } from './services/v1/stats';
 import { createUser } from './Models/User';
+import { signToken } from './services/TokenService';
 
 const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8');
 const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8');
@@ -145,6 +146,8 @@ async function onReady() {
       // Create basic roles
       await handler.createRoles();
     }
+
+    // console.log(signToken('CSRF', {}));
 
 
     await sendDayStat();

@@ -7,7 +7,7 @@ import { getFileExtension, parseRoles } from './handlers/v1/handlers';
 import { TUserRoles } from './core/IUser';
 import * as authService from './services/v1/auth';
 import { config, devMode, prodMode, testMode } from './config';
-import axios, { AxiosError } from 'axios';
+import axios, { Axios, AxiosError } from 'axios';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
 
@@ -131,6 +131,55 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       if (e instanceof ErrorConstructor) {
         if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
         return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(e);
+      } else {
+        console.error(e);
+        return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+      }
+    }
+  };
+}
+
+/** CSRF-check middleware
+ * @param origins Define allowed origins. To check only token validity let this array empty
+ */
+export function CSRFCheck(origins?: string[]) {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const token = req.header('CSRF_TOKEN');
+
+      // TODO: Make test functionality
+      if (testMode) {
+        return next();
+      }
+
+      if (!token) throw new E403('This endpoint is secured under CSRF');
+
+      const { data } = await axios.post<{ verified: boolean, origin: string }>(`${config.URL.fullkekw_authority}/authority/verify`, {
+        token
+      }, {
+        validateStatus: (s) => s < 500
+      });
+
+      if (!data.verified) {
+        throw new E403('CSRF invalid');
+      }
+
+      if (!origins?.length || origins.includes(data.origin)) {
+        return next();
+      }
+
+      throw new E403('Origin missmatch');
+    } catch (e) {
+      if (e instanceof ErrorConstructor) {
+        if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(e);
+      } else if (e instanceof AxiosError) {
+        if (e.code === 'ECONNREFUSED') {
+          return res.status(503).json({ msg: 'Fullkekw authority temporary unavailable. Try in a few minutes' });
+        } else {
+          console.error(e);
+          return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+        }
       } else {
         console.error(e);
         return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });

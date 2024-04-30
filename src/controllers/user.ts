@@ -68,8 +68,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
           await user.save();
         }
       } catch (e) {
+        console.log(e);
         const emsg = `Unknown error occured while getting user with id ${id}. Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`;
-        console.error(emsg);
         throw new E500(emsg);
       }
     }

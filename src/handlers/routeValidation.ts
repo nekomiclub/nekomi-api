@@ -2,7 +2,7 @@ import { query, body, param } from 'express-validator';
 import cors from 'cors';
 import multer from 'multer';
 
-import { AccessControl } from '../middlewares';
+import { AccessControl, CSRFCheck } from '../middlewares';
 import { config } from '../config';
 import { patchUserMethods } from '../controllers/user';
 
@@ -50,29 +50,40 @@ export const getUserAuth = [
 ];
 
 export const userPatch = [
+  privateCORS,
   AccessControl(['basic']),
   body('method')
     .notEmpty().withMessage('Method can not be empty')
-    .isIn(patchUserMethods).withMessage('Method invalid')
+    .isIn(patchUserMethods).withMessage('Method invalid'),
+  CSRFCheck(['updater.animee.club', 'animee.club']),
+];
+
+export const userSignin = [
+  privateCORS,
+  CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const postTitle = [
-  AccessControl(['titleAdd']),
   privateCORS,
+  AccessControl(['titleAdd']),
+  CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 export const patchTitleId = [
-  AccessControl(['basic']),
   privateCORS,
+  AccessControl(['basic']),
   param('id')
     .notEmpty().withMessage('ID can not be empty'),
+  CSRFCheck(['updater.animee.club', 'animee.club']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
+  privateCORS,
   AccessControl(['titleDelete']),
   param('id')
-    .notEmpty().withMessage('ID can not be empty')
+    .notEmpty().withMessage('ID can not be empty'),
+  CSRFCheck(['updater.animee.club', 'animee.club']),
 ];

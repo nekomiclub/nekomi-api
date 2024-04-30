@@ -1,15 +1,13 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { prodMode } from '../config';
-
-//! Token signing is not implemented
+import { devMode, prodMode } from '../config';
+import { ISEC_CSRF } from '../../secrets/interfaces';
 
 /** 
- * session - Session method, key stored in SECRETS.session
- * dummy_googleProvider - Test only method
+ * CSRF - sign CSRF token
  */
-export type TTokenMethod = '';
+export type TTokenMethod = 'CSRF';
 
 interface ITokenPayload<T> {
   /** Can be null if method not provided */
@@ -30,18 +28,23 @@ interface ITokenPayload<T> {
 
 const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 
-/** Sign JWT token */
-// export function signToken(method: TTokenMethod, payload: any): string {
-//   if (method === 'session') {
-//     return jwt.sign(payload, SECRETS.session);
-//   } else if (method === SECRETS.dummy_googleProvider) {
-//     return jwt.sign(payload, method, {
-//       expiresIn: '30m'
-//     });
-//   } else {
-//     throw new Error('Method is invalid');
-//   }
-// }
+/** Sign JWT token
+ * CSRF method - will sign CSRF token, with age of 5s (in dev mode 5m). Payload will be ignored
+ */
+export function signToken(method: TTokenMethod, payload: any): string {
+  if (method === 'CSRF') {
+    const key = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/CSRF.json`).toString()) as ISEC_CSRF;
+
+    return jwt.sign({
+      origin: 'api.animee.club'
+    }, prodMode ? key.CSRF.prod : key.CSRF.dev, {
+      expiresIn: prodMode ? '5s' : '5m',
+      algorithm: 'RS256'
+    });
+  } else {
+    throw new Error('Method is invalid');
+  }
+}
 
 /** Decode JWT token. If method is present will also verify token */
 export function decodeToken<T = any>(token: string, method?: TTokenMethod): ITokenPayload<T> {
@@ -83,9 +86,7 @@ export function decodeToken<T = any>(token: string, method?: TTokenMethod): ITok
 /** Verify JWT token with provided method */
 // export function verifyToken<T = any>(token: string, method: TTokenMethod): boolean {
 //   try {
-//     if (method === 'session') {
-//       return Boolean(jwt.verify(token, SECRETS.session));
-//     } else if (method === SECRETS.dummy_googleProvider) {
+//     if (method === '') {
 //       return Boolean(jwt.verify(token, method));
 //     } else {
 //       throw new Error();
