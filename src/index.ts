@@ -145,6 +145,9 @@ async function onReady() {
 
       // Create basic roles
       await handler.createRoles();
+
+      // Modify URLs
+      await handler.modifyMediaURLs();
     }
 
     // console.log(signToken('CSRF', {}));

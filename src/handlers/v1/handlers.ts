@@ -275,3 +275,42 @@ export async function createRoles() {
 
   console.log(`Roles created`);
 }
+
+export async function modifyMediaURLs() {
+  console.log(`Media URLs modifying started`);
+
+  const titles = await Title.find();
+
+  for (const i in titles) {
+    const title = titles[i];
+
+    title.poster = `${config.URL.media}/${getID(title.poster)}`;
+
+    title.dubs?.forEach(dub => {
+      dub.eps.forEach(ep => {
+        if (ep.source.q1080) ep.source.q1080 = `${config.URL.media}/${getID(ep.source.q1080)}`;
+        if (ep.source.q720) ep.source.q720 = `${config.URL.media}/${getID(ep.source.q720)}`;
+        if (ep.source.q480) ep.source.q480 = `${config.URL.media}/${getID(ep.source.q480)}`;
+        if (ep.source.q240) ep.source.q240 = `${config.URL.media}/${getID(ep.source.q240)}`;
+
+        const newFrames: string[] = [];
+        ep.framesURL?.forEach(frame => {
+          newFrames.push(`${config.URL.media}/${getID(frame)}`);
+        });
+
+        ep.framesURL = newFrames;
+      });
+    });
+
+    console.log(`Title ${title.id} modified`)
+    title.markModified('poster')
+    title.markModified('dubs')
+    await title.save();
+  }
+
+  function getID(url: string): string {
+    return url.split('/')[url.split('/').length - 1];
+  }
+
+  console.log(`Media URLs modifying ended`);
+}
