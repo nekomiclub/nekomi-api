@@ -138,18 +138,6 @@ async function onReady() {
   try {
     listenWSS();
 
-    if (prodMode) {
-      // Modify only on production mode
-      //! WILL SET EVERYONE ROLES TO "user". MUST BE DELETED IN ZERO-DAY PATCH
-      await handler.modifyUsers();
-
-      // Create basic roles
-      await handler.createRoles();
-
-      // Modify URLs
-      await handler.modifyMediaURLs();
-    }
-
     // console.log(signToken('CSRF', {}));
 
 

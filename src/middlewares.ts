@@ -145,7 +145,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 export function CSRFCheck(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-      const token = req.header('CSRF_TOKEN');
+      const token = req.header('X-CSRF-Token');
 
       // TODO: Make test functionality
       if (testMode) {
