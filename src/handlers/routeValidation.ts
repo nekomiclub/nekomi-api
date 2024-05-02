@@ -17,7 +17,8 @@ export const publicCORS = cors({
 /** CORS that works with cookies and pass only specified origins */
 export const privateCORS = cors({
   origin: [
-    config.URL.client
+    config.URL.client,
+    config.URL.updater,
   ],
   credentials: true
 });

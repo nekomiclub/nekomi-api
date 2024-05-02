@@ -302,9 +302,9 @@ export async function modifyMediaURLs() {
       });
     });
 
-    console.log(`Title ${title.id} modified`)
-    title.markModified('poster')
-    title.markModified('dubs')
+    console.log(`Title ${title.id} modified`);
+    title.markModified('poster');
+    title.markModified('dubs');
     await title.save();
   }
 

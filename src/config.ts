@@ -5,9 +5,13 @@ import ip from 'ip';
 
 import { TUserRoles } from './core/IUser';
 import { IANIMEE_CONFIG } from './core/interfaces';
+import { ISEC_CSRF } from '../secrets/interfaces';
 
 /** @deprecated */
 const jwtSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/JWT.json`).toString()) as { accessTokenSecret: string, refreshTokenSecret: string };
+const CSRFSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/CSRF.json`).toString()) as ISEC_CSRF;
+
+
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
 export const devMode = process.argv.includes('devMode');
@@ -33,7 +37,10 @@ export const config = {
     jwtAccess: jwtSecrets.accessTokenSecret,
 
     /** @deprecated */
-    jwtRefresh: jwtSecrets.refreshTokenSecret
+    jwtRefresh: jwtSecrets.refreshTokenSecret,
+
+    /* CSRF Token */
+    CSRF: CSRFSecrets.CSRF
   },
 
   /** Microservices local URLs */
@@ -55,6 +62,9 @@ export const config = {
   URL: {
     /** Animee client URL */
     client: prodMode ? `https://animee.club` : `http://${getIP('0.0.0.0')}:3001`,
+
+    /** Animee updater URL */
+    updater: prodMode ? `https://updater.animee.club` : `http://${getIP('0.0.0.0')}:3000`,
 
     /** Media URL */
     media: prodMode ? `https://media.animee.club` : `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
@@ -100,24 +110,6 @@ export const config = {
 if (devMode) {
   config.service.PORTS.HTTP = 80;
 }
-
-/** Initialize firebase
-  * @deprecated Due to security update in 1.1.0
-  * @since 1.1.0
-*/
-firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.credential.cert(`${path.resolve()}/secrets/firebase.json`)
-});
-
-/** Default user avatars
- * @deprecated Due to security update in 1.1.0. Avatars will manage fullkekw usapi
-  * @since 1.1.0
- */
-export const defaultAvatars: string[] = [
-  `https://api.animee.club/v1/media/05ba8cc3-3ede-420c-bc0a-2f6ae663b74f`,
-  `https://api.animee.club/v1/media/7069ef7f-1ec9-4867-9fa2-ca1bf9e60643`,
-  `https://api.animee.club/v1/media/1ea43878-36f0-416f-9f02-0b6eed54e411`
-];
 
 /** Change IP to current if it match 0.0.0.0 */
 function getIP(raw: string): string {
