@@ -61,7 +61,7 @@ export async function ensureAccess(accessRoles: TUserRoles[], req: express.Reque
 export function AccessControl(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-      const token = req.cookies[config.vars.sessionCookieName] || req.header('Authorization' || 'authorization')?.split('=')[1];
+      const token = req.cookies[config.vars.sessionCookieName] || req.headers['authorization'];
 
       // Reject if authorization token is missing
       if (!token) {

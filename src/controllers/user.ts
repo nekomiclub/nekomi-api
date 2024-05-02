@@ -74,7 +74,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31 }).json({ msg: 'ok' });
+    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: '.animee.club' }).json({ msg: 'ok' });
   });
 }
 
