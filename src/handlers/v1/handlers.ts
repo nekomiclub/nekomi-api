@@ -91,46 +91,6 @@ export function getUTC() {
 }
 
 
-
-export async function modifyUsers() {
-  const startedAt = getUTC().timestamp;
-  let modified = 0;
-
-  console.log(`User modifying started`);
-
-  const users = await User.find();
-  const basicRole = await Role.findOne({ code: 'user' });
-
-  if (!basicRole) {
-    const basicRole = new Role({
-      capabilities: ['basic'],
-      code: 'user',
-      id: createID(true),
-      title: 'User'
-    });
-
-    await basicRole.save();
-  }
-
-  for (const i in users) {
-    const user = users[i];
-
-    // Skip if user has new field
-    if (user.id) {
-      continue;
-    }
-
-    user.id = user.uid;
-    user.roles = ['user'];
-    modified += 1;
-
-    await user.save();
-  }
-
-  console.log(`Users modifying finished within ${((getUTC().timestamp - startedAt) / 1000).toFixed(0)} s. Total modified - ${modified}`);
-}
-
-
 /** Parse user roles and return capabilities */
 export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]> {
   const caps: TRoleCapability[] = [];
@@ -150,128 +110,25 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
   return caps;
 }
 
-interface IRole {
-  code: string,
-  caps: TRoleCapability[],
-  title: string
-}
 
-export async function createRoles() {
-  console.log(`Roles creation started`);
+/** Return posters URL handler */
+export async function returnPosters() {
+  const titles = await Title.find();
+  console.log(`Title posters rollback started`)
 
-  // Support keyword $extend [CODE].
-  // It will add caps of specified role to current
-  // $extend keyword will be deleted in result array
-  const roles: IRole[] = [
-    {
-      code: 'usr',
-      caps: [
-        'root'
-      ],
-      title: 'User'
-    }, {
-      code: 'admin',
-      caps: [
-        'admin',
-        'staffCreateDubber',
-        'staffDeleteDubber',
-        'staffDeleteUser',
-        // @ts-expect-error this is keyword
-        '$extend mod',
-        // @ts-expect-error this is keyword
-        '$extend editor'
-      ],
-      title: 'Administrator'
-    }, {
-      code: 'mod',
-      caps: [
-        'mod',
-        'staffEditDubbers',
-        'staffEditUserInfo',
-        'staffRestrictUser',
-      ],
-      title: 'Moderator'
-    }, {
-      code: 'editor',
-      caps: [
-        'editor',
-        'titleAdd',
-        'titleDelete',
-        'titleEdit',
-        'titleEditEpsMeta',
-        'titleEditLinked',
-        'seriesAdd',
-        'seriesDelete',
-      ],
-      title: 'Editor'
-    }, {
-      code: 'user',
-      caps: [
-        'basic'
-      ],
-      title: 'User'
-    }, {
-      code: 'dubber_leader',
-      caps: [
-        // @ts-expect-error this is keyword
-        '$extend dubber_editor',
-        'dubberEditEditors'
-      ],
-      title: 'Dubber/Leader'
-    }, {
-      code: 'dubber_editor',
-      caps: [
-        // @ts-expect-error this is keyword
-        '$extend dubber_member',
-        'seriesAdd',
-        'seriesDelete',
-        'dubberEditProfile',
-        'dubberEditMembers'
-      ],
-      title: 'Dubber/Editor'
-    }, {
-      code: 'dubber_member',
-      caps: [
-        'dubber'
-      ],
-      title: 'Dubber/Member'
-    }
-  ];
+  for (const key in titles) {
+    const title = titles[key];
+    const posterID = title.poster.split('/')[title.poster.split('/').length - 1];
 
-  // Extend caps
-  roles.forEach(role => {
-    role.caps.forEach(cap => {
-      if (cap.match(/\$extend\s/gi)) {
-        const extendByCode = cap.split(' ')[1];
+    if (!posterID.match(/\./gi)) continue;
 
-        role.caps = role.caps.filter(el => el !== cap);
+    // Set background as poster (old version of poster)
+    title.poster = title.background;
 
-        const extendBy = roles.find(el => el.code === extendByCode);
-
-        if (extendBy) {
-          extendBy.caps.forEach(cap => !role.caps.includes(cap) ? role.caps.push(cap) : null);
-        } else {
-          console.log(`[Role]: Extending by ${extendByCode} is not possible (code not found)`);
-        }
-      }
-    });
-  });
-
-  for (const key in roles) {
-    const role = roles[key];
-
-    // Skip if role with this code is already exist
-    if (await Role.findOne({ code: role.code })) {
-      continue;
-    }
-
-    await createRole({
-      id: createID(),
-      capabilities: role.caps,
-      code: role.code,
-      title: role.title
-    });
+    title.markModified('poster')
+    await title.save()
+    console.log(`Title ${title.id} poster rolled back`)
   }
 
-  console.log(`Roles created`);
+  console.log(`Title posters rollback ended!`)
 }
