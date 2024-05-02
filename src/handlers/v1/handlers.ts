@@ -114,7 +114,7 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
 /** Return posters URL handler */
 export async function returnPosters() {
   const titles = await Title.find();
-  console.log(`Title posters rollback started`)
+  console.log(`Title posters rollback started`);
 
   for (const key in titles) {
     const title = titles[key];
@@ -125,10 +125,10 @@ export async function returnPosters() {
     // Set background as poster (old version of poster)
     title.poster = title.background;
 
-    title.markModified('poster')
-    await title.save()
-    console.log(`Title ${title.id} poster rolled back`)
+    title.markModified('poster');
+    await title.save();
+    console.log(`Title ${title.id} poster rolled back`);
   }
 
-  console.log(`Title posters rollback ended!`)
+  console.log(`Title posters rollback ended!`);
 }
