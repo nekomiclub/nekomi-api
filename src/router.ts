@@ -12,9 +12,6 @@ import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CWS from './controllers/v1/ws';
 import * as v1CProxy from './controllers/v1/proxy';
 
-import { ensureAccess } from './middlewares';
-
-
 
 /** @deprecated use specified routers */
 export const ApiV1 = express.Router();
@@ -74,41 +71,18 @@ UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, Us
 
 
 
-ApiV1.delete(`/user`, ...[
-  (req, res, next) => ensureAccess(['user'], req, res, next), body(['uid']).notEmpty(),
-], UserController.remove); // TODO Deprecated. Will be replaced with fullkekw-auth microservice in near futureST BE REFACTORED DUE DANGEROUS IMPACT
-
-
-
 //* ------------------ PROXY ROUTER ------------------
 //! Testing proxy routes require available microservices. Tested for proxy routes will be written in future.
 
+/** @deprecated post snap was deprecated due to refusal of posting posts of new episodes in tg channel */
 ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-bot microservice
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
-
-//* Media proxy
-ProxyRouter.get(`/media/:id`, RouteValidation.publicCORS, v1CProxy.getMedia); //! DEPRECATED. Use media.animee.club/:id instead.
-
-ApiV1.post('/upload', ...[
-  (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
-], v1C.upload); //TODO Deprecated. Will be proxied in near future; Require animee-uploads microservice
-
-ApiV1.put('/upload/:id', ...[
-  (req, res, next) => ensureAccess(['user'], req, res, next), multer().single('file')
-], v1C.updateUpload); //TODO Deprecated. Will be proxied in near future; Require animee-uploads microservice
-
-ApiV1.delete('/upload/:id', ...[
-  (req, res, next) => ensureAccess(['root', 'admin', 'dubber', 'editor'], req, res, next)
-], v1C.deleteUpload); //TODO Deprecated. Will be proxied in near future; Require animee-uploads microservice
 
 
 
 //* ------------------ SERVICE ROUTER ------------------
 ApiV1.get(`/uptime`, v1C.uptime);
 
-ApiV1.post('/titleUpdate', v1C.titleUpdate);
-
 
 
 //* ------------------ ALLIASES ------------------
-ApiV1.get(`/media/:id`, RouteValidation.publicCORS, v1CProxy.getMedia); //! DEPRECATED. ALLIAS FOR /proxy/media/:id;

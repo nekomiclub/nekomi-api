@@ -11,21 +11,14 @@
   - /dubber
     - [GET /:query](./endpoints.md#get-v1dubberquery)
     - [POST /parse](./endpoints.md#post-v1dubberparse)
-  - DEPRECATED /user
-  - DEPRECATED /auth
 
 - /proxy
-  - DEPRECATED /media
-    - /:id
-  - /postSnap (animee-uploads-bot)
+  - /postSnap (animee-uploads-bot) (deprecated)
   - /parseMetadata (animee-uploads-bot)
-  - /upload (animee-uploads)
-    - /:id
 
-- ROOT 
-  - [POST /user](./endpoints.md#post-user)
-    - [PATCH](./endpoints.md#patch-userid) / [DELETE](./endpoints.md#delete-userid) /:id
-    - [GET /:query](./endpoints.md#get-userquery)
+- [POST /user](./endpoints.md#post-user)
+  - [PATCH](./endpoints.md#patch-userid) / [DELETE](./endpoints.md#delete-userid) /:id
+  - [GET /:query](./endpoints.md#get-userquery)
 
 
 

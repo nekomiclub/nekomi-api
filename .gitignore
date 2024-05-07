@@ -6,4 +6,3 @@ testStorage
 testUploads
 test
 .log
-src/localDB

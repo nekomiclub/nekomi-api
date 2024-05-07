@@ -1,9 +1,18 @@
-# Changelog
+Changelog
 
-### [Return](../README.md)
+[Return](../README.md)
 
 Versions
+- [1.1.1](#111)
 - [1.1.0](#110)
+
+## 1.1.1
+Removed
+- localDB
+- upload/patch/delete proxy route
+- media alliases
+- ensureAccess middleware was pushed out by AccessControll
+- user delete account (in future will return)
 
 ## 1.1.0
 
@@ -32,4 +41,4 @@ Refactored
 - User router patch changed, see PATCH /user for migration guide
 - Title router changed from /v1/title/* > /title/*
 
-### [Return](../README.md)
+[Return](../README.md)

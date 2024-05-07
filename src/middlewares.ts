@@ -11,50 +11,6 @@ import axios, { Axios, AxiosError } from 'axios';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
 
-/** @deprecated use AccessControl instead */
-export async function ensureAccess(accessRoles: TUserRoles[], req: express.Request, res: express.Response, next: express.NextFunction) {
-  try {
-    const token = req.header('Authorization')?.split('=')[1];
-
-    if (!token) {
-      throw new E401('Authorization token is not provided');
-    }
-
-    const isValid = authService.verify(token, 'access');
-
-    if (!isValid) {
-      throw new E401('Access token is invalid. Refresh token by GET /refresh');
-    }
-
-    const { roles, uid, username } = authService.decode(token)!;
-
-    if (roles.includes('root')) {
-      return next();
-    }
-
-    let hasAccess = false;
-    roles.forEach(role => {
-      if (accessRoles.includes(role)) hasAccess = true;
-    });
-
-    if (!hasAccess) {
-      throw new E403('You are not permitted to visit that endpoint');
-    }
-
-    next();
-  } catch (e) {
-    if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(e);
-      return res.status(e.code).json(e);
-    } else {
-      if (devMode) console.error(e);
-      return res.status(500).json(e);
-    }
-  }
-}
-
-
-
 /** Routes access-control middleware
  * @param capabilities An array of required capabilities. If user had at least one required or array will be empty, request will be passed.
  */

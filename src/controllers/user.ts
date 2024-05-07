@@ -220,37 +220,3 @@ export async function patchUser(req: express.Request, res: express.Response) {
     }
   });
 }
-
-
-
-
-
-
-
-export async function remove(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
-    const valRes = validationResult(req);
-
-    if (!valRes.isEmpty()) {
-      return res.status(400).json(valRes.array());
-    }
-
-    const { uid } = req.body;
-    const tokenData = authService.decode(req.header('Authorization')!.split('=')[1])!;
-    const user = await User.findOne({ uid });
-
-    if (!user) {
-      throw new E400('User with provided ID is not found');
-    }
-
-    if (tokenData.uid !== uid && !tokenData.roles.includes('root' || 'admin' || 'moderator')) {
-      throw new E403('You can not change not yours data');
-    }
-
-    await User.findOneAndDelete({ uid });
-
-    return res.status(200).json(`UID: ${uid} deleted`);
-  });
-}

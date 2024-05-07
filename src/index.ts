@@ -139,7 +139,6 @@ async function onReady() {
     listenWSS();
 
     // console.log(signToken('CSRF', {}));
-    await handler.returnPosters();
 
     await sendDayStat();
   } catch (e) {
