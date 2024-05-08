@@ -4,7 +4,6 @@ import { validationResult } from 'express-validator';
 
 import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/v1/handlers';
-import * as authService from '../services/v1/auth';
 import * as TokenService from '../services/TokenService';
 
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, E501, E500 } from '../handlers/v1/Errors';

@@ -1,14 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import firebaseAdmin from 'firebase-admin';
 import ip from 'ip';
 
-import { TUserRoles } from './core/IUser';
 import { IANIMEE_CONFIG } from './core/interfaces';
 import { ISEC_CSRF } from '../secrets/interfaces';
 
 /** @deprecated */
-const jwtSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/JWT.json`).toString()) as { accessTokenSecret: string, refreshTokenSecret: string };
 const CSRFSecrets = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/CSRF.json`).toString()) as ISEC_CSRF;
 
 
@@ -33,12 +30,6 @@ export const config = {
 
   /** Secrets */
   secrets: {
-    /** @deprecated */
-    jwtAccess: jwtSecrets.accessTokenSecret,
-
-    /** @deprecated */
-    jwtRefresh: jwtSecrets.refreshTokenSecret,
-
     /* CSRF Token */
     CSRF: CSRFSecrets.CSRF
   },
@@ -54,7 +45,9 @@ export const config = {
     /** Animee media URL */
     media: `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
 
-    /** Fullkekw user api url */
+    /** Fullkekw user api url
+     * This service is out of ANIMEE CONFIG, so it's IP will be same with local machine
+     */
     usapi: `http://${getIP('0.0.0.0')}:45660`
   },
 
@@ -119,8 +112,3 @@ function getIP(raw: string): string {
     return raw;
   }
 }
-
-/** User default roles
- * @deprecated roles will be refacored in 1.1.0
- */
-export const userDefaultRoles: TUserRoles[] = ['user'];

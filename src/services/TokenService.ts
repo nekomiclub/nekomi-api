@@ -37,7 +37,7 @@ export function signToken(method: TTokenMethod, payload: any): string {
 
     return jwt.sign({
       origin: 'api.animee.club'
-    }, prodMode ? key.CSRF.prod : key.CSRF.dev, {
+    }, prodMode ? key.CSRF : key.CSRF, {
       expiresIn: prodMode ? '5s' : '5m',
       algorithm: 'RS256'
     });

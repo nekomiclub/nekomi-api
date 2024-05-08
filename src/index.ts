@@ -14,7 +14,6 @@ import * as router from './router';
 import * as handler from './handlers/v1/handlers';
 import { E403, writeErrorLog } from './handlers/v1/Errors';
 import Title from './Models/Title';
-import ffmpeg from 'fluent-ffmpeg';
 import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
 import { sendDayStat } from './services/v1/stats';
@@ -80,6 +79,8 @@ app.use('/title', router.TitleRouter);
 
 if (prodMode) {
   app.enable('trust proxy');
+
+  // HTTP > HTTPS redirect
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (!req.secure) {
       return res.redirect(`https://${req.headers.host}${req.url}`);
@@ -87,8 +88,6 @@ if (prodMode) {
 
     next();
   });
-
-  ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
 }
 
 if (devMode) {
@@ -122,6 +121,7 @@ wss.on('error', e => { throw e; });
 if (devMode) {
   app.listen(config.service.PORTS.HTTP!, config.service.HOST, () => listen(false, true));
 } else {
+  // TODO Ensure that NGINX manage HTTPS, then delete this
   if (!hskey || !hscert || !hschain) {
     throw new Error('SSL certs are not found');
   }
