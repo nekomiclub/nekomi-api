@@ -179,7 +179,7 @@ interface IDeleteEpisode {
 }
 
 interface IEditEpMeta extends ITitleEpisodeMeta {
-  action: 'edit' | 'delete' | 'add'
+  action: 'edit' | 'delete'
 }
 ```
 

@@ -647,32 +647,32 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         title.epsMeta = [];
       }
 
-      const ep = title.epsMeta!.find(el => el.order === order);
+      let ep = title.epsMeta!.find(el => el.order === order);
       title.markModified('epsMeta');
 
-      if (action === 'add') {
-        if (ep) throw new E400(`Ep ${order} is already exist`);
-        changes.push(`${handlerName}: Meta for ${order} episode added`);
-
-        title.epsMeta.push({
-          dateOut,
-          names: {
-            eng: names.eng.trim(),
-            ukr: names.ukr.trim(),
-          },
-          order,
-        });
-      } else if (action === 'delete') {
+      if (action === 'delete') {
         if (!ep) throw new E400(`Ep ${order} is not exist`);
         changes.push(`${handlerName}: Meta for ${order} episode deleted`);
 
         title.epsMeta = title.epsMeta.filter(el => el.order !== order);
       } else if (action === 'edit') {
-        if (!ep) throw new E400(`Ep ${order} is not exist`);
+        if (!ep) {
+          title.epsMeta.push({
+            dateOut,
+            names: {
+              eng: names.eng.trim(),
+              ukr: names.ukr.trim(),
+            },
+            order,
+          });
+
+          ep = title.epsMeta!.find(el => el.order === order);
+        }
+
         changes.push(`${handlerName}: Meta for ${order} episode changed`);
 
-        ep.dateOut = dateOut;
-        ep.names = {
+        ep!.dateOut = dateOut;
+        ep!.names = {
           eng: names.eng.trim(),
           ukr: names.ukr.trim(),
         };
