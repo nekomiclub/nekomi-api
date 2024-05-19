@@ -66,7 +66,7 @@ import * as UserController from './controllers/user';
 
 UserRouter.get(`/logout`, RouteValidation.privateCORS, UserController.getLogout);
 UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);
-UserRouter.post(`/signin`, RouteValidation.userSignin, RouteValidation.getUserAuth, UserController.postSignin);
+UserRouter.post(`/signin`, RouteValidation.userSignin, UserController.postSignin);
 UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, UserController.patchUser);
 
 

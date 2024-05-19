@@ -13,6 +13,52 @@ import { user } from '../dtos';
 import Role, { createRole } from '../../Models/Role';
 import { TRoleCapability } from '../../interfaces/Roles';
 
+/** Create UUID v4 id
+ * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default
+ * @version re-1.0.0
+ */
+export function createID(preventPrefix?: boolean): string {
+  return preventPrefix || prodMode ? uuid.v4() : `devid-${uuid.v4()}`;
+}
+
+/** Get random number in range
+ * @version re-1.0.0
+ */
+export function randomNumber(min: number, max: number): number {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
+/** Turn number to string & add zero before number if it less than 10
+ * @version re-1.0.0
+ */
+export function addZeroIfNumberSingle(num: number): string {
+  return num <= 9 ? `0${num}` : `${num}`;
+}
+
+/** Get full UTC0 time
+ * @requires addZeroIfNumberSingle()
+ * @version re-1.0.0
+ */
+export function getUTC() {
+  const now = new Date();
+
+  return {
+    y: now.getUTCFullYear(),
+    m: now.getUTCMonth() + 1,
+    d: now.getUTCDate(),
+    hrs: now.getUTCHours(),
+    mins: now.getUTCMinutes(),
+    secs: now.getUTCSeconds(),
+    ms: now.getUTCMilliseconds(),
+    date: `${now.getUTCFullYear()}.${addZeroIfNumberSingle(now.getUTCMonth() + 1)}.${addZeroIfNumberSingle(now.getUTCDate())}`,
+    time: `${addZeroIfNumberSingle(now.getUTCHours())}:${addZeroIfNumberSingle(now.getUTCMinutes())}`,
+    timestamp: now.getTime()
+  };
+}
+
+
+
+/** @deprecated in near future log system will be refactored */
 export function writeToLog(msg: string) {
   const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
   fs.appendFileSync(`${path.resolve()}/.log`, `\nINFO (UTC ${time}): ${msg}`);
@@ -25,18 +71,6 @@ export function writeToLog(msg: string) {
  */
 export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
-}
-
-/** Create UUID v4 id
- * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default
- */
-export function createID(preventPrefix?: boolean): string {
-  return preventPrefix || prodMode ? uuid.v4() : `devid-${uuid.v4()}`;
-}
-
-/** Get random number in range */
-export function randomNumber(min: number, max: number): number {
-  return Math.floor(min + Math.random() * (max + 1 - min));
 }
 
 /** @deprecated Use getUTC() instead */
@@ -66,30 +100,6 @@ export async function updateFrames() {
     }
   }
 }
-
-/** Turn number to string & add zero before number if it less than 10 */
-export function addZeroIfNumberSingle(num: number): string {
-  return num <= 9 ? `0${num}` : `${num}`;
-}
-
-/** Get full UTC0 time */
-export function getUTC() {
-  const now = new Date();
-
-  return {
-    y: now.getUTCFullYear(),
-    m: now.getUTCMonth() + 1,
-    d: now.getUTCDate(),
-    hrs: now.getUTCHours(),
-    mins: now.getUTCMinutes(),
-    secs: now.getUTCSeconds(),
-    ms: now.getUTCMilliseconds(),
-    date: `${now.getUTCFullYear()}.${addZeroIfNumberSingle(now.getUTCMonth() + 1)}.${addZeroIfNumberSingle(now.getUTCDate())}`,
-    time: `${addZeroIfNumberSingle(now.getUTCHours())}:${addZeroIfNumberSingle(now.getUTCMinutes())}`,
-    timestamp: now.getTime()
-  };
-}
-
 
 /** Parse user roles and return capabilities */
 export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]> {

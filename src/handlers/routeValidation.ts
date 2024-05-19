@@ -60,8 +60,9 @@ export const userPatch = [
 ];
 
 export const userSignin = [
+  ...getUserAuth,
   privateCORS,
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  // CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------

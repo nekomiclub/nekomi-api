@@ -8,7 +8,18 @@ interface IMongodbDocument {
   [key: string]: any
 }
 
-// Replace private info with blanks, mutates provided object
+/** Hide sensetive values in object. Will MUTATE input object
+ * @param excludeKeys An array of excluded keys (use next type (keyof INTERFACE)[])
+ * 
+ * @version re-1.0.0
+ * 
+ * @example
+ * [42, 'foo'] -> []
+ * {foo: 42} -> {}
+ * 42 -> 0
+ * "hello" -> "Hidden for privacy purposes"
+ * true -> false
+ */
 function hideKeys(excludeKeys: string[], obj: object) {
   for (const key in obj) {
     const val = obj[key];

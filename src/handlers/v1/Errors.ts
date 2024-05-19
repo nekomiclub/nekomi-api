@@ -4,11 +4,12 @@ import express from 'express';
 
 import { devMode, prodMode } from '../../config';
 import { validationResult } from 'express-validator';
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
+import { getUTC } from './handlers';
 
 
 
-type THTTPErrorCodes = 200 | 400 | 401 | 403 | 404 | 500 | 501 | 503;
+type THTTPErrorCodes = 400 | 401 | 403 | 404 | 500 | 501 | 503;
 
 export class ErrorConstructor {
   msg: string | Array<any>;
@@ -72,49 +73,83 @@ export function writeErrorLog(msg: string, at: string) {
   fs.appendFileSync(`${path.resolve()}/.log`, emsg);
 }
 
+/** Route error catcher
+ * Will validate HTTP Errors, express-validation & Axios errors
+ * 
+ * @param at Route code
+ * 
+ * @version re-1.0.0
+ */
 export async function catchError(req: express.Request, res: express.Response, at: string, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
     const valRes = validationResult(req);
 
-    const errors: IValidationError[] = valRes.array().map(el => {
-      return {
-        msg: el.msg || '',
-        // @ts-ignore
-        at: el.location,
-        // @ts-ignore
-        curr: el.value || 'Value is not provided'
-      } as IValidationError;
-    });
-
+    // Check validatoin
     if (!valRes.isEmpty()) {
-      return res.status(400).json({ msg: 'Validation failed.', errors });
+      return res.status(400).json({ msg: 'Validation failed', errors: valRes.array() });
     }
 
+    // Run callback
     await cb(req, res);
 
+    // Fallback if no response provided
     try {
-      // Fallback if no response provided
       res.status(200).json({ msg: 'Request fullfilled without response' });
     } catch (e) {
       null;
     }
   } catch (e) {
+    const date = `${getUTC().date} ${getUTC().time}`;
+
     if (devMode && !(e instanceof ErrorConstructor)) console.error(e);
 
     if (e instanceof ErrorConstructor) {
-      if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
-      return res.status(e.code).json(e);
+      const emsg = `[HTTP ${e.code}]: ${e.msg}`;
+      if (devMode) console.error(emsg);
+
+      if (e.code >= 500) {
+        // Write in logs
+      }
+
+      return res.status(e.code).json({ ...e, date });
     } else if (e instanceof AxiosError) {
-      return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
+      const date = `${getUTC().date} ${getUTC().time}`;
+      const status = e.response?.status || 500;
+
+      let emsg = `[AXIOS ${status}]: ${e.response?.data?.msg || e.response?.data?.message || e.message || 'Message is not provided'}`;
+      const estack = JSON.stringify(e, Object.getOwnPropertyNames(e));
+
+      if (status === 500) {
+        emsg = `Internal server error occured or axios can not parse status. Code - ${e.code}`;
+      } else if (status === 501) {
+        emsg = 'Not implemented';
+      } else if (status === 502) {
+        emsg = 'Bad gateway';
+      } else if (status === 503) {
+        emsg = 'Service unavailable. Try in a few minutes';
+      }
+
+      if (devMode) console.error(emsg);
+      if (devMode) console.error(JSON.stringify(e.toJSON(), null, 2));
+
+      if (status >= 500) {
+        // Write in logs
+      }
+
+      return res.status(status).json({ msg: emsg, url: e.config?.url || null, at: e.response?.data?.at || null, date });
     } else {
-      if (prodMode) console.error(e);
-      return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+      const date = `${getUTC().date} ${getUTC().time}`;
+      // @ts-expect-error These fields may contain
+      const msg = e?.message || e?.msg;
+      const emsg = `Message - ${msg || 'Unknown error occured while handling this request'}. Service may not work in near future. Please create ticket of this error in animee discord server (https://discord.gg/UmDfKTpsh5) ASAP`;
+      const estack = JSON.stringify(e, Object.getOwnPropertyNames(e));
+
+      console.log(emsg);
+      console.log(JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
+
+      // Write in logs
+
+      return res.status(503).json({ msg: emsg, date });
     }
   }
-}
-
-interface IValidationError {
-  curr: string,
-  msg: string,
-  at: 'body' | 'params' | 'query'
 }
