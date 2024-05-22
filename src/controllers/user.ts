@@ -50,9 +50,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
           if (devMode) console.log(`[User]: User does not founded deeply, creating new one with id - ${id}`);
 
           await createUser({
-            email: data.email,
+            id,
             avatarURL: data.photoURL,
-            customId: id,
             username: data.username
           });
 
@@ -62,7 +61,6 @@ export async function postSignin(req: express.Request, res: express.Response) {
           if (devMode) console.log(`[User]: User deep find match user by email/username, assigning new id to it`);
 
           user.id = id;
-          user.uid = id;
 
           await user.save();
         }

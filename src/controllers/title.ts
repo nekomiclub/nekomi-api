@@ -481,7 +481,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (AnimeGenres.includes(genre as TAnimeGenre)) genres.push(genre as TAnimeGenre);
       });
 
-      changes.push(`${handlerName}: Genres changed - ${title.genres.join(', ')} > ${genres.join(', ')}`);
+      changes.push(`${handlerName}: Genres changed - ${title.genres?.join(', ')} > ${genres.join(', ')}`);
       title.genres = genres;
 
       title.markModified('genres');
