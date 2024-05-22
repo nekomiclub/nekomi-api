@@ -8,7 +8,7 @@ import * as TokenService from '../services/TokenService';
 
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, E501, E500 } from '../handlers/v1/Errors';
 import User, { createUser } from '../Models/User';
-import { config, devMode, testMode } from '../config';
+import { config, devMode, prodMode, testMode } from '../config';
 import { IFKSessionToken } from '../interfaces/Fullkekw';
 import Title from '../Models/Title';
 
@@ -73,7 +73,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: '.animee.club' }).json({ msg: 'ok' });
+    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: prodMode ? '.animee.club' : undefined }).json({ msg: 'ok' });
   });
 }
 

@@ -35,6 +35,8 @@ export const TitleTypes = ['serial', 'ONA', 'OVA', 'film', 'special'] as const;
 /** Type that implements TitleTypes */
 export type TTitleType = typeof TitleTypes[number]
 
+export type TTitleCountry = 'Japan' | 'South Corea' | 'China' | 'Other'
+
 
 
 
@@ -42,10 +44,10 @@ export type TTitleType = typeof TitleTypes[number]
 
 /** Title object */
 export interface ITitle {
-  /** Title ID */
+  /** ID */
   id: string
 
-  /** Object of title names */
+  /** Object of names */
   names: {
     /** Name on English */
     eng: string
@@ -57,82 +59,140 @@ export interface ITitle {
     alt: string[] | null
   },
 
-  /** Title code */
+  /** Code (transformed eng name) */
   code: string
 
-  /** Title poster */
+  /** Poster */
   poster: string
 
-  /** Title background
+  /** Background
    * @deprecated due to zero impact
    */
   background: string
 
-  /** Title rating
-   * Will be deprecated in near future
+  /** Rating
+   * @deprecated must be refactored into newRating
    */
   rating: number | null
 
-  /** Title description */
+  /** Rating
+   * Inherited from rating
+   * @version 1.1.2 will be refactored back to rating
+   */
+  newRating: {
+    IMDB: number | null,
+    Animee: number | null
+  }
+
+  /** Description */
   description: string
 
-  /** Title status */
+  /** Status */
   status: TAnimeStatus
 
-  /** Title estimated eps
-   * Will be deprecated in near future
+  /** Estimated episodes
+   * @deprecated will be refactored into episodesCount
    */
   estimatedEps: number
 
-  /** Title genres */
-  genres: TAnimeGenre[]
+  /** Episodes count
+   * Inherited from estimatedEps
+   */
+  episodesCount: number | null
 
-  /** Title age rating */
+  /** Genres
+   * @version 1.1.1 can be null
+   */
+  genres: TAnimeGenre[] | null
+
+  /** Age rating */
   ageRate: TAnimeAgeRate
 
-  /** Anime streaming season */
+  /** Streaming season */
   season: TAnimeSeason
 
-  /** Title type */
+  /** Type */
   type: TTitleType
 
-  /** Title aired year */
+  /** Aired year */
   year: number
 
-  /** Title studios created */
+  /** Studios created */
   studios: string[]
 
-  /** Title country created
-   * Will be deprecated in near future
+  /** Country produced
+   * @deprecated refactor into newCountry
    */
   country: string
 
-  /** Title started timestamp
-   * @deprecated
+  /** Country produced
+   * Inherited from country
+   * @version 1.1.2 must be refactored back to country
+   */
+  newCountry: TTitleCountry
+
+  /** Started timestamp
+   * @deprecated useless
    */
   started: number | null
 
-  /** Title ended timestamp
-    * @deprecated
+  /** Ended timestamp
+    * @deprecated useless
     */
   ended: number | null
 
   /** Title dubs
-   * Will be refactored in near future
+   * @deprecated must be refactored into episodes
    */
   dubs: ITitleEpisodesDub[] | null
 
-  /** Title episodes metas */
+  /** Episodes dubbed */
+  episodes: ITitleEpisode[] | null
+
+  /** Episodes metas
+   * @deprecated must be refactored into episodesMeta
+   */
   epsMeta: ITitleEpisodeMeta[] | null
+
+  /** Episodes metas
+   * Inherited from epsMeta
+   */
+  episodesMeta: ITitleEpisodeMeta[] | null
 
   /** Updated at timestamp */
   updatedAt: number
 
-  /** Some text details (poster translated by, dubs cooperated, etc) */
+  /** Some text details */
   details: string | null
 }
 
-/** Title dub */
+/** Episode dubbed */
+export interface ITitleEpisode {
+  /** Dubber ID */
+  dubberID: string
+
+  /** Episode order */
+  order: number
+
+  /** Episode qualities */
+  qualities: {
+    /** Primary quality */
+    q1080: string
+
+    q4k: string | null
+    q720: string | null
+    q480: string | null
+    q240: string | null
+  }
+
+  /** Frames in order array */
+  frames: string[] | null
+}
+
+/** Title dub
+ * @deprecated outdated
+ * @see ITitle.episodes
+ */
 export interface ITitleEpisodesDub {
   /** Dubbers ID */
   id: string
@@ -151,7 +211,10 @@ export interface ITitleEpisodesDub {
   eps: ITitleEpisodeDubbed[]
 }
 
-/** Title dubbed episode */
+/** Title dubbed episode
+ * @deprecated outdated
+ * @see ITitle.episodes
+ */
 export interface ITitleEpisodeDubbed {
   /** Episode order */
   order: number

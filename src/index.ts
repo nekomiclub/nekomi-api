@@ -140,6 +140,13 @@ async function onReady() {
 
     // console.log(signToken('CSRF', {}));
 
+    // TODO Delete in first commit after
+    if (prodMode) {
+      await handler.updateTitles();
+    }
+
+    // await handler.updateUsers()
+
     await sendDayStat();
   } catch (e) {
     // @ts-ignore
