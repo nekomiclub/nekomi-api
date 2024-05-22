@@ -143,9 +143,9 @@ async function onReady() {
     // TODO Delete in first commit after
     if (prodMode) {
       await handler.updateTitles();
+      await handler.updateUsers();
     }
 
-    // await handler.updateUsers()
 
     await sendDayStat();
   } catch (e) {

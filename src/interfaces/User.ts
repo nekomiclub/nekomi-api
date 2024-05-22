@@ -2,78 +2,40 @@ export interface IUser {
   /** ID */
   id: string
 
-  /** Old ID
-   * @deprecated 1.1.0
-   */
-  uid: string
-
   /** Username
    * Managed by fk-usapi
    */
   username: string
-
-  /** Password
-   * @deprecated Managed by fk-usapi
-   */
-  password: string
-
-  /** Email
-   * @deprecated Managed by fk-usapi
-   */
-  email: string
 
   /** Avatar
    * Managed by fk-usapi
    */
   avatar: string
 
-  /** Profile background
-   * @deprecated useless
-   */
-  profileBg: string | null
-
-  /** Badges
-   * @deprecated will appear in future
-   */
-  badgesIDs: string[] | null
-
-  /** Settings
-   * @deprecated will appear in future
-   */
-  settings: IUserSettings
-
   /** User stats
    * @deprecated will be refactored into statistics
+   * @since 1.1.1
    */
   stats: IUserStats
 
   /** Statistics
    * Inherit stats
    */
-  statistics: null
+  statistics: IUserStatistics
 
   /** User lists
    * @deprecated will be refactored into libs
+   * @since 1.1.1
    */
   lists: IUserList[]
 
   /** Titles libs
    * Inherit lists
    */
-  libs: []
-
-  /** Auth providers
-   * @deprecated Managed by fk-usapi
-   */
-  providers: TAuthProviders[]
+  libs: IUserLib[]
 
   /** Roles */
   roles: string[]
-
-  /** Account type
-   * @deprecated impact on nothing, was actual for migration
-   */
-  accountType: 'old' | 'new'
 }
 
 /** User animee statistics
@@ -88,7 +50,7 @@ export interface IUserStatistics {
 }
 
 /** User lib type */
-type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'threwn' | 'custom'
+type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
 
 /** User titles lib */
 export interface IUserLib {
@@ -171,13 +133,3 @@ export interface IUserList {
   name: string,
   id: string
 }
-
-/** User auth providers type
- * @deprecated in 1.1.0 fullkekw usapi will manage this
- */
-export type TAuthProviders = 'google' | 'telegram' | 'animee' | 'fullkekw'
-
-/** User roles
- * @deprecated in 1.1.0 roles system will be refactored
- */
-export type TUserRoles = 'root' | 'admin' | 'moderator' | 'dubber' | 'subber' | 'subscriber' | 'editor' | 'user'

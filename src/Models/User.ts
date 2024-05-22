@@ -5,36 +5,26 @@ import { createID, getUTC } from '../handlers/v1/handlers';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,
-  uid: String,
   avatar: String,
-  password: String,
-  email: String,
-  profileBg: String,
   username: String,
-  providers: Array,
-  settings: Object,
-  badgesIDs: Array,
   lists: Array,
+  libs: Array,
   stats: Object,
+  statistics: Object,
   roles: Array,
-  accountType: String
 }));
 
 /** Create new user
  * @returns user ID
  */
-export async function createUser({ email, username, avatarURL, customId }: {
-  email: string,
-  username?: string,
+export async function createUser({ username, avatarURL, id }: {
+  username: string,
   avatarURL: string,
-  customId?: string
+  id: string
 }): Promise<string> {
-  const id = customId || createID();
-
   const payload: IUser = {
     id,
-    email,
-    username: username || email.split('@')[0],
+    username,
     lists: [
       {
         createdAt: getUTC().timestamp,
@@ -84,10 +74,60 @@ export async function createUser({ email, username, avatarURL, customId }: {
         titles: []
       },
     ],
+    libs: [
+      {
+        createdAt: getUTC().timestamp,
+        id: createID(),
+        settings: {
+          hidden: false,
+          immortal: true,
+          name: 'Улюблені'
+        },
+        titles: [],
+        type: 'favorite'
+      }, {
+        createdAt: getUTC().timestamp,
+        id: createID(),
+        settings: {
+          hidden: false,
+          immortal: true,
+          name: 'Переглянуті'
+        },
+        titles: [],
+        type: 'watched'
+      }, {
+        createdAt: getUTC().timestamp,
+        id: createID(),
+        settings: {
+          hidden: false,
+          immortal: true,
+          name: 'Переглядаю'
+        },
+        titles: [],
+        type: 'watching'
+      }, {
+        createdAt: getUTC().timestamp,
+        id: createID(),
+        settings: {
+          hidden: true,
+          immortal: true,
+          name: 'Плани'
+        },
+        titles: [],
+        type: 'plans'
+      }, {
+        createdAt: getUTC().timestamp,
+        id: createID(),
+        settings: {
+          hidden: true,
+          immortal: true,
+          name: 'Відкладені'
+        },
+        titles: [],
+        type: 'delayed'
+      }
+    ],
     roles: ['user'],
-    settings: {},
-    accountType: 'new',
-    uid: id,
     stats: {
       createdAt: getUTC().timestamp,
       player: {
@@ -103,10 +143,10 @@ export async function createUser({ email, username, avatarURL, customId }: {
         watched: 0
       }
     },
-    providers: [],
-    profileBg: '',
-    password: '',
-    badgesIDs: [],
+    statistics: {
+      accountCreated: getUTC().timestamp,
+      timeSpent: 0
+    },
     avatar: avatarURL
   };
 

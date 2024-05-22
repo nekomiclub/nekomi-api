@@ -152,8 +152,6 @@ export async function updateTitles() {
   for (const key in titles) {
     const title = titles[key];
 
-    if (key !== '0') continue;
-
     title.updatedAt = getUTC().timestamp;
 
     title.newRating = {
@@ -208,4 +206,50 @@ export async function updateTitles() {
   console.log(`Titles migration ended with ${changed} changed titles`);
 }
 
-export async function updateUsers() { }
+export async function updateUsers() {
+  const users = await User.find();
+  let changed = 0;
+
+  console.log(`Users migration started`);
+
+  for (const key in users) {
+    const user = users[key];
+
+    user.set('uid', undefined, { strict: false });
+    user.set('email', undefined, { strict: false });
+    user.set('password', undefined, { strict: false });
+    user.set('profileBg', undefined, { strict: false });
+    user.set('badgesIDs', undefined, { strict: false });
+    user.set('accountType', undefined, { strict: false });
+    user.set('providers', undefined, { strict: false });
+    user.set('settings', undefined, { strict: false });
+
+    user.libs = [];
+
+    user.statistics = {
+      accountCreated: user.stats.createdAt,
+      timeSpent: 0
+    };
+
+    user.lists.forEach(list => {
+      const isPrivate = Boolean(list.id.match(/favorite|watched|plans|delayed|watching/gi));
+
+      user.libs.push({
+        id: list.id,
+        createdAt: list.createdAt,
+        settings: {
+          hidden: Boolean(list.id.match(/plans|delayed/gi)),
+          immortal: isPrivate,
+          name: list.name
+        },
+        titles: list.titles,
+        type: list.id.includes('favorite') ? 'favorite' : list.id.includes('watched') ? 'watched' : list.id.includes('watching') ? 'watching' : list.id.includes('plans') ? 'plans' : list.id.includes('delayed') ? 'delayed' : 'custom'
+      });
+    });
+
+    changed += 1;
+    await user.save();
+  }
+
+  console.log(`Users migration ended with ${changed} changed users`);
+}
