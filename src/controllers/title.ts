@@ -1,7 +1,7 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
 import { convert as urlSlugConvert } from 'url-slug';
-import ip, { or } from 'ip';
+import ip from 'ip';
 
 import * as dto from '../handlers/dtos';
 
@@ -180,7 +180,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
               // ignore
             }
 
-            return res.status(200).json({ msg: 'Poster uploaded' });
+            return res.status(200).json({ msg: 'Poster uploaded', id: postData.id });
           }
         } catch (e) {
           if (e instanceof AxiosError) {

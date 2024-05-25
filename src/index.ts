@@ -146,7 +146,6 @@ async function onReady() {
       await handler.updateUsers();
     }
 
-
     await sendDayStat();
   } catch (e) {
     // @ts-ignore
