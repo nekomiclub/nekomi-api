@@ -2,13 +2,15 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import { devMode, testMode, config, prodMode } from './config';
 
 import https from 'https';
 import http from 'http';
 import cors, { CorsOptions } from 'cors';
 import fs from 'fs';
 import path from 'path';
+import ip from 'ip';
+
+import { devMode, testMode, config, prodMode } from './config';
 
 import * as router from './router';
 import * as handler from './handlers/v1/handlers';
@@ -20,20 +22,34 @@ import { sendDayStat } from './services/v1/stats';
 import { createUser } from './Models/User';
 import { signToken } from './services/TokenService';
 
-const hskey = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8');
-const hscert = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8');
-const hschain = devMode ? '' : fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8');
+
+
+if (prodMode && ip.address() !== config.vars.prodIP) {
+  throw new Error(`
+    ----------------------------
+    ANIMEE-API STARTUP DENIED
+
+    Current IP (${ip.address()}) has no permission to startup at production mode.
+    ----------------------------
+  `);
+}
+
+
+
+const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8') : '';
+const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8') : '';
+const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8') : '';
 
 //! DO NOT CHANGE IF NOT NECESSARY
 const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}`;
 
 mongoose.set('strictQuery', false);
+
 mongoose.connect(MONGO_URI, {
   retryWrites: true,
 }).catch(e => {
+  console.error('------------- CRITICAL ERROR -------------\nMongo DB exception occured - ');
   console.error(e);
-  // @ts-ignore
-  writeErrorLog(`MONGODB ERROR: ${e.message}`, 'index');
 });
 
 export const app = express();
@@ -94,55 +110,35 @@ if (devMode) {
   app.use('/dev', router.DevRouter);
 }
 
+wss.on('error', e => { throw e; });
 
 
-function listen(https?: boolean, showDetails?: boolean) {
-  if (!showDetails) return;
+
+const server = app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
+  server.keepAliveTimeout = 10000;
+  server.headersTimeout = 15000;
+
   console.log(`
-    -------------------
-
-    ANIMEE-API STARTED
-
-    At: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
-    Mode: ${prodMode ? 'ProdMode' : 'DevMode'} ${testMode ? '+ test mode' : ''}
+    ----------------------------
+    ANIMEE-API STARTED UP
+  
+    Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
+    Mode: ${prodMode ? 'Production' : 'Development'} ${testMode ? '(Testing)' : ''}
     HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
     HTTPS: ${prodMode ? 'NGINX serve' : 'Disabled in dev mode'}
     WS: ${config.service.HOST}:${config.service.PORTS.WS}
-    
-    -------------------
+    ----------------------------
   `);
 
-  onReady();
-}
+  listenWSS();
 
-wss.on('listening', () => listen(true, false));
-wss.on('error', e => { throw e; });
-
-if (devMode) {
-  app.listen(config.service.PORTS.HTTP!, config.service.HOST, () => listen(false, true));
-} else {
-  // TODO Ensure that NGINX manage HTTPS, then delete this
-  if (!hskey || !hscert || !hschain) {
-    throw new Error('SSL certs are not found');
-  }
-
-  app.listen(config.service.PORTS.HTTP!, config.service.HOST, () => listen());
-  https.createServer({
-    key: hskey,
-    cert: hscert,
-    ca: [hschain]
-  }, app).listen(config.service.PORTS.HTTPS!, config.service.HOST, () => listen(true, true));
-}
-
-async function onReady() {
-  try {
-    listenWSS();
-
-    // console.log(signToken('CSRF', {}));
-
-    await sendDayStat();
-  } catch (e) {
-    // @ts-ignore
-    writeErrorLog(`onReady cb throw an error: ${e.message || e.msg}`, 'index');
-  }
-}
+  //* Callbacks
+  (async function () {
+    try {
+      await sendDayStat();
+    } catch (e) {
+      console.error(`An error occured in after startup callback`);
+      console.error(e);
+    }
+  })();
+});

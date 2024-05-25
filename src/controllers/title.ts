@@ -215,7 +215,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (isNaN(+episodeOrder)) throw new E400('Episode can not be NaN');
         const order = +episodeOrder;
 
-        console.log(`Uploading ${order} episode in ${dubID}...`)
+        console.log(`Uploading ${order} episode in ${dubID}...`);
 
         // Default ep instance
         const defaultEp: ITitleEpisodeDubbed = {

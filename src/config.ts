@@ -95,7 +95,10 @@ export const config = {
   /** Service variables */
   vars: {
     /** Animee cookie with fullkekw usapi session */
-    sessionCookieName: 'SEC_31N'
+    sessionCookieName: 'SEC_31N',
+
+    /** Production mode will run only at this IP */
+    prodIP: '192.168.0.107'
   }
 };
 
