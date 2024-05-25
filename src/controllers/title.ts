@@ -1,7 +1,9 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
 import { convert as urlSlugConvert } from 'url-slug';
-import ip, { or } from 'ip';
+import ip from 'ip';
+import http from 'http';
+import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
@@ -213,6 +215,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (isNaN(+episodeOrder)) throw new E400('Episode can not be NaN');
         const order = +episodeOrder;
 
+        console.log(`Uploading ${order} episode in ${dubID}...`)
+
         // Default ep instance
         const defaultEp: ITitleEpisodeDubbed = {
           framesURL: [],
@@ -270,7 +274,11 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           const ep = dub.eps.find(el => el.order === order);
 
           // Upload
-          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
+          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, {
+            httpAgent: new http.Agent({ keepAlive: true }),
+            httpsAgent: new https.Agent({ keepAlive: true }),
+            timeout: 120000
+          });
           const id = data.id;
           const frames = data.frames;
 
