@@ -174,16 +174,16 @@ export async function patchUser(req: express.Request, res: express.Response) {
         throw new E400(`Payload invalid${devMode && ' (see docs/endpoints.md)'}`);
       }
 
-      const folder = user.lists.find(el => el.id === folderId);
+      const folder = user.libs.find(el => el.id === folderId);
       const title = await Title.findOne({ id: titleId });
       let modifyMsg = '';
 
       if (!folder) {
-        throw new E400(`Folder ${folderId} is not found`);
+        throw new E404(`Folder ${folderId} is not found`);
       }
 
       if (!title) {
-        throw new E400(`Title ${titleId} is not found`);
+        throw new E404(`Title ${titleId} is not found`);
       }
 
       if (folder.titles.includes(titleId)) {
@@ -209,7 +209,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       if (devMode) console.log(`[User]: User (${userId}) modified - ${modifyMsg}`);
 
       try {
-        user.markModified('lists');
+        user.markModified('libs');
         await user.save();
       } catch (e) {
         // Ignore
