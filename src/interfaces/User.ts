@@ -3,12 +3,12 @@ export interface IUser {
   id: string
 
   /** Username
-   * Managed by fk-usapi
+   * @deprecated Managed by fk-usapi
    */
   username: string
 
   /** Avatar
-   * Managed by fk-usapi
+   * @deprecated Managed by fk-usapi
    */
   avatar: string
 

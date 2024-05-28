@@ -106,7 +106,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
     const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
 
     if (!user) {
-      throw new E400(`User ${query} is not found.`);
+      throw new E404(`User ${query} is not found.`);
     }
 
     return res.status(200).json(dto.user(user.toObject()));
