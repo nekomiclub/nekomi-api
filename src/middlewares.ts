@@ -43,6 +43,10 @@ export function AccessControl(capabilities: TRoleCapability[]) {
         } catch (e) {
 
           if (e instanceof AxiosError) {
+            if (e.response?.status === 403) {
+              return res.status(403).clearCookie(config.vars.sessionCookieName).json({ msg: 'Session expired' });
+            }
+
             if (devMode) console.error(e.response?.data.msg || e.response?.data.message);
             return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
           } else {

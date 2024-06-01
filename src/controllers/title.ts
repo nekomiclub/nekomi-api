@@ -277,7 +277,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, {
             httpAgent: new http.Agent({ keepAlive: true }),
             httpsAgent: new https.Agent({ keepAlive: true }),
-            timeout: 120000
+            timeout: 600000
           });
           const id = data.id;
           const frames = data.frames;
