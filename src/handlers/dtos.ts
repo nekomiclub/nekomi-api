@@ -62,12 +62,7 @@ export function user(raw: IMongodbDocument): IUser {
   const { __v, _id, ...payload } = raw;
   const user = payload as IUser;
 
-  const excludeKeys: (keyof IUser)[] = [
-    'accountType',
-    'password',
-    'settings',
-    'providers'
-  ];
+  const excludeKeys: (keyof IUser)[] = [];
   hideKeys(excludeKeys, user);
 
   return user;

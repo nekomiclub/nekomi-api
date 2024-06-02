@@ -74,8 +74,7 @@ describe('UserController', () => {
     beforeAll(async () => {
       await createUser({
         avatarURL: '',
-        email: `${dummyID}@animee.club`,
-        customId: dummyID,
+        id: dummyID,
         username: dummyID
       });
 

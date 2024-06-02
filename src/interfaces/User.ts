@@ -1,83 +1,94 @@
 export interface IUser {
-  /** User ID */
+  /** ID */
   id: string
 
-  /** User ID
-   * @deprecated 1.1.0
-   */
-  uid: string
-
-  /** User username
-   * @deprecated in 1.1.0 fullkekw usapi will manage this
+  /** Username
+   * @deprecated Managed by fk-usapi
    */
   username: string
 
-  /** User password
-   * * userDTO will hide this field
-   * @deprecated in 1.1.0 fullkekw usapi will manage this
-   */
-  password: string
-
-  /** User email
-   * * userDTO will hide this field
-   * May be deprecated in future
-   */
-  email: string
-
-  /** User avatar URL
-   * @deprecated in 1.1.0 fullkekw usapi will manage this
+  /** Avatar
+   * @deprecated Managed by fk-usapi
    */
   avatar: string
 
-  /** Profile background
-   * @deprecated due to possible future updates
-   */
-  profileBg: string | null
-
-  /** User badges
-   * @deprecated due to possible future updates
-   */
-  badgesIDs: string[] | null
-
-  /** User settings
-   * * userDTO will hide this field (in future only owner can get this object)
-   * May be deprecated in future
-   */
-  settings: IUserSettings
-
   /** User stats
-   * @deprecated due to possible future updates
+   * @deprecated will be refactored into statistics
+   * @since 1.1.1
    */
   stats: IUserStats
 
+  /** Statistics
+   * Inherit stats
+   */
+  statistics: IUserStatistics
+
   /** User lists
-   * May be deprecated in future
+   * @deprecated will be refactored into libs
+   * @since 1.1.1
    */
   lists: IUserList[]
 
-  /** User auth providers
-   * * userDTO will hide this field
-   * @deprecated in 1.1.0 fullkekw usapi will manage this
+  /** Titles libs
+   * Inherit lists
    */
-  providers: TAuthProviders[]
+  libs: IUserLib[]
 
-  /** User roles */
+  /** Roles */
   roles: string[]
-
-  /** User account type
-   * * userDTO will hide this field
-   * @deprecated impact on nothing, was actual for migration
-   */
-  accountType: 'old' | 'new'
 }
 
-/** User settings interface */
+/** User animee statistics
+ * Inherit IUserStats
+ */
+export interface IUserStatistics {
+  /** UTC0 account creation (on animee) timestamp */
+  accountCreated: number
+
+  /** Watch time in minutes */
+  timeSpent: number
+}
+
+/** User lib type */
+type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
+
+/** User titles lib */
+export interface IUserLib {
+  /** ID */
+  id: string
+
+  /** UTC0 creation timestamp */
+  createdAt: number
+
+  /** Titles IDs */
+  titles: string[]
+
+  /** Type */
+  type: TUserLibType
+
+  /** Settings */
+  settings: {
+    /** Name */
+    name: string
+
+    /** Visibility to others */
+    hidden: boolean
+
+    /** Protection from settings changes */
+    immortal: boolean
+  }
+}
+
+
+/** User settings interface
+ * @deprecated will appear in future
+ */
 export interface IUserSettings {
   void?: void
 }
 
 /** User stats interface
- * @deprecated due to possible future updates
+ * @deprecated refactored into IUserStatistics
  */
 export interface IUserStats {
   createdAt: number,
@@ -96,7 +107,7 @@ export interface IUserStats {
 }
 
 /** User watched titles stat interface
- * @deprecated due to possible future updates
+ * @deprecated refactored into IUserStatistics
  */
 interface IUserStatsWatchedTitles {
   title: string,
@@ -104,13 +115,14 @@ interface IUserStatsWatchedTitles {
 }
 
 /** User watched title dubs interface
- * @deprecated due to possible future updates
+ * @deprecated refactored into IUserStatistics
  */
 interface IUserStatsWatchedTitlesDub {
   id: string,
   totalWatch: number
 }
 
+/** @deprecated refactored into IUserLibs */
 export interface IUserList {
   titles: string[],
   createdAt: number,
@@ -121,13 +133,3 @@ export interface IUserList {
   name: string,
   id: string
 }
-
-/** User auth providers type
- * @deprecated in 1.1.0 fullkekw usapi will manage this
- */
-export type TAuthProviders = 'google' | 'telegram' | 'animee' | 'fullkekw'
-
-/** User roles
- * @deprecated in 1.1.0 roles system will be refactored
- */
-export type TUserRoles = 'root' | 'admin' | 'moderator' | 'dubber' | 'subber' | 'subscriber' | 'editor' | 'user'

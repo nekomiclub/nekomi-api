@@ -182,7 +182,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
               // ignore
             }
 
-            return res.status(200).json({ msg: 'Poster uploaded' });
+            return res.status(200).json({ msg: 'Poster uploaded', id: postData.id });
           }
         } catch (e) {
           if (e instanceof AxiosError) {
@@ -489,7 +489,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (AnimeGenres.includes(genre as TAnimeGenre)) genres.push(genre as TAnimeGenre);
       });
 
-      changes.push(`${handlerName}: Genres changed - ${title.genres.join(', ')} > ${genres.join(', ')}`);
+      changes.push(`${handlerName}: Genres changed - ${title.genres?.join(', ')} > ${genres.join(', ')}`);
       title.genres = genres;
 
       title.markModified('genres');

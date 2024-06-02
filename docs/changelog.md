@@ -9,10 +9,13 @@ Versions
 ## 1.1.1
 Removed
 - localDB
-- upload/patch/delete proxy route
+- upload patch/delete proxy route
 - media alliases
 - ensureAccess middleware was pushed out by AccessControll
 - user delete account (in future will return)
+Refactored
+- User DB object & IUser
+- Title DB object & ITitle
 
 ## 1.1.0
 

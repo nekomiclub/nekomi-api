@@ -8,7 +8,7 @@ import * as TokenService from '../services/TokenService';
 
 import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, E501, E500 } from '../handlers/v1/Errors';
 import User, { createUser } from '../Models/User';
-import { config, devMode, testMode } from '../config';
+import { config, devMode, prodMode, testMode } from '../config';
 import { IFKSessionToken } from '../interfaces/Fullkekw';
 import Title from '../Models/Title';
 
@@ -50,9 +50,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
           if (devMode) console.log(`[User]: User does not founded deeply, creating new one with id - ${id}`);
 
           await createUser({
-            email: data.email,
+            id,
             avatarURL: data.photoURL,
-            customId: id,
             username: data.username
           });
 
@@ -62,7 +61,6 @@ export async function postSignin(req: express.Request, res: express.Response) {
           if (devMode) console.log(`[User]: User deep find match user by email/username, assigning new id to it`);
 
           user.id = id;
-          user.uid = id;
 
           await user.save();
         }
@@ -73,7 +71,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: '.animee.club' }).json({ msg: 'ok' });
+    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: prodMode ? '.animee.club' : undefined }).json({ msg: 'ok' });
   });
 }
 
@@ -108,7 +106,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
     const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
 
     if (!user) {
-      throw new E400(`User ${query} is not found.`);
+      throw new E404(`User ${query} is not found.`);
     }
 
     return res.status(200).json(dto.user(user.toObject()));
@@ -176,16 +174,16 @@ export async function patchUser(req: express.Request, res: express.Response) {
         throw new E400(`Payload invalid${devMode && ' (see docs/endpoints.md)'}`);
       }
 
-      const folder = user.lists.find(el => el.id === folderId);
+      const folder = user.libs.find(el => el.id === folderId);
       const title = await Title.findOne({ id: titleId });
       let modifyMsg = '';
 
       if (!folder) {
-        throw new E400(`Folder ${folderId} is not found`);
+        throw new E404(`Folder ${folderId} is not found`);
       }
 
       if (!title) {
-        throw new E400(`Title ${titleId} is not found`);
+        throw new E404(`Title ${titleId} is not found`);
       }
 
       if (folder.titles.includes(titleId)) {
@@ -211,7 +209,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       if (devMode) console.log(`[User]: User (${userId}) modified - ${modifyMsg}`);
 
       try {
-        user.markModified('lists');
+        user.markModified('libs');
         await user.save();
       } catch (e) {
         // Ignore
