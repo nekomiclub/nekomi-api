@@ -143,69 +143,6 @@ export async function returnPosters() {
   console.log(`Title posters rollback ended!`);
 }
 
-export async function updateTitles() {
-  const titles = await Title.find();
-  let changed = 0;
-
-  console.log(`Titles migration started`);
-
-  for (const key in titles) {
-    const title = titles[key];
-
-    title.updatedAt = getUTC().timestamp;
-
-    title.newRating = {
-      IMDB: title.rating !== null && title.rating > 0 ? title.rating : null,
-      Animee: null
-    };
-
-    title.episodesCount = title.estimatedEps !== null && title.estimatedEps > 0 ? title.estimatedEps : null;
-    title.episodesMeta = title.epsMeta;
-    title.names.alt = title.names.alt?.length ? title.names.alt : null;
-    title.genres = title.genres?.length ? title.genres : null;
-
-    if (title.country.toLowerCase() === 'japan') {
-      title.newCountry = 'Japan';
-    } else if (title.country.toLowerCase() === 'south corea') {
-      title.newCountry = 'South Corea';
-    } else if (title.country.toLowerCase() === 'china') {
-      title.newCountry = 'China';
-    } else {
-      console.log(`Country not parsed in ${title.id} - ${title.country}`);
-      title.newCountry = 'Other';
-      title.details = title.details || '' + `${title.details ? '\n' : ''}Країна не визначена (${title.country}). Будь ласка, створіть про це тікет на діскорд сервері`;
-    }
-
-    if (title.dubs) {
-      title.episodes = [];
-
-      title.dubs.forEach(dub => {
-        dub.eps.forEach(ep => {
-          title.episodes!.push({
-            dubberID: dub.id,
-            frames: ep.framesURL,
-            order: ep.order,
-            qualities: {
-              q1080: ep.source.q1080,
-              q4k: ep.source.q2k,
-              q720: ep.source.q720,
-              q480: ep.source.q480,
-              q240: ep.source.q240,
-            }
-          });
-        });
-      });
-    } else {
-      title.episodes = null;
-    }
-
-    changed += 1;
-    await title.save();
-  }
-
-  console.log(`Titles migration ended with ${changed} changed titles`);
-}
-
 export async function updateUsers() {
   const users = await User.find();
   let changed = 0;
@@ -215,36 +152,14 @@ export async function updateUsers() {
   for (const key in users) {
     const user = users[key];
 
-    user.set('uid', undefined, { strict: false });
-    user.set('email', undefined, { strict: false });
-    user.set('password', undefined, { strict: false });
-    user.set('profileBg', undefined, { strict: false });
-    user.set('badgesIDs', undefined, { strict: false });
-    user.set('accountType', undefined, { strict: false });
-    user.set('providers', undefined, { strict: false });
-    user.set('settings', undefined, { strict: false });
+    user.libs.forEach(lib => {
+      const titles: string[] = [];
 
-    user.libs = [];
-
-    user.statistics = {
-      accountCreated: user.stats.createdAt,
-      timeSpent: 0
-    };
-
-    user.lists.forEach(list => {
-      const isPrivate = Boolean(list.id.match(/favorite|watched|plans|delayed|watching/gi));
-
-      user.libs.push({
-        id: list.id,
-        createdAt: list.createdAt,
-        settings: {
-          hidden: Boolean(list.id.match(/plans|delayed/gi)),
-          immortal: isPrivate,
-          name: list.name
-        },
-        titles: list.titles,
-        type: list.id.includes('favorite') ? 'favorite' : list.id.includes('watched') ? 'watched' : list.id.includes('watching') ? 'watching' : list.id.includes('plans') ? 'plans' : list.id.includes('delayed') ? 'delayed' : 'custom'
+      lib.titles.forEach(title => {
+        if (!titles.includes(title)) titles.push(title);
       });
+
+      lib.titles = titles;
     });
 
     changed += 1;
