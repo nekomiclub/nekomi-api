@@ -35,7 +35,11 @@ export const TitleTypes = ['serial', 'ONA', 'OVA', 'film', 'special'] as const;
 /** Type that implements TitleTypes */
 export type TTitleType = typeof TitleTypes[number]
 
-export type TTitleCountry = 'Japan' | 'South Corea' | 'China' | 'Other'
+/** Array of title contries */
+export const TitleCountries = ['Japan', 'South Corea', 'China', 'Other'] as const;
+
+/** Type that implements TitleCountries */
+export type TTitleCountry = typeof TitleCountries[number]
 
 
 
@@ -56,7 +60,7 @@ export interface ITitle {
     ukr: string
 
     /** Alt names (Japan, russian) */
-    alt: string[] | null
+    alt: string[]
   },
 
   /** Code (transformed eng name) */
@@ -65,21 +69,8 @@ export interface ITitle {
   /** Poster */
   poster: string
 
-  /** Background
-   * @deprecated due to zero impact
-   */
-  background: string
-
-  /** Rating
-   * @deprecated must be refactored into newRating
-   */
-  rating: number | null
-
-  /** Rating
-   * Inherited from rating
-   * @version 1.1.2 will be refactored back to rating
-   */
-  newRating: {
+  /** Rating */
+  rating: {
     IMDB: number | null,
     Animee: number | null
   }
@@ -90,20 +81,11 @@ export interface ITitle {
   /** Status */
   status: TAnimeStatus
 
-  /** Estimated episodes
-   * @deprecated will be refactored into episodesCount
-   */
-  estimatedEps: number
-
-  /** Episodes count
-   * Inherited from estimatedEps
-   */
+  /** Episodes count */
   episodesCount: number | null
 
-  /** Genres
-   * @version 1.1.1 can be null
-   */
-  genres: TAnimeGenre[] | null
+  /** Genres */
+  genres: TAnimeGenre[]
 
   /** Age rating */
   ageRate: TAnimeAgeRate
@@ -120,44 +102,14 @@ export interface ITitle {
   /** Studios created */
   studios: string[]
 
-  /** Country produced
-   * @deprecated refactor into newCountry
-   */
-  country: string
-
-  /** Country produced
-   * Inherited from country
-   * @version 1.1.2 must be refactored back to country
-   */
-  newCountry: TTitleCountry
-
-  /** Started timestamp
-   * @deprecated useless
-   */
-  started: number | null
-
-  /** Ended timestamp
-    * @deprecated useless
-    */
-  ended: number | null
-
-  /** Title dubs
-   * @deprecated must be refactored into episodes
-   */
-  dubs: ITitleEpisodesDub[] | null
+  /** Country produced */
+  country: TTitleCountry
 
   /** Episodes dubbed */
-  episodes: ITitleEpisode[] | null
+  episodes: ITitleEpisode[]
 
-  /** Episodes metas
-   * @deprecated must be refactored into episodesMeta
-   */
-  epsMeta: ITitleEpisodeMeta[] | null
-
-  /** Episodes metas
-   * Inherited from epsMeta
-   */
-  episodesMeta: ITitleEpisodeMeta[] | null
+  /** Episodes meta */
+  episodesMeta: ITitleEpisodeMeta[]
 
   /** Updated at timestamp */
   updatedAt: number
@@ -186,68 +138,7 @@ export interface ITitleEpisode {
   }
 
   /** Frames in order array */
-  frames: string[] | null
-}
-
-/** Title dub
- * @deprecated outdated
- * @see ITitle.episodes
- */
-export interface ITitleEpisodesDub {
-  /** Dubbers ID */
-  id: string
-
-  /** Include subs flag
-   * @deprecated
-   */
-  includeSub: boolean
-
-  /** Include 2K quality flag
-   * @deprecated
-   */
-  include2K: boolean
-
-  /** Episodes */
-  eps: ITitleEpisodeDubbed[]
-}
-
-/** Title dubbed episode
- * @deprecated outdated
- * @see ITitle.episodes
- */
-export interface ITitleEpisodeDubbed {
-  /** Episode order */
-  order: number
-
-  /** Episode sources */
-  source: {
-    /** 240p quality URL */
-    q240: string | null
-
-    /** 480p quality URL */
-    q480: string | null
-
-    /** 720p quality URL */
-    q720: string | null
-
-    /** 1080p (source) quality URL
-     * @since 1.1.0 can not be null
-     */
-    q1080: string
-
-    /** 1440p quality URL */
-    q2k: string | null
-  },
-
-  /** Subs IDs
-   * @deprecated not implemented
-   */
-  subIDs: string[] | null
-
-  /** Episode preview frames URLs
-   * Idk in what case it can be null, btw
-   */
-  framesURL: string[] | null
+  frames: string[]
 }
 
 /** Title episode meta */

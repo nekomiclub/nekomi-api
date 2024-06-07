@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { devMode, prodMode } from '../config';
-import { ISEC_CSRF } from '../../secrets/interfaces';
+import { config, devMode, prodMode } from '../config';
 
 /** 
  * CSRF - sign CSRF token
@@ -33,11 +32,9 @@ const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
  */
 export function signToken(method: TTokenMethod, payload: any): string {
   if (method === 'CSRF') {
-    const key = JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/CSRF.json`).toString()) as ISEC_CSRF;
-
     return jwt.sign({
       origin: 'api.animee.club'
-    }, prodMode ? key.CSRF : key.CSRF, {
+    }, prodMode ? config.secrets.CSRF : config.secrets.CSRF, {
       expiresIn: prodMode ? '5s' : '5m',
       algorithm: 'RS256'
     });

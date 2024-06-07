@@ -7,27 +7,19 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
   names: Object,
   code: String,
   poster: String,
-  background: String,
-  rating: Number || null,
-  newRating: Object,
+  rating: Object,
   description: String,
   status: String,
-  estimatedEps: Number,
   episodesCount: Number || null,
-  genres: Array || null,
+  genres: Array,
   ageRate: String,
   season: String,
   type: String,
   year: Number,
   studios: Array,
   country: String,
-  newCountry: String,
-  started: Number || null,
-  ended: Number || null,
-  dubs: Array || null,
-  episodes: Array || null,
-  epsMeta: Array || null,
-  episodesMeta: Array || null,
+  episodes: Array,
+  episodesMeta: Array,
   updatedAt: Number,
   details: String || null
 }));
@@ -42,15 +34,11 @@ export async function createTitle(): Promise<string> {
     id,
     ageRate: 'PG-13',
     code: `BLANK-${id}`,
-    country: 'null',
-    newCountry: 'Other',
+    country: 'Other',
     description: '',
     details: 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері animee.',
-    dubs: [],
-    episodes: null,
-    epsMeta: [],
-    episodesMeta: null,
-    estimatedEps: 12,
+    episodes: [],
+    episodesMeta: [],
     episodesCount: null,
     genres: [],
     names: {
@@ -59,8 +47,7 @@ export async function createTitle(): Promise<string> {
       alt: []
     },
     poster: '',
-    rating: 0,
-    newRating: {
+    rating: {
       IMDB: null,
       Animee: null,
     },
@@ -70,9 +57,6 @@ export async function createTitle(): Promise<string> {
     type: 'serial',
     updatedAt: getUTC().timestamp,
     year: getUTC().y,
-    started: 0,
-    ended: 0,
-    background: ''
   };
 
   const title = new Title(payload);

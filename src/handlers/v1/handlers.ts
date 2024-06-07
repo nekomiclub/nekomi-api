@@ -56,15 +56,8 @@ export function getUTC() {
   };
 }
 
-
-
-/** @deprecated in near future log system will be refactored */
-export function writeToLog(msg: string) {
-  const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
-  fs.appendFileSync(`${path.resolve()}/.log`, `\nINFO (UTC ${time}): ${msg}`);
-}
-
 /** Get file extension from file name
+ * @version re-1.0.0
  * @example
  * getFileExtension('file.txt') => txt
  * getFileExtension('file.test.txt') => txt
@@ -73,32 +66,12 @@ export function getFileExtension(filename: string): string {
   return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
 }
 
-/** @deprecated Use getUTC() instead */
-export function getUTCTime(): number {
-  return +new Date().setUTCHours(new Date().getUTCHours());
-}
 
-/** @deprecated Idk */
-export async function updateFrames() {
-  const titles = await Title.find();
 
-  console.log(`Started with ${titles.filter(el => el.dubs?.length).length} titles`);
-
-  for (const i in titles) {
-    const title = titles[i];
-
-    if (!title.dubs!.length) {
-      console.log(`Title ${title.id} skipped (no dubs provided).`);
-      continue;
-    }
-
-    try {
-      console.log(`Send ${title.id}`);
-      await axios.post(`${config.microservices.uploadsURL}/v1/updateFrame`, { dubs: title!.dubs || [] });
-    } catch (e) {
-      console.error(e);
-    }
-  }
+/** @deprecated in near future log system will be refactored */
+export function writeToLog(msg: string) {
+  const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
+  fs.appendFileSync(`${path.resolve()}/.log`, `\nINFO (UTC ${time}): ${msg}`);
 }
 
 /** Parse user roles and return capabilities */
@@ -120,51 +93,86 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
   return caps;
 }
 
-
-/** Return posters URL handler */
-export async function returnPosters() {
-  const titles = await Title.find();
-  console.log(`Title posters rollback started`);
-
-  for (const key in titles) {
-    const title = titles[key];
-    const posterID = title.poster.split('/')[title.poster.split('/').length - 1];
-
-    if (!posterID.match(/\./gi)) continue;
-
-    // Set background as poster (old version of poster)
-    title.poster = title.background;
-
-    title.markModified('poster');
-    await title.save();
-    console.log(`Title ${title.id} poster rolled back`);
-  }
-
-  console.log(`Title posters rollback ended!`);
-}
-
 export async function updateUsers() {
   const users = await User.find();
   let changed = 0;
 
-  console.log(`Users migration started`);
+  console.log(`Users updated started`);
 
   for (const key in users) {
     const user = users[key];
 
-    user.libs.forEach(lib => {
-      const titles: string[] = [];
-
-      lib.titles.forEach(title => {
-        if (!titles.includes(title)) titles.push(title);
-      });
-
-      lib.titles = titles;
-    });
+    user.set('avatar', undefined, { strict: false });
+    user.set('username', undefined, { strict: false });
+    user.set('lists', undefined, { strict: false });
+    user.set('stats', undefined, { strict: false });
 
     changed += 1;
     await user.save();
   }
 
-  console.log(`Users migration ended with ${changed} changed users`);
+  console.log(`Users updated ended with ${changed} changed users`);
+}
+
+export async function updateTitles() {
+  const titles = await Title.find();
+  let changed = 0;
+
+  console.log(`Titles updating started`);
+
+  for (const key in titles) {
+    const title = titles[key];
+
+    title.updatedAt = getUTC().timestamp;
+
+    title.rating = {
+      // @ts-ignore
+      IMDB: title.rating > 0 ? title.rating : null,
+      Animee: null,
+    };
+
+    // @ts-ignore
+    title.episodesCount = title.estimatedEps! > 0 ? title.estimatedEps! : null;
+
+    if (!Array.isArray(title.names.alt)) {
+      title.names.alt = [];
+    }
+
+    if (!Array.isArray(title.genres)) {
+      title.genres = [];
+    }
+
+    if (!Array.isArray(title.studios)) {
+      title.studios = [];
+    }
+
+    if (!Array.isArray(title.episodesMeta)) {
+      title.episodesMeta = [];
+    }
+
+    if (title.country.toLowerCase() === 'japan') {
+      title.country = 'Japan';
+    } else if (title.country.toLowerCase() === 'china') {
+      title.country = 'China';
+    } else if (title.country.toLowerCase() === 'south corea') {
+      title.country = 'South Corea';
+    } else {
+      title.country = 'Other';
+    }
+
+
+    title.set('background', undefined, { strict: false });
+    title.set('newRating', undefined, { strict: false });
+    title.set('estimatedEps', undefined, { strict: false });
+    title.set('newCountry', undefined, { strict: false });
+    title.set('started', undefined, { strict: false });
+    title.set('ended', undefined, { strict: false });
+    title.set('dubs', undefined, { strict: false });
+    title.set('epsMeta', undefined, { strict: false });
+
+    changed += 1;
+    await title.save();
+  }
+
+  console.log(`Titles updating ended with ${changed} changed titles`);
 }

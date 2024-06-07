@@ -9,7 +9,7 @@ import * as dto from '../handlers/dtos';
 
 import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/Errors';
 import Title, { createTitle } from '../Models/Title';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisodeDubbed, ITitleEpisodeMeta, ITitleEpisodesDub, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleType, TitleTypes } from '../interfaces/Title';
+import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken } from '../services/TokenService';
 import User from '../Models/User';
@@ -43,7 +43,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
   await catchError(req, res, routeCode, async () => {
     const titles = await Title.find();
 
-    return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.map(el => el.country !== 'null').length });
+    return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.map(el => el.country !== 'Other').length });
   });
 }
 
@@ -215,91 +215,61 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (isNaN(+episodeOrder)) throw new E400('Episode can not be NaN');
         const order = +episodeOrder;
 
+        // Reject if episode exist
+        if (title.episodes.some(el => el.dubberID === dubber.id && el.order === order)) {
+          throw new E400(`Episode ${order} in ${dubber.id} already exist`)
+        }
+
         console.log(`Uploading ${order} episode in ${dubID}...`);
 
-        // Default ep instance
-        const defaultEp: ITitleEpisodeDubbed = {
-          framesURL: [],
-          order: order,
-          source: {
-            q2k: null,
+        const ep: ITitleEpisode = {
+          dubberID: dubber.id,
+          order,
+          frames: [],
+          qualities: {
             q1080: '',
-            q720: null,
-            q480: null,
             q240: null,
-          },
-          subIDs: null
-        };
-
-        // Default dub instance
-        let dub: ITitleEpisodesDub = {
-          id: dubber.id,
-          eps: [],
-          include2K: false,
-          includeSub: false,
-        };
-
-        if (title.dubs) {
-          // Title dubs is not null
-
-          const titleDub = title.dubs.find(el => el.id === dubID);
-
-          if (titleDub) {
-            // If dub exist set it as operational
-            dub = titleDub;
-          } else {
-            // If dub not exist, create it
-            title.dubs.push(dub);
+            q480: null,
+            q4k: null,
+            q720: null,
           }
-        } else {
-          // Title dubs is null
-
-          // Set dubs
-          title.dubs = [dub];
-        }
-
-        if (dub.eps.find(el => el.order === order) && dub.eps.find(el => el.source.q1080)) {
-          // Reject if episode exist
-          throw new E400(`Episode ${episodeOrder} in ${dubber.name} is already exist`);
-        } else {
-          // Ep is not found. Push default
-          dub.eps.push(defaultEp);
-        }
+        };
 
         // Upload episode
         formData.set('type', 'video/title/episode');
         formData.set('qualities', JSON.stringify(qualities));
 
         try {
-          const ep = dub.eps.find(el => el.order === order);
-
           // Upload
           const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, {
             httpAgent: new http.Agent({ keepAlive: true }),
             httpsAgent: new https.Agent({ keepAlive: true }),
             timeout: 600000
           });
+
           const id = data.id;
           const frames = data.frames;
 
           // Set sources
-          ep!.source.q2k = qualities!.includes(1440) ? `${config.URL.media}/${id}_q_1440` : null;
-          ep!.source.q1080 = `${config.URL.media}/${id}`;
-          ep!.source.q720 = qualities!.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
-          ep!.source.q480 = qualities!.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
-          ep!.source.q240 = qualities!.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
+          ep.qualities.q4k = qualities!.includes(2160) ? `${config.URL.media}/${id}_q_2160` : null;
+          ep.qualities.q1080 = `${config.URL.media}/${id}`;
+          ep.qualities.q720 = qualities!.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
+          ep.qualities.q480 = qualities!.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
+          ep.qualities.q240 = qualities!.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
 
           // Set frames URLs
           let i = 0;
 
           while (i < frames) {
-            ep!.framesURL!.push(`${config.URL.media}/${id}_f_${i}`);
+            ep.frames.push(`${config.URL.media}/${id}_f_${i}`);
             i++;
           }
 
+          title.episodes.push(ep);
+
           // Sort episodes in order
-          dub.eps.sort((a, b) => a.order - b.order);
-          title.markModified('dubs');
+          title.episodes.sort((a, b) => a.order - b.order);
+          title.markModified('episodes');
 
           try {
             await title.save();
@@ -417,11 +387,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
 
-      const acceptableCountries = ['japan', 'china', 'south corea'];
-      if (!acceptableCountries.includes(setCountry!)) throw new E400(`${handlerName}: Country ${setCountry} is not acceptable${devMode && 'See docs about this endpoint. Acceptable countries are hardcoded at controllers/title.ts/setAgeRateHandler'}`);
+      if (!TitleCountries.includes(setCountry! as TTitleCountry)) throw new E400(`${handlerName}: Country ${setCountry} is not acceptable${devMode && 'See docs about this endpoint. Acceptable countries are hardcoded at controllers/title.ts/setAgeRateHandler'}`);
 
       changes.push(`${handlerName}: Country changed - ${title.country} > ${setCountry}`);
-      title.country = setCountry!;
+      title.country = setCountry! as TTitleCountry;
 
       title.markModified('country');
     }
@@ -468,10 +437,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
       if (isNaN(+setEps!)) throw new E400(`${handlerName}: Eps can not be NaN`);
 
-      changes.push(`${handlerName}: Estimated eps changed - ${title.estimatedEps} > ${setEps}`);
-      title.estimatedEps = +setEps!;
+      changes.push(`${handlerName}: Estimated eps changed - ${title.episodesCount} > ${setEps}`);
+      title.episodesCount = +setEps!;
 
-      title.markModified('estimatedEps');
+      title.markModified('episodesCount');
     }
 
     async function setGenresHandler(requiredCap: TRoleCapability) {
@@ -508,7 +477,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       if (setRating! < 0 || setRating! > 10) throw new E400('[SetRating]: Rating can not be lower than 0 or greater than 10');
 
       changes.push(`${handlerName}: Rating changed - ${title.rating} > ${setRating}`);
-      title.rating = +setRating!;
+      title.rating.IMDB = +setRating!;
 
       title.markModified('rating');
     }
@@ -610,13 +579,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       // Reject if dub is not found
       if (!dubber) throw new E404(`Dub ${dubID} is not found`);
 
-      const ep = title.dubs?.find(el => el.id === dubber.id)?.eps.find(el => el.order === order);
+      const ep = title.episodes.find(el => el.dubberID === dubber.id && el.order === order);
 
       if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
 
       try {
-        const res = await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.source.q1080.split('/')[ep.source.q1080.split('/').length - 1]}`, { validateStatus: (s) => s < 500 });
-        console.log(res);
+        await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`, { validateStatus: (s) => s < 500 });
       } catch (e) {
         if (e instanceof AxiosError) {
           if (e.code === 'ECONNREFUSED') {
@@ -630,14 +598,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       }
 
       changes.push(`${handlerName}: Episode ${order} in ${dubber.name} deleted`);
-      title.dubs!.find(el => el.id === dubber.id)!.eps = title.dubs!.find(el => el.id === dubber.id)!.eps.filter(el => el.order !== order);
 
-      if (!title.dubs!.find(el => el.id === dubber.id)!.eps.length) {
-        changes.push(`${handlerName}: Dub ${dubID} deleted due to no episodes`);
-        title.dubs = title.dubs!.filter(el => el.id !== dubID);
-      }
+      title.episodes = title.episodes.filter(el => el.dubberID !== dubber.id && el.order !== order);
 
-      title.markModified('dubs');
+      title.markModified('episodes');
     }
 
     async function editEpMetaHandler(requiredCap: TRoleCapability) {
@@ -651,21 +615,17 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       if (!dateOut || !names || !names.eng || !names.ukr || !order || !action) throw new E400('Date out, names, action and order are required');
       if (isNaN(+dateOut) || isNaN(+order)) throw new E400('Date out and order can not be NaN');
 
-      if (!title.epsMeta) {
-        title.epsMeta = [];
-      }
-
-      let ep = title.epsMeta!.find(el => el.order === order);
-      title.markModified('epsMeta');
+      let ep = title.episodesMeta!.find(el => el.order === order);
+      title.markModified('episodesMeta');
 
       if (action === 'delete') {
         if (!ep) throw new E400(`Ep ${order} is not exist`);
         changes.push(`${handlerName}: Meta for ${order} episode deleted`);
 
-        title.epsMeta = title.epsMeta.filter(el => el.order !== order);
+        title.episodesMeta = title.episodesMeta.filter(el => el.order !== order);
       } else if (action === 'edit') {
         if (!ep) {
-          title.epsMeta.push({
+          title.episodesMeta.push({
             dateOut,
             names: {
               eng: names.eng.trim(),
@@ -674,7 +634,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             order,
           });
 
-          ep = title.epsMeta!.find(el => el.order === order);
+          ep = title.episodesMeta!.find(el => el.order === order);
         }
 
         changes.push(`${handlerName}: Meta for ${order} episode changed`);

@@ -78,13 +78,13 @@ export function writeErrorLog(msg: string, at: string) {
  * 
  * @param at Route code
  * 
- * @version re-1.0.0
+ * @version re-1.0.1
  */
 export async function catchError(req: express.Request, res: express.Response, at: string, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
     const valRes = validationResult(req);
 
-    // Check validatoin
+    // Check validation
     if (!valRes.isEmpty()) {
       return res.status(400).json({ msg: 'Validation failed', errors: valRes.array() });
     }
@@ -139,7 +139,7 @@ export async function catchError(req: express.Request, res: express.Response, at
       return res.status(status).json({ msg: emsg, url: e.config?.url || null, at: e.response?.data?.at || null, date });
     } else {
       const date = `${getUTC().date} ${getUTC().time}`;
-      // @ts-expect-error These fields may contain
+      // @ts-expect-error These fields may be
       const msg = e?.message || e?.msg;
       const emsg = `Message - ${msg || 'Unknown error occured while handling this request'}. Service may not work in near future. Please create ticket of this error in animee discord server (https://discord.gg/UmDfKTpsh5) ASAP`;
       const estack = JSON.stringify(e, Object.getOwnPropertyNames(e));

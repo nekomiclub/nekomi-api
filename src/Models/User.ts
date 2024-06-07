@@ -5,11 +5,7 @@ import { createID, getUTC } from '../handlers/v1/handlers';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,
-  avatar: String,
-  username: String,
-  lists: Array,
   libs: Array,
-  stats: Object,
   statistics: Object,
   roles: Array,
 }));
@@ -24,56 +20,6 @@ export async function createUser({ username, avatarURL, id }: {
 }): Promise<string> {
   const payload: IUser = {
     id,
-    username,
-    lists: [
-      {
-        createdAt: getUTC().timestamp,
-        description: 'Тайтли, які запали в саме серце',
-        hidden: true,
-        id: `favorite-${createID()}`,
-        immortal: true,
-        name: 'Улюблені',
-        thumb: '',
-        titles: []
-      },
-      {
-        createdAt: getUTC().timestamp,
-        description: 'Ти вже в цій тємі',
-        hidden: true,
-        id: `watched-${createID()}`,
-        immortal: true,
-        name: 'Переглянуті',
-        thumb: '',
-        titles: []
-      }, {
-        createdAt: getUTC().timestamp,
-        description: 'Колись вони будуть переглянуті',
-        hidden: true,
-        id: `plans-${createID()}`,
-        immortal: true,
-        name: 'В планах',
-        thumb: '',
-        titles: []
-      }, {
-        createdAt: getUTC().timestamp,
-        description: 'Хто зна коли їх перегляд буде закінчений',
-        hidden: true,
-        id: `delayed-${createID()}`,
-        immortal: true,
-        name: 'Відкладено',
-        thumb: '',
-        titles: []
-      }, {
-        createdAt: getUTC().timestamp,
-        description: 'Ого, так багато?',
-        hidden: true,
-        id: `watching-${createID()}`,
-        immortal: true,
-        name: 'Переглядаю',
-        thumb: '',
-        titles: []
-      },
-    ],
     libs: [
       {
         createdAt: getUTC().timestamp,
@@ -128,26 +74,10 @@ export async function createUser({ username, avatarURL, id }: {
       }
     ],
     roles: ['user'],
-    stats: {
-      createdAt: getUTC().timestamp,
-      player: {
-        popularDub: null,
-        totalWatched: 0,
-        watchedTitles: []
-      },
-      titles: {
-        delayed: 0,
-        favorites: 0,
-        plans: 0,
-        threwn: 0,
-        watched: 0
-      }
-    },
     statistics: {
       accountCreated: getUTC().timestamp,
       timeSpent: 0
     },
-    avatar: avatarURL
   };
 
   const user = new User(payload);
