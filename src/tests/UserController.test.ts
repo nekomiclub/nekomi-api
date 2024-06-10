@@ -80,7 +80,7 @@ describe('UserController', () => {
 
       const user = await User.findOne({ id: dummyID });
 
-      folderId = user!.lists[0].id;
+      folderId = user!.libs[0].id;
     });
 
     // Delete dummy user
@@ -105,7 +105,7 @@ describe('UserController', () => {
       const user1 = await User.findOne({ id: dummyID });
 
       // Ensure that method add title to folder
-      expect(user1!.lists.find(el => el.id === folderId)!.titles.includes(titleId)).toBeTruthy();
+      expect(user1!.libs.find(el => el.id === folderId)!.titles.includes(titleId)).toBeTruthy();
 
 
 
@@ -124,7 +124,7 @@ describe('UserController', () => {
       const user2 = await User.findOne({ id: dummyID });
 
       // Ensure that method remove title from folder
-      expect(user2!.lists.find(el => el.id === folderId)!.titles.includes(titleId)).toBeFalsy();
+      expect(user2!.libs.find(el => el.id === folderId)!.titles.includes(titleId)).toBeFalsy();
     });
   });
 });
