@@ -217,7 +217,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         // Reject if episode exist
         if (title.episodes.some(el => el.dubberID === dubber.id && el.order === order)) {
-          throw new E400(`Episode ${order} in ${dubber.id} already exist`)
+          throw new E400(`Episode ${order} in ${dubber.id} already exist`);
         }
 
         console.log(`Uploading ${order} episode in ${dubID}...`);
@@ -290,8 +290,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
         }
       }
-
-
       return;
     }
 

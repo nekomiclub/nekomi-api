@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 import { config, devMode, prodMode } from '../config';
+import { getUTC } from '../handlers/v1/handlers';
 
 /** 
  * CSRF - sign CSRF token
@@ -33,9 +34,9 @@ const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 export function signToken(method: TTokenMethod, payload: any): string {
   if (method === 'CSRF') {
     return jwt.sign({
-      origin: 'api.animee.club'
+      origin: 'api.animee.club',
+      expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
     }, prodMode ? config.secrets.CSRF : config.secrets.CSRF, {
-      expiresIn: prodMode ? '5s' : '5m',
       algorithm: 'RS256'
     });
   } else {

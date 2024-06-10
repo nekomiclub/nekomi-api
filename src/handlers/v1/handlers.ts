@@ -150,6 +150,10 @@ export async function updateTitles() {
       title.episodesMeta = [];
     }
 
+    if (!Array.isArray(title.episodes)) {
+      title.episodes = [];
+    }
+
     if (title.country.toLowerCase() === 'japan') {
       title.country = 'Japan';
     } else if (title.country.toLowerCase() === 'china') {

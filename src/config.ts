@@ -94,7 +94,10 @@ export const config = {
     sessionCookieName: 'SEC_31N',
 
     /** Production mode will run only at this IP */
-    prodIP: '192.168.0.107'
+    prodIP: '192.168.0.107',
+
+    /** CSRF token expiration */
+    CSRF_EXPIRE: prodMode ? 5000 : 180000
   }
 };
 
