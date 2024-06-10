@@ -47,6 +47,10 @@ export function AccessControl(capabilities: TRoleCapability[]) {
               return res.status(403).clearCookie(config.vars.sessionCookieName).json({ msg: 'Session expired' });
             }
 
+            if (e.code === 'ECONNREFUSED') {
+              return res.status(503).json({ msg: 'FK-Usapi is unavailable. Try in a few minutes' });
+            }
+
             if (devMode) console.error(e.response?.data.msg || e.response?.data.message);
             return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
           } else {

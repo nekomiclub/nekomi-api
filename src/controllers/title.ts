@@ -11,7 +11,7 @@ import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/E
 import Title, { createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
-import { decodeToken } from '../services/TokenService';
+import { decodeToken, signToken } from '../services/TokenService';
 import User from '../Models/User';
 import { getUTC, parseRoles } from '../handlers/v1/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
@@ -138,7 +138,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       formData.append('file', new Blob([buffer], {
         type: mimetype
       }), originalname);
-      formData.set('createdBy', user.id);
+      formData.set('uploadedBy', user.id);
 
       if (type === 'change_poster') {
         if (!caps.includes('root') && !caps.includes('titleEdit')) throw new E403('You do not have access to change poster');
@@ -150,7 +150,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             //* Update
             const id = title.poster.split('/')[title.poster.split('/').length - 1];
 
-            const { data: putData } = await axios.put(`${config.microservices.uploadsURL}/v1/upload/${id}`, formData, { validateStatus: (s) => s < 500 });
+            const { data: putData } = await axios.put(`${config.microservices.uploadsURL}/upload/${id}`, formData, { validateStatus: (s) => s < 500 });
 
             // If poster unavailable
             if (putData.code === 404) {
@@ -171,7 +171,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             }
           } else {
             //* Upload new
-            const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
+            const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, { validateStatus: (s) => s < 500 });
 
             title.poster = `${config.URL.media}/${postData.id}`;
             title.markModified('poster');
@@ -241,10 +241,13 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           // Upload
-          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/v1/upload`, formData, {
+          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/upload`, formData, {
             httpAgent: new http.Agent({ keepAlive: true }),
             httpsAgent: new https.Agent({ keepAlive: true }),
-            timeout: 600000
+            timeout: 600000,
+            headers: {
+              'X-CSRF-Token': signToken('CSRF', '')
+            }
           });
 
           const id = data.id;
@@ -582,7 +585,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
 
       try {
-        await axios.delete(`${config.microservices.uploadsURL}/v1/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`, { validateStatus: (s) => s < 500 });
+        await axios.delete(`${config.microservices.uploadsURL}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${user!.id}&withChildren=true`, {
+          validateStatus: (s) => s < 500,
+          headers: {
+            'X-CSRF-Token': signToken('CSRF', '')
+          }
+        });
       } catch (e) {
         if (e instanceof AxiosError) {
           if (e.code === 'ECONNREFUSED') {
