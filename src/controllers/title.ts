@@ -147,43 +147,31 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
-            //* Update
-            const id = title.poster.split('/')[title.poster.split('/').length - 1];
-
-            const { data: putData } = await axios.put(`${config.microservices.uploadsURL}/upload/${id}`, formData, { validateStatus: (s) => s < 500 });
-
-            // If poster unavailable
-            if (putData.code === 404) {
-              const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/v1/upload`, formData, { validateStatus: (s) => s < 500 });
-
-              title.poster = `${config.URL.media}/${postData.id}`;
-              title.markModified('poster');
-
-              try {
-                await title.save();
-              } catch (e) {
-                // ignore
+            await axios.delete(`${config.microservices.uploadsURL}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${user!.id}`, {
+              validateStatus: (s) => s < 500,
+              headers: {
+                'X-CSRF-Token': signToken('CSRF', '')
               }
-
-              return res.status(201).json({ msg: 'Poster is unavailable, creating new..', id });
-            } else {
-              return res.status(200).json({ msg: 'Poster changed', id });
-            }
-          } else {
-            //* Upload new
-            const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, { validateStatus: (s) => s < 500 });
-
-            title.poster = `${config.URL.media}/${postData.id}`;
-            title.markModified('poster');
-
-            try {
-              await title.save();
-            } catch (e) {
-              // ignore
-            }
-
-            return res.status(200).json({ msg: 'Poster uploaded', id: postData.id });
+            });
           }
+
+          const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, {
+            validateStatus: (s) => s < 500,
+            headers: {
+              'X-CSRF-Token': signToken('CSRF', '')
+            }
+          });
+
+          title.poster = `${config.URL.media}/${postData.id}`;
+          title.markModified('poster');
+
+          try {
+            await title.save();
+          } catch (e) {
+            // ignore
+          }
+
+          return res.status(200).json({ msg: 'Poster uploaded', id: postData.id });
         } catch (e) {
           if (e instanceof AxiosError) {
             if (e.code === 'ECONNREFUSED') {
