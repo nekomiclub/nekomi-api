@@ -136,11 +136,6 @@ const server = app.listen(config.service.PORTS.HTTP, config.service.HOST, () => 
   (async function () {
     try {
       await sendDayStat();
-
-      if (prodMode) {
-        await handler.updateTitles();
-        await handler.updateUsers();
-      }
     } catch (e) {
       console.error(`An error occured in after startup callback`);
       console.error(e);

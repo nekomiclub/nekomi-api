@@ -29,6 +29,7 @@ export const DevRouter = express.Router();
 import * as DevController from './controllers/dev';
 
 DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevController.getAccessControl);
+DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
 
 
 

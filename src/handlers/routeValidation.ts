@@ -41,6 +41,9 @@ export const devGetAccessControll = [
   AccessControl(['dubber'])
 ];
 
+export const devGetCSRFCheck = [
+  CSRFCheck(['api.animee.club'])
+];
 
 
 //* ------------------ USER MIDDLEWARES ------------------

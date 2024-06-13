@@ -14,3 +14,11 @@ export async function getAccessControl(req: express.Request, res: express.Respon
     return res.status(200).json('ok');
   });
 }
+
+export async function getCSRFCheck(req: express.Request, res: express.Response) {
+  const route = `${req.method} ${req.baseUrl}`;
+
+  await catchError(req, res, route, async () => {
+    return res.status(200).json('ok');
+  });
+}

@@ -7,6 +7,7 @@ import User from '../Models/User';
 import Role from '../Models/Role';
 import { createID } from '../handlers/v1/handlers';
 
+jest.mock('axios');
 const baseUrl = `http://${ip.address()}`;
 
 describe('DevController', () => {
@@ -29,7 +30,7 @@ describe('DevController', () => {
 
       * 200 - User with correct role should be passed
       * 200 - User with root role should be passed
-      
+
       * 400 - User with invalid id should be rejected
       * 401 - User without Authorization token should be rejected
       * 403 - User without right permission should be rejected
@@ -137,4 +138,63 @@ describe('DevController', () => {
       await User.findOneAndDelete({ id: testData.dummyID });
     });
   });
+
+  // describe('CSRFCheck', () => {
+  //   /*
+  //     * CSRF Check is a middleware, that should pass requests only from expected origins
+
+  //     ! -------- TEST DETAILS
+  //     * Middleware get token from X-CSRF-Token header
+  //     * Route expect example.com as origin
+  //     ! -------- TEST DETAILS
+
+  //     * 200 - Valid & expected origin
+  //     * 403 - CSRF required (Header undefined)
+  //     * 403 - CSRF rejected (Token not verified)
+  //     * 403 - CSRF rejected (Token used before)
+  //     * 403 - CSRF origin missmatch (Origin not example.com)
+  //   */
+
+  //   const testURL = `/dev/CSRFCheck`;
+
+  //   test('200 - Valid & expected origin', async () => {
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .set('X-CSRF-Token', '*-example.com')
+  //       .expect(200);
+  //   });
+
+  //   test('403 - CSRF required (Header undefined)', async () => {
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .expect(403);
+  //   });
+
+  //   test('403 - CSRF rejected (Token not verified)', async () => {
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .set('X-CSRF-Token', 'dummy')
+  //       .expect(403);
+  //   });
+
+  //   test('403 - CSRF rejected (Token used before)', async () => {
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .set('X-CSRF-Token', 'dummy')
+  //       .expect(200);
+
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .set('X-CSRF-Token', 'dummy')
+  //       .expect(403);
+  //   });
+
+
+  //   test('CSRF origin missmatch (Origin not example.com)', async () => {
+  //     await request(baseUrl)
+  //       .get(testURL)
+  //       .set('X-CSRF-Token', '*-animee.club')
+  //       .expect(403);
+  //   });
+  // });
 });

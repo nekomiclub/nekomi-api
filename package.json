@@ -48,10 +48,13 @@
     "transformIgnorePatterns": [
       "node_modules/(?!variables/.*)"
     ],
-    "testPathIgnorePatterns": ["dist/"]
+    "testPathIgnorePatterns": [
+      "dist/"
+    ]
   },
   "dependencies": {
     "axios": "^1.6.2",
+    "axios-mock-adapter": "^1.22.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",

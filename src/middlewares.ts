@@ -8,6 +8,11 @@ import axios, { Axios, AxiosError } from 'axios';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
 
+/** Accepted CSRF tokens array */
+const AcceptedCSRFTokens: string[] = [];
+
+
+
 /** Routes access-control middleware
  * @param capabilities An array of required capabilities. If user had at least one required or array will be empty, request will be passed.
  */
@@ -101,19 +106,26 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 }
 
 /** CSRF-check middleware
+ * In test mode, synthetic tokens should contain "*", otherwise they will be verified by default
+ * 
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
 export function CSRFCheck(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    origins = origins || [];
+
     try {
       const token = req.header('X-CSRF-Token');
 
-      // TODO: Make test functionality
-      if (testMode) {
-        return next();
-      }
+      // Reject if header undefined
+      if (!token) throw new E403('CSRF required');
 
-      if (!token) throw new E403('This endpoint is secured under CSRF');
+      if ((devMode || testMode) && token.includes('*')) {
+        // Pass if token synthetically valid (origins: ['dummy']; token: 'dummy') or origins empty
+        if (origins.includes(token.replace('*-', ''))) {
+          return next();
+        }
+      }
 
       const { data } = await axios.post<{ verified: boolean, origin: string }>(`${config.URL.fullkekw_authority}/authority/verify`, {
         token
@@ -121,15 +133,18 @@ export function CSRFCheck(origins?: string[]) {
         validateStatus: (s) => s < 500
       });
 
-      if (!data.verified) {
-        throw new E403('CSRF invalid');
+      // Reject if token not valid or used earlier
+      if (!data.verified || AcceptedCSRFTokens.includes(token)) {
+        throw new E403('CSRF rejected');
       }
 
-      if (!origins?.length || origins.includes(data.origin)) {
-        return next();
+      if (!origins.includes(data.origin)) {
+        throw new E403('CSRF origin missmatch');
       }
 
-      throw new E403('Origin missmatch');
+      AcceptedCSRFTokens.push(token);
+
+      return next();
     } catch (e) {
       if (e instanceof ErrorConstructor) {
         if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
