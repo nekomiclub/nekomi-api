@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ITitle } from '../interfaces/Title';
-import { createID, getUTC } from '../handlers/v1/handlers';
+import { createID, getUTC } from '../handlers/handlers';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,

@@ -1,29 +1,18 @@
 import mongoose, { Schema } from 'mongoose';
-import { IDubber } from '../core/interfaces';
+import { IDubber } from '../interfaces/Dubber';
 
 export const Dubbers = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,
   thumbURL: String,
-  socials: {
-    telegram: String || null,
-    instagram: String || null,
-    youtube: String || null,
-    tiktok: String || null
-  },
-  support: {
-    diaka: String || null,
-    monobank: String || null,
-    privatbank: String || null,
-    bymeacoffee: String || null,
-    patreon: String || null
-  },
+  socials: Object,
+  support: Object,
   createdAt: Number,
   description: String || null,
   leader: String || null,
-  editors: Array<string> || null,
-  members: Array<string> || null,
+  editors: Array || null,
+  members: Array || null,
   rating: Number,
 }));
 

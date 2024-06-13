@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { IUser } from '../interfaces/User';
 import { DeepPartial } from '../interfaces/Interfaces';
-import { createID, getUTC } from '../handlers/v1/handlers';
+import { createID, getUTC } from '../handlers/handlers';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,

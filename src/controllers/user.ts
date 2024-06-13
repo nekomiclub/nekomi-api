@@ -1,12 +1,11 @@
 import express from 'express';
 import axios, { AxiosError } from 'axios';
-import { validationResult } from 'express-validator';
 
 import * as dto from '../handlers/dtos';
-import * as handler from '../handlers/v1/handlers';
+import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError, E501, E500 } from '../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500 } from '../handlers/Errors';
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import { IFKSessionToken } from '../interfaces/Fullkekw';
@@ -15,9 +14,7 @@ import Title from '../Models/Title';
 
 
 export async function postSignin(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const { session } = req.body as { session: string };
     let id = '';
 
@@ -78,9 +75,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
 
 export async function getLogout(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     return res.status(205).clearCookie(config.vars.sessionCookieName).json({ msg: 'ok' });
   });
 }
@@ -88,9 +83,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 
 
 export async function getQuery(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     let { query } = req.params as { query: string };
 
     // Get query from session
@@ -136,9 +129,7 @@ interface IPatchUserBody {
 }
 
 export async function patchUser(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     // Session cookie
     const token = req.cookies[config.vars.sessionCookieName];
     const { method, folderId, titleId } = req.body as IPatchUserBody;

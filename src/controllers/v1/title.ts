@@ -8,8 +8,8 @@ import Fuse from 'fuse.js';
 
 import { testMode, devMode } from '../../config';
 import Title from '../../Models/Title';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, E500, catchError } from '../../handlers/v1/Errors';
-import { randomNumber } from '../../handlers/v1/handlers';
+import { ErrorConstructor, E400, E401, E403, E404, E500, catchError } from '../../handlers/Errors';
+import { randomNumber } from '../../handlers/handlers';
 import * as dto from '../../handlers/dtos';
 import { ITitle } from '../../interfaces/Title';
 
@@ -32,9 +32,7 @@ interface ISearch extends ITitle {
 }
 
 export async function search(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     // @ts-ignore
     const { query, ...props } = req.query as ISearch;
     // @ts-ignore
@@ -83,9 +81,7 @@ export async function search(req: express.Request, res: express.Response) {
 }
 
 export async function getMany(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     let { limit, page } = req.query as { limit: number | undefined, page: number | undefined };
 
     let titles = await Title.find();

@@ -1,15 +1,13 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, writeErrorLog, catchError } from '../../handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, catchError } from '../../handlers/Errors';
 import fs from 'fs';
-import { IDubber } from '../../core/interfaces';
 import * as dto from '../../handlers/dtos';
 import Dubbers from '../../Models/Dubber';
 import { devMode } from '../../config';
+import { IDubber } from '../../interfaces/Dubber';
 
 export async function getOne(req: express.Request, res: express.Response) {
-  const rouetCode = 'Dubber/Get';
-
-  await catchError(req, res, rouetCode, async () => {
+  await catchError(req, res, async () => {
     const { query } = req.params;
 
     const dubber = await Dubbers.findOne({ $or: [{ id: query }, { code: query }] });
@@ -23,9 +21,7 @@ export async function getOne(req: express.Request, res: express.Response) {
 }
 
 export async function parse(req: express.Request, res: express.Response) {
-  const rouetCode = 'Dubber/Parse';
-
-  await catchError(req, res, rouetCode, async () => {
+  await catchError(req, res, async () => {
     const { queries } = req.body as { queries: string[] };
     let results: IDubber[] = [];
 
@@ -38,7 +34,6 @@ export async function parse(req: express.Request, res: express.Response) {
         null;
       }
     }
-
 
     return res.status(200).json({ results });
   });

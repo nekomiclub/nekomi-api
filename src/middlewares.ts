@@ -1,12 +1,12 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E500, E404 } from './handlers/v1/Errors';
+import { ErrorConstructor, E400, E401, E403, E500, E404 } from './handlers/Errors';
 import fs from 'fs';
 import path from 'path';
-import { getFileExtension, parseRoles } from './handlers/v1/handlers';
 import { config, devMode, prodMode, testMode } from './config';
 import axios, { Axios, AxiosError } from 'axios';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
+import { parseRoles } from './handlers/handlers';
 
 /** Accepted CSRF tokens array */
 const AcceptedCSRFTokens: string[] = [];

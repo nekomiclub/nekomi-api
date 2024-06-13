@@ -2,76 +2,82 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 
-import { devMode, prodMode } from '../../config';
+import { devMode, prodMode } from '../config';
 import { validationResult } from 'express-validator';
 import axios, { AxiosError } from 'axios';
 import { getUTC } from './handlers';
 
 
 
-type THTTPErrorCodes = 400 | 401 | 403 | 404 | 500 | 501 | 503;
+type THTTPErrorCodes = 400 | 401 | 403 | 404 | 500 | 501 | 502 | 503;
 
 export class ErrorConstructor {
-  msg: string | Array<any>;
+  msg: string;
   code: THTTPErrorCodes;
 
-  constructor(msg: string | Array<any>, code: THTTPErrorCodes) {
+  constructor(msg: string, code: THTTPErrorCodes) {
     this.msg = msg;
     this.code = code;
   }
 }
 
+/** 400 - Bad request */
 export class E400 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 400);
   }
 }
 
+/** 401 - Unauthorized */
 export class E401 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 401);
   }
 }
 
+/** 403 - Forbidden */
 export class E403 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 403);
   }
 }
 
+/** 404 - Not found */
 export class E404 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 404);
   }
 }
 
+/** Internal error */
 export class E500 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 500);
   }
 }
 
+/** 501 - Not implemented */
 export class E501 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 501);
   }
 }
 
+/** 502 - Bad gateway */
+export class E502 extends ErrorConstructor {
+  constructor(msg: string) {
+    super(msg, 502);
+  }
+}
+
+/** 503 - Service unavailable */
 export class E503 extends ErrorConstructor {
-  constructor(msg: string | Array<any>) {
+  constructor(msg: string) {
     super(msg, 503);
   }
 }
 
 
-
-
-export function writeErrorLog(msg: string, at: string) {
-  const time = `${new Date().getUTCDate()}.${new Date().getUTCMonth() + 1}.${new Date().getUTCFullYear()} (${new Date().getUTCHours()}:${new Date().getUTCMinutes()})`;
-  const emsg = `\nERROR (UTC ${time}) [${at}]: ${msg}`;
-  if (devMode) console.error(emsg);
-  fs.appendFileSync(`${path.resolve()}/.log`, emsg);
-}
 
 /** Route error catcher
  * Will validate HTTP Errors, express-validation & Axios errors
@@ -80,7 +86,7 @@ export function writeErrorLog(msg: string, at: string) {
  * 
  * @version re-1.0.1
  */
-export async function catchError(req: express.Request, res: express.Response, at: string, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
+export async function catchError(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
     const valRes = validationResult(req);
 
@@ -111,7 +117,7 @@ export async function catchError(req: express.Request, res: express.Response, at
         // Write in logs
       }
 
-      return res.status(e.code).json({ ...e, date });
+      return res.status(e.code).json({ ...e, date, url: req.baseUrl });
     } else if (e instanceof AxiosError) {
       const date = `${getUTC().date} ${getUTC().time}`;
       const status = e.response?.status || 500;
@@ -149,7 +155,7 @@ export async function catchError(req: express.Request, res: express.Response, at
 
       // Write in logs
 
-      return res.status(503).json({ msg: emsg, date });
+      return res.status(503).json({ msg: emsg, date, url: req.baseUrl });
     }
   }
 }

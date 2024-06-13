@@ -13,12 +13,11 @@ import ip from 'ip';
 import { devMode, testMode, config, prodMode } from './config';
 
 import * as router from './router';
-import * as handler from './handlers/v1/handlers';
-import { E403, writeErrorLog } from './handlers/v1/Errors';
+import * as handler from './handlers/handlers';
+import { E403 } from './handlers/Errors';
 import Title from './Models/Title';
 import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
-import { sendDayStat } from './services/v1/stats';
 import { createUser } from './Models/User';
 import { signToken } from './services/TokenService';
 
@@ -135,7 +134,7 @@ const server = app.listen(config.service.PORTS.HTTP, config.service.HOST, () => 
   //* Callbacks
   (async function () {
     try {
-      await sendDayStat();
+
     } catch (e) {
       console.error(`An error occured in after startup callback`);
       console.error(e);

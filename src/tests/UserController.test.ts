@@ -5,7 +5,7 @@ import ip from 'ip';
 import { config, prodMode } from '../config';
 import User, { createUser } from '../Models/User';
 import Role from '../Models/Role';
-import { createID } from '../handlers/v1/handlers';
+import { createID } from '../handlers/handlers';
 
 const baseUrl = `http://${ip.address()}`;
 

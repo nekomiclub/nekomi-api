@@ -1,12 +1,6 @@
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import * as uuid from 'uuid';
-import { body, cookie, param, query } from 'express-validator';
-import ip from 'ip';
 
 import * as RouteValidation from './handlers/routeValidation';
-import * as v1C from './controllers/v1/index';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CWS from './controllers/v1/ws';
@@ -78,12 +72,3 @@ UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, Us
 /** @deprecated post snap was deprecated due to refusal of posting posts of new episodes in tg channel */
 ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-bot microservice
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
-
-
-
-//* ------------------ SERVICE ROUTER ------------------
-ApiV1.get(`/uptime`, v1C.uptime);
-
-
-
-//* ------------------ ALLIASES ------------------

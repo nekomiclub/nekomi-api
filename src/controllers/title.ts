@@ -7,22 +7,20 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/v1/Errors';
+import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/Errors';
 import Title, { createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken, signToken } from '../services/TokenService';
 import User from '../Models/User';
-import { getUTC, parseRoles } from '../handlers/v1/handlers';
+import { getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubbers from '../Models/Dubber';
 
 
 
 export async function getTitleQuery(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const { query } = req.params as { query: string };
 
     const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
@@ -38,9 +36,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
 
 export async function getTotal(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const titles = await Title.find();
 
     return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.map(el => el.country !== 'Other').length });
@@ -50,9 +46,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
 
 
 export async function postTitle(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const id = await createTitle();
 
     return res.status(201).json({ msg: 'Title created!', id });
@@ -97,9 +91,7 @@ interface IPatchTitleBody {
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
 
 export async function patchTitle(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const { id } = req.params as { id: string };
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
     const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, } = req.body as IPatchTitleBody;
@@ -648,9 +640,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
-  const routeCode = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, routeCode, async () => {
+  await catchError(req, res, async () => {
     const { id } = req.params as { id: string };
 
     const title = await Title.findOne({ id });

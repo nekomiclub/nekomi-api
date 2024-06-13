@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 import { config, devMode, prodMode } from '../config';
-import { getUTC } from '../handlers/v1/handlers';
+import { getUTC } from '../handlers/handlers';
 
 /** 
  * CSRF - sign CSRF token

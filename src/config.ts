@@ -2,18 +2,18 @@ import fs from 'fs';
 import path from 'path';
 import ip from 'ip';
 
-import { IANIMEE_CONFIG } from './core/interfaces';
+import { IANIMEE_CONFIG } from '../interfaces';
 
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
 export const devMode = process.argv.includes('devMode');
 export const prodMode = process.argv.includes('prodMode');
-
-/** Test mode. In test mode some validation will pass in other ways */
 export const testMode = process.argv.includes('testMode');
 
-/** Main service config */
+
+
+/** Head config */
 export const config = {
   /** DB object from global config */
   db: ANIMEE_CONFIG.SERVICES.DB,
@@ -97,7 +97,7 @@ export const config = {
     prodIP: '192.168.0.107',
 
     /** CSRF token expiration */
-    CSRF_EXPIRE: prodMode ? 5000 : 180000
+    CSRF_EXPIRE: 180000
   }
 };
 

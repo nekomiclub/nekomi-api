@@ -1,4 +1,4 @@
-import { IDubber } from '../core/interfaces';
+import { IDubber } from '../interfaces/Dubber';
 import { ITitle } from '../interfaces/Title';
 import { IUser } from '../interfaces/User';
 

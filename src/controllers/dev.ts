@@ -1,5 +1,5 @@
 import express from 'express';
-import { catchError } from '../handlers/v1/Errors';
+import { catchError } from '../handlers/Errors';
 
 /*
   ! THESE CONTROLLERS ARE USED ONLY FOR TESTING PURPOSES
@@ -8,17 +8,13 @@ import { catchError } from '../handlers/v1/Errors';
 */
 
 export async function getAccessControl(req: express.Request, res: express.Response) {
-  const route = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, route, async () => {
+  await catchError(req, res, async () => {
     return res.status(200).json('ok');
   });
 }
 
 export async function getCSRFCheck(req: express.Request, res: express.Response) {
-  const route = `${req.method} ${req.baseUrl}`;
-
-  await catchError(req, res, route, async () => {
+  await catchError(req, res, async () => {
     return res.status(200).json('ok');
   });
 }
