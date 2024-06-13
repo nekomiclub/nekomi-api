@@ -114,7 +114,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
       if (devMode) console.error(emsg);
 
       if (e.code >= 500) {
-        // Write in logs
+        writeLog('error', emsg, 'catchError/http');
       }
 
       return res.status(e.code).json({ ...e, date, url: req.baseUrl });
@@ -139,7 +139,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
       if (devMode) console.error(JSON.stringify(e.toJSON(), null, 2));
 
       if (status >= 500) {
-        // Write in logs
+        writeLog('error', emsg, 'catchError/axios');
       }
 
       return res.status(status).json({ msg: emsg, url: e.config?.url || null, at: e.response?.data?.at || null, date });
@@ -153,9 +153,55 @@ export async function catchError(req: express.Request, res: express.Response, cb
       console.log(emsg);
       console.log(JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
 
-      // Write in logs
+      writeLog('error', emsg, 'catchError/unexpected');
 
       return res.status(503).json({ msg: emsg, date, url: req.baseUrl });
     }
   }
+}
+
+/** Log type
+ * Info - Information log
+ * Warn - Warning log
+ * Error - Error log
+ * Fatal - Fatal error, service may not be available
+ */
+type TLogType = 'info' | 'warn' | 'error' | 'fatal'
+
+/** Logger
+ * @version re-1.0.1
+ */
+export function writeLog(type: TLogType, msg: any, at: string) {
+  const date = `[${getUTC().date} ${getUTC().time}]`;
+  const prefix = type === 'fatal' ? 'FATAL ERROR' : type.toUpperCase();
+
+  const emsg = `${prefix} ${date} (at ${at}): ${JSON.stringify(msg, Object.getOwnPropertyNames(msg))}`;
+
+  if (type === 'fatal') {
+    console.log(`\nFatal error occured ----------------------------\n`);
+    console.error(msg);
+    console.error(`\nFatal error ended ----------------------------\n`);
+
+    prepend(emsg, `${path.resolve()}/logs/fatal.log`);
+  } else if (type === 'error') {
+    console.log(`\nAn error occured ----------------------------`);
+    console.error(msg);
+    console.log('----------------------------');
+
+    prepend(emsg, `${path.resolve()}/logs/error.log`);
+    prepend(emsg, `${path.resolve()}/logs/.log`);
+  } else {
+    console.log(`\nSystem output --------------`);
+    console.log(msg);
+    console.log('----------------------------');
+
+    prepend(emsg, `${path.resolve()}/logs/.log`);
+  }
+}
+
+function prepend(data: string, path: string) {
+  const rows = fs.readFileSync(path).toString().split('\n');
+  rows.unshift(data);
+
+  fs.writeFileSync(path, rows.join('\n'));
 }

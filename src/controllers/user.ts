@@ -5,7 +5,7 @@ import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
-import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500 } from '../handlers/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500, writeLog } from '../handlers/Errors';
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import { IFKSessionToken } from '../interfaces/Fullkekw';
@@ -36,35 +36,29 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
     // Deep find user if not find by usapi ID
     if (!user) {
-      try {
-        const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.microservices.usapi}/user/${id}`);
+      const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.microservices.usapi}/user/${id}`);
 
-        const { user: data } = res.data;
-        user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });
+      const { user: data } = res.data;
+      user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });
 
-        if (!user) {
-          // Deep find does not found user, create new one
-          if (devMode) console.log(`[User]: User does not founded deeply, creating new one with id - ${id}`);
+      if (!user) {
+        // Deep find does not found user, create new one
+        writeLog('info', `[User]: User (${id}) does not founded deeply, creating new one with id - ${id}`, 'postSignin/createUser');
 
-          await createUser({
-            id,
-            avatarURL: data.photoURL,
-            username: data.username
-          });
+        await createUser({
+          id,
+          avatarURL: data.photoURL,
+          username: data.username
+        });
 
-          user = await User.findOne({ id });
-        } else {
-          // Deep find found user, assing usapi id to it
-          if (devMode) console.log(`[User]: User deep find match user by email/username, assigning new id to it`);
+        user = await User.findOne({ id });
+      } else {
+        // Deep find found user, assing usapi id to it
+        writeLog('info', `[User]: User (${id}) deep find match user by email/username, assigning new id to it`, 'postSignin/createUser');
 
-          user.id = id;
+        user.id = id;
 
-          await user.save();
-        }
-      } catch (e) {
-        console.log(e);
-        const emsg = `Unknown error occured while getting user with id ${id}. Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`;
-        throw new E500(emsg);
+        await user.save();
       }
     }
 
@@ -157,7 +151,11 @@ export async function patchUser(req: express.Request, res: express.Response) {
       throw new E501('Method is not implemented');
     }
 
+    writeLog('info', `User ${userId} modified. Stack - ${modifyStack.join(', ')}`, 'patchUser');
+
     return res.status(200).json({ msg: 'User modified', stack: modifyStack.join('\n') });
+
+
 
     /** Patch folder */
     async function editFolderItem() {

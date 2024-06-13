@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-
+import { WebSocketServer } from 'ws';
 import https from 'https';
 import http from 'http';
 import cors, { CorsOptions } from 'cors';
@@ -10,13 +10,12 @@ import fs from 'fs';
 import path from 'path';
 import ip from 'ip';
 
-import { devMode, testMode, config, prodMode } from './config';
+import { devMode, testMode, config, prodMode, checkFilesystem } from './config';
 
 import * as router from './router';
 import * as handler from './handlers/handlers';
-import { E403 } from './handlers/Errors';
+import { E403, writeLog } from './handlers/Errors';
 import Title from './Models/Title';
-import { WebSocketServer } from 'ws';
 import { listenWSS } from './controllers/v1/ws';
 import { createUser } from './Models/User';
 import { signToken } from './services/TokenService';
@@ -24,9 +23,10 @@ import { signToken } from './services/TokenService';
 
 
 if (prodMode && ip.address() !== config.vars.prodIP) {
+  writeLog('fatal', `Startup denied for ${ip.address()}.`, 'initialization');
   throw new Error(`
     ----------------------------
-    ANIMEE-API STARTUP DENIED
+    ANIMEE-CORE STARTUP DENIED
 
     Current IP (${ip.address()}) has no permission to startup at production mode.
     ----------------------------
@@ -47,8 +47,7 @@ mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_URI, {
   retryWrites: true,
 }).catch(e => {
-  console.error('------------- CRITICAL ERROR -------------\nMongo DB exception occured - ');
-  console.error(e);
+  writeLog('fatal', e, 'initialization/mongoose');
 });
 
 export const app = express();
@@ -70,8 +69,6 @@ const CORSOpt: CorsOptions = {
     'https://updater.animee.club',
     'https://auth.animee.club',
     'https://api.animee.club',
-    devMode ? 'http://localhost:3001' : '',
-    devMode ? 'http://localhost:3000' : '',
     devMode ? 'http://192.168.0.106:3001' : '',
     devMode ? 'http://192.168.0.106:3000' : '',
     'https://animee-git-dev-unniiiverse.vercel.app'
@@ -92,52 +89,41 @@ app.use('/title', router.TitleRouter);
 
 
 
-if (prodMode) {
-  app.enable('trust proxy');
-
-  // HTTP > HTTPS redirect
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (!req.secure) {
-      return res.redirect(`https://${req.headers.host}${req.url}`);
-    }
-
-    next();
-  });
-}
-
 if (devMode) {
   app.use('/dev', router.DevRouter);
 }
 
-wss.on('error', e => { throw e; });
+wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
 
 
-const server = app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
-  server.keepAliveTimeout = 10000;
-  server.headersTimeout = 15000;
+(async function () {
+  // Pre-init callback
+  try {
+    await checkFilesystem();
+    listenWSS();
+  } catch (e) {
+    writeLog('fatal', e, 'initialization/preInit');
+  }
 
-  console.log(`
-    ----------------------------
-    ANIMEE-API STARTED UP
-  
-    Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
-    Mode: ${prodMode ? 'Production' : 'Development'} ${testMode ? '(Testing)' : ''}
-    HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
-    HTTPS: ${prodMode ? 'NGINX serve' : 'Disabled in dev mode'}
-    WS: ${config.service.HOST}:${config.service.PORTS.WS}
-    ----------------------------
-  `);
+  app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
+    console.log(`
+      ----------------------------
+      ANIMEE-API STARTED UP
+    
+      Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
+      Mode: ${prodMode ? 'Production' : 'Development'} ${testMode ? '(Testing)' : ''}
+      HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
+      HTTPS: ${prodMode ? 'NGINX serve' : 'Disabled in dev mode'}
+      WS: ${config.service.HOST}:${config.service.PORTS.WS}
+      ----------------------------
+    `);
+  });
 
-  listenWSS();
+  // Post-init callback
+  try {
 
-  //* Callbacks
-  (async function () {
-    try {
-
-    } catch (e) {
-      console.error(`An error occured in after startup callback`);
-      console.error(e);
-    }
-  })();
-});
+  } catch (e) {
+    writeLog('error', e, 'initialization/postInit');
+  }
+})();

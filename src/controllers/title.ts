@@ -7,7 +7,7 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E403, E404, E500, E501, E503, catchError } from '../handlers/Errors';
+import { E400, E403, E404, E500, E501, E503, catchError, writeLog } from '../handlers/Errors';
 import Title, { createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
@@ -47,7 +47,10 @@ export async function getTotal(req: express.Request, res: express.Response) {
 
 export async function postTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
+    const UserData = req.animee;
     const id = await createTitle();
+
+    writeLog(`info`, `User (${UserData.userID}) create new title with id - ${id}`, `postTitle`);
 
     return res.status(201).json({ msg: 'Title created!', id });
   });
@@ -147,12 +150,15 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             });
           }
 
+
           const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, {
             validateStatus: (s) => s < 500,
             headers: {
               'X-CSRF-Token': signToken('CSRF', '')
             }
           });
+
+          writeLog('info', `New poster for title ${title.id} uploaded by ${user.id}`, 'patchTitle/changePoster');
 
           title.poster = `${config.URL.media}/${postData.id}`;
           title.markModified('poster');
@@ -170,9 +176,9 @@ export async function patchTitle(req: express.Request, res: express.Response) {
               throw new E503('Animee-uploads is not available. Try in a few minutes');
             }
 
-            return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+            throw e;
           } else {
-            throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+            throw e;
           }
         }
       } else if (type === 'upload_episode') {
@@ -199,8 +205,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (title.episodes.some(el => el.dubberID === dubber.id && el.order === order)) {
           throw new E400(`Episode ${order} in ${dubber.id} already exist`);
         }
-
-        console.log(`Uploading ${order} episode in ${dubID}...`);
 
         const ep: ITitleEpisode = {
           dubberID: dubber.id,
@@ -229,6 +233,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
               'X-CSRF-Token': signToken('CSRF', '')
             }
           });
+
+          writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${user.id}`, 'patchTitle/uploadEpisode');
 
           const id = data.id;
           const frames = data.frames;
@@ -267,9 +273,9 @@ export async function patchTitle(req: express.Request, res: express.Response) {
               throw new E503('Animee-uploads is not available. Try in a few minutes');
             }
 
-            return res.status(e.response?.data.code || 500).json({ msg: e.response?.data.msg || `An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
+            throw e;
           } else {
-            throw new E500(`An error occured while uploading poster for title ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+            throw e;
           }
         }
       }
@@ -302,7 +308,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       // ignore
     }
 
-    if (devMode) console.log(`Title patched. Changes - ${changes.join(', ')}`);
+    writeLog('info', `Title ${title.id} patched by ${user.id}. Changed - ${changes.join(', ')}`, 'patchTitle');
 
     return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed...` });
 
@@ -642,10 +648,13 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { id } = req.params as { id: string };
+    const UserData = req.animee;
 
     const title = await Title.findOne({ id });
 
     if (!title) throw new E404(`Title ${id} is not found`);
+
+    writeLog('warn', `Title ${id} deleted by ${UserData.userID}`, 'deleteTitle');
 
     await title.deleteOne();
   });

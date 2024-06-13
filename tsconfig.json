@@ -108,6 +108,9 @@
   "lib": [
     "esnext"
   ],
+  "files": [
+    "./src/interfaces/globals.d.ts"
+  ],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

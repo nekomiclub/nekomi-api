@@ -14,10 +14,12 @@ const AcceptedCSRFTokens: string[] = [];
 
 
 /** Routes access-control middleware
- * @param capabilities An array of required capabilities. If user had at least one required or array will be empty, request will be passed.
+ * @param capabilities An array of required capabilities. If user had at least one required or array will be empty, request will be passed. Will set user data (id & caps) into animee object.
  */
 export function AccessControl(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    req.animee = req.animee || {};
+
     try {
       const token = req.cookies[config.vars.sessionCookieName] || req.headers['authorization'];
 
@@ -28,6 +30,16 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       // Pass if no capabilities required
       if (!capabilities || !capabilities.length) {
+        try {
+          const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
+            session: token
+          });
+
+          req.animee.userID = sessionData.data.id;
+        } catch (e) {
+          // Ignore
+        }
+
         return next();
       }
 
@@ -46,7 +58,6 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
           id = sessionData.data.id;
         } catch (e) {
-
           if (e instanceof AxiosError) {
             if (e.response?.status === 403) {
               return res.status(403).clearCookie(config.vars.sessionCookieName).json({ msg: 'Session expired' });
@@ -56,11 +67,9 @@ export function AccessControl(capabilities: TRoleCapability[]) {
               return res.status(503).json({ msg: 'FK-Usapi is unavailable. Try in a few minutes' });
             }
 
-            if (devMode) console.error(e.response?.data.msg || e.response?.data.message);
-            return res.status(e.response?.status || 500).json({ msg: e.response?.data.msg || e.response?.data.message || 'Service is unavailable.', at: e.response?.data.at || null, url: e.config!.url });
+            throw e;
           } else {
-            if (devMode) console.error(e);
-            throw new E500(`Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+            throw e;
           }
         }
       }
@@ -73,6 +82,9 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       /** User roles capabilities */
       const caps = await parseRoles(user.roles);
+
+      req.animee.userID = user.id;
+      req.animee.userCapabilities = caps;
 
       // Pass anyway if user is root
       if (caps.includes('root')) {

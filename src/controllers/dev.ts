@@ -9,6 +9,7 @@ import { catchError } from '../handlers/Errors';
 
 export async function getAccessControl(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
+    console.log(req.animee);
     return res.status(200).json('ok');
   });
 }

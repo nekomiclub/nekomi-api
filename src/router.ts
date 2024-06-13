@@ -32,7 +32,7 @@ DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCS
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
-TitleRouter.post('/', RouteValidation.postTitle, RouteValidation.privateCORS, TitleController.postTitle);
+TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
 
