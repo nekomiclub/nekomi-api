@@ -87,7 +87,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       if (!cookie) throw new E401(`Session cookie is not provided`);
 
       const token = TokenService.decodeToken<{ userId: string }>(cookie);
-      query = token.payload.userId;
+      query = token.payload!.userId;
     }
 
     const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
@@ -124,18 +124,10 @@ interface IPatchUserBody {
 
 export async function patchUser(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
-    // Session cookie
-    const token = req.cookies[config.vars.sessionCookieName];
+    const UserData = req.animee;
     const { method, folderId, titleId } = req.body as IPatchUserBody;
 
-    let userId = '';
-
-    if (testMode) {
-      userId = token;
-    } else {
-      const { payload: session } = TokenService.decodeToken<IFKSessionToken>(token);
-      userId = session.userId;
-    }
+    let userId = UserData.userID;
 
     const user = await User.findOne({ id: userId });
     let modifyStack: string[] = [];

@@ -4,92 +4,87 @@ import path from 'path';
 import { config, devMode, prodMode } from '../config';
 import { getUTC } from '../handlers/handlers';
 
-/** 
- * CSRF - sign CSRF token
- */
-export type TTokenMethod = 'CSRF';
-
-interface ITokenPayload<T> {
-  /** Can be null if method not provided */
+/** Decoded token interface */
+interface ITokenPayload<T = any> {
+  /** Token is verified */
   verified: boolean | null
 
   /** Token headers */
   headers: jwt.JwtHeader | null
 
   /** Token payload */
-  payload: T
+  payload: T | null
 }
 
-
-// const SECRETS = {
-//   session: (JSON.parse(fs.readFileSync(`${path.resolve()}/secrets/sessionKey.json`).toString()) as ISEC_SessionKey).key,
-//   dummy_googleProvider: `dummy_googleProvider`
-// };
-
+/** JWT Headers */
 const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 
-/** Sign JWT token
- * CSRF method - will sign CSRF token, with age of 5s (in dev mode 5m). Payload will be ignored
- */
-export function signToken(method: TTokenMethod, payload: any): string {
-  if (method === 'CSRF') {
-    return jwt.sign({
-      origin: 'api.animee.club',
-      expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
-    }, prodMode ? config.secrets.CSRF : config.secrets.CSRF, {
-      algorithm: 'RS256'
-    });
-  } else {
-    throw new Error('Method is invalid');
-  }
-}
+/** Token methods */
+type TTokenMethod = 'CSRF';
 
-/** Decode JWT token. If method is present will also verify token */
+/** Decode JWT token.
+ * @param method If specified, will also verify token with this method
+ */
 export function decodeToken<T = any>(token: string, method?: TTokenMethod): ITokenPayload<T> {
   try {
     const decoded = jwt.decode(token);
-    let payload: any = {};
-    let headers: any = {};
-    let verified: boolean | null = null;
+
+    let payload: any = null;
+    let headers: any = null;
+    let verified: any = null;
 
     if (typeof decoded === 'string') {
       payload = decoded;
     } else {
       for (const key in decoded) {
-        if (!JWTHeaders.includes(key)) {
-          payload[key] = decoded[key];
-        } else {
+        if (JWTHeaders.includes(key)) {
+          if (!headers) headers = {};
           headers[key] = decoded[key];
+        } else {
+          if (!payload) payload = {};
+          payload[key] = decoded[key];
         }
       }
     }
 
-    // if (method) {
-    //   verified = verifyToken(token, method);
-    // }
+    switch (method) {
+      case 'CSRF': {
+        verified = verifyCSRFToken(token);
+        break;
+      }
+    }
 
     return {
       headers,
       payload,
-      verified
+      verified,
     };
-  } catch (e) {
-    const emsg = `An error occured while decoding token: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`;
-
-    if (!prodMode) console.error(`DEV_ERR: ${emsg}`);
-    throw new Error(emsg);
+  } catch (error) {
+    return {
+      headers: null,
+      payload: null,
+      verified: null,
+    };
   }
 }
 
-/** Verify JWT token with provided method */
-// export function verifyToken<T = any>(token: string, method: TTokenMethod): boolean {
-//   try {
-//     if (method === '') {
-//       return Boolean(jwt.verify(token, method));
-//     } else {
-//       throw new Error();
-//     }
-//   } catch (e) {
-//     return false;
-//   }
-// }
+
+
+/** Verify CSRF token */
+export function verifyCSRFToken(token: string): boolean {
+  try {
+    return Boolean(jwt.verify(token, config.secrets.CSRF));
+  } catch (e) {
+    return false;
+  }
+}
+
+/** Sign CSRF token */
+export function singCSRFToken(): string {
+  return jwt.sign({
+    origin: config.vars.domain,
+    expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
+  }, config.secrets.CSRF, {
+    algorithm: 'RS256'
+  })
+}

@@ -11,7 +11,7 @@ import { E400, E403, E404, E500, E501, E503, catchError, writeLog } from '../han
 import Title, { createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
-import { decodeToken, signToken } from '../services/TokenService';
+import { decodeToken, singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
 import { getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
@@ -105,7 +105,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (!title) throw new E404(`Title ${id} is not found`);
 
     const session = decodeToken<{ userId: string }>(req.cookies[config.vars.sessionCookieName] || req.headers['authorization']);
-    const user = await User.findOne({ id: session.payload.userId });
+    const user = await User.findOne({ id: session.payload!.userId });
 
     if (!user) {
       throw new E404('User with this session is not exist');
@@ -145,7 +145,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             await axios.delete(`${config.microservices.uploadsURL}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${user!.id}`, {
               validateStatus: (s) => s < 500,
               headers: {
-                'X-CSRF-Token': signToken('CSRF', '')
+                'X-CSRF-Token': singCSRFToken()
               }
             });
           }
@@ -154,7 +154,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, {
             validateStatus: (s) => s < 500,
             headers: {
-              'X-CSRF-Token': signToken('CSRF', '')
+              'X-CSRF-Token': singCSRFToken()
             }
           });
 
@@ -230,7 +230,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             httpsAgent: new https.Agent({ keepAlive: true }),
             timeout: 600000,
             headers: {
-              'X-CSRF-Token': signToken('CSRF', '')
+              'X-CSRF-Token': singCSRFToken()
             }
           });
 
@@ -574,7 +574,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         await axios.delete(`${config.microservices.uploadsURL}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${user!.id}&withChildren=true`, {
           validateStatus: (s) => s < 500,
           headers: {
-            'X-CSRF-Token': signToken('CSRF', '')
+            'X-CSRF-Token': singCSRFToken()
           }
         });
       } catch (e) {

@@ -98,7 +98,10 @@ export const config = {
     prodIP: '192.168.0.107',
 
     /** CSRF token expiration */
-    CSRF_EXPIRE: 180000
+    CSRF_EXPIRE: 180000,
+
+    /** Service domain */
+    domain: 'api.anime.club',
   }
 };
 
