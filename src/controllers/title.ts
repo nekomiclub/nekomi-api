@@ -585,13 +585,13 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
           throw e;
         } else {
-          throw new E500(`An error occured while deleting episode ${order} in ${dubber.name} for ${title.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+          throw e;
         }
       }
 
       changes.push(`${handlerName}: Episode ${order} in ${dubber.name} deleted`);
 
-      title.episodes = title.episodes.filter(el => el.dubberID !== dubber.id && el.order !== order);
+      title.episodes = title.episodes.filter(el => !(el.order === order && el.dubberID === dubber.id));
 
       title.markModified('episodes');
     }

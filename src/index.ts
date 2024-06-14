@@ -19,6 +19,7 @@ import Title from './Models/Title';
 import { listenWSS } from './controllers/v1/ws';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';
+import { ITitleEpisode } from './interfaces/Title';
 
 
 
