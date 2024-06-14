@@ -6,8 +6,9 @@ import { config, prodMode } from '../config';
 import User from '../Models/User';
 import Role from '../Models/Role';
 import { createID } from '../handlers/handlers';
+import { $http } from '../handlers/http';
+import axios from 'axios';
 
-jest.mock('axios');
 const baseUrl = `http://${ip.address()}`;
 
 describe('DevController', () => {

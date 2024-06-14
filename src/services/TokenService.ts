@@ -86,5 +86,5 @@ export function singCSRFToken(): string {
     expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
   }, config.secrets.CSRF, {
     algorithm: 'RS256'
-  })
+  });
 }

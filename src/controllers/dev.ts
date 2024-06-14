@@ -1,5 +1,7 @@
 import express from 'express';
-import { catchError } from '../handlers/Errors';
+import { E500, catchError } from '../handlers/Errors';
+import { $http } from '../handlers/http';
+import { config } from '../config';
 
 /*
   ! THESE CONTROLLERS ARE USED ONLY FOR TESTING PURPOSES
@@ -9,7 +11,6 @@ import { catchError } from '../handlers/Errors';
 
 export async function getAccessControl(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
-    console.log(req.animee);
     return res.status(200).json('ok');
   });
 }

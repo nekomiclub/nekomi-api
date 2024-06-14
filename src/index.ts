@@ -108,7 +108,7 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
   app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
     console.log(`
       ----------------------------
-      ANIMEE-API STARTED UP
+      ANIMEE-CORE STARTED UP
     
       Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
       Mode: ${prodMode ? 'Production' : 'Development'} ${testMode ? '(Testing)' : ''}
