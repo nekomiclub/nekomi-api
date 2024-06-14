@@ -1,5 +1,5 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E500, E404 } from './handlers/Errors';
+import { ErrorConstructor, E400, E401, E403, E500, E404, catchError } from './handlers/Errors';
 import fs from 'fs';
 import path from 'path';
 import { config, devMode, prodMode, testMode } from './config';
@@ -18,9 +18,9 @@ const AcceptedCSRFTokens: string[] = [];
  */
 export function AccessControl(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    req.animee = req.animee || {};
+    await catchError(req, res, async () => {
+      req.animee = req.animee || {};
 
-    try {
       const token = req.cookies[config.vars.sessionCookieName] || req.headers['authorization'];
 
       // Reject if authorization token is missing
@@ -105,15 +105,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       }
 
       next();
-    } catch (e) {
-      if (e instanceof ErrorConstructor) {
-        if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
-        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(e);
-      } else {
-        console.error(e);
-        return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
-      }
-    }
+    }, true);
   };
 }
 
@@ -124,9 +116,9 @@ export function AccessControl(capabilities: TRoleCapability[]) {
  */
 export function CSRFCheck(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    origins = origins || [];
+    await catchError(req, res, async () => {
+      origins = origins || [];
 
-    try {
       const token = req.header('X-CSRF-Token');
 
       // Reject if header undefined
@@ -157,21 +149,6 @@ export function CSRFCheck(origins?: string[]) {
       AcceptedCSRFTokens.push(token);
 
       return next();
-    } catch (e) {
-      if (e instanceof ErrorConstructor) {
-        if (devMode) console.error(`[HTTP ${e.code}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
-        return res.status(e.code).clearCookie(config.vars.sessionCookieName).json(e);
-      } else if (e instanceof AxiosError) {
-        if (e.code === 'ECONNREFUSED') {
-          return res.status(503).json({ msg: 'Fullkekw authority temporary unavailable. Try in a few minutes' });
-        } else {
-          console.error(e);
-          return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
-        }
-      } else {
-        console.error(e);
-        return res.status(500).json({ msg: `Unknown error occured. Error stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}` });
-      }
-    }
+    }, true);
   };
 }

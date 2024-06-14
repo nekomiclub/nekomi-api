@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
+import ip from 'ip';
 
-import { devMode, prodMode } from '../config';
+import { config, devMode, prodMode } from '../config';
 import { validationResult } from 'express-validator';
 import axios, { AxiosError } from 'axios';
-import { getUTC } from './handlers';
+import { createID, getUTC } from './handlers';
 
 
 
@@ -82,11 +83,9 @@ export class E503 extends ErrorConstructor {
 /** Route error catcher
  * Will validate HTTP Errors, express-validation & Axios errors
  * 
- * @param at Route code
- * 
- * @version re-1.0.1
+ * @param preventFullfilled Prevent default response
  */
-export async function catchError(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
+export async function catchError(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>, preventFullfilled?: boolean) {
   try {
     const valRes = validationResult(req);
 
@@ -98,11 +97,13 @@ export async function catchError(req: express.Request, res: express.Response, cb
     // Run callback
     await cb(req, res);
 
-    // Fallback if no response provided
-    try {
-      res.status(200).json({ msg: 'Request fullfilled without response' });
-    } catch (e) {
-      null;
+    if (!preventFullfilled) {
+      // Fallback if no response provided
+      try {
+        res.status(200).json({ msg: 'Request fullfilled without response' });
+      } catch (e) {
+        null;
+      }
     }
   } catch (e) {
     const date = `${getUTC().date} ${getUTC().time}`;
@@ -117,22 +118,22 @@ export async function catchError(req: express.Request, res: express.Response, cb
         writeLog('error', emsg, 'catchError/http');
       }
 
-      return res.status(e.code).json({ ...e, date, url: req.baseUrl });
+      return res.status(e.code).json({ ...e, date, url: `${req.method} ${req.baseUrl}` });
     } else if (e instanceof AxiosError) {
       const date = `${getUTC().date} ${getUTC().time}`;
-      const status = e.response?.status || 500;
+      const status = e.response?.status || 502;
 
       let emsg = `[AXIOS ${status}]: ${e.response?.data?.msg || e.response?.data?.message || e.message || 'Message is not provided'}`;
-      const estack = JSON.stringify(e, Object.getOwnPropertyNames(e));
+      let reqUrl = e.config?.url;
 
       if (status === 500) {
-        emsg = `Internal server error occured or axios can not parse status. Code - ${e.code}`;
+        emsg = `Internal server error occured. Code - ${e.code}`;
       } else if (status === 501) {
-        emsg = 'Not implemented';
+        emsg = `Not implemented. Code - ${e.code}`;
       } else if (status === 502) {
-        emsg = 'Bad gateway';
+        emsg = `Bad gateway. Code - ${e.code}`;
       } else if (status === 503) {
-        emsg = 'Service unavailable. Try in a few minutes';
+        emsg = `Service unavailable. Try in a few minutes. Code - ${e.code}`;
       }
 
       if (devMode) console.error(emsg);
@@ -140,9 +141,20 @@ export async function catchError(req: express.Request, res: express.Response, cb
 
       if (status >= 500) {
         writeLog('error', emsg, 'catchError/axios');
+
+        if (reqUrl?.includes(ip.address())) {
+          const id = createID();
+
+          writeLog('debug', `Hidden local port with id - ${id}. URL - ${reqUrl}`, `catchError/axios`);
+          reqUrl = `local:${id}`;
+        }
+      } else {
+        if (reqUrl?.includes(ip.address())) {
+          reqUrl = `http://local${new URL(reqUrl).pathname}`;
+        }
       }
 
-      return res.status(status).json({ msg: emsg, url: e.config?.url || null, at: e.response?.data?.at || null, date });
+      return res.status(status).json({ msg: emsg, reqUrl, url: `${req.method} ${req.baseUrl}`, date });
     } else {
       const date = `${getUTC().date} ${getUTC().time}`;
       // @ts-expect-error These fields may be
@@ -155,7 +167,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
 
       writeLog('error', emsg, 'catchError/unexpected');
 
-      return res.status(503).json({ msg: emsg, date, url: req.baseUrl });
+      return res.status(503).json({ msg: emsg, date, url: `${req.method} ${req.baseUrl}` });
     }
   }
 }
@@ -166,7 +178,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
  * Error - Error log
  * Fatal - Fatal error, service may not be available
  */
-type TLogType = 'info' | 'warn' | 'error' | 'fatal'
+type TLogType = 'info' | 'warn' | 'error' | 'fatal' | 'debug'
 
 /** Logger
  * @version re-1.0.1

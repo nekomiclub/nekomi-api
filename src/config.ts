@@ -101,7 +101,7 @@ export const config = {
     CSRF_EXPIRE: 180000,
 
     /** Service domain */
-    domain: 'api.anime.club',
+    domain: 'api.animee.club',
   }
 };
 
