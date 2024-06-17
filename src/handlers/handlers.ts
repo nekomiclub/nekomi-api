@@ -90,7 +90,7 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
 }
 
 /** Get mock data */
-export function getMockData(req: express.Request, key: string): IMockedData {
+export function getMockData<T = any>(req: express.Request, key: string): IMockedData<T> {
   let mocks: IMockedData[] = [];
 
   try {

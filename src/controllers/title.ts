@@ -142,7 +142,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
-            await axios.delete(`${config.microservices.uploadsURL}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${user!.id}`, {
+            await axios.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${user!.id}`, {
               validateStatus: (s) => s < 500,
               headers: {
                 'X-CSRF-Token': singCSRFToken()
@@ -151,7 +151,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
 
 
-          const { data: postData } = await axios.post<{ id: string }>(`${config.microservices.uploadsURL}/upload`, formData, {
+          const { data: postData } = await axios.post<{ id: string }>(`${config.URL.uploads}/upload`, formData, {
             validateStatus: (s) => s < 500,
             headers: {
               'X-CSRF-Token': singCSRFToken()
@@ -225,7 +225,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           // Upload
-          const { data } = await axios.post<{ id: string, frames: number }>(`${config.microservices.uploadsURL}/upload`, formData, {
+          const { data } = await axios.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData, {
             httpAgent: new http.Agent({ keepAlive: true }),
             httpsAgent: new https.Agent({ keepAlive: true }),
             timeout: 600000,
@@ -571,7 +571,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
 
       try {
-        await axios.delete(`${config.microservices.uploadsURL}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${user!.id}&withChildren=true`, {
+        await axios.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${user!.id}&withChildren=true`, {
           validateStatus: (s) => s < 500,
           headers: {
             'X-CSRF-Token': singCSRFToken()

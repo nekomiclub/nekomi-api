@@ -21,7 +21,7 @@ export const DevRouter = express.Router();
 // Test-only routes
 import * as DevController from './controllers/dev';
 
-DevRouter.get('/AccessControll', RouteValidation.devGetAccessControl, DevController.getAccessControl);
+DevRouter.get('/AccessControl', RouteValidation.devGetAccessControl, DevController.getAccessControl);
 DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
 
 
@@ -70,4 +70,6 @@ UserRouter.patch(`/`, RouteValidation.privateCORS, RouteValidation.userPatch, Us
 
 /** @deprecated post snap was deprecated due to refusal of posting posts of new episodes in tg channel */
 ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-bot microservice
+
+/** @deprecated Will be transfered into animee-core in future */
 ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice

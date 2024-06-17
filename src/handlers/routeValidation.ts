@@ -42,7 +42,7 @@ export const devGetAccessControl = [
 ];
 
 export const devGetCSRFCheck = [
-  CSRFCheck(['api.animee.club'])
+  CSRFCheck([config.vars.domain])
 ];
 
 

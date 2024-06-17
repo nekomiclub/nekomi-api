@@ -22,7 +22,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       if (testMode) {
         id = session;
       } else {
-        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
+        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
           session
         });
 
@@ -36,7 +36,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
     // Deep find user if not find by usapi ID
     if (!user) {
-      const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.microservices.usapi}/user/${id}`);
+      const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.URL.fullkekw_usapi}/user/${id}`);
 
       const { user: data } = res.data;
       user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });

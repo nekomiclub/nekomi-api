@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import { IUser } from '../interfaces/User';
 import { DeepPartial } from '../interfaces/Interfaces';
 import { createID, getUTC } from '../handlers/handlers';
+import { TRoleCapability } from '../interfaces/Roles';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,
@@ -13,11 +14,20 @@ export const User = mongoose.model<IUser>('user', new Schema({
 /** Create new user
  * @returns user ID
  */
-export async function createUser({ username, avatarURL, id }: {
-  username: string,
-  avatarURL: string,
-  id: string
+export async function createUser({ id, roles }: {
+  /** @deprecated */
+  username?: string
+
+  /** @deprecated */
+  avatarURL?: string
+
+  id?: string
+
+  roles?: string[]
 }): Promise<string> {
+  id = id || createID();
+  roles = roles || ['user'];
+
   const payload: IUser = {
     id,
     libs: [
@@ -73,7 +83,7 @@ export async function createUser({ username, avatarURL, id }: {
         type: 'delayed'
       }
     ],
-    roles: ['user'],
+    roles,
     statistics: {
       accountCreated: getUTC().timestamp,
       timeSpent: 0

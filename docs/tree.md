@@ -13,12 +13,15 @@
     - [POST /parse](./endpoints.md#post-v1dubberparse)
 
 - /proxy
-  - /postSnap (animee-uploads-bot) (deprecated)
   - /parseMetadata (animee-uploads-bot)
 
 - [POST /user](./endpoints.md#post-user)
   - [PATCH](./endpoints.md#patch-userid) / [DELETE](./endpoints.md#delete-userid) /:id
   - [GET /:query](./endpoints.md#get-userquery)
+  
+- /dev
+  - [GET /AccessControl](./endpoints.md#get-devaccesscontrol)
+  - [GET /CSRFCheck](./endpoints.md#get-devcsrfcheck)
 
 
 

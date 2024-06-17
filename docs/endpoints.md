@@ -504,19 +504,37 @@ Not found dubber will not be included to results array
 
 
 
-## Proxy Controller
+## Dev Controller
+
+Service router. Available only in development mode
 
 --------------------------------------------------------------
 
+### GET /dev/AccessControl
 
+Check user authorization via security cookie or Authorization header.
+
+### Require
+fk-usapi
+
+[Back to tree](./tree.md)
+| DEPRECATED | CSRF  | CORS  |  CAPS  | VERSION | TEST COVERED |
+| :--------: | :---: | :---: | :----: | :-----: | :----------: |
+|   false    |   -   |   -   | dubber |  1.1.1  |     true     |
 
 --------------------------------------------------------------
 
-## Service Controller
+### GET /dev/CSRFCheck
 
---------------------------------------------------------------
+Check request CSRF token. Pass if it valid & has allowed origin
 
+### Require
+fk-authority
 
+[Back to tree](./tree.md)
+| DEPRECATED |      CSRF       | CORS  | CAPS  | VERSION | TEST COVERED |
+| :--------: | :-------------: | :---: | :---: | :-----: | :----------: |
+|   false    | api.animee.club |   -   |   -   |  1.1.1  |    false     |
 
 --------------------------------------------------------------
 
