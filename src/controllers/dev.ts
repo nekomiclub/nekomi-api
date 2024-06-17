@@ -1,7 +1,5 @@
 import express from 'express';
 import { E500, catchError } from '../handlers/Errors';
-import { $http } from '../handlers/http';
-import { config } from '../config';
 
 /*
   ! THESE CONTROLLERS ARE USED ONLY FOR TESTING PURPOSES

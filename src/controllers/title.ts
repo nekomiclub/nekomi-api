@@ -104,7 +104,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
     if (!title) throw new E404(`Title ${id} is not found`);
 
-    const session = decodeToken<{ userId: string }>(req.cookies[config.vars.sessionCookieName] || req.headers['authorization']);
+    const session = decodeToken<{ userId: string }>(req.cookies[config.vars.sessionCookie] || req.headers['authorization']);
     const user = await User.findOne({ id: session.payload!.userId });
 
     if (!user) {

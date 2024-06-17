@@ -63,38 +63,18 @@ export const config = {
     fullkekw_authority: prodMode ? `https://authority.animee.club` : `http://${getIP('0.0.0.0')}:45010`
   },
 
-  /** Tests data */
-  tests: {
-    /** Tests data for DevController */
-    DevController: {
-      $1: {
-        /** Dummy user with correct role */
-        dummyRightID: 'dummy-devcontroller-1',
-
-        /** Dummy user with root role */
-        dummyRootID: 'dummy-devcontroller-0',
-
-        /** Dummy user without required role */
-        dummyID: 'dummy-devcontroller-2',
-      }
-    },
-    UserController: {
-      $1: {
-        /** Dummy user for PATCH /user */
-        dummyUser: 'dummy-usercontroller-0',
-
-        /** Required for this test title id */
-        titleId: '0fc90fe6-8dcf-4eaa-8080-f0d933e76266',
-      }
-    }
-  },
-
   /** Service variables */
   vars: {
     /** Animee cookie with fullkekw usapi session */
-    sessionCookieName: 'SEC_31N',
+    sessionCookie: 'SEC_31N',
 
-    /** Production mode will run only at this IP */
+    /** Mock data header */
+    mockHeader: 'X-MockData',
+
+    /** CSRF Token header name */
+    csrfHeader: 'X-CSRF-Token',
+
+    /** Production IP */
     prodIP: '192.168.0.107',
 
     /** CSRF token expiration */
@@ -104,6 +84,13 @@ export const config = {
     domain: 'api.animee.club',
   }
 };
+
+/** Service mocked data interface */
+export interface IMockedData {
+  id: string,
+  code: number,
+  data: any
+}
 
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (devMode) {

@@ -11,8 +11,6 @@ interface IMongodbDocument {
 /** Hide sensetive values in object. Will MUTATE input object
  * @param excludeKeys An array of excluded keys (use next type (keyof INTERFACE)[])
  * 
- * @version re-1.0.0
- * 
  * @example
  * [42, 'foo'] -> []
  * {foo: 42} -> {}

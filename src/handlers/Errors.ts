@@ -2,10 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import ip from 'ip';
+import axios, { AxiosError } from 'axios';
+import { validationResult } from 'express-validator';
 
 import { config, devMode, prodMode } from '../config';
-import { validationResult } from 'express-validator';
-import axios, { AxiosError } from 'axios';
 import { createID, getUTC } from './handlers';
 
 

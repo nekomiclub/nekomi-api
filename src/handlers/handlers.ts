@@ -1,17 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
+import axios, { AxiosError } from 'axios';
+import ip from 'ip';
+import express from 'express';
+import * as uuid from 'uuid';
+
 import Dubbers from '../Models/Dubber';
 import Title from '../Models/Title';
-import { testMode, devMode, config, prodMode } from '../config';
-import * as uuid from 'uuid';
-import ip from 'ip';
-import axios from 'axios';
-import express from 'express';
+import { testMode, devMode, config, prodMode, IMockedData } from '../config';
 import User from '../Models/User';
 import { user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
+import { E500 } from './Errors';
+
+
 
 /** Create UUID v4 id
  * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default
@@ -83,4 +87,27 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
   });
 
   return caps;
+}
+
+/** Get mock data */
+export function getMockData(req: express.Request, key: string): IMockedData {
+  let mocks: IMockedData[] = [];
+
+  try {
+    mocks = JSON.parse(req.header(config.vars.mockHeader) || '[]');
+  } catch (e) {
+    console.error(e);
+  }
+
+  const mock = mocks.find(el => el.id === key);
+
+  if (!mock) {
+    throw new E500(`Mock ${key} undefined`);
+  }
+
+  if (mock.code > 400) {
+    throw new AxiosError(undefined, `${mock.code}`);
+  }
+
+  return mock;
 }

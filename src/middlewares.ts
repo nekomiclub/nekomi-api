@@ -6,10 +6,7 @@ import { config, devMode, prodMode, testMode } from './config';
 import axios, { Axios, AxiosError } from 'axios';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
-import { parseRoles } from './handlers/handlers';
-
-/** Accepted CSRF tokens array */
-const AcceptedCSRFTokens: string[] = [];
+import { getMockData, parseRoles } from './handlers/handlers';
 
 
 
@@ -21,7 +18,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
     await catchError(req, res, async () => {
       req.animee = req.animee || {};
 
-      const token = req.cookies[config.vars.sessionCookieName] || req.headers['authorization'];
+      const token = req.cookies[config.vars.sessionCookie] || req.headers['authorization'];
 
       // Reject if authorization token is missing
       if (!token) {
@@ -45,32 +42,28 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       let id = '';
 
-      if (testMode) {
-        id = token;
-      } else {
-        // Verify & continue session, get user ID
+      // Verify & continue session, get user ID
 
-        try {
-          // Verify, refresh and decode session
-          const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
-            session: token
-          });
+      try {
+        // Verify, refresh and decode session
+        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.microservices.usapi}/auth/refresh`, {
+          session: token
+        });
 
-          id = sessionData.data.id;
-        } catch (e) {
-          if (e instanceof AxiosError) {
-            if (e.response?.status === 403) {
-              return res.status(403).clearCookie(config.vars.sessionCookieName).json({ msg: 'Session expired' });
-            }
-
-            if (e.code === 'ECONNREFUSED') {
-              return res.status(503).json({ msg: 'FK-Usapi is unavailable. Try in a few minutes' });
-            }
-
-            throw e;
-          } else {
-            throw e;
+        id = sessionData.data.id;
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.response?.status === 403) {
+            return res.status(403).clearCookie(config.vars.sessionCookie).json({ msg: 'Session expired' });
           }
+
+          if (e.code === 'ECONNREFUSED') {
+            return res.status(503).json({ msg: 'FK-Usapi is unavailable. Try in a few minutes' });
+          }
+
+          throw e;
+        } else {
+          throw e;
         }
       }
 
@@ -110,7 +103,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 }
 
 /** CSRF-check middleware
- * In test mode, synthetic tokens should contain "*", otherwise they will be verified by default
+ * In development or test mode you can pass token like "*-SERVICE_NAME". 
  * 
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
@@ -119,34 +112,35 @@ export function CSRFCheck(origins?: string[]) {
     await catchError(req, res, async () => {
       origins = origins || [];
 
-      const token = req.header('X-CSRF-Token');
+      const token = req.header(config.vars.csrfHeader);
 
       // Reject if header undefined
       if (!token) throw new E403('CSRF required');
 
-      if ((devMode || testMode) && token.includes('*')) {
-        // Pass if token synthetically valid (origins: ['dummy']; token: 'dummy') or origins empty
-        if (origins.includes(token.replace('*-', ''))) {
-          return next();
-        }
+      let data: { verified: boolean, origin: string } = {
+        verified: false,
+        origin: ''
+      };
+
+      if (testMode) {
+        data = getMockData(req, 'key_1').data;
+      } else {
+        const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {
+          token
+        });
+
+        data = response.data;
       }
 
-      const { data } = await axios.post<{ verified: boolean, origin: string }>(`${config.URL.fullkekw_authority}/authority/verify`, {
-        token
-      }, {
-        validateStatus: (s) => s < 500
-      });
-
-      // Reject if token not valid or used earlier
-      if (!data.verified || AcceptedCSRFTokens.includes(token)) {
+      // Reject if token invalid
+      if (!data.verified) {
         throw new E403('CSRF rejected');
       }
 
+      // Reject if origin invalid
       if (!origins.includes(data.origin)) {
         throw new E403('CSRF origin missmatch');
       }
-
-      AcceptedCSRFTokens.push(token);
 
       return next();
     }, true);

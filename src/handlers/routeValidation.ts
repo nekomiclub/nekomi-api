@@ -37,7 +37,7 @@ export const postDubbersParse = [
 
 //* ------------------ DEV MIDDLEWARES ------------------
 
-export const devGetAccessControll = [
+export const devGetAccessControl = [
   AccessControl(['dubber'])
 ];
 

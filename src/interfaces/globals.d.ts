@@ -13,7 +13,10 @@ declare global {
         /** User capabilities
          * @requires AccessControll middleware
          */
-        userCapabilities?: TRoleCapability[]
+        userCapabilities?: TRoleCapability[],
+
+        /** Mocked axios responses keys */
+        mockKeys?: string[]
       }
     }
   }

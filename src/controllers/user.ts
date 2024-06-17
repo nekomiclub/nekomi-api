@@ -62,7 +62,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).cookie(config.vars.sessionCookieName, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: prodMode ? '.animee.club' : undefined }).json({ msg: 'ok' });
+    return res.status(200).cookie(config.vars.sessionCookie, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: prodMode ? '.animee.club' : undefined }).json({ msg: 'ok' });
   });
 }
 
@@ -70,7 +70,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
 export async function getLogout(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
-    return res.status(205).clearCookie(config.vars.sessionCookieName).json({ msg: 'ok' });
+    return res.status(205).clearCookie(config.vars.sessionCookie).json({ msg: 'ok' });
   });
 }
 
@@ -82,7 +82,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Get query from session
     if (query === '*') {
-      const cookie = req.cookies[config.vars.sessionCookieName];
+      const cookie = req.cookies[config.vars.sessionCookie];
 
       if (!cookie) throw new E401(`Session cookie is not provided`);
 

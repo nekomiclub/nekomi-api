@@ -3,7 +3,6 @@ import express from 'express';
 import * as RouteValidation from './handlers/routeValidation';
 import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
-import * as v1CWS from './controllers/v1/ws';
 import * as v1CProxy from './controllers/v1/proxy';
 
 
@@ -22,7 +21,7 @@ export const DevRouter = express.Router();
 // Test-only routes
 import * as DevController from './controllers/dev';
 
-DevRouter.get('/AccessControll', RouteValidation.devGetAccessControll, DevController.getAccessControl);
+DevRouter.get('/AccessControll', RouteValidation.devGetAccessControl, DevController.getAccessControl);
 DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
 
 
