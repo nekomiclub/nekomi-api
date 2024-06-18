@@ -30,14 +30,14 @@ export const Title = mongoose.model<ITitle>('title', new Schema({
 /** Create new title instance. Will set default fields
  * @returns ID
  */
-export async function createTitle(creator: string, { ageRate, country, description, details, episodes, episodesCount, episodesMeta, genres, names, poster, rating, season, status, studios, type, year }: DeepPartial<ITitle>): Promise<string> {
-  const id = createID();
-  const code = names?.eng ? convert(names.eng!) : `BLANK-${id}`;
+export async function createTitle(creator: string, { ageRate, id, code, country, description, details, episodes, episodesCount, episodesMeta, genres, names, poster, rating, season, status, studios, type, year }: DeepPartial<ITitle>): Promise<string> {
+  const ID = id || createID();
+  const CODE = code ? code : names?.eng ? convert(names.eng!) : `BLANK-${id}`;
 
   const payload: ITitle = {
-    id,
+    id: ID,
     ageRate: ageRate || 'PG-13',
-    code,
+    code: CODE,
     country: country || 'Other',
     description: description || '',
     details: details || 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері animee.',
@@ -69,7 +69,7 @@ export async function createTitle(creator: string, { ageRate, country, descripti
 
   writeLog(`info`, `New title (${id}) created by ${creator}`, `Title/createTitle`);
 
-  return id;
+  return ID;
 }
 
 export default Title; 

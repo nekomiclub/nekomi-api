@@ -13,7 +13,7 @@ Get title with code or id
 
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.1.0  |    false     |
+|   false    | false |   *   |   -   |  1.1.0  |     true     |
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION |
@@ -108,10 +108,9 @@ Search titles with name, code or id.
 
 Get total count of titles & renewed (where country != 'null')
 
-
 | DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.1.0  |    false     |
+|   false    | false |   *   |   -   |  1.1.0  |      -       |
 
 #### Params
 | NAME | TYPE | DESCRIPTION |

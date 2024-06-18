@@ -39,7 +39,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const titles = await Title.find();
 
-    return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.map(el => el.country !== 'Other').length });
+    return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.filter(el => el.country !== 'Other').length });
   });
 }
 
