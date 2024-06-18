@@ -79,8 +79,6 @@ export const postTitle = [
 export const patchTitleId = [
   privateCORS,
   AccessControl(['basic']),
-  param('id')
-    .notEmpty().withMessage('ID can not be empty'),
   CSRFCheck(['updater.animee.club', 'animee.club']),
   upload.single('file'),
 ];
@@ -88,7 +86,5 @@ export const patchTitleId = [
 export const deleteTitleId = [
   privateCORS,
   AccessControl(['titleDelete']),
-  param('id')
-    .notEmpty().withMessage('ID can not be empty'),
   CSRFCheck(['updater.animee.club', 'animee.club']),
 ];

@@ -73,7 +73,7 @@ describe('DevController', () => {
 
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'ac_1',
           code: 200,
           data: {
             id: U1_ID,
@@ -92,7 +92,7 @@ describe('DevController', () => {
     test('U1 Pass - Capabilities matched', async () => {
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'ac_1',
           code: 200,
           data: {
             id: U1_ID
@@ -110,7 +110,7 @@ describe('DevController', () => {
     test('U2 Pass - Root role', async () => {
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'ac_1',
           code: 200,
           data: {
             id: U2_ID
@@ -137,7 +137,7 @@ describe('DevController', () => {
     test('U1 Reject - Capabilities missmatch', async () => {
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'ac_1',
           code: 200,
           data: {
             id: U1_ID,
@@ -163,7 +163,7 @@ describe('DevController', () => {
     test('Pass', async () => {
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'csrf_1',
           code: 200,
           data: {
             verified: true,
@@ -174,7 +174,7 @@ describe('DevController', () => {
 
       await request(baseURL)
         .get(getCSRFCheck)
-        .set(config.vars.csrfHeader, 'dummy')
+        .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
         .expect(200);
     });
@@ -191,7 +191,7 @@ describe('DevController', () => {
 
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'csrf_1',
           code: 200,
           data: {
             verified: false,
@@ -202,7 +202,7 @@ describe('DevController', () => {
 
       await request(baseURL)
         .get(getCSRFCheck)
-        .set(config.vars.csrfHeader, 'dummy')
+        .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
         .expect(403);
     });
@@ -212,18 +212,18 @@ describe('DevController', () => {
 
       const mockedData: IMockedData[] = [
         {
-          id: 'key_1',
+          id: 'csrf_1',
           code: 200,
           data: {
             verified: true,
-            origin: 'dummy'
+            origin: '_INVALID'
           }
         }
       ];
 
       await request(baseURL)
         .get(getCSRFCheck)
-        .set(config.vars.csrfHeader, 'dummy')
+        .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
         .expect(403);
     });

@@ -9,6 +9,14 @@ import Title, { createTitle } from '../Models/Title';
 const baseURL = `http://${ip.address()}`;
 
 describe('TitleController', () => {
+  /*
+    Title controller tests
+
+    * Namespaces
+    * #1 - T1
+    * #2 - T2
+  */
+
   //* DB
   beforeAll(() => {
     mongoose.set('strictQuery', false);
@@ -26,7 +34,7 @@ describe('TitleController', () => {
 
 
 
-  describe('/title/:query', () => {
+  describe('#1 GET /title/:query', () => {
     /*
       * Get title by ID or code
     */
@@ -52,6 +60,8 @@ describe('TitleController', () => {
       await Title.deleteMany({ id: T1_ID });
     }
 
+
+
     test('T1 Pass - Get by ID', async () => {
       await request(baseURL)
         .get(`/title/${T1_ID}`)
@@ -68,6 +78,157 @@ describe('TitleController', () => {
       await request(baseURL)
         .get(`/title/dummy_not_be_founded`)
         .expect(404);
+    });
+  });
+
+  describe('#2 DELETE /title/:query', () => {
+    /*
+      * Delete title by ID
+      * Required perms - titleDelete
+      * Required CSRF - animee.club
+    */
+
+    // Mock data
+    const T2_ID = 'mocked-titleController-2';
+    const T3_ID = 'mocked-titleController-3';
+
+    beforeAll(async () => {
+      await purge();
+
+      await createTitle('ROOT_TESTING', {
+        id: T2_ID,
+      });
+
+      await createUser({
+        id: T2_ID,
+        roles: ['user', 'editor']
+      });
+
+      await createUser({
+        id: T3_ID,
+        roles: ['user']
+      });
+    });
+
+    afterAll(async () => {
+      await purge();
+    });
+
+    async function purge() {
+      await Title.deleteMany({ id: T2_ID });
+
+      await User.deleteMany({ id: T2_ID });
+      await User.deleteMany({ id: T3_ID });
+    }
+
+
+
+    test('T2 Pass - Deleted', async () => {
+      const mockedData: IMockedData[] = [
+        {
+          id: 'ac_1',
+          code: 200,
+          data: {
+            id: T2_ID,
+          }
+        },
+        {
+          id: 'csrf_1',
+          code: 200,
+          data: {
+            verified: true,
+            origin: 'animee.club'
+          }
+        }
+      ];
+
+      await request(baseURL)
+        .delete(`/title/${T2_ID}`)
+        .set('Authorization', '_MOCKED')
+        .set(config.vars.csrfHeader, '_MOCKED')
+        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .expect(200);
+    });
+
+    test('T2 Reject - Not found', async () => {
+      const mockedData: IMockedData[] = [
+        {
+          id: 'ac_1',
+          code: 200,
+          data: {
+            id: T2_ID,
+          }
+        },
+        {
+          id: 'csrf_1',
+          code: 200,
+          data: {
+            verified: true,
+            origin: 'animee.club'
+          }
+        }
+      ];
+
+      await request(baseURL)
+        .delete(`/title/_INVALID`)
+        .set('Authorization', '_MOCKED')
+        .set(config.vars.csrfHeader, '_MOCKED')
+        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .expect(404);
+    });
+
+    test('T3 Reject - Perm missmatch', async () => {
+      const mockedData: IMockedData[] = [
+        {
+          id: 'ac_1',
+          code: 200,
+          data: {
+            id: T3_ID,
+          }
+        },
+        {
+          id: 'csrf_1',
+          code: 200,
+          data: {
+            verified: true,
+            origin: 'animee.club'
+          }
+        }
+      ];
+
+      await request(baseURL)
+        .delete(`/title/_INVALID`)
+        .set('Authorization', '_MOCKED')
+        .set(config.vars.csrfHeader, '_MOCKED')
+        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .expect(403);
+    });
+
+    test('T3 Reject - CSRF missmatch', async () => {
+      const mockedData: IMockedData[] = [
+        {
+          id: 'ac_1',
+          code: 200,
+          data: {
+            id: T3_ID,
+          }
+        },
+        {
+          id: 'csrf_1',
+          code: 200,
+          data: {
+            verified: true,
+            origin: '_INVALID'
+          }
+        }
+      ];
+
+      await request(baseURL)
+        .delete(`/title/_INVALID`)
+        .set('Authorization', '_MOCKED')
+        .set(config.vars.csrfHeader, '_MOCKED')
+        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .expect(403);
     });
   });
 });

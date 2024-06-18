@@ -8,8 +8,9 @@
     "dev": "npx nodemon devMode",
     "dev-test": "npx nodemon devMode testMode",
     "start": "npx tsx ./src/index.ts prodMode",
-    "test": "npx jest",
-    "build": "npx tsc"
+    "test": "npx jest --silent",
+    "test-verbose": "npx jest",
+    "build": "npx eslint . --fix --ext .ts && npx tsc"
   },
   "keywords": [],
   "author": "unniiiverse",
@@ -53,13 +54,11 @@
   },
   "dependencies": {
     "axios": "^1.6.2",
-    "axios-mock-adapter": "^1.22.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "cookies": "^0.8.0",
     "cors": "^2.8.5",
-    "date-format-parse": "^0.2.7",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "fuse.js": "^7.0.0",

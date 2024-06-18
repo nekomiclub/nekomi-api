@@ -15,6 +15,9 @@ import { getMockData, parseRoles } from './handlers/handlers';
  * * Will set user data (id & caps) into animee object
  * If no capabilites are required, middleware will set only user ID.
  * 
+ * Mock details
+ * ac_1 - Mock user id (string) & REQUIRED capabilities (TRoleCapability[])
+ * 
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
 export function AccessControl(capabilities: TRoleCapability[]) {
@@ -22,7 +25,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
     await catchError(req, res, async () => {
       req.animee = req.animee || {};
 
-      const token = req.cookies[config.vars.sessionCookie] || req.header('authorization');
+      const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
 
       let id = '';
 
@@ -32,7 +35,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       }
 
       if (testMode) {
-        const data = getMockData(req, 'key_1').data;
+        const data = getMockData(req, 'ac_1').data;
 
         id = data.id;
 
@@ -110,6 +113,10 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 }
 
 /** CSRF-check middleware
+ * 
+ * Mock details
+ * csrf_1 - Mock verified (boolean) & origin (string)
+ * 
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
 export function CSRFCheck(origins?: string[]) {
@@ -128,7 +135,7 @@ export function CSRFCheck(origins?: string[]) {
       };
 
       if (testMode) {
-        data = getMockData(req, 'key_1').data;
+        data = getMockData(req, 'csrf_1').data;
       } else {
         const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {
           token

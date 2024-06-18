@@ -1,6 +1,6 @@
 {
   "watch": ["./"],
   "ext": ".ts,.js",
-  "ignore": ["node_modules", "src/tests"],
+  "ignore": ["node_modules", "src/tests", "dist"],
   "exec": "npx eslint . --fix --ext .ts && npx tsx ./src/index.ts"
 }
