@@ -54,7 +54,6 @@ export const getUserAuth = [
 ];
 
 export const userPatch = [
-  privateCORS,
   AccessControl(['basic']),
   body('method')
     .notEmpty().withMessage('Method can not be empty')
@@ -64,27 +63,23 @@ export const userPatch = [
 
 export const userSignin = [
   ...getUserAuth,
-  privateCORS,
   // CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const postTitle = [
-  privateCORS,
   AccessControl(['titleAdd']),
   CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 export const patchTitleId = [
-  privateCORS,
   AccessControl(['basic']),
   CSRFCheck(['updater.animee.club', 'animee.club']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  privateCORS,
   AccessControl(['titleDelete']),
   CSRFCheck(['updater.animee.club', 'animee.club']),
 ];

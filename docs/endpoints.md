@@ -11,9 +11,9 @@
 Get title with code or id
 
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.1.0  |     true     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |     true     |
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION |
@@ -42,9 +42,9 @@ Get title with code or id
 Get titles in range.
 
 
-|  DEPRECATED  | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :----------: | :---: | :---: | :---: | :-----: | :----------: |
-| true (1.1.2) | false |   *   |   -   |  1.0.3  |    false     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+| true (1.2) |   -   |   -   |    false     |
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                |
@@ -73,12 +73,12 @@ Get titles in range.
 
 Search titles with name, code or id.
 
-**Will be refactored in 1.1.2**
+**Will be refactored in 1.2**
 
 
-|     DEPRECATED     | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :----------------: | :---: | :---: | :---: | :-----: | :----------: |
-| true (since 1.1.2) | false |   *   |   -   |  1.0.3  |    false     |
+|    DEPRECATED    | CSRF  | CAPS  | TEST COVERED |
+| :--------------: | :---: | :---: | :----------: |
+| true (since 1.2) |   -   |   -   |    false     |
 
 #### Params
 | NAME  | TYPE               | DESCRIPTION                      |
@@ -108,9 +108,9 @@ Search titles with name, code or id.
 
 Get total count of titles & renewed (where country != 'null')
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.1.0  |      -       |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |      -       |
 
 #### Params
 | NAME | TYPE | DESCRIPTION |
@@ -136,11 +136,9 @@ Get total count of titles & renewed (where country != 'null')
 
 Update title info
 
-| DEPRECATED | CSRF  | CORS  |    CAPS    | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :--------: | :-----: | :----------: |
-|   false    | true  | CSRF  | See params |  1.1.0  |    false     |
-
-CSRF: animee.club, updater.animee.club
+| DEPRECATED |               CSRF               |    CAPS    | TEST COVERED |
+| :--------: | :------------------------------: | :--------: | :----------: |
+|   false    | animee.club, updater.animee.club | See params |    false     |
 
 ## Interfaces
 ```ts
@@ -228,11 +226,9 @@ interface IEditEpMeta extends ITitleEpisodeMeta {
 
 Create a new title
 
-| DEPRECATED | CSRF  | CORS  |   CAPS   | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :------: | :-----: | :----------: |
-|   false    | true  | CSRF  | titleAdd |  1.1.0  |    false     |
-
-CSRF: animee.club, updater.animee.club
+| DEPRECATED |               CSRF               |   CAPS   | TEST COVERED |
+| :--------: | :------------------------------: | :------: | :----------: |
+|   false    | animee.club, updater.animee.club | titleAdd |    false     |
 
 #### Success response
 - Code: 200
@@ -249,11 +245,9 @@ CSRF: animee.club, updater.animee.club
 
 Delete title
 
-| DEPRECATED | CSRF  | CORS  |    CAPS     | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---------: | :-----: | :----------: |
-|   false    | true  | CSRF  | titleDelete |  1.1.0  |    false     |
-
-CSRF: animee.club, updater.animee.club
+| DEPRECATED |               CSRF               |    CAPS     | TEST COVERED |
+| :--------: | :------------------------------: | :---------: | :----------: |
+|   false    | animee.club, updater.animee.club | titleDelete |     true     |
 
 #### Params
 | NAME       | TYPE   | DESCRIPTION |
@@ -262,7 +256,7 @@ CSRF: animee.club, updater.animee.club
 
 #### Success response
 - Code: 200
-- Body: 'ok'
+- Body: ok
 
 #### Error response
 - Code: 404
@@ -279,9 +273,9 @@ CSRF: animee.club, updater.animee.club
 
 Authorize user & get session cookie, if user is not found, will try to find exist by username (email splitted by @), if not will create a new one
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | true  | CSRF  |   -   |  1.1.0  |     true     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |     true     |
 
 CSRF: animee.club, updater.animee.club
 
@@ -305,9 +299,9 @@ CSRF: animee.club, updater.animee.club
 
 Remove session cookie
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.1.0  |  Not needed  |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |    false     |
 
 #### Success response
 - Code: 200
@@ -323,9 +317,9 @@ In dev mode session verifying will be skipped, user id will be taken from sessio
 
 Get user with query (username or id)
 
-| DEPRECATED | CSRF  |     CORS      | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :---: | :-----: | :----------: |
-|   false    | false | *.animee.club |   -   |  1.1.0  |    false     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |    false     |
 
 #### Params
 | NAME  | TYPE   | DESCRIPTION    |
@@ -353,15 +347,15 @@ If query equals to *, will take user ID from session cookie
 
 Update user. User can update only own info, staff can edit any user info (indev)
 
-| DEPRECATED | CSRF  |     CORS      |           CAPS           | VERSION |          TEST COVERED           |
-| :--------: | :---: | :-----------: | :----------------------: | :-----: | :-----------------------------: |
-|   false    | true  | *.animee.club | basic, staffEditUserInfo |  1.1.0  | partially (see Methods section) |
+| DEPRECATED |               CSRF               |           CAPS           | TEST COVERED |
+| :--------: | :------------------------------: | :----------------------: | :----------: |
+|   false    | updater.animee.club, animee.club | basic, staffEditUserInfo |    false     |
 
 
 #### Methods (Describes TMethod)
-| NAME           | DESCRIPTION                      | IS TESTED |
-| -------------- | -------------------------------- | --------- |
-| editFolderItem | Adds / removes title from folder | true      |
+| NAME           | DESCRIPTION                      |
+| -------------- | -------------------------------- |
+| editFolderItem | Adds / removes title from folder |
 
 #### Params
 | NAME     | TYPE               | METHOD         |
@@ -410,9 +404,9 @@ User ID will taken from decoding session cookie or from session cookie in test m
 
 Delete user. User can delete only own account, staff can delete any account
 
-| DEPRECATED | CSRF  |     CORS      |          CAPS          | VERSION | TEST COVERED |
-| :--------: | :---: | :-----------: | :--------------------: | :-----: | :----------: |
-|   false    | true  | *.animee.club | basic, staffDeleteUser |  1.1.0  |    false     |
+| DEPRECATED | CSRF  |          CAPS          | TEST COVERED |
+| :--------: | :---: | :--------------------: | :----------: |
+|   false    |   -   | basic, staffDeleteUser |    false     |
 
 #### Params
 | NAME   | TYPE   | DESCRIPTION |
@@ -455,9 +449,9 @@ Delete user. User can delete only own account, staff can delete any account
 
 Get dubber by name, code or id
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |    false     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |    false     |
 
 #### Params
 | NAME   | TYPE   | DESCRIPTION      |
@@ -478,9 +472,9 @@ Get dubber by name, code or id
 
 Get dubbers with array of queries
 
-| DEPRECATED | CSRF  | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :---: | :-----: | :----------: |
-|   false    | false |   *   |   -   |  1.0.3  |    false     |
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |    false     |
 
 #### Params
 | NAME    | TYPE     | DESCRIPTION                       |
@@ -517,9 +511,9 @@ Check user authorization via security cookie or Authorization header.
 fk-usapi
 
 [Back to tree](./tree.md)
-| DEPRECATED | CSRF  | CORS  |  CAPS  | VERSION | TEST COVERED |
-| :--------: | :---: | :---: | :----: | :-----: | :----------: |
-|   false    |   -   |   -   | dubber |  1.1.1  |     true     |
+| DEPRECATED | CSRF  |  CAPS  | TEST COVERED |
+| :--------: | :---: | :----: | :----------: |
+|   false    |   -   | dubber |     true     |
 
 --------------------------------------------------------------
 
@@ -531,9 +525,9 @@ Check request CSRF token. Pass if it valid & has allowed origin
 fk-authority
 
 [Back to tree](./tree.md)
-| DEPRECATED |      CSRF       | CORS  | CAPS  | VERSION | TEST COVERED |
-| :--------: | :-------------: | :---: | :---: | :-----: | :----------: |
-|   false    | api.animee.club |   -   |   -   |  1.1.1  |     true     |
+| DEPRECATED |      CSRF       | CAPS  | TEST COVERED |
+| :--------: | :-------------: | :---: | :----------: |
+|   false    | api.animee.club |   -   |     true     |
 
 --------------------------------------------------------------
 

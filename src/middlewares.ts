@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
-import axios, { Axios, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, writeLog } from './handlers/Errors';
 import { config, devMode, prodMode, testMode } from './config';
