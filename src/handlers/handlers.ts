@@ -7,13 +7,14 @@ import express from 'express';
 import * as uuid from 'uuid';
 
 import Dubbers from '../Models/Dubber';
-import Title from '../Models/Title';
+import Title, { createTitle } from '../Models/Title';
 import { testMode, devMode, config, prodMode, IMockedData } from '../config';
 import User from '../Models/User';
 import { user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
 import { E500 } from './Errors';
+import { ITitle } from '../interfaces/Title';
 
 
 
@@ -110,4 +111,22 @@ export function getMockData<T = any>(req: express.Request, key: string): IMocked
   }
 
   return mock;
+}
+
+export async function insertTitles() {
+  console.log('Insertion titles started');
+
+  try {
+    const titles: ITitle[] = JSON.parse(fs.readFileSync(`${path.resolve()}/tmpData.json`).toString() || '[]').titles;
+
+    for (const key in titles) {
+      const title = titles[key];
+
+      await createTitle('ROOT_MAL_PARSER', title);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  console.log('Titles insertion ended');
 }

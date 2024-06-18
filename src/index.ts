@@ -123,7 +123,7 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
   // Post-init callback
   try {
-
+    // await handler.insertTitles();
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');
   }

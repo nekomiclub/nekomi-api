@@ -534,7 +534,7 @@ fk-authority
 [Back to tree](./tree.md)
 | DEPRECATED |      CSRF       | CORS  | CAPS  | VERSION | TEST COVERED |
 | :--------: | :-------------: | :---: | :---: | :-----: | :----------: |
-|   false    | api.animee.club |   -   |   -   |  1.1.1  |    false     |
+|   false    | api.animee.club |   -   |   -   |  1.1.1  |     true     |
 
 --------------------------------------------------------------
 

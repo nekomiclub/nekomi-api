@@ -48,9 +48,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
 export async function postTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const UserData = req.animee;
-    const id = await createTitle();
-
-    writeLog(`info`, `User (${UserData.userID}) create new title with id - ${id}`, `postTitle`);
+    const id = await createTitle(UserData.userID!, {});
 
     return res.status(201).json({ msg: 'Title created!', id });
   });
