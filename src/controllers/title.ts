@@ -33,8 +33,6 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
   });
 }
 
-
-
 export async function getTotal(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const titles = await Title.find();
@@ -42,8 +40,6 @@ export async function getTotal(req: express.Request, res: express.Response) {
     return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.filter(el => el.country !== 'Other').length });
   });
 }
-
-
 
 export async function postTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
@@ -53,8 +49,6 @@ export async function postTitle(req: express.Request, res: express.Response) {
     return res.status(201).json({ msg: 'Title created!', id });
   });
 }
-
-
 
 interface IChangeEpMeta extends ITitleEpisodeMeta {
   action: 'edit' | 'delete' | 'add'
@@ -640,8 +634,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
   });
 }
-
-
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {

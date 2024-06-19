@@ -228,7 +228,7 @@ Create a new title
 
 | DEPRECATED |               CSRF               |   CAPS   | TEST COVERED |
 | :--------: | :------------------------------: | :------: | :----------: |
-|   false    | animee.club, updater.animee.club | titleAdd |    false     |
+|   false    | animee.club, updater.animee.club | titleAdd |     true     |
 
 #### Success response
 - Code: 200
