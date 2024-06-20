@@ -280,14 +280,14 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (editEpMeta) await editEpMetaHandler('titleEdit');
     if (setAgeRate) await setAgeRateHandler('titleEdit');
     if (setCountry) await setCountryHandler('titleEdit');
-    if (setDescription) await setDescriptionHandler('titleEdit');
-    if (setDetails) await setDetailsHandler('titleEdit');
+    if (setDescription !== undefined) await setDescriptionHandler('titleEdit');
+    if (setDetails !== undefined) await setDetailsHandler('titleEdit');
     if (setEps) await setEpsHandler('titleEdit');
     if (setGenres) await setGenresHandler('titleEdit');
-    if (setRating) await setRatingHandler('titleEdit');
+    if (setRating !== undefined) await setRatingHandler('titleEdit');
     if (setSeason) await setSeasonHandler('titleEdit');
     if (setStatus) await setStatusHandler('titleEdit');
-    if (setStudios) await setStudiosHandler('titleEdit');
+    if (setStudios !== undefined) await setStudiosHandler('titleEdit');
     if (setType) await setTypeHandler('titleEdit');
     if (setYear) await setYearHandler('titleEdit');
 
