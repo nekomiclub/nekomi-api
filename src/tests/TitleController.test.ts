@@ -274,12 +274,14 @@ describe('TitleController', () => {
         }
       ];
 
-      await request(baseURL)
+      const res = await request(baseURL)
         .post(`/title`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
         .expect(201);
+
+      await Title.deleteOne({ id: res.body.id });
     });
 
     test('T3 Reject - Perm missmatch', async () => {
