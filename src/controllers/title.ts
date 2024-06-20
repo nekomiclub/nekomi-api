@@ -398,10 +398,15 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
 
-      if (setDetails!.trim().length > 2000) throw new E400(`${handlerName}: Details can not be longer than 2 thousand symbols`);
+      if (setDetails === null) {
+        title.details = null;
+      } else {
+        if (setDetails!.trim().length > 2000) throw new E400(`${handlerName}: Details can not be longer than 2 thousand symbols`);
+
+        title.details = setDetails!.trim();
+      }
 
       changes.push(`${handlerName}: Details changed`);
-      title.details = setDetails!.trim();
 
       title.markModified('details');
     }
