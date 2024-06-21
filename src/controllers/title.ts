@@ -8,7 +8,7 @@ import https from 'https';
 import * as dto from '../handlers/dtos';
 
 import { E400, E403, E404, E500, E501, E503, catchError, writeLog } from '../handlers/Errors';
-import Title, { createTitle } from '../Models/Title';
+import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken, singCSRFToken } from '../services/TokenService';
@@ -50,28 +50,28 @@ export async function postTitle(req: express.Request, res: express.Response) {
   });
 }
 
-interface IChangeEpMeta extends ITitleEpisodeMeta {
-  action: 'edit' | 'delete' | 'add'
+export interface IChangeEpMeta extends ITitleEpisodeMeta {
+  action: 'edit' | 'delete'
 }
 
 interface IPatchTitleBody {
   changeNames?: {
-    ukr?: string | null
-    eng?: string | null
-    alt?: string[] | null
+    ukr?: string
+    eng?: string
+    alt?: string[]
   }
 
   setRating?: number
   setDescription?: string
-  setStatus?: string
+  setStatus?: TAnimeStatus
   setEps?: number
-  setGenres?: string[]
-  setAgeRate?: string
-  setSeason?: string
-  setType?: string
+  setGenres?: TAnimeGenre[]
+  setAgeRate?: TAnimeAgeRate
+  setSeason?: TAnimeSeason
+  setType?: TTitleType
   setYear?: number
   setStudios?: string[]
-  setCountry?: string
+  setCountry?: TTitleCountry
   setDetails?: string
 
   editEpMeta?: IChangeEpMeta
@@ -88,6 +88,7 @@ type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
 export async function patchTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { id } = req.params as { id: string };
+    const { userID, userCapabilities } = req.animee;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
     const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, } = req.body as IPatchTitleBody;
 
@@ -96,16 +97,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
     if (!title) throw new E404(`Title ${id} is not found`);
 
-    const session = decodeToken<{ userId: string }>(req.cookies[config.vars.sessionCookie] || req.headers['authorization']);
-    const user = await User.findOne({ id: session.payload!.userId });
-
-    if (!user) {
-      throw new E404('User with this session is not exist');
-    }
-
+    const Patcher = new TitlePatcher(title, {});
     title.updatedAt = getUTC().timestamp;
-    const caps = await parseRoles(user.roles);
 
+    // Upload poster / Episode
     if (contentType.match('multipart/form-data')) {
       const file = req.file;
       const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: string, dubID?: string };
@@ -125,16 +120,16 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       formData.append('file', new Blob([buffer], {
         type: mimetype
       }), originalname);
-      formData.set('uploadedBy', user.id);
+      formData.set('uploadedBy', userID);
 
       if (type === 'change_poster') {
-        if (!caps.includes('root') && !caps.includes('titleEdit')) throw new E403('You do not have access to change poster');
+        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('titleEdit')) throw new E403('You do not have access to change poster');
 
         formData.set('type', 'photo/title/poster');
 
         try {
           if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
-            await axios.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${user!.id}`, {
+            await axios.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${id}`, {
               validateStatus: (s) => s < 500,
               headers: {
                 'X-CSRF-Token': singCSRFToken()
@@ -150,7 +145,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             }
           });
 
-          writeLog('info', `New poster for title ${title.id} uploaded by ${user.id}`, 'patchTitle/changePoster');
+          writeLog('info', `New poster for title ${title.id} uploaded by ${userID}`, 'patchTitle/changePoster');
 
           title.poster = `${config.URL.media}/${postData.id}`;
           title.markModified('poster');
@@ -174,7 +169,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
         }
       } else if (type === 'upload_episode') {
-        if (!caps.includes('root') && !caps.includes('seriesAdd')) throw new E403('You do not have access to uploading episodes');
+        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('seriesAdd')) throw new E403('You do not have access to uploading episodes');
 
         if (!dubID || !episodeOrder || !qualities) throw new E400('DubID, episode order and qualities are not required');
 
@@ -226,7 +221,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             }
           });
 
-          writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${user.id}`, 'patchTitle/uploadEpisode');
+          writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${userID}`, 'patchTitle/uploadEpisode');
 
           const id = data.id;
           const frames = data.frames;
@@ -275,24 +270,28 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
 
-    // titleEdit
-    if (changeNames) await changeNamesHandler('titleEdit');
-    if (editEpMeta) await editEpMetaHandler('titleEdit');
-    if (setAgeRate) await setAgeRateHandler('titleEdit');
-    if (setCountry) await setCountryHandler('titleEdit');
-    if (setDescription !== undefined) await setDescriptionHandler('titleEdit');
-    if (setDetails !== undefined) await setDetailsHandler('titleEdit');
-    if (setEps) await setEpsHandler('titleEdit');
-    if (setGenres) await setGenresHandler('titleEdit');
-    if (setRating !== undefined) await setRatingHandler('titleEdit');
-    if (setSeason) await setSeasonHandler('titleEdit');
-    if (setStatus) await setStatusHandler('titleEdit');
-    if (setStudios !== undefined) await setStudiosHandler('titleEdit');
-    if (setType) await setTypeHandler('titleEdit');
-    if (setYear) await setYearHandler('titleEdit');
+    // titleEdit - Tests are not required
+    if (setDescription !== undefined) await execWithCap('titleEdit', () => Patcher.changeDescription(setDescription));
+    if (setDetails !== undefined) await execWithCap('titleEdit', () => Patcher.changeDetails(setDetails));
+    if (setAgeRate !== undefined) await execWithCap('titleEdit', () => Patcher.changeAgeRate(setAgeRate));
+    if (setCountry !== undefined) await execWithCap('titleEdit', () => Patcher.changeCountry(setCountry));
+    if (setGenres !== undefined) await execWithCap('titleEdit', () => Patcher.changeGenres(setGenres));
+    if (setSeason !== undefined) await execWithCap('titleEdit', () => Patcher.changeSeason(setSeason));
+    if (setStatus !== undefined) await execWithCap('titleEdit', () => Patcher.changeStatus(setStatus));
+    if (setType !== undefined) await execWithCap('titleEdit', () => Patcher.changeType(setType));
 
-    // seriesDelete
-    if (deleteEpisode) await deleteEpisodeHandler('seriesDelete');
+    // titleEdit - Tests required
+    if (setYear !== undefined) await execWithCap('titleEdit', changeYearHandler);
+    if (changeNames !== undefined) await execWithCap('titleEdit', changeNamesHandler);
+    if (setRating !== undefined) await execWithCap('titleEdit', changeRatingHandler);
+    if (setStudios !== undefined) await execWithCap('titleEdit', changeStudiosHandler);
+    if (setEps !== undefined) await execWithCap('titleEdit', changeEpisodesCountHandler);
+
+    // titleEditEpsMeta - Test required
+    if (editEpMeta !== undefined) await execWithCap('titleEditEpsMeta', changeEpisodeMeta);
+
+    // seriesDelete - Test required
+    if (deleteEpisode !== undefined) await execWithCap('seriesDelete', deleteEpisodeHandler);
 
     try {
       await title.save();
@@ -300,342 +299,73 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       // ignore
     }
 
-    writeLog('info', `Title ${title.id} patched by ${user.id}. Changed - ${changes.join(', ')}`, 'patchTitle');
+    // Patcher.getLog().forEach(el => changes.push(el));
 
-    return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed...` });
+    writeLog('info', `Title ${title.id} patched by ${userID}. Changed - ${changes.join(', ')}`, 'patchTitle');
+
+    return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed` });
 
 
 
-    // Handlers
-    async function changeNamesHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[ChangeNames]';
+    async function execWithCap(capability: TRoleCapability, cb: () => any | Promise<any>) {
+      if (!userCapabilities?.includes(capability) && !userCapabilities!.includes('root')) throw new E403('Patching not allowed');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-      if (changeNames?.ukr) {
-        changes.push(`${handlerName}: Name changed (ukr): ${title.names.ukr} > ${changeNames.ukr.trim()}`);
-        title.names.ukr = changeNames.ukr.trim();
-      }
-
-      if (changeNames?.eng) {
-        const newName = changeNames.eng.trim();
-        const code = urlSlugConvert(newName, {
-          camelCase: true,
-          separator: '-'
-        });
-
-        changes.push(`${handlerName}: Name changed (eng): ${title.names.eng} > ${newName}`);
-        changes.push(`${handlerName}: Code changed - ${title.code} > ${code}`);
-        title.names.eng = newName;
-        title.code = code;
-
-        title.markModified('code');
-      }
-
-      if (changeNames?.alt) {
-        changes.push(`${handlerName}: Names changed (alt): ${title.names!.alt?.join(', ')} > ${changeNames.alt.map(el => el.trim()).join(', ')}`);
-        title.names.alt = changeNames.alt.map(el => el.trim());
-      }
-
-      title.markModified('names');
+      return await cb();
     }
 
-    async function setAgeRateHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetAgeRate]';
+    function changeNamesHandler() {
+      if (!Array.isArray(changeNames?.alt)) throw new E400('Alt names must be an array');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      // Hardcoded, setAgeRate can be any string
-      if (!AnimeAgeRates.includes(setAgeRate! as TAnimeAgeRate)) throw new E400(`${handlerName}: Age rate ${setAgeRate} is invalid`);
-
-      changes.push(`${handlerName}: Age rate changed - ${title.ageRate} > ${setAgeRate}`);
-      title.ageRate = setAgeRate as TAnimeAgeRate;
-
-      title.markModified('ageRate');
-    }
-
-    async function setCountryHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetCountry]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (!TitleCountries.includes(setCountry! as TTitleCountry)) throw new E400(`${handlerName}: Country ${setCountry} is not acceptable${devMode && 'See docs about this endpoint. Acceptable countries are hardcoded at controllers/title.ts/setAgeRateHandler'}`);
-
-      changes.push(`${handlerName}: Country changed - ${title.country} > ${setCountry}`);
-      title.country = setCountry! as TTitleCountry;
-
-      title.markModified('country');
-    }
-
-    async function setDescriptionHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetDescription]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (setDescription!.trim().length > 5000) throw new E400(`${handlerName}: Description can not be longer than 5 thousand symbols`);
-
-      changes.push(`${handlerName}: Description changed`);
-      title.description = setDescription!.trim();
-
-      title.markModified('description');
-    }
-
-    async function setDetailsHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetDetails]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (setDetails === null) {
-        title.details = null;
-      } else {
-        if (setDetails!.trim().length > 2000) throw new E400(`${handlerName}: Details can not be longer than 2 thousand symbols`);
-
-        title.details = setDetails!.trim();
-      }
-
-      changes.push(`${handlerName}: Details changed`);
-
-      title.markModified('details');
-    }
-
-    async function setEpsHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetEps]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (isNaN(+setEps!)) throw new E400(`${handlerName}: Eps can not be NaN`);
-
-      changes.push(`${handlerName}: Estimated eps changed - ${title.episodesCount} > ${setEps}`);
-      title.episodesCount = +setEps!;
-
-      title.markModified('episodesCount');
-    }
-
-    async function setGenresHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetGenres]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-      const genres: TAnimeGenre[] = [];
-
-      if (!Array.isArray(setGenres)) throw new E400(`${handlerName}: SetGenres is not Array`);
-
-      setGenres?.forEach(genre => {
-        if (AnimeGenres.includes(genre as TAnimeGenre)) genres.push(genre as TAnimeGenre);
+      Patcher.changeNames({
+        alt: changeNames?.alt,
+        eng: changeNames?.eng,
+        ukr: changeNames?.ukr,
       });
-
-      changes.push(`${handlerName}: Genres changed - ${title.genres?.join(', ')} > ${genres.join(', ')}`);
-      title.genres = genres;
-
-      title.markModified('genres');
     }
 
-    async function setRatingHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetRating]';
+    function changeRatingHandler() {
+      if (isNaN(+setRating!)) throw new E400('Rating can not be NaN');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (isNaN(+setRating!)) throw new E400(`${handlerName}: Rating can not be NaN`);
-
-      if (setRating! < 0 || setRating! > 10) throw new E400('[SetRating]: Rating can not be lower than 0 or greater than 10');
-
-      changes.push(`${handlerName}: Rating changed - ${title.rating} > ${setRating}`);
-      title.rating.IMDB = +setRating!;
-
-      title.markModified('rating');
+      Patcher.changeRating(+setRating!, 'IMDB');
     }
 
-    async function setSeasonHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetSeason]';
+    function changeStudiosHandler() {
+      if (!Array.isArray(setStudios)) throw new E400('Studios must be an array');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (!AnimeSeasons.includes(setSeason as TAnimeSeason)) throw new E400(`${handlerName}: Seasion ${setSeason} is invalid`);
-
-      changes.push(`${handlerName}: Season changed - ${title.season} > ${setSeason}`);
-      title.season = setSeason as TAnimeSeason;
-
-      title.markModified('season');
+      Patcher.changeStudios(setStudios);
     }
 
-    async function setStatusHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetStatus]';
+    function changeEpisodesCountHandler() {
+      if (isNaN(+setEps!)) throw new E400('Episodes count (setEps) can not be NaN');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (!AnimeStatuses.includes(setStatus as TAnimeStatus)) throw new E400(`${handlerName}: Status ${setStatus} is invalid`);
-
-      changes.push(`${handlerName}: Type changed - ${title.status} > ${setStatus}`);
-      title.status = setStatus as TAnimeStatus;
-
-      title.markModified('status');
+      Patcher.changeEpisodesCount(+setEps!);
     }
 
-    async function setStudiosHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetStudios]';
+    function changeYearHandler() {
+      if (isNaN(+setYear!)) throw new E400('EYear can not be NaN');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (!Array.isArray(setStudios)) throw new E400(`${handlerName}: SetStudios is not Array`);
-
-      changes.push(`${handlerName}: Studio changed - ${title.studios.join(', ')} > ${setStudios.map(el => el.trim())}`);
-      title.studios = setStudios.map(el => el.trim());
-
-      title.markModified('studios');
+      Patcher.changeYear(+setYear!);
     }
 
-    async function setTypeHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetType]';
+    function changeEpisodeMeta() {
+      if (isNaN(+editEpMeta!.dateOut!)) throw new E400('DateOut in episode meta can not be NaN');
+      if (isNaN(+editEpMeta!.order!)) throw new E400('Order in episode meta can not be NaN');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (!TitleTypes.includes(setType as TTitleType)) throw new E400(`${handlerName}: Type ${setType} is invalid`);
-
-      changes.push(`${handlerName}: Type changed - ${title.type} > ${setType}`);
-      title.type = setType as TTitleType;
-
-      title.markModified('type');
+      Patcher.changeEpisodeMeta({
+        action: editEpMeta!.action!,
+        dateOut: +editEpMeta!.dateOut!,
+        order: +editEpMeta!.order!,
+        names: editEpMeta!.names!,
+      });
     }
 
-    async function setYearHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[SetYear]';
+    function deleteEpisodeHandler() {
+      if (isNaN(+deleteEpisode!.episodeOrder!)) throw new E400('Order in episode meta can not be NaN');
 
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-
-
-      if (isNaN(+setYear!)) throw new E400(`${handlerName}: Eps can not be NaN`);
-
-      changes.push(`${handlerName}: Year changed - ${title.year} > ${setYear}`);
-      title.year = +setYear!;
-
-      title.markModified('year');
-    }
-
-    async function deleteEpisodeHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[DeleteEpisode]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-      const { dubID, episodeOrder } = deleteEpisode as { episodeOrder?: string, dubID?: string };
-
-      if (!dubID || !episodeOrder) throw new E400('Episode order and dub id are required');
-      if (isNaN(+episodeOrder)) throw new E400('Episode order can not be NaN');
-
-      const order = +episodeOrder;
-      const dubber = await Dubbers.findOne({ id: dubID });
-
-      // Reject if dub is not found
-      if (!dubber) throw new E404(`Dub ${dubID} is not found`);
-
-      const ep = title.episodes.find(el => el.dubberID === dubber.id && el.order === order);
-
-      if (!ep) throw new E404(`Episode ${order} is not found in ${dubber.name} dub`);
-
-      try {
-        await axios.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${user!.id}&withChildren=true`, {
-          validateStatus: (s) => s < 500,
-          headers: {
-            'X-CSRF-Token': singCSRFToken()
-          }
-        });
-      } catch (e) {
-        if (e instanceof AxiosError) {
-          if (e.code === 'ECONNREFUSED') {
-            throw new E503('Animee-uploads is not available. Try in a few minutes');
-          }
-
-          throw e;
-        } else {
-          throw e;
-        }
-      }
-
-      changes.push(`${handlerName}: Episode ${order} in ${dubber.name} deleted`);
-
-      title.episodes = title.episodes.filter(el => !(el.order === order && el.dubberID === dubber.id));
-
-      title.markModified('episodes');
-    }
-
-    async function editEpMetaHandler(requiredCap: TRoleCapability) {
-      const handlerName = '[EditEpMeta]';
-
-      if (!title) throw new E404(`Title ${id} is not found`);
-      if (!caps.includes(requiredCap) && !caps.includes('root')) throw new E403(`You do not have access to ${handlerName}`);
-
-      const { dateOut, names, order, action } = editEpMeta!;
-
-      if (!dateOut || !names || !names.eng || !names.ukr || !order || !action) throw new E400('Date out, names, action and order are required');
-      if (isNaN(+dateOut) || isNaN(+order)) throw new E400('Date out and order can not be NaN');
-
-      let ep = title.episodesMeta!.find(el => el.order === order);
-      title.markModified('episodesMeta');
-
-      if (action === 'delete') {
-        if (!ep) throw new E400(`Ep ${order} is not exist`);
-        changes.push(`${handlerName}: Meta for ${order} episode deleted`);
-
-        title.episodesMeta = title.episodesMeta.filter(el => el.order !== order);
-      } else if (action === 'edit') {
-        if (!ep) {
-          title.episodesMeta.push({
-            dateOut,
-            names: {
-              eng: names.eng.trim(),
-              ukr: names.ukr.trim(),
-            },
-            order,
-          });
-
-          ep = title.episodesMeta!.find(el => el.order === order);
-        }
-
-        changes.push(`${handlerName}: Meta for ${order} episode changed`);
-
-        ep!.dateOut = dateOut;
-        ep!.names = {
-          eng: names.eng.trim(),
-          ukr: names.ukr.trim(),
-        };
-      } else {
-        throw new E400(`Action ${action} is invalid`);
-      }
+      Patcher.deleteEpisode(userID!, {
+        dubID: deleteEpisode!.dubID!,
+        order: +deleteEpisode!.episodeOrder!
+      });
     }
   });
 }

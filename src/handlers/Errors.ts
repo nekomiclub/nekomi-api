@@ -203,9 +203,7 @@ export function writeLog(type: TLogType, msg: any, at: string) {
     prepend(emsg, `${path.resolve()}/logs/error.log`);
     prepend(emsg, `${path.resolve()}/logs/.log`);
   } else {
-    console.log(`\nSystem output --------------`);
     console.log(msg);
-    console.log('----------------------------');
 
     prepend(emsg, `${path.resolve()}/logs/.log`);
   }

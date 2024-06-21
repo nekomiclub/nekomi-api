@@ -16,7 +16,7 @@ import { devMode, testMode, config, prodMode, checkFilesystem } from './config';
 import * as router from './router';
 import * as handler from './handlers/handlers';
 import { E403, writeLog } from './handlers/Errors';
-import Title from './Models/Title';
+import Title, { TitlePatcher } from './Models/Title';
 import { listenWSS } from './controllers/v1/ws';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';

@@ -7,29 +7,29 @@ import User, { createUser } from '../Models/User';
 
 const baseURL = `http://${ip.address()}`;
 
+//* DB
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+
+  mongoose.connect(`mongodb://${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB!.DEV.DB_NAME}`, {
+    retryWrites: true,
+  }).catch(e => {
+    console.error(e);
+  });
+});
+
+afterAll(() => {
+  mongoose.disconnect();
+});
+
+
+
 describe('DevController', () => {
   //* This controller works only in Development mode
 
   // Routes
   const getAccessControl = `/dev/AccessControl`;
   const getCSRFCheck = `/dev/CSRFCheck`;
-
-
-
-  //* DB
-  beforeAll(() => {
-    mongoose.set('strictQuery', false);
-
-    mongoose.connect(`mongodb://${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB!.DEV.DB_NAME}`, {
-      retryWrites: true,
-    }).catch(e => {
-      console.error(e);
-    });
-  });
-
-  afterAll(() => {
-    mongoose.disconnect();
-  });
 
 
 
