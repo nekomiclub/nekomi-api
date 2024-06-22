@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import axios, { AxiosError } from 'axios';
 
-import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, writeLog } from './handlers/Errors';
+import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, writeLog, E503 } from './handlers/Errors';
 import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
@@ -70,7 +70,6 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       // Pass if no capabilities are required
       if (capabilities.length === 0) {
-        if (devMode) writeLog('debug', `Request passed via AccessControl due to empty required caps array`, 'middlewares/AccessControl');
         return next();
       }
 
@@ -90,7 +89,6 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       // Pass if user is root
       if (caps.includes('root')) {
-        if (devMode) writeLog('debug', `Request passed via AccessControl due to root role`, 'middlewares/AccessControl');
         return next();
       }
 
@@ -137,11 +135,23 @@ export function CSRFCheck(origins?: string[]) {
       if (testMode) {
         data = getMockData(req, 'csrf_1').data;
       } else {
-        const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {
-          token
-        });
+        try {
+          const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {
+            token
+          });
 
-        data = response.data;
+          data = response.data;
+        } catch (e) {
+          if (e instanceof AxiosError) {
+            if (e.code === 'ECONNREFUSED') {
+              return res.status(503).json({ msg: 'FK-Authority is unavailable. Try in a few minutes' });
+            }
+
+            throw e;
+          }
+
+          throw e;
+        }
       }
 
       // Reject if token invalid

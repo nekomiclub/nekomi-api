@@ -127,7 +127,7 @@ export class TitlePatcher {
 
       if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Ukranian name can not be greater than ${MAX_LENGTH} symbols`);
 
-      this.log.push(`${this.changeNames} Changed ukranian name - ${this.title.names.ukr} > ${trimmed}`);
+      this.log.push(`${label} Changed ukranian name - ${this.title.names.ukr} > ${trimmed}`);
 
       this.title.names.ukr = trimmed;
     }
@@ -141,8 +141,8 @@ export class TitlePatcher {
 
       if (trimmed.length > MAX_LENGTH) throw new E400(`${label} English name can not be greater than ${MAX_LENGTH} symbols`);
 
-      this.log.push(`${this.changeNames} Changed english name - ${this.title.names.eng} > ${trimmed}`);
-      this.log.push(`${this.changeNames} Changed code - ${this.title.code} > ${code}`);
+      this.log.push(`${label} Changed english name - ${this.title.names.eng} > ${trimmed}`);
+      this.log.push(`${label} Changed code - ${this.title.code} > ${code}`);
       this.title.markModified('code');
 
       this.title.names.eng = trimmed;
@@ -162,7 +162,7 @@ export class TitlePatcher {
         trimmedArr.push(trimmed);
       });
 
-      this.log.push(`${this.changeNames} Changed alt names - ${this.title.names.alt.join(', ')} > ${trimmedArr.join(', ')}`);
+      this.log.push(`${label} Changed alt names - ${this.title.names.alt.join(', ')} > ${trimmedArr.join(', ')}`);
 
       this.title.names.alt = trimmedArr;
     }

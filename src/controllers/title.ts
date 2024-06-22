@@ -294,13 +294,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (deleteEpisode !== undefined) await execWithCap('seriesDelete', deleteEpisodeHandler);
 
     try {
-      await title.save();
+      await Patcher.save();
     } catch (e) {
       // ignore
     }
 
-    // Patcher.getLog().forEach(el => changes.push(el));
-
+    Patcher.getLog().forEach(el => changes.push(el));
     writeLog('info', `Title ${title.id} patched by ${userID}. Changed - ${changes.join(', ')}`, 'patchTitle');
 
     return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed` });

@@ -140,7 +140,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
       if (devMode) console.error(JSON.stringify(e.toJSON(), null, 2));
 
       if (status >= 500) {
-        writeLog('error', emsg, 'catchError/axios');
+        writeLog('error', `${emsg}; Req: ${reqUrl}; At: ${req.baseUrl}`, 'catchError/axios');
 
         if (reqUrl?.includes(ip.address())) {
           const id = createID();
@@ -159,13 +159,12 @@ export async function catchError(req: express.Request, res: express.Response, cb
       const date = `${getUTC().date} ${getUTC().time}`;
       // @ts-expect-error These fields may be
       const msg = e?.message || e?.msg;
-      const emsg = `Message - ${msg || 'Unknown error occured while handling this request'}. Service may not work in near future. Please create ticket of this error in animee discord server (https://discord.gg/UmDfKTpsh5) ASAP`;
-      const estack = JSON.stringify(e, Object.getOwnPropertyNames(e));
+      const emsg = `Message - ${msg || 'Unknown error occured while handling this request'}`;
 
       console.log(emsg);
       console.log(JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
 
-      writeLog('error', emsg, 'catchError/unexpected');
+      writeLog('error', e, 'catchError/unexpected');
 
       return res.status(503).json({ msg: emsg, date, url: `${req.method} ${req.baseUrl}` });
     }

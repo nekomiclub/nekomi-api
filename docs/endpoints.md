@@ -138,17 +138,16 @@ Update title info
 
 | DEPRECATED |               CSRF               |    CAPS    | TEST COVERED |
 | :--------: | :------------------------------: | :--------: | :----------: |
-|   false    | animee.club, updater.animee.club | See params |    false     |
+|   false    | animee.club, updater.animee.club | See params |     true     |
 
 ## Interfaces
 ```ts
 // Change names interface
-// Set null to prevent field from changing, otherwise it will rewrite it
 // Changing eng title will change title code
 interface IChangeNames {
-  ukr: string | null
-  eng: string | null
-  alt: string[] | null
+  ukr?: string
+  eng?: string
+  alt?: string[]
 } 
 
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
