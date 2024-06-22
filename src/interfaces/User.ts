@@ -14,6 +14,12 @@ export interface IUser {
 
   /** Roles */
   roles: string[]
+
+  /** Username */
+  username: string
+
+  /** Avatar URL */
+  avatar: string
 }
 
 /** User animee statistics

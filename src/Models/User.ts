@@ -9,17 +9,17 @@ export const User = mongoose.model<IUser>('user', new Schema({
   libs: Array,
   statistics: Object,
   roles: Array,
+  avatar: String,
+  username: String
 }));
 
 /** Create new user
  * @returns user ID
  */
-export async function createUser({ id, roles }: {
-  /** @deprecated */
-  username?: string
+export async function createUser({ id, roles, avatar, username }: {
+  username: string
 
-  /** @deprecated */
-  avatarURL?: string
+  avatar: string
 
   id?: string
 
@@ -88,6 +88,8 @@ export async function createUser({ id, roles }: {
       accountCreated: getUTC().timestamp,
       timeSpent: 0
     },
+    avatar,
+    username
   };
 
   const user = new User(payload);

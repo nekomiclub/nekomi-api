@@ -112,3 +112,26 @@ export function getMockData<T = any>(req: express.Request, key: string): IMocked
 
   return mock;
 }
+
+export async function fetchUsernames() {
+  const users = await User.find();
+  console.log('Fetching user usernames started');
+
+  for (const key in users) {
+    const user = users[key];
+
+    try {
+      const { data } = await axios.get<{ user: { username: string, photoURL: string } }>(`${config.URL.fullkekw_usapi}/user/${user.id}`);
+
+      user.username = data.user.username;
+      user.avatar = data.user.photoURL;
+    } catch (e) {
+      user.username = user.id;
+      user.avatar = 'https://media.animee.club/05ba8cc3-3ede-420c-bc0a-2f6ae663b74f';
+    }
+
+    await user.save();
+  }
+
+  console.log('Fetching user usernames ended');
+}

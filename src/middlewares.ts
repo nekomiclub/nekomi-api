@@ -28,6 +28,8 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
 
       let id = '';
+      let username = '';
+      let avatar = '';
 
       // Reject if authorization cookie is missing
       if (!token) {
@@ -44,11 +46,13 @@ export function AccessControl(capabilities: TRoleCapability[]) {
         }
       } else {
         try {
-          const sessionData = await axios.post<{ msg: string, id: string }>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+          const sessionData = await axios.post<{ msg: string, id: string, username: string, avatar: string }>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
             session: token
           });
 
           id = sessionData.data.id;
+          username = sessionData.data.username;
+          avatar = sessionData.data.avatar;
         } catch (e) {
           if (e instanceof AxiosError) {
             if (e.response?.status === 403) {
@@ -81,6 +85,17 @@ export function AccessControl(capabilities: TRoleCapability[]) {
         throw new E404(`User with id provided by session token (${id}) is not found`);
       }
 
+      if (user.username !== username) {
+        writeLog(`info`, 'User patched by AccessControl: Username changed to usapi variant', `AccessControl`);
+        user.username = username;
+      }
+
+      if (user.avatar !== avatar) {
+        writeLog(`info`, 'User patched by AccessControl: Avatar changed to usapi variant', `AccessControl`);
+        user.avatar = avatar;
+      }
+
+      await user.save();
       const caps = await parseRoles(user.roles);
 
       req.animee.userCapabilities = caps;

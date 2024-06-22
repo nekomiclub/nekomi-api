@@ -125,7 +125,9 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
   // Post-init callback
   try {
-
+    if (prodMode) {
+      await handler.fetchUsernames();
+    }
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');
   }
