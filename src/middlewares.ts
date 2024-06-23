@@ -9,6 +9,7 @@ import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
 import { getMockData, parseRoles } from './handlers/handlers';
 import { IM_CSRFCheck } from './interfaces/Mocks';
+import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from './interfaces/FullkekwResponses';
 
 
 
@@ -47,7 +48,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
         }
       } else {
         try {
-          const sessionData = await axios.post<{ msg: string, id: string, username: string, avatar: string }>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+          const sessionData = await axios.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
             session: token
           });
 
@@ -152,7 +153,7 @@ export function CSRFCheck(origins?: string[]) {
         data = getMockData<IM_CSRFCheck>(req, 'CSRFCheck').data;
       } else {
         try {
-          const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {
+          const response = await axios.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
             token
           });
 

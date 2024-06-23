@@ -16,7 +16,7 @@ export async function getOne(req: express.Request, res: express.Response) {
       throw new E404(`Dubber ${query} is not found`);
     }
 
-    return res.status(200).json(dto.dubber(dubber));
+    return res.status(200).json(dto.dubber(dubber.toObject()));
   });
 }
 
@@ -27,9 +27,10 @@ export async function parse(req: express.Request, res: express.Response) {
 
     for (const i in queries) {
       const query = queries[i];
+      const res = await Dubbers.findOne({ $or: [{ id: query }, { name: query }, { code: query }] });
 
       try {
-        results.push(dto.dubber(await Dubbers.findOne({ $or: [{ id: query }, { name: query }, { code: query }] })));
+        results.push(dto.dubber(res!.toObject()));
       } catch (e) {
         null;
       }

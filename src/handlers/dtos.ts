@@ -39,7 +39,7 @@ function hideKeys(excludeKeys: string[], obj: object) {
   }
 }
 
-/** Title DTO */
+/** Title DTO. Raw must be passed as Model.toObject() */
 export function title(raw: IMongodbDocument): ITitle {
   const { __v, _id, ...payload } = raw;
   const title = payload as ITitle;
@@ -50,12 +50,12 @@ export function title(raw: IMongodbDocument): ITitle {
   return title;
 }
 
-export function dubber(raw: any): IDubber {
+export function dubber(raw: IMongodbDocument): IDubber {
   const { __v, _id, ...dubber } = raw._doc;
   return dubber;
 }
 
-/** Return IUser excluding private info. Raw must be passed as Model.toObject() */
+/** User DTO. Raw must be passed as Model.toObject() */
 export function user(raw: IMongodbDocument): IUser {
   const { __v, _id, ...payload } = raw;
   const user = payload as IUser;

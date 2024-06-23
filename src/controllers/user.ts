@@ -8,8 +8,8 @@ import * as TokenService from '../services/TokenService';
 import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500, writeLog } from '../handlers/Errors';
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
-import { IFKSessionToken } from '../interfaces/Fullkekw';
 import Title from '../Models/Title';
+import { IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
 
 
 
@@ -22,7 +22,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       if (testMode) {
         id = session;
       } else {
-        const sessionData = await axios.post<{ msg: string, id: string }>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+        const sessionData = await axios.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
           session
         });
 
@@ -36,7 +36,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
     // Deep find user if not find by usapi ID
     if (!user) {
-      const res = await axios.get<{ msg: string, user: { id: string, username: string, email: string, photoURL: string } }>(`${config.URL.fullkekw_usapi}/user/${id}`);
+      const res = await axios.get<IFK_UsapiGetUser>(`${config.URL.fullkekw_usapi}/user/${id}`);
 
       const { user: data } = res.data;
       user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });
@@ -47,7 +47,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
         await createUser({
           id,
-          avatarURL: data.photoURL,
+          avatar: data.photoURL,
           username: data.username
         });
 
