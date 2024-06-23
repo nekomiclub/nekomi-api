@@ -8,13 +8,14 @@ import * as uuid from 'uuid';
 
 import Dubbers from '../Models/Dubber';
 import Title, { createTitle } from '../Models/Title';
-import { testMode, devMode, config, prodMode, IMockedData } from '../config';
+import { testMode, devMode, config, prodMode } from '../config';
 import User from '../Models/User';
 import { user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
 import { E500 } from './Errors';
 import { ITitle } from '../interfaces/Title';
+import { IMock, TMockID } from '../interfaces/Mocks';
 
 
 
@@ -91,8 +92,8 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
 }
 
 /** Get mock data */
-export function getMockData<T = any>(req: express.Request, key: string): IMockedData<T> {
-  let mocks: IMockedData[] = [];
+export function getMockData<T = any>(req: express.Request, id: TMockID): IMock<T> {
+  let mocks: IMock[] = [];
 
   try {
     mocks = JSON.parse(req.header(config.vars.mockHeader) || '[]');
@@ -100,10 +101,10 @@ export function getMockData<T = any>(req: express.Request, key: string): IMocked
     console.error(e);
   }
 
-  const mock = mocks.find(el => el.id === key);
+  const mock = mocks.find(el => el.id === id);
 
   if (!mock) {
-    throw new E500(`Mock ${key} undefined`);
+    throw new E500(`Mock ${id} undefined`);
   }
 
   if (mock.code > 400) {

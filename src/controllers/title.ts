@@ -341,7 +341,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
     function changeYearHandler() {
-      if (isNaN(+setYear!)) throw new E400('EYear can not be NaN');
+      if (isNaN(+setYear!)) throw new E400('Year can not be NaN');
 
       Patcher.changeYear(+setYear!);
     }

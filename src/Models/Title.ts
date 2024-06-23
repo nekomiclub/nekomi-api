@@ -373,7 +373,7 @@ export class TitlePatcher {
       trimmedArr.push(trimmed);
     });
 
-    this.log.push(`${this.changeNames} Changed studios - ${this.title.studios.join(', ')} > ${trimmedArr.join(', ')}`);
+    this.log.push(`${label} Changed studios - ${this.title.studios.join(', ')} > ${trimmedArr.join(', ')}`);
     this.title.markModified('studios');
 
     this.title.studios = trimmedArr;

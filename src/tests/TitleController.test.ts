@@ -3,10 +3,10 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import * as cfg from '../config';
 
-import { IMockedData } from '../config';
 import User, { createUser } from '../Models/User';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { ITitle, TAnimeGenre } from '../interfaces/Title';
+import { IM_AccessControl, IM_CSRFCheck, IMock } from '../interfaces/Mocks';
 
 const config = cfg.config;
 const baseURL = `http://${ip.address()}`;
@@ -98,6 +98,25 @@ describe('TitleController', () => {
     // Mock data
     const T2_ID = 'mocked-titleController-2';
 
+    const ACMock: IMock<IM_AccessControl> = {
+      id: 'AccessControl',
+      code: 200,
+      data: {
+        id: T2_ID,
+      }
+    };
+
+    const CSRFMock: IMock<IM_CSRFCheck> = {
+      id: 'CSRFCheck',
+      code: 200,
+      data: {
+        verified: true,
+        origin: 'animee.club'
+      }
+    };
+
+    const mockedData = [ACMock, CSRFMock];
+
     beforeAll(async () => {
       await purge();
 
@@ -107,7 +126,9 @@ describe('TitleController', () => {
 
       await createUser({
         id: T2_ID,
-        roles: ['user', 'editor']
+        roles: ['user', 'editor'],
+        avatar: '',
+        username: T2_ID
       });
     });
 
@@ -124,24 +145,6 @@ describe('TitleController', () => {
 
 
     test('T2 Pass - Deleted', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T2_ID,
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: 'animee.club'
-          }
-        }
-      ];
-
       await request(baseURL)
         .delete(`/title/${T2_ID}`)
         .set('Authorization', '_MOCKED')
@@ -151,24 +154,6 @@ describe('TitleController', () => {
     });
 
     test('T2 Reject - Not found', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T2_ID,
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: 'animee.club'
-          }
-        }
-      ];
-
       await request(baseURL)
         .delete(`/title/_INVALID`)
         .set('Authorization', '_MOCKED')
@@ -178,57 +163,38 @@ describe('TitleController', () => {
     });
 
     test('T2 Reject - Perm missmatch', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T2_ID,
-            capabilities: ['root']
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: 'animee.club'
-          }
+      const ACMock: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: T2_ID,
+          capabilities: ['root']
         }
-      ];
+      };
 
       await request(baseURL)
         .delete(`/title/_INVALID`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
         .expect(403);
     });
 
     test('T2 Reject - CSRF missmatch', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T2_ID,
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: '_INVALID'
-          }
+      const CSRFMock: IMock<IM_CSRFCheck> = {
+        id: 'CSRFCheck',
+        code: 200,
+        data: {
+          verified: true,
+          origin: '_INVALID'
         }
-      ];
+      };
 
       await request(baseURL)
         .delete(`/title/_INVALID`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
         .expect(403);
     });
   });
@@ -241,12 +207,33 @@ describe('TitleController', () => {
     // Mock data
     const T3_ID = 'mocked-titleController-3';
 
+    const ACMock: IMock<IM_AccessControl> = {
+      id: 'AccessControl',
+      code: 200,
+      data: {
+        id: T3_ID,
+      }
+    };
+
+    const CSRFMock: IMock<IM_CSRFCheck> = {
+      id: 'CSRFCheck',
+      code: 200,
+      data: {
+        verified: true,
+        origin: 'animee.club'
+      }
+    };
+
+    const mockedData = [ACMock, CSRFMock];
+
     beforeAll(async () => {
       await purge();
 
       await createUser({
         id: T3_ID,
-        roles: ['user', 'editor']
+        roles: ['user', 'editor'],
+        avatar: '',
+        username: T3_ID
       });
     });
 
@@ -262,24 +249,6 @@ describe('TitleController', () => {
 
 
     test('T3 Pass - Title created', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T3_ID,
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: 'animee.club'
-          }
-        }
-      ];
-
       const res = await request(baseURL)
         .post(`/title`)
         .set('Authorization', '_MOCKED')
@@ -291,57 +260,38 @@ describe('TitleController', () => {
     });
 
     test('T3 Reject - Perm missmatch', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T3_ID,
-            capabilities: ['root']
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: 'animee.club'
-          }
+      const ACMock: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: T3_ID,
+          capabilities: ['root']
         }
-      ];
+      };
 
       await request(baseURL)
         .post(`/title`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
         .expect(403);
     });
 
     test('T3 Reject - CSRF missmatch', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: T3_ID,
-          }
-        },
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: '_INVALID'
-          }
+      const CSRFMock: IMock<IM_CSRFCheck> = {
+        id: 'CSRFCheck',
+        code: 200,
+        data: {
+          origin: 'animee.club',
+          verified: false
         }
-      ];
+      };
 
       await request(baseURL)
         .post(`/title`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
         .expect(403);
     });
   });
@@ -354,6 +304,25 @@ describe('TitleController', () => {
     // Mock data
     const T4_ID = 'mocked-titleController-4'; // Root
     const T41_ID = 'mocked-titleController-5'; // User (AC should pass, but execWithPerm should reject)
+
+    const ACMock: IMock<IM_AccessControl> = {
+      id: 'AccessControl',
+      code: 200,
+      data: {
+        id: T4_ID,
+      }
+    };
+
+    const CSRFMock: IMock<IM_CSRFCheck> = {
+      id: 'CSRFCheck',
+      code: 200,
+      data: {
+        verified: true,
+        origin: 'animee.club'
+      }
+    };
+
+    const mockedData = [ACMock, CSRFMock];
 
     beforeAll(async () => {
       await purge();
@@ -372,12 +341,16 @@ describe('TitleController', () => {
 
       await createUser({
         id: T4_ID,
-        roles: ['root']
+        roles: ['root'],
+        avatar: '',
+        username: T4_ID
       });
 
       await createUser({
         id: T41_ID,
-        roles: ['user']
+        roles: ['user'],
+        avatar: '',
+        username: T41_ID
       });
     });
 
@@ -390,24 +363,6 @@ describe('TitleController', () => {
       await User.deleteMany({ id: T41_ID });
       await Title.deleteMany({ id: T4_ID });
     }
-
-    const mockedData: IMockedData[] = [
-      {
-        id: 'ac_1',
-        code: 200,
-        data: {
-          id: T4_ID,
-        }
-      },
-      {
-        id: 'csrf_1',
-        code: 200,
-        data: {
-          verified: true,
-          origin: 'animee.club'
-        }
-      }
-    ];
 
 
 
@@ -426,29 +381,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             setYear: 2024
           })
@@ -485,29 +430,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             setYear: 2024
           })
@@ -541,29 +476,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             setRating: 8
           })
@@ -597,29 +522,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             setEps: 12
           })
@@ -669,29 +584,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             editEpMeta: {
               action: 'edit',
@@ -739,29 +644,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             deleteEpisode: {
               dubID: T4_ID,
@@ -805,29 +700,19 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
+        };
 
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             changeNames: {
               alt: ['sth']
@@ -863,29 +748,18 @@ describe('TitleController', () => {
       });
 
       test('Reject - Perm missmatch', async () => {
-        const mockedData: IMockedData[] = [
-          {
-            id: 'ac_1',
-            code: 200,
-            data: {
-              id: T41_ID,
-            }
-          },
-          {
-            id: 'csrf_1',
-            code: 200,
-            data: {
-              verified: true,
-              origin: 'animee.club'
-            }
+        const ACMock: IMock<IM_AccessControl> = {
+          id: 'AccessControl',
+          code: 200,
+          data: {
+            id: T41_ID,
           }
-        ];
-
+        };
         await request(baseURL)
           .patch(`/title/${T4_ID}`)
           .set('Authorization', '_MOCKED')
           .set(config.vars.csrfHeader, '_MOCKED')
-          .set(config.vars.mockHeader, JSON.stringify(mockedData))
+          .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
           .send({
             setStudios: ['sth']
           })

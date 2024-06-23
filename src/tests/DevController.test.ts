@@ -1,9 +1,10 @@
 import ip from 'ip';
 import request from 'supertest';
 import { app } from '..';
-import { IMockedData, config } from '../config';
+import { config } from '../config';
 import mongoose from 'mongoose';
 import User, { createUser } from '../Models/User';
+import { IM_AccessControl, IM_CSRFCheck, IMock } from '../interfaces/Mocks';
 
 const baseURL = `http://${ip.address()}`;
 
@@ -48,12 +49,16 @@ describe('DevController', () => {
 
       await createUser({
         id: U1_ID,
-        roles: ['user', 'dubber']
+        roles: ['user', 'dubber'],
+        username: U1_ID,
+        avatar: ''
       });
 
       await createUser({
         id: U2_ID,
-        roles: ['user', 'root']
+        roles: ['user', 'root'],
+        username: U2_ID,
+        avatar: ''
       });
     });
 
@@ -71,57 +76,51 @@ describe('DevController', () => {
     test('U1 Pass - Empty array', async () => {
       // Capabilities mocked
 
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: U1_ID,
-            capabilities: []
-          }
+      const mockedData: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: U1_ID,
+          capabilities: []
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getAccessControl)
         .set('Authorization', 'dummy')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(200);
     });
 
     test('U1 Pass - Capabilities matched', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: U1_ID
-          }
+      const mockedData: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: U1_ID
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getAccessControl)
         .set('Authorization', 'dummy')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(200);
     });
 
     test('U2 Pass - Root role', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: U2_ID
-          }
+      const mockedData: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: U2_ID
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getAccessControl)
         .set('Authorization', 'dummy')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(200);
     });
 
@@ -135,21 +134,19 @@ describe('DevController', () => {
     });
 
     test('U1 Reject - Capabilities missmatch', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'ac_1',
-          code: 200,
-          data: {
-            id: U1_ID,
-            capabilities: ['root']
-          }
+      const mockedData: IMock<IM_AccessControl> = {
+        id: 'AccessControl',
+        code: 200,
+        data: {
+          id: U1_ID,
+          capabilities: ['root']
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getAccessControl)
         .set('Authorization', 'dummy')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(403);
     });
   });
@@ -161,21 +158,19 @@ describe('DevController', () => {
     */
 
     test('Pass', async () => {
-      const mockedData: IMockedData[] = [
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: config.vars.domain
-          }
+      const mockedData: IMock<IM_CSRFCheck> = {
+        id: 'CSRFCheck',
+        code: 200,
+        data: {
+          verified: true,
+          origin: config.vars.domain
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getCSRFCheck)
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(200);
     });
 
@@ -189,42 +184,38 @@ describe('DevController', () => {
     test('Reject - Token invalid', async () => {
       // Reject due to not verified token
 
-      const mockedData: IMockedData[] = [
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: false,
-            origin: config.vars.domain
-          }
+      const mockedData: IMock<IM_CSRFCheck> = {
+        id: 'CSRFCheck',
+        code: 200,
+        data: {
+          verified: false,
+          origin: config.vars.domain
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getCSRFCheck)
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(403);
     });
 
     test('Reject - Token missmatch', async () => {
       // Reject due to origin missmatch (expect - api.animee.club)
 
-      const mockedData: IMockedData[] = [
-        {
-          id: 'csrf_1',
-          code: 200,
-          data: {
-            verified: true,
-            origin: '_INVALID'
-          }
+      const mockedData: IMock<IM_CSRFCheck> = {
+        id: 'CSRFCheck',
+        code: 200,
+        data: {
+          verified: true,
+          origin: '_INVALID'
         }
-      ];
+      };
 
       await request(baseURL)
         .get(getCSRFCheck)
         .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .set(config.vars.mockHeader, JSON.stringify([mockedData]))
         .expect(403);
     });
   });

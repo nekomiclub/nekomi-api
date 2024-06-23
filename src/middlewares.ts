@@ -8,6 +8,7 @@ import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
 import { getMockData, parseRoles } from './handlers/handlers';
+import { IM_CSRFCheck } from './interfaces/Mocks';
 
 
 
@@ -16,7 +17,7 @@ import { getMockData, parseRoles } from './handlers/handlers';
  * If no capabilites are required, middleware will set only user ID.
  * 
  * Mock details
- * ac_1 - Mock user id (string) & REQUIRED capabilities (TRoleCapability[])
+ * _AccessControl - Mock user id & REQUIRED capabilities
  * 
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
@@ -37,7 +38,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       }
 
       if (testMode) {
-        const data = getMockData(req, 'ac_1').data;
+        const data = getMockData(req, 'AccessControl').data;
 
         id = data.id;
 
@@ -128,7 +129,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 /** CSRF-check middleware
  * 
  * Mock details
- * csrf_1 - Mock verified (boolean) & origin (string)
+ * _CSRFCheck - Mock verified & origin
  * 
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
@@ -142,13 +143,13 @@ export function CSRFCheck(origins?: string[]) {
       // Reject if header undefined
       if (!token) throw new E401('CSRF required');
 
-      let data: { verified: boolean, origin: string } = {
+      let data: IM_CSRFCheck = {
         verified: false,
         origin: ''
       };
 
       if (testMode) {
-        data = getMockData(req, 'csrf_1').data;
+        data = getMockData<IM_CSRFCheck>(req, 'CSRFCheck').data;
       } else {
         try {
           const response = await axios.post(`${config.URL.fullkekw_authority}/verify`, {

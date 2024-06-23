@@ -84,13 +84,6 @@ export const config = {
   }
 };
 
-/** Service mocked data interface */
-export interface IMockedData<T = any> {
-  id: string,
-  code: number,
-  data: T
-}
-
 
 
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
