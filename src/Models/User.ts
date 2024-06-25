@@ -3,6 +3,7 @@ import { IUser } from '../interfaces/User';
 import { DeepPartial } from '../interfaces/Interfaces';
 import { createID, getUTC } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
+import { writeLog } from '../handlers/Errors';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,
@@ -95,6 +96,7 @@ export async function createUser({ id, roles, avatar, username }: {
   const user = new User(payload);
 
   await user.save();
+  writeLog('info', `New user ${id} created`, 'User/createUser');
 
   return id;
 }

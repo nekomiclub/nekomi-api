@@ -48,22 +48,18 @@ export const devGetCSRFCheck = [
 
 //* ------------------ USER MIDDLEWARES ------------------
 
-export const getUserAuth = [
-  body('session')
-    .notEmpty().withMessage('Session can not be empty')
-];
-
 export const userPatch = [
+  CSRFCheck(['updater.animee.club', 'animee.club']),
   AccessControl(['basic']),
   body('method')
     .notEmpty().withMessage('Method can not be empty')
     .isIn(patchUserMethods).withMessage('Method invalid'),
-  CSRFCheck(['updater.animee.club', 'animee.club']),
 ];
 
 export const userSignin = [
-  ...getUserAuth,
-  // CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
+  body('session')
+    .notEmpty().withMessage('Session can not be empty'),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------

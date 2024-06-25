@@ -67,6 +67,9 @@ export const config = {
     /** Animee cookie with fullkekw usapi session */
     sessionCookie: 'SEC_31N',
 
+    /** Animee cookie expiration offset */
+    sessionCookieExpireOffset: 2592000000,
+
     /** Mock data header */
     mockHeader: 'X-MockData',
 

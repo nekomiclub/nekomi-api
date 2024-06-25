@@ -8,7 +8,7 @@ interface IMongodbDocument {
   [key: string]: any
 }
 
-/** Hide sensetive values in object. Will MUTATE input object
+/** Hide sensitive values in object. Will MUTATE input object
  * @param excludeKeys An array of excluded keys (use next type (keyof INTERFACE)[])
  * 
  * @example
@@ -55,12 +55,19 @@ export function dubber(raw: IMongodbDocument): IDubber {
   return dubber;
 }
 
-/** User DTO. Raw must be passed as Model.toObject() */
-export function user(raw: IMongodbDocument): IUser {
+/** User DTO. Raw must be passed as Model.toObject()
+ * @param privateMode In private mode sensitive information will be hidden
+ */
+export function user(raw: IMongodbDocument, privateMode?: boolean): IUser {
   const { __v, _id, ...payload } = raw;
   const user = payload as IUser;
 
-  const excludeKeys: (keyof IUser)[] = [];
+  const excludeKeys: (keyof IUser)[] = privateMode ? [
+    'roles',
+    'statistics',
+    'libs'
+  ] : [];
+
   hideKeys(excludeKeys, user);
 
   return user;

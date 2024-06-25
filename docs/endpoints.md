@@ -263,20 +263,18 @@ Delete title
 
 --------------------------------------------------------------
 
-## User Controller (1.1.0)
+## User Controller
 
 --------------------------------------------------------------
 
 ### POST /user/signin
 [Back to tree](./tree.md)
 
-Authorize user & get session cookie, if user is not found, will try to find exist by username (email splitted by @), if not will create a new one
+Authorize user & get session cookie. Will create new one if user not founded
 
-| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
-| :--------: | :---: | :---: | :----------: |
-|   false    |   -   |   -   |     true     |
-
-CSRF: animee.club, updater.animee.club
+| DEPRECATED |    CSRF     | CAPS  | TEST COVERED |
+| :--------: | :---------: | :---: | :----------: |
+|   false    | animee.club |   -   |    false     |
 
 #### Params
 | NAME    | TYPE   | DESCRIPTION                  |
@@ -285,7 +283,13 @@ CSRF: animee.club, updater.animee.club
 
 #### Success response
 - Code: 200
-- Body: Ok
+- Body:
+```ts
+msg: 'User logged in',
+id: string,
+username: string,
+avatar: string
+```
 
 #### Error response
 - Code: 400
@@ -304,34 +308,43 @@ Remove session cookie
 
 #### Success response
 - Code: 200
-- Body: Ok
+- Body: User logged out
 
-### Notes
-In dev mode session verifying will be skipped, user id will be taken from session
+<br>
+
+- Code: 400
+- Body: Nothing to log out (cookie not provided)
 
 --------------------------------------------------------------
 
 ### GET /user/:query
 [Back to tree](./tree.md)
 
-Get user with query (username or id)
+Get user with query (username or id). By default sensitive fields (like roles, statistics & libs) will be hidden.
+To get sensitive details, you should provide animee.club CSRF token & detailed query
 
-| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
-| :--------: | :---: | :---: | :----------: |
-|   false    |   -   |   -   |    false     |
+| DEPRECATED |  CSRF   | CAPS  | TEST COVERED |
+| :--------: | :-----: | :---: | :----------: |
+|   false    | partial |   -   |    false     |
 
 #### Params
-| NAME  | TYPE   | DESCRIPTION    |
-| ----- | ------ | -------------- |
-| query | string | username or id |
+| NAME              | TYPE    | DESCRIPTION                                              |
+| ----------------- | ------- | -------------------------------------------------------- |
+| query             | string  | Username or id. Can be "*" to get user by session cookie |
+| (query) ?detailed | boolean | Detailed mode                                            |
 
 #### Success response
 - Code: 200
-- Body: IUser (after DTO)
+- Body: 
+```ts
+msg: string,
+privateMode: boolean,
+user: IUser
+```
 
 #### Error response
-- Code: 401
-- Body: Authorization not provided
+- Code: 400
+- Body: Invalid payload
 
 - Code: 404
 - Body: User is not found
@@ -398,48 +411,7 @@ User ID will taken from decoding session cookie or from session cookie in test m
 
 --------------------------------------------------------------
 
-### DELETE /user/:id
-[Back to tree](./tree.md)
-
-Delete user. User can delete only own account, staff can delete any account
-
-| DEPRECATED | CSRF  |          CAPS          | TEST COVERED |
-| :--------: | :---: | :--------------------: | :----------: |
-|   false    |   -   | basic, staffDeleteUser |    false     |
-
-#### Params
-| NAME   | TYPE   | DESCRIPTION |
-| ------ | ------ | ----------- |
-| id     | string | User id     |
-| reason | string | Reason      |
-
-#### Success response
-- Code: 205
-- Body: 'ok'
-
-#### Error response
-- Code: 401
-- Body: You are not authorized
-
-<br>
-
-- Code: 403
-- Body: You are not permitted to do that
-
-<br>
-
-- Code: 404
-- Body: User is not found
-
---------------------------------------------------------------
-
---------------------------------------------------------------
-
 ## Dubber Controller
-
---------------------------------------------------------------
-
-
 
 --------------------------------------------------------------
 

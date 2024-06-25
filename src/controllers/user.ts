@@ -9,98 +9,104 @@ import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500, write
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
-import { IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
+import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
+import { $http } from '../handlers/http';
 
 
 
 export async function postSignin(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { session } = req.body as { session: string };
-    let id = '';
+    let payload: IFK_UsapiAuthRefresh | null = null;
 
     try {
-      if (testMode) {
-        id = session;
-      } else {
-        const sessionData = await axios.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
-          session
-        });
+      const { data } = await $http.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+        session
+      });
 
-        id = sessionData.data.id;
-      }
+      payload = data;
     } catch (e) {
-      throw new E400('Session token invalid');
-    }
+      if (e instanceof AxiosError) {
+        if (e.code === 'ECONNREFUSED') {
+          return res.status(503).json({ msg: 'FK-Usapi is not available' });
+        }
 
-    let user = await User.findOne({ id });
-
-    // Deep find user if not find by usapi ID
-    if (!user) {
-      const res = await axios.get<IFK_UsapiGetUser>(`${config.URL.fullkekw_usapi}/user/${id}`);
-
-      const { user: data } = res.data;
-      user = await User.findOne({ $or: [{ id: data.id }, { uid: data.id }, { email: data.email }, { username: data.email.split('@')[0] }] });
-
-      if (!user) {
-        // Deep find does not found user, create new one
-        writeLog('info', `[User]: User (${id}) does not founded deeply, creating new one with id - ${id}`, 'postSignin/createUser');
-
-        await createUser({
-          id,
-          avatar: data.photoURL,
-          username: data.username
-        });
-
-        user = await User.findOne({ id });
-      } else {
-        // Deep find found user, assing usapi id to it
-        writeLog('info', `[User]: User (${id}) deep find match user by email/username, assigning new id to it`, 'postSignin/createUser');
-
-        user.id = id;
-
-        await user.save();
+        throw e;
       }
+
+      throw e;
     }
 
-    return res.status(200).cookie(config.vars.sessionCookie, session, { httpOnly: true, maxAge: 60000 * 60 * 24 * 31, domain: prodMode ? '.animee.club' : undefined }).json({ msg: 'ok' });
+    if (!payload) throw new E400('Invalid payload');
+
+    let user = await User.findOne({ id: payload.id });
+
+    if (user) {
+      if (user.username !== payload.username) user.username = payload.username;
+      if (user.avatar !== payload.avatar) user.avatar = payload.avatar;
+    } else {
+      // User not exist, create new one
+
+      await createUser({
+        id: payload.id,
+        username: payload.username,
+        avatar: payload.avatar,
+      });
+
+      user = await User.findOne({ id: payload.id });
+    }
+
+    return res.status(200).cookie(config.vars.sessionCookie, session, {
+      httpOnly: true,
+      maxAge: config.vars.sessionCookieExpireOffset,
+      domain: prodMode ? '.animee.club' : undefined
+    }).json({ msg: 'User logged in', id: payload.id, username: payload.username, avatar: payload.avatar });
   });
 }
-
-
 
 export async function getLogout(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
-    return res.status(205).clearCookie(config.vars.sessionCookie).json({ msg: 'ok' });
+    return res.status(200).clearCookie(config.vars.sessionCookie).json({ msg: 'User logged out' });
   });
 }
 
-
-
 export async function getQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
+    const CSRFToken = req.header(config.vars.csrfHeader);
+    const { detailed } = req.query as { detailed?: boolean };
     let { query } = req.params as { query: string };
+
+    let privateMode = true;
 
     // Get query from session
     if (query === '*') {
       const cookie = req.cookies[config.vars.sessionCookie];
 
-      if (!cookie) throw new E401(`Session cookie is not provided`);
+      if (!cookie) throw new E401(`Can not get user without session cookie provided`);
 
       const token = TokenService.decodeToken<{ userId: string }>(cookie);
       query = token.payload!.userId;
     }
 
-    const user = await User.findOne({ $or: [{ id: query }, { uid: query }, { username: query }] });
+    const user = await User.findOne({ $or: [{ id: query }, { username: query }] });
 
     if (!user) {
       throw new E404(`User ${query} is not found.`);
     }
 
-    return res.status(200).json(dto.user(user.toObject()));
+    if (detailed && CSRFToken) {
+      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+        token: CSRFToken
+      });
+
+      if (data.origin === 'animee.club') {
+        privateMode = !data.verified;
+      }
+    }
+
+    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode), privateMode });
   });
 }
-
-
 
 /** PATCH /user methods. 
  * @see PATCH /user in docs/endpoints.md
@@ -124,26 +130,30 @@ interface IPatchUserBody {
 
 export async function patchUser(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
-    const UserData = req.animee;
+    const { userID } = req.animee;
     const { method, folderId, titleId } = req.body as IPatchUserBody;
 
-    let userId = UserData.userID;
-
-    const user = await User.findOne({ id: userId });
+    const user = await User.findOne({ id: userID });
     let modifyStack: string[] = [];
 
     if (!user) {
-      throw new E404(`User ${userId} is not found`);
+      throw new E404(`User ${userID} is not found`);
     }
 
     // Invalid method will be denied by validator
     if (method === 'editFolderItem') {
       await editFolderItem();
     } else {
-      throw new E501('Method is not implemented');
+      throw new E400('Invalid method');
     }
 
-    writeLog('info', `User ${userId} modified. Stack - ${modifyStack.join(', ')}`, 'patchUser');
+    try {
+      await user.save();
+    } catch (e) {
+      // ignore
+    }
+
+    writeLog('info', `User ${userID} modified. Stack - ${modifyStack.join(', ')}`, 'patchUser');
 
     return res.status(200).json({ msg: 'User modified', stack: modifyStack.join('\n') });
 
@@ -187,14 +197,9 @@ export async function patchUser(req: express.Request, res: express.Response) {
       folder.titles = filteredTitles;
 
       modifyStack.push(modifyMsg);
-      if (devMode) console.log(`[User]: User (${userId}) modified - ${modifyMsg}`);
+      if (devMode) console.log(`[User]: User (${userID}) modified - ${modifyMsg}`);
 
-      try {
-        user.markModified('libs');
-        await user.save();
-      } catch (e) {
-        // Ignore
-      }
+      user.markModified('libs');
     }
   });
 }
