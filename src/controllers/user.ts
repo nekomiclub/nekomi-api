@@ -19,22 +19,26 @@ export async function postSignin(req: express.Request, res: express.Response) {
     const { session } = req.body as { session: string };
     let payload: IFK_UsapiAuthRefresh | null = null;
 
-    try {
-      const { data } = await $http.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
-        session
-      });
+    if (testMode) {
+      payload = handler.getMockData<IFK_UsapiAuthRefresh>(req, 'UserSignin').data;
+    } else {
+      try {
+        const { data } = await $http.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+          session
+        });
 
-      payload = data;
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        if (e.code === 'ECONNREFUSED') {
-          return res.status(503).json({ msg: 'FK-Usapi is not available' });
+        payload = data;
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.code === 'ECONNREFUSED') {
+            return res.status(503).json({ msg: 'FK-Usapi is not available' });
+          }
+
+          throw e;
         }
 
         throw e;
       }
-
-      throw e;
     }
 
     if (!payload) throw new E400('Invalid payload');
@@ -44,6 +48,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
     if (user) {
       if (user.username !== payload.username) user.username = payload.username;
       if (user.avatar !== payload.avatar) user.avatar = payload.avatar;
+
+      await user.save();
     } else {
       // User not exist, create new one
 
@@ -162,7 +168,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
     /** Patch folder */
     async function editFolderItem() {
       if (!folderId || !titleId || !user) {
-        throw new E400(`Payload invalid${devMode && ' (see docs/endpoints.md)'}`);
+        throw new E400(`Folder ID and title ID are required`);
       }
 
       const folder = user.libs.find(el => el.id === folderId);
@@ -197,7 +203,6 @@ export async function patchUser(req: express.Request, res: express.Response) {
       folder.titles = filteredTitles;
 
       modifyStack.push(modifyMsg);
-      if (devMode) console.log(`[User]: User (${userID}) modified - ${modifyMsg}`);
 
       user.markModified('libs');
     }

@@ -62,6 +62,10 @@ export const userSignin = [
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
+export const userLogout = [
+  CSRFCheck(['animee.club']),
+];
+
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const postTitle = [

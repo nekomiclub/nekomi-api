@@ -274,7 +274,7 @@ Authorize user & get session cookie. Will create new one if user not founded
 
 | DEPRECATED |    CSRF     | CAPS  | TEST COVERED |
 | :--------: | :---------: | :---: | :----------: |
-|   false    | animee.club |   -   |    false     |
+|   false    | animee.club |   -   |     true     |
 
 #### Params
 | NAME    | TYPE   | DESCRIPTION                  |
@@ -302,9 +302,9 @@ avatar: string
 
 Remove session cookie
 
-| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
-| :--------: | :---: | :---: | :----------: |
-|   false    |   -   |   -   |    false     |
+| DEPRECATED |    CSRF     | CAPS  | TEST COVERED |
+| :--------: | :---------: | :---: | :----------: |
+|   false    | animee.club |   -   |     true     |
 
 #### Success response
 - Code: 200
@@ -325,7 +325,7 @@ To get sensitive details, you should provide animee.club CSRF token & detailed q
 
 | DEPRECATED |  CSRF   | CAPS  | TEST COVERED |
 | :--------: | :-----: | :---: | :----------: |
-|   false    | partial |   -   |    false     |
+|   false    | partial |   -   |     true     |
 
 #### Params
 | NAME              | TYPE    | DESCRIPTION                                              |
@@ -361,7 +361,7 @@ Update user. User can update only own info, staff can edit any user info (indev)
 
 | DEPRECATED |               CSRF               |           CAPS           | TEST COVERED |
 | :--------: | :------------------------------: | :----------------------: | :----------: |
-|   false    | updater.animee.club, animee.club | basic, staffEditUserInfo |    false     |
+|   false    | updater.animee.club, animee.club | basic, staffEditUserInfo |     true     |
 
 
 #### Methods (Describes TMethod)

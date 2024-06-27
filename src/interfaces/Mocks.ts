@@ -1,6 +1,6 @@
 import { TRoleCapability } from './Roles';
 
-export type TMockID = 'AccessControl' | 'CSRFCheck'
+export type TMockID = 'AccessControl' | 'CSRFCheck' | 'UserSignin'
 
 /** Mock interface */
 export interface IMock<T = any> {
