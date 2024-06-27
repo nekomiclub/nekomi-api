@@ -110,17 +110,12 @@ export async function getQuery(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode), privateMode });
+    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode) });
   });
 }
 
-/** PATCH /user methods. 
- * @see PATCH /user in docs/endpoints.md
- */
-export const patchUserMethods = ['editFolderItem'] as const;
-
 /** Type of patchUserMethods array */
-type TPatchUserMethod = typeof patchUserMethods[number]
+type TPatchUserMethod = 'editFolderItem' | 'increaseViewtime'
 
 interface IPatchUserBody {
   /** Method */
@@ -132,12 +127,16 @@ interface IPatchUserBody {
 
   /** Folder id to be patched */
   folderId?: string
+
+  //* increaseViewtime method
+  /** Add viewtime */
+  viewtime?: number
 }
 
 export async function patchUser(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { userID } = req.animee;
-    const { method, folderId, titleId } = req.body as IPatchUserBody;
+    const { method, folderId, titleId, viewtime } = req.body as IPatchUserBody;
 
     const user = await User.findOne({ id: userID });
     let modifyStack: string[] = [];
@@ -146,9 +145,10 @@ export async function patchUser(req: express.Request, res: express.Response) {
       throw new E404(`User ${userID} is not found`);
     }
 
-    // Invalid method will be denied by validator
     if (method === 'editFolderItem') {
       await editFolderItem();
+    } else if (method === 'increaseViewtime') {
+      await increaseViewtime();
     } else {
       throw new E400('Invalid method');
     }
@@ -205,6 +205,15 @@ export async function patchUser(req: express.Request, res: express.Response) {
       modifyStack.push(modifyMsg);
 
       user.markModified('libs');
+    }
+
+    async function increaseViewtime() {
+      if (!user || !viewtime || isNaN(+viewtime)) throw new E400('Invalid payload or viewtime is NaN');
+
+      user.statistics.timeSpent += +viewtime / 60;
+      user.markModified('statistics');
+
+      modifyStack.push(`Viewtime increased by ${+viewtime}s. Total viewtime - ${user.statistics.timeSpent}m`);
     }
   });
 }

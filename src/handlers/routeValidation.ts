@@ -4,7 +4,6 @@ import multer from 'multer';
 
 import { AccessControl, CSRFCheck } from '../middlewares';
 import { config } from '../config';
-import { patchUserMethods } from '../controllers/user';
 
 
 
@@ -51,9 +50,6 @@ export const devGetCSRFCheck = [
 export const userPatch = [
   CSRFCheck(['updater.animee.club', 'animee.club']),
   AccessControl(['basic']),
-  body('method')
-    .notEmpty().withMessage('Method can not be empty')
-    .isIn(patchUserMethods).withMessage('Method invalid'),
 ];
 
 export const userSignin = [

@@ -26,10 +26,12 @@ export interface IUser {
  * Inherit IUserStats
  */
 export interface IUserStatistics {
-  /** UTC0 account creation (on animee) timestamp */
+  /** UTC0 account creation timestamp */
   accountCreated: number
 
-  /** Watch time in minutes */
+  /** Watch time in minutes
+   * @todo May be renamed into viewtime
+   */
   timeSpent: number
 }
 

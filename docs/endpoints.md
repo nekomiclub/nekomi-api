@@ -338,7 +338,6 @@ To get sensitive details, you should provide animee.club CSRF token & detailed q
 - Body: 
 ```ts
 msg: string,
-privateMode: boolean,
 user: IUser
 ```
 
@@ -365,16 +364,18 @@ Update user. User can update only own info, staff can edit any user info (indev)
 
 
 #### Methods (Describes TMethod)
-| NAME           | DESCRIPTION                      |
-| -------------- | -------------------------------- |
-| editFolderItem | Adds / removes title from folder |
+| NAME             | DESCRIPTION                      |
+| ---------------- | -------------------------------- |
+| editFolderItem   | Adds / removes title from folder |
+| increaseViewtime | Increase viewtime by seconds     |
 
 #### Params
-| NAME     | TYPE               | METHOD         |
-| -------- | ------------------ | -------------- |
-| method   | TMethod            | None           |
-| titleId  | string / undefined | editFolderItem |
-| folderId | string / undefined | editFolderItem |
+| NAME     | TYPE               | METHOD           |
+| -------- | ------------------ | ---------------- |
+| method   | TMethod            | None             |
+| titleId  | string / undefined | editFolderItem   |
+| folderId | string / undefined | editFolderItem   |
+| viewtime | number / undefined | increaseViewtime |
 
 
 #### Success response
