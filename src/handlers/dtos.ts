@@ -51,7 +51,9 @@ export function title(raw: IMongodbDocument): ITitle {
 }
 
 export function dubber(raw: IMongodbDocument): IDubber {
-  const { __v, _id, ...dubber } = raw._doc;
+  const { __v, _id, ...payload } = raw;
+  const dubber = payload as IDubber;
+
   return dubber;
 }
 

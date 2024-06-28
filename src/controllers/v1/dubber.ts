@@ -27,12 +27,14 @@ export async function parse(req: express.Request, res: express.Response) {
 
     for (const i in queries) {
       const query = queries[i];
-      const res = await Dubbers.findOne({ $or: [{ id: query }, { name: query }, { code: query }] });
+      const dubber = await Dubbers.findOne({ $or: [{ id: query }, { name: query }, { code: query }] });
 
       try {
-        results.push(dto.dubber(res!.toObject()));
+        if (!dubber) throw new Error('skip');
+
+        results.push(dto.dubber(dubber.toObject()));
       } catch (e) {
-        null;
+        // ignore
       }
     }
 
