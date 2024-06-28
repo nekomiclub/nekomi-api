@@ -59,6 +59,7 @@ ApiV1.post(`/dubber/parse`, RouteValidation.privateCORS, RouteValidation.postDub
 import * as UserController from './controllers/user';
 
 UserRouter.get(`/logout`, RouteValidation.userLogout, UserController.getLogout);
+UserRouter.get(`/validate`, UserController.getValidate);
 UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);
 UserRouter.post(`/signin`, RouteValidation.userSignin, UserController.postSignin);
 UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);

@@ -317,6 +317,25 @@ Remove session cookie
 
 --------------------------------------------------------------
 
+### GET /user/validate
+
+Validate & continue session, otherwise delete cookie
+
+[Back to tree](./tree.md)
+| DEPRECATED | CSRF  | CAPS  | TEST COVERED |
+| :--------: | :---: | :---: | :----------: |
+|   false    |   -   |   -   |    false     |
+
+#### Success response
+- Code: 200
+- Body: Session continued
+
+#### Error response
+- Code: 202 / 401
+- Body: Session not provided / Session expired
+
+--------------------------------------------------------------
+
 ### GET /user/:query
 [Back to tree](./tree.md)
 

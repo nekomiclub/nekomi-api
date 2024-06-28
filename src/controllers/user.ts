@@ -76,6 +76,26 @@ export async function getLogout(req: express.Request, res: express.Response) {
   });
 }
 
+export async function getValidate(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    const session = req.cookies[config.vars.sessionCookie];
+
+    if (session) {
+      try {
+        await axios.post(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+          session
+        });
+
+        return res.status(200).json({ msg: 'Session continued' });
+      } catch (e) {
+        return res.status(401).clearCookie(config.vars.sessionCookie).json({ msg: 'Session expired' });
+      }
+    } else {
+      return res.status(202).json({ msg: 'Session not provided' });
+    }
+  });
+}
+
 export async function getQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const CSRFToken = req.header(config.vars.csrfHeader);
