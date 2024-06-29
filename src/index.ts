@@ -84,13 +84,19 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
+if (testMode) {
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    writeLog('debug', `Request - ${req.method} ${req.url}`, 'TESTING');
+
+    next();
+  });
+}
+
 app.use('/v1', router.ApiV1);
 app.use('/proxy', router.ProxyRouter);
 
 app.use('/user', router.UserRouter);
 app.use('/title', router.TitleRouter);
-
-
 
 if (devMode) {
   app.use('/dev', router.DevRouter);

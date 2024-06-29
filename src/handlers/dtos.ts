@@ -25,6 +25,8 @@ function hideKeys(excludeKeys: string[], obj: object) {
     if (excludeKeys.includes(key)) {
       if (Array.isArray(val)) {
         obj[key] = [];
+      } else if (val === null) {
+        obj[key] = null;
       } else if (typeof val === 'object') {
         obj[key] = {};
       } else if (typeof val === 'number') {

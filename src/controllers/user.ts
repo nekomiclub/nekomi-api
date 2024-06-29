@@ -230,7 +230,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
     async function increaseViewtime() {
       if (!user || !viewtime || isNaN(+viewtime)) throw new E400('Invalid payload or viewtime is NaN');
 
-      user.statistics.timeSpent += +viewtime / 60;
+      user.statistics.timeSpent += +(+viewtime / 60).toFixed(4);
       user.markModified('statistics');
 
       modifyStack.push(`Viewtime increased by ${+viewtime}s. Total viewtime - ${user.statistics.timeSpent}m`);
