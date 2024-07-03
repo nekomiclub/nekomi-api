@@ -8,7 +8,8 @@
 ### GET /title/:query
 [Back to tree](./tree.md)
 
-Get title with code or id
+Get title with code or id.
+Provide animee.club CSRF token & detailed query to get detailed information (episodes & their meta)
 
 
 | DEPRECATED | CSRF  | CAPS  | TEST COVERED |
@@ -16,9 +17,10 @@ Get title with code or id
 |   false    |   -   |   -   |     true     |
 
 #### Params
-| NAME  | TYPE   | DESCRIPTION |
-| ----- | ------ | ----------- |
-| query | string | Code or id  |
+| NAME              | TYPE    | DESCRIPTION   |
+| ----------------- | ------- | ------------- |
+| query             | string  | Code or id    |
+| (query) ?detailed | boolean | Detailed mode |
 
 #### Success response
 - Code: 200

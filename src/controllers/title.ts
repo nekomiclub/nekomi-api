@@ -17,6 +17,8 @@ import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubbers from '../Models/Dubber';
 import { updateSearch } from './root';
+import { $http } from '../handlers/http';
+import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 
 
 
@@ -56,14 +58,27 @@ type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 export async function getTitleQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { query } = req.params as { query: string };
+    const { detailed } = req.query as { detailed?: string };
+    const CSRFToken = req.header(config.vars.csrfHeader);
 
     const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
+    let privateMode = true;
 
     if (!title) {
       throw new E404(`Title (${query}) is not found`);
     }
 
-    return res.status(200).json({ msg: 'ok', title: dto.title(title.toObject()) });
+    if (CSRFToken && detailed) {
+      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+        token: CSRFToken
+      });
+
+      if (data.origin === 'animee.club') {
+        privateMode = !data.verified;
+      }
+    }
+
+    return res.status(200).json({ msg: 'ok', title: dto.title(title.toObject(), privateMode) });
   });
 }
 
