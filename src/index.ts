@@ -21,6 +21,7 @@ import { listenWSS } from './controllers/v1/ws';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
+import { updateSearch } from './controllers/root';
 
 
 
@@ -94,6 +95,7 @@ if (testMode) {
 
 app.use('/v1', router.ApiV1);
 app.use('/proxy', router.ProxyRouter);
+app.use('/', router.RootRouter);
 
 app.use('/user', router.UserRouter);
 app.use('/title', router.TitleRouter);
@@ -131,9 +133,7 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
   // Post-init callback
   try {
-    if (prodMode) {
-      await handler.fetchUsernames();
-    }
+    await updateSearch();
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');
   }

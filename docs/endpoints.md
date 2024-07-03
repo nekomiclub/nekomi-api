@@ -367,9 +367,6 @@ user: IUser
 - Code: 404
 - Body: User is not found
 
-### Notes
-If query equals to *, will take user ID from session cookie
-
 --------------------------------------------------------------
 
 ### PATCH /user

@@ -9,13 +9,47 @@ import * as dto from '../handlers/dtos';
 
 import { E400, E403, E404, E500, E501, E503, catchError, writeLog } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
+import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode } from '../config';
 import { decodeToken, singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
-import { getUTC, parseRoles } from '../handlers/handlers';
+import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubbers from '../Models/Dubber';
+import { updateSearch } from './root';
+
+
+
+interface IPatchTitleBody {
+  changeNames?: {
+    ukr?: string
+    eng?: string
+    alt?: string[]
+  }
+
+  setRating?: number
+  setDescription?: string
+  setStatus?: TAnimeStatus
+  setEps?: number
+  setGenres?: TAnimeGenre[]
+  setAgeRate?: TAnimeAgeRate
+  setSeason?: TAnimeSeason
+  setType?: TTitleType
+  setYear?: number
+  setStudios?: string[]
+  setCountry?: TTitleCountry
+  setDetails?: string
+
+  editEpMeta?: IChangeEpMeta
+
+  deleteEpisode?: {
+    episodeOrder?: string
+    dubID?: string
+  },
+}
+
+/** PATCH title form data type */
+type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
 
 
@@ -53,37 +87,6 @@ export async function postTitle(req: express.Request, res: express.Response) {
 export interface IChangeEpMeta extends ITitleEpisodeMeta {
   action: 'edit' | 'delete'
 }
-
-interface IPatchTitleBody {
-  changeNames?: {
-    ukr?: string
-    eng?: string
-    alt?: string[]
-  }
-
-  setRating?: number
-  setDescription?: string
-  setStatus?: TAnimeStatus
-  setEps?: number
-  setGenres?: TAnimeGenre[]
-  setAgeRate?: TAnimeAgeRate
-  setSeason?: TAnimeSeason
-  setType?: TTitleType
-  setYear?: number
-  setStudios?: string[]
-  setCountry?: TTitleCountry
-  setDetails?: string
-
-  editEpMeta?: IChangeEpMeta
-
-  deleteEpisode?: {
-    episodeOrder?: string
-    dubID?: string
-  },
-}
-
-/** PATCH title form data type */
-type TPatchTitleFormDataType = 'change_poster' | 'upload_episode'
 
 export async function patchTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
@@ -298,6 +301,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     } catch (e) {
       // ignore
     }
+
+    await updateSearch('title');
 
     Patcher.getLog().forEach(el => changes.push(el));
     writeLog('info', `Title ${title.id} patched by ${userID}. Changed - ${changes.join(', ')}`, 'patchTitle');

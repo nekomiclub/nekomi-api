@@ -41,13 +41,21 @@ function hideKeys(excludeKeys: string[], obj: object) {
   }
 }
 
-/** Title DTO. Raw must be passed as Model.toObject() */
-export function title(raw: IMongodbDocument): ITitle {
+/** Title DTO. Raw must be passed as Model.toObject()
+ * @param privateMode In private mode episodes & their meta will be hidden. Default - true
+ */
+export function title(raw: IMongodbDocument, privateMode?: boolean): ITitle {
   const { __v, _id, ...payload } = raw;
   const title = payload as ITitle;
 
-  const excludeKeys: (keyof ITitle)[] = [];
-  hideKeys(excludeKeys, user);
+  privateMode = privateMode === undefined ? true : privateMode;
+
+  const excludeKeys: (keyof ITitle)[] = privateMode ? [
+    'episodes',
+    'episodesMeta'
+  ] : [];
+
+  hideKeys(excludeKeys, title);
 
   return title;
 }
@@ -60,11 +68,13 @@ export function dubber(raw: IMongodbDocument): IDubber {
 }
 
 /** User DTO. Raw must be passed as Model.toObject()
- * @param privateMode In private mode sensitive information will be hidden
+ * @param privateMode In private mode sensitive information will be hidden. Default - true
  */
 export function user(raw: IMongodbDocument, privateMode?: boolean): IUser {
   const { __v, _id, ...payload } = raw;
   const user = payload as IUser;
+
+  privateMode = privateMode === undefined ? true : privateMode;
 
   const excludeKeys: (keyof IUser)[] = privateMode ? [
     'roles',

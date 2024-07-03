@@ -136,3 +136,26 @@ export async function fetchUsernames() {
 
   console.log('Fetching user usernames ended');
 }
+
+interface ICheckValueRules {
+  notNaN?: boolean,
+  minLength?: number,
+  maxLength?: number
+}
+
+/** Check value with rules
+ * @returns boolean
+ */
+export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckValueRules): boolean {
+  if (notNaN !== undefined && isNaN(+value)) return false;
+
+  if (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value))) {
+    if (minLength !== undefined && +value < minLength) return false;
+    if (maxLength !== undefined && +value > maxLength) return false;
+  } else {
+    if (minLength !== undefined && value.length < minLength) return false;
+    if (maxLength !== undefined && value.length > maxLength) return false;
+  }
+
+  return true;
+}

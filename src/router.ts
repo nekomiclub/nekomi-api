@@ -8,6 +8,8 @@ import * as v1CProxy from './controllers/v1/proxy';
 
 /** @deprecated use specified routers */
 export const ApiV1 = express.Router();
+
+export const RootRouter = express.Router();
 export const ProxyRouter = express.Router();
 
 export const UserRouter = express.Router();
@@ -23,6 +25,13 @@ import * as DevController from './controllers/dev';
 
 DevRouter.get('/AccessControl', RouteValidation.devGetAccessControl, DevController.getAccessControl);
 DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
+
+
+
+//* ------------------ ROOT ROUTER ------------------
+import * as RootController from './controllers/root';
+
+RootRouter.get('/search', RootController.getSearch);
 
 
 
