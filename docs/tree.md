@@ -3,8 +3,6 @@
 ### [Return](../README.md)
 
 - /v1
-  - [POST](./endpoints.md#post-v1title) / [PATCH](./endpoints.md#patch-v1title) / [DELETE](./endpoints.md#delete-v1title) /title
-    - [GET /:query](./endpoints.md#get-v1titlequery)
   - [GET /titles]((./endpoints.md#get-v1titles))
     - [GET /search](./endpoints.md#get-v1titlessearch)
     - [GET /total](./endpoints.md#get-v1titlestotal)
@@ -18,6 +16,9 @@
 - [POST /user](./endpoints.md#post-user)
   - [PATCH](./endpoints.md#patch-userid) / [DELETE](./endpoints.md#delete-userid) /:id
   - [GET /:query](./endpoints.md#get-userquery)
+
+- [POST](./endpoints.md#post-title) / [PATCH](./endpoints.md#patch-title) / [DELETE](./endpoints.md#delete-title) /title
+  - [GET /:query](./endpoints.md#get-titlequery)
   
 - /dev
   - [GET /AccessControl](./endpoints.md#get-devaccesscontrol)

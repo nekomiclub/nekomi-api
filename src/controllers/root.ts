@@ -2,7 +2,7 @@ import express from 'express';
 import Fuse, { FuseResult } from 'fuse.js';
 import * as dto from '../handlers/dtos';
 
-import { E400, catchError } from '../handlers/Errors';
+import { E400, E500, catchError } from '../handlers/Errors';
 import { ITitle } from '../interfaces/Title';
 import Title from '../Models/Title';
 import { checkValue } from '../handlers/handlers';
@@ -15,10 +15,11 @@ let TitleSearch: Fuse<ITitle>;
 let DubberSearch: Fuse<IDubber>;
 let UserSeacrh: Fuse<IUser>;
 
-type TSearch = 'dubber' | 'user' | 'title';
+/** Global search engines */
+export type TSearchEngine = 'dubber' | 'user' | 'title';
 
 /** Update Fuse instance */
-export async function updateSearch(specify?: TSearch) {
+export async function updateSearch(specify?: TSearchEngine) {
   const titles = await Title.find();
   const users = await User.find();
   const dubbers = await Dubbers.find();
@@ -60,11 +61,12 @@ interface ISearchQuery {
   page?: number
 
   /** Included search engines */
-  engines?: TSearch[]
+  engines?: TSearchEngine[]
 }
 
-interface ISearchExtended<T = any> {
-  type: TSearch
+/** Extended gloabl search result object with it's type */
+export interface ISearchExtended<T = any> {
+  type: TSearchEngine
   item: T
 }
 
@@ -111,22 +113,26 @@ export async function getSearch(req: express.Request, res: express.Response) {
         });
       }
     } else {
-      if (engines?.includes('title')) {
-        const matches = TitleSearch.search(q);
+      try {
+        if (engines?.includes('title')) {
+          const matches = TitleSearch.search(q);
 
-        matches.forEach(match => rawResults.push({ type: 'title', item: match }));
-      }
+          matches.forEach(match => rawResults.push({ type: 'title', item: match }));
+        }
 
-      if (engines?.includes('dubber')) {
-        const matches = DubberSearch.search(q);
+        if (engines?.includes('dubber')) {
+          const matches = DubberSearch.search(q);
 
-        matches.forEach(match => rawResults.push({ type: 'dubber', item: match }));
-      }
+          matches.forEach(match => rawResults.push({ type: 'dubber', item: match }));
+        }
 
-      if (engines?.includes('user')) {
-        const matches = UserSeacrh.search(q);
+        if (engines?.includes('user')) {
+          const matches = UserSeacrh.search(q);
 
-        matches.forEach(match => rawResults.push({ type: 'user', item: match }));
+          matches.forEach(match => rawResults.push({ type: 'user', item: match }));
+        }
+      } catch (e) {
+        throw new E400('Search is not ready yet. Try in a few minutes');
       }
     }
 

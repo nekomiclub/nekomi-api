@@ -31,7 +31,7 @@ DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCS
 //* ------------------ ROOT ROUTER ------------------
 import * as RootController from './controllers/root';
 
-RootRouter.get('/search', RootController.getSearch);
+RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 
 
 

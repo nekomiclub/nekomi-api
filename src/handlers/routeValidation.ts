@@ -65,17 +65,23 @@ export const userLogout = [
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const postTitle = [
-  AccessControl(['titleAdd']),
   CSRFCheck(['updater.animee.club', 'animee.club']),
+  AccessControl(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  AccessControl(['basic']),
   CSRFCheck(['updater.animee.club', 'animee.club']),
+  AccessControl(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
+  CSRFCheck(['updater.animee.club', 'animee.club']),
   AccessControl(['titleDelete']),
+];
+
+//* ------------------ ROOT MIDDLEWARES ------------------
+
+export const getSearch = [
   CSRFCheck(['updater.animee.club', 'animee.club']),
 ];

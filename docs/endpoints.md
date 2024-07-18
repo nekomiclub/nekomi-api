@@ -142,7 +142,7 @@ Update title info
 | :--------: | :------------------------------: | :--------: | :----------: |
 |   false    | animee.club, updater.animee.club | See params |     true     |
 
-## Interfaces
+### Interfaces
 ```ts
 // Change names interface
 // Changing eng title will change title code
@@ -425,7 +425,7 @@ Update user. User can update only own info, staff can edit any user info (indev)
 - Code: 404
 - Body: User is not found
   
-## Notes
+### Notes
 User ID will taken from decoding session cookie or from session cookie in test mode
 
 --------------------------------------------------------------
@@ -522,7 +522,44 @@ fk-authority
 --------------------------------------------------------------
 
 
+## Root Controller
 
+--------------------------------------------------------------
+
+### GET /search
+
+Search in user, title or dubber model. You can get total titles list by "*" as a query
+
+[Back to tree](./tree.md)
+| DEPRECATED |               CSRF               | CAPS  | TEST COVERED |
+| :--------: | :------------------------------: | :---: | :----------: |
+|   false    | animee.club, updater.animee.club |   -   |    false     |
+
+#### Params (query)
+| NAME    | TYPE            | DESCRIPTION                                   |
+| ------- | --------------- | --------------------------------------------- |
+| q       | string          | Query. Can be "*" to get total list           |
+| engines | TSearchEngine[] | Search models                                 |
+| ?limit  | number          | Responses limit per request. (15; >0; <=100>) |
+| ?page   | number          | Responses page. (1, >0;)                      |
+|         |                 |                                               |
+
+#### Success response
+- Code: 200
+- Body:
+```ts
+{
+  msg: "ok",
+  results: ISearchExtended[],
+  totalResults: number
+}
+```
+
+#### Error response
+- Code: 400
+- Body: Search is not ready
+
+--------------------------------------------------------------
 
 
 
