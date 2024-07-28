@@ -3,9 +3,6 @@
 ### [Return](../README.md)
 
 - /v1
-  - [GET /titles]((./endpoints.md#get-v1titles))
-    - [GET /search](./endpoints.md#get-v1titlessearch)
-    - [GET /total](./endpoints.md#get-v1titlestotal)
   - /dubber
     - [GET /:query](./endpoints.md#get-v1dubberquery)
     - [POST /parse](./endpoints.md#post-v1dubberparse)

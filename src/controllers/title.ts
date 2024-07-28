@@ -73,7 +73,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         token: CSRFToken
       });
 
-      if (data.origin === 'animee.club') {
+      if (data.origin === 'animee.club' || data.origin === 'updater.animee.club') {
         privateMode = !data.verified;
       }
     }

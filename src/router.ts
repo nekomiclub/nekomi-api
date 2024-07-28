@@ -1,7 +1,6 @@
 import express from 'express';
 
 import * as RouteValidation from './handlers/routeValidation';
-import * as v1CTitle from './controllers/v1/title';
 import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CProxy from './controllers/v1/proxy';
 
@@ -43,13 +42,6 @@ TitleRouter.get('/total', TitleController.getTotal);
 TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
-
-
-
-/** @deprecated */
-ApiV1.get(`/titles`, RouteValidation.privateCORS, v1CTitle.getMany);
-/** @deprecated */
-ApiV1.get(`/titles/search`, RouteValidation.privateCORS, v1CTitle.search);
 
 
 

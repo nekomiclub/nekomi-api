@@ -11,6 +11,7 @@ import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
 import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
 import { $http } from '../handlers/http';
+import { ITitle } from '../interfaces/Title';
 
 
 
@@ -99,9 +100,10 @@ export async function getValidate(req: express.Request, res: express.Response) {
 export async function getQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const CSRFToken = req.header(config.vars.csrfHeader);
-    const { detailed } = req.query as { detailed?: boolean };
-    let { query } = req.params as { query: string };
+    const { detailed, parseLib } = req.query as { detailed?: boolean, parseLib?: string };
 
+    let { query } = req.params as { query: string };
+    let parsedLib: ITitle[] | null = null;
     let privateMode = true;
 
     // Get query from session
@@ -130,7 +132,22 @@ export async function getQuery(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode) });
+    const lib = user.libs.find(el => el.id === parseLib);
+
+    if (lib) {
+      parsedLib = [];
+
+      for (const key in lib.titles) {
+        const titleID = lib.titles[key];
+        const title = await Title.findOne({ id: titleID });
+
+        if (!title) continue;
+
+        parsedLib.push(dto.title(title.toObject(), privateMode));
+      }
+    }
+
+    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode), parsedLib });
   });
 }
 
