@@ -95,6 +95,8 @@ export async function postTitle(req: express.Request, res: express.Response) {
     const UserData = req.animee;
     const id = await createTitle(UserData.userID!, {});
 
+    updateSearch('title');
+
     return res.status(201).json({ msg: 'Title created!', id });
   });
 }
@@ -116,7 +118,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (!title) throw new E404(`Title ${id} is not found`);
 
     const Patcher = new TitlePatcher(title, {});
-    title.updatedAt = getUTC().timestamp;
 
     // Upload poster / Episode
     if (contentType.match('multipart/form-data')) {
@@ -317,7 +318,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       // ignore
     }
 
-    await updateSearch('title');
+    updateSearch('title');
 
     Patcher.getLog().forEach(el => changes.push(el));
     writeLog('info', `Title ${title.id} patched by ${userID}. Changed - ${changes.join(', ')}`, 'patchTitle');
@@ -398,6 +399,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
     if (!title) throw new E404(`Title ${id} is not found`);
 
+    updateSearch('title');
     writeLog('warn', `Title ${id} deleted by ${UserData.userID}`, 'deleteTitle');
 
     await title.deleteOne();

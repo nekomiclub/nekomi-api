@@ -134,6 +134,15 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
   // Post-init callback
   try {
     await updateSearch();
+
+    if (prodMode) {
+      await handler.reparseTitleEpisodesCount();
+    }
+
+    setInterval(() => {
+      // Update cache
+      updateSearch();
+    }, 43200000); // 43200000 // 12h
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');
   }
