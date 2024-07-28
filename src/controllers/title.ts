@@ -19,6 +19,7 @@ import Dubbers from '../Models/Dubber';
 import { updateSearch } from './root';
 import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
+import { IDubber } from '../interfaces/Dubber';
 
 
 
@@ -58,10 +59,11 @@ type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 export async function getTitleQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { query } = req.params as { query: string };
-    const { detailed } = req.query as { detailed?: string };
+    const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
     const CSRFToken = req.header(config.vars.csrfHeader);
 
     const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
+    let parsedDubbers: IDubber[] | null = null;
     let privateMode = true;
 
     if (!title) {
@@ -78,7 +80,24 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
       }
     }
 
-    return res.status(200).json({ msg: 'ok', title: dto.title(title.toObject(), privateMode) });
+    if (parseDubbers) {
+      const dubberIDs: string[] = [];
+      parsedDubbers = [];
+
+      title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
+
+      for (const key in dubberIDs) {
+        const dubberID = dubberIDs[key];
+
+        const dubber = await Dubbers.findOne({ id: dubberID });
+
+        if (!dubber) continue;
+
+        parsedDubbers.push(dto.dubber(dubber.toObject()));
+      }
+    }
+
+    return res.status(200).json({ msg: 'ok', title: dto.title(title.toObject(), privateMode), parsedDubbers });
   });
 }
 

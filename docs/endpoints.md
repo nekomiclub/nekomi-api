@@ -17,10 +17,11 @@ Provide animee.club CSRF token & detailed query to get detailed information (epi
 |   false    |   -   |   -   |     true     |
 
 #### Params
-| NAME              | TYPE    | DESCRIPTION   |
-| ----------------- | ------- | ------------- |
-| query             | string  | Code or id    |
-| (query) ?detailed | boolean | Detailed mode |
+| NAME                  | TYPE    | DESCRIPTION   |
+| --------------------- | ------- | ------------- |
+| query                 | string  | Code or id    |
+| (query) ?detailed     | boolean | Detailed mode |
+| (query) ?parseDubbers | boolean | Parse dubbers |
 
 #### Success response
 - Code: 200
@@ -28,7 +29,8 @@ Provide animee.club CSRF token & detailed query to get detailed information (epi
 ```ts
 {
   msg: 'ok',
-  title: ITitle
+  title: ITitle,
+  parsedDubbers: IDubber[] | null
 }
 ```
 
@@ -220,10 +222,12 @@ Authorize user & get session cookie. Will create new one if user not founded
 - Code: 200
 - Body:
 ```ts
-msg: 'User logged in',
-id: string,
-username: string,
-avatar: string
+{
+  msg: 'User logged in',
+  id: string,
+  username: string,
+  avatar: string
+}
 ```
 
 #### Error response
@@ -286,13 +290,17 @@ To get sensitive details, you should provide animee.club CSRF token & detailed q
 | ----------------- | ------- | -------------------------------------------------------- |
 | query             | string  | Username or id. Can be "*" to get user by session cookie |
 | (query) ?detailed | boolean | Detailed mode                                            |
+| (query) ?parseLib | string  | Parse lib titles by lib ID                               |
 
 #### Success response
 - Code: 200
 - Body: 
 ```ts
-msg: string,
-user: IUser
+{
+  msg: string,
+  user: IUser,
+  parsedLib: ITitle[] | null
+}
 ```
 
 #### Error response
