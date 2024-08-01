@@ -500,6 +500,10 @@ Search in user, title or dubber model. You can get total titles list by "*" as a
 - Code: 400
 - Body: Search is not ready
 
+### Note
+Search will return only public data.
+With title engine it will also return ```episodesDubbed: number``` as total dubbed episodes
+
 --------------------------------------------------------------
 
 

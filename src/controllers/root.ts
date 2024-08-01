@@ -25,7 +25,18 @@ export async function updateSearch(specify?: TSearchEngine) {
   const dubbers = await Dubbers.find();
 
   if (specify === undefined || specify === 'title') {
-    TitleSearch = new Fuse(titles.map(el => dto.title(el.toObject())), {
+    TitleSearch = new Fuse(titles.map(el => {
+      let maxEp = 0;
+
+      el.episodes.forEach(ep => {
+        if (ep.order > maxEp) maxEp = ep.order;
+      });
+
+      return {
+        ...dto.title(el.toObject()),
+        episodesDubbed: maxEp
+      };
+    }), {
       keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
       includeScore: true
     });
