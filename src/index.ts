@@ -135,10 +135,6 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
   try {
     await updateSearch();
 
-    if (prodMode) {
-      await handler.reparseTitleEpisodesCount();
-    }
-
     setInterval(() => {
       // Update cache
       updateSearch();

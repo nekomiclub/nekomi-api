@@ -159,39 +159,3 @@ export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckV
 
   return true;
 }
-
-export async function reparseTitleEpisodesCount() {
-  const startedAt = getUTC().timestamp;
-  const titles = await Title.find();
-
-  console.log(`Titles episodes count reparsing started`);
-
-  for (const key in titles) {
-    const title = titles[key];
-    const prev = title.episodesCount;
-
-    if (title.id !== '0fc90fe6-8dcf-4eaa-8080-f0d933e76266') continue;
-
-    if (!title.episodesCount) {
-      const metasLength = title.episodesMeta.length;
-      let maxEpisodeOrder = 0;
-
-      title.episodes.forEach(ep => {
-        if (ep.order > maxEpisodeOrder) maxEpisodeOrder = ep.order;
-      });
-
-      const episodesCount = Math.max(metasLength, maxEpisodeOrder);
-
-      if (episodesCount > 0) {
-        title.episodesCount = episodesCount;
-        console.log(`Updated: ${prev} > ${title.episodesCount}`);
-      } else {
-        title.episodesCount = null;
-      }
-
-      await title.save();
-    }
-  }
-
-  console.log(`Titles episodes count reparsing ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}s`);
-}
