@@ -28,6 +28,8 @@ export function listenWSS() {
           onlineSIDs.push(sid);
         }
 
+        console.log(`WS CONNECTION - ${sid}`);
+
         broadcast({ type: 'presence', payload: { audience: onlineSIDs.length } });
         return;
       } else if (message.type === 'presence/audience') {
