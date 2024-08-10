@@ -24,6 +24,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       payload = handler.getMockData<IFK_UsapiAuthRefresh>(req, 'UserSignin').data;
     } else {
       try {
+        // Refresh data synced
         const { data } = await $http.get<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
           headers: {
             Cookie: `session=${session}`
@@ -85,11 +86,21 @@ export async function getValidate(req: express.Request, res: express.Response) {
 
     if (session) {
       try {
-        await axios.get(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+        // Refresh data synced
+        const { data } = await axios.get<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
           headers: {
             Cookie: `session=${session}`
           }
         });
+
+        const user = await User.findOne({ id: data.id });
+
+        if (user) {
+          if (user.username !== data.username) user.username = data.username;
+          if (user.avatar !== data.avatar) user.avatar = data.avatar;
+
+          await user.save();
+        }
 
         return res.status(200).json({ msg: 'Session continued' });
       } catch (e) {

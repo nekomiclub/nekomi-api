@@ -179,9 +179,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
  */
 type TLogType = 'info' | 'warn' | 'error' | 'fatal' | 'debug'
 
-/** Logger
- * @version re-1.0.1
- */
+/** Logger */
 export function writeLog(type: TLogType, msg: any, at: string) {
   const date = `[${getUTC().date} ${getUTC().time}]`;
   const prefix = type === 'fatal' ? 'FATAL ERROR' : type.toUpperCase();

@@ -48,8 +48,10 @@ export function AccessControl(capabilities: TRoleCapability[]) {
         }
       } else {
         try {
-          const sessionData = await axios.post<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
-            session: token
+          const sessionData = await axios.get<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+            headers: {
+              Cookie: `session=${token}`
+            }
           });
 
           id = sessionData.data.id;

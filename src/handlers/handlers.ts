@@ -20,9 +20,8 @@ import { IMock, TMockID } from '../interfaces/Mocks';
 
 
 /** Create UUID v4 id
- * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default
- * @version re-1.0.0
- */
+ * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default 
+*/
 export function createID(preventPrefix?: boolean): string {
   return preventPrefix || prodMode ? uuid.v4() : `devid-${uuid.v4()}`;
 }

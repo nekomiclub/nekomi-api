@@ -20,23 +20,8 @@ interface IMongodbDocument {
  */
 function hideKeys(excludeKeys: string[], obj: object) {
   for (const key in obj) {
-    const val = obj[key];
-
     if (excludeKeys.includes(key)) {
-      if (Array.isArray(val)) {
-        obj[key] = [];
-      } else if (val === null) {
-        obj[key] = null;
-      } else if (typeof val === 'object') {
-        obj[key] = {};
-      } else if (typeof val === 'number') {
-        obj[key] = 0;
-      } else if (typeof val === 'string') {
-        // Tests may fall if not equal "Hidden for privacy purposes"
-        obj[key] = 'Hidden for privacy purposes';
-      } else if (typeof val === 'boolean') {
-        obj[key] = false;
-      }
+      obj[key] = undefined;
     }
   }
 }
