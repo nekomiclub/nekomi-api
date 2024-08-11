@@ -108,8 +108,6 @@ export async function catchError(req: express.Request, res: express.Response, cb
   } catch (e) {
     const date = `${getUTC().date} ${getUTC().time}`;
 
-    if (devMode && !(e instanceof ErrorConstructor)) console.error(e);
-
     if (e instanceof ErrorConstructor) {
       const emsg = `[HTTP ${e.code}]: ${e.msg}`;
       if (devMode) console.error(emsg);
@@ -135,9 +133,6 @@ export async function catchError(req: express.Request, res: express.Response, cb
       } else if (status === 503) {
         emsg = `Service unavailable. Try in a few minutes. Code - ${e.code}`;
       }
-
-      if (devMode) console.error(emsg);
-      if (devMode) console.error(JSON.stringify(e.toJSON(), null, 2));
 
       if (status >= 500) {
         writeLog('error', `${emsg}; Req: ${reqUrl}; At: ${req.baseUrl}`, 'catchError/axios');

@@ -87,7 +87,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
     if (session) {
       try {
         // Refresh data synced
-        const { data } = await axios.get<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
+        const { data } = await $http.get<IFK_UsapiAuthRefresh>(`${config.URL.fullkekw_usapi}/auth/refresh`, {
           headers: {
             Cookie: `session=${session}`
           }

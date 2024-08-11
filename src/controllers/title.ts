@@ -167,20 +167,14 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
-            await axios.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${id}`, {
+            await $http.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${id}`, {
               validateStatus: (s) => s < 500,
-              headers: {
-                'X-CSRF-Token': singCSRFToken()
-              }
             });
           }
 
 
-          const { data: postData } = await axios.post<{ id: string }>(`${config.URL.uploads}/upload`, formData, {
+          const { data: postData } = await $http.post<{ id: string }>(`${config.URL.uploads}/upload`, formData, {
             validateStatus: (s) => s < 500,
-            headers: {
-              'X-CSRF-Token': singCSRFToken()
-            }
           });
 
           writeLog('info', `New poster for title ${title.id} uploaded by ${userID}`, 'patchTitle/changePoster');
@@ -250,13 +244,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           // Upload
-          const { data } = await axios.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData, {
+          const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData, {
             httpAgent: new http.Agent({ keepAlive: true }),
             httpsAgent: new https.Agent({ keepAlive: true }),
             timeout: 600000,
-            headers: {
-              'X-CSRF-Token': singCSRFToken()
-            }
           });
 
           writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${userID}`, 'patchTitle/uploadEpisode');

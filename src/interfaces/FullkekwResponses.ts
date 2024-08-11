@@ -12,7 +12,7 @@ export interface IFK_UsapiGetUser {
     email: string
 
     /** Avatar */
-    photoURL: string
+    avatarURL: string
   }
 }
 

@@ -11,6 +11,7 @@ import axios, { AxiosError } from 'axios';
 import { singCSRFToken } from '../services/TokenService';
 import { config, testMode } from '../config';
 import * as cfg from '../config';
+import { $http } from '../handlers/http';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,
@@ -439,11 +440,7 @@ export class TitlePatcher {
 
     try {
       if (!this.testMode) {
-        await axios.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${by}&withChildren=true`, {
-          headers: {
-            'X-CSRF-Token': singCSRFToken()
-          }
-        });
+        await $http.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${by}&withChildren=true`);
       }
 
       writeLog('warn', `Episode (${order} in ${dubID}) for ${this.title.id} deleted by ${by}`, `Title/TitlePatcher/deleteEpisode`);
