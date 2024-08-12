@@ -1,12 +1,16 @@
-export type TWS = 'echo' | 'presence' | 'presence/audience';
+export type TWSType = 'send_presence' | 'disconnect_presence' | 'poll_presence' | 'error';
 
-export interface IWSPresence {
-  sid: string,
-  connectedAt: number,
-  audience?: number
+export interface IWS<T = any> {
+  type: TWSType
+  payload: T
 }
 
-export interface IWS<T> {
-  type: TWS,
-  payload: T
+export interface IWSSendPresence {
+  /** Client session ID */
+  SID: string
+}
+
+export interface IWSPollPresence {
+  /** Total online SIDs */
+  online: number
 }

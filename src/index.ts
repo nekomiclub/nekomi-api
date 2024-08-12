@@ -17,11 +17,11 @@ import * as router from './router';
 import * as handler from './handlers/handlers';
 import { E403, writeLog } from './handlers/Errors';
 import Title, { TitlePatcher } from './Models/Title';
-import { listenWSS } from './controllers/v1/ws';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
+import { WebSocketListen } from './controllers/webSocket';
 
 
 
@@ -112,7 +112,7 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
   // Pre-init callback
   try {
     await checkFilesystem();
-    listenWSS();
+    WebSocketListen();
   } catch (e) {
     writeLog('fatal', e, 'initialization/preInit');
   }

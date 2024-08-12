@@ -79,7 +79,6 @@ export class E503 extends ErrorConstructor {
 }
 
 
-
 /** Route error catcher
  * Will validate HTTP Errors, express-validation & Axios errors
  * 
