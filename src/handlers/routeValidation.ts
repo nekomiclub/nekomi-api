@@ -64,6 +64,10 @@ export const userLogout = [
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
+export const getTitlePopular = [
+  CSRFCheck(['animee.club']),
+];
+
 export const postTitle = [
   CSRFCheck(['updater.animee.club', 'animee.club']),
   AccessControl(['titleAdd']),

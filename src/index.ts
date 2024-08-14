@@ -22,6 +22,7 @@ import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
 import { WebSocketListen } from './controllers/webSocket';
+import { UpdatePopularTitles } from './controllers/title';
 
 
 
@@ -133,11 +134,13 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
   // Post-init callback
   try {
-    await updateSearch();
+    updateSearch();
+    UpdatePopularTitles();
 
     setInterval(() => {
       // Update cache
       updateSearch();
+      UpdatePopularTitles();
     }, 43200000); // 43200000 // 12h
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');

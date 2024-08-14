@@ -200,6 +200,32 @@ Delete title
 
 --------------------------------------------------------------
 
+### GET /title/popular
+[Back to tree](./tree.md)
+
+Get popular titles
+
+| DEPRECATED |    CSRF     | CAPS  | TEST COVERED |
+| :--------: | :---------: | :---: | :----------: |
+|   false    | animee.club |   -   |    false     |
+
+#### Success response
+- Code: 200
+- Body:
+```ts
+{
+  msg: "ok",
+  headliner: ITitle,
+  categories: {
+    popular: ITitle[]
+    updatedRecently: ITitle[]
+    hightRating: ITitle[]
+  }
+}
+```
+
+--------------------------------------------------------------
+
 ## User Controller
 
 --------------------------------------------------------------

@@ -7,10 +7,10 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E403, E404, E500, E501, E503, catchError, writeLog } from '../handlers/Errors';
+import { E400, E403, E404, E500, E501, E503, ErrorConstructor, catchError, writeLog } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
-import { config, devMode } from '../config';
+import { config, devMode, prodMode } from '../config';
 import { decodeToken, singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
 import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
@@ -51,8 +51,32 @@ interface IPatchTitleBody {
   },
 }
 
+interface ITitlesPopular {
+  headliner: ITitle | null
+  headlinerVideo: string
+  headlinerPoster: string
+  categories: {
+    popular: ITitle[]
+    updatedRecently: ITitle[]
+    hightRating: ITitle[]
+  }
+}
+
 /** PATCH title form data type */
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
+
+
+
+const TITLES_POPULAR: ITitlesPopular = {
+  headliner: null,
+  headlinerVideo: '',
+  headlinerPoster: '',
+  categories: {
+    hightRating: [],
+    popular: [],
+    updatedRecently: []
+  }
+};
 
 
 
@@ -414,4 +438,78 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
     await title.deleteOne();
   });
+}
+
+export async function getPopular(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    if (!TITLES_POPULAR.headliner) throw new E500('Popular titles is not ready yet');
+
+    return res.status(200).json({ msg: 'ok', ...TITLES_POPULAR });
+  });
+}
+
+
+
+
+export async function UpdatePopularTitles() {
+  if (devMode) console.log('Updating popular titles...');
+
+  try {
+    const titles = await Title.find();
+
+    // TODO Make normal logic
+    const headlinerID = prodMode ? '538a4a13-d473-4e7d-be6a-13b26f10c53e' : '0bedcdb2-c666-4f90-9645-ad98f8bb53b7'; // Shikanoko Nokonoko Koshitantan | Classroom of the Elite 2
+    const headlinerVideo = prodMode ? `` : `http://192.168.0.106:43120/devid-c8e86fcf-f53b-48f3-a019-2ffa65f51ead`;
+    const headlinerPoster = prodMode ? `` : `http://192.168.0.106:43120/devid-62a8c6ed-8fd5-4abd-bca9-00c0bbd2f45a`;
+    const popularIDs = prodMode ? [
+
+    ] : [
+
+    ];
+
+    TITLES_POPULAR.headlinerVideo = headlinerVideo;
+    TITLES_POPULAR.headlinerPoster = headlinerPoster;
+
+    // Fetch headliner
+    const headliner = await Title.findOne({ id: headlinerID });
+
+    if (!headliner) throw new E404(`Headliner ${headlinerID} is not found`);
+    TITLES_POPULAR.headliner = dto.title(headliner?.toObject());
+
+    // Fetch popular
+    const popular: ITitle[] = [];
+
+    for (const key in popularIDs) {
+      const id = popularIDs[key];
+
+      const title = await Title.findOne({ id });
+      if (!title) throw new E404(`Popular title ${id} is not found`);
+
+      popular.push(dto.title(headliner?.toObject()));
+    }
+
+    // Fetch recently updated
+    const updatedRecentlyRaw = titles.sort((a, b) => a.updatedAt - b.updatedAt).slice(0, 20);
+    const updatedRecently = updatedRecentlyRaw.map(el => dto.title(el.toObject()));
+
+    // Fetch hight rating
+    const hightRatingRaw = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => a.rating!.IMDB! - b.rating!.IMDB!).slice(0, 20);
+    const hightRating = hightRatingRaw.map(el => dto.title(el.toObject()));
+
+    TITLES_POPULAR.categories = {
+      popular,
+      updatedRecently,
+      hightRating
+    };
+
+
+
+    if (devMode) console.log('Popular titles updated');
+  } catch (e) {
+    if (e instanceof ErrorConstructor) {
+      writeLog('warn', e.msg, 'UpdatePopularTitles');
+    } else {
+      writeLog('error', e, 'UpdatePopularTitles');
+    }
+  }
 }

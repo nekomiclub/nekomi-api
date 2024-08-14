@@ -39,6 +39,8 @@ RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
+TitleRouter.get('/popular', RouteValidation.getTitlePopular, TitleController.getPopular);
+
 TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
