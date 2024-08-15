@@ -440,7 +440,11 @@ export class TitlePatcher {
 
     try {
       if (!this.testMode) {
-        await $http.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${by}&withChildren=true`);
+        await $http.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}?by=${by}&withChildren=true`, {
+          validateStatus(status) {
+            return status < 500;
+          },
+        });
       }
 
       writeLog('warn', `Episode (${order} in ${dubID}) for ${this.title.id} deleted by ${by}`, `Title/TitlePatcher/deleteEpisode`);

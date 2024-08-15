@@ -268,11 +268,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         try {
           // Upload
-          const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData, {
-            httpAgent: new http.Agent({ keepAlive: true }),
-            httpsAgent: new https.Agent({ keepAlive: true }),
-            timeout: 600000,
-          });
+          const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData);
 
           writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${userID}`, 'patchTitle/uploadEpisode');
 
@@ -413,10 +409,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       });
     }
 
-    function deleteEpisodeHandler() {
+    async function deleteEpisodeHandler() {
       if (isNaN(+deleteEpisode!.episodeOrder!)) throw new E400('Order in episode meta can not be NaN');
 
-      Patcher.deleteEpisode(userID!, {
+      await Patcher.deleteEpisode(userID!, {
         dubID: deleteEpisode!.dubID!,
         order: +deleteEpisode!.episodeOrder!
       });
@@ -455,12 +451,17 @@ export async function UpdatePopularTitles() {
   if (devMode) console.log('Updating popular titles...');
 
   try {
+    const headlinerSrc = await Title.findOne({ id: 'dev-headliner' });
     const titles = await Title.find();
+
+    if (!headlinerSrc) {
+      throw new E500('HEADLINER SRC TITLE IS NOT FOUND');
+    }
 
     // TODO Make normal logic
     const headlinerID = prodMode ? '538a4a13-d473-4e7d-be6a-13b26f10c53e' : '0bedcdb2-c666-4f90-9645-ad98f8bb53b7'; // Shikanoko Nokonoko Koshitantan | Classroom of the Elite 2
-    const headlinerVideo = prodMode ? `` : `http://192.168.0.106:43120/devid-c8e86fcf-f53b-48f3-a019-2ffa65f51ead`;
-    const headlinerPoster = prodMode ? `` : `http://192.168.0.106:43120/devid-62a8c6ed-8fd5-4abd-bca9-00c0bbd2f45a`;
+    const headlinerVideo = headlinerSrc.episodes.find(el => el.order === 1 && el.dubberID === '319ec974-3116-43e9-8966-51237f0479ae')!.qualities.q1080;
+    const headlinerPoster = headlinerSrc.poster;
     const popularIDs = prodMode ? [
 
     ] : [
