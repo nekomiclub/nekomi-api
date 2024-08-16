@@ -463,9 +463,19 @@ export async function UpdatePopularTitles() {
     const headlinerVideo = headlinerSrc.episodes.find(el => el.order === 1 && el.dubberID === '319ec974-3116-43e9-8966-51237f0479ae')!.qualities.q1080;
     const headlinerPoster = headlinerSrc.poster;
     const popularIDs = prodMode ? [
-
+      'c6b9b3e3-3c8d-4597-a464-c22bfeb654dd',
+      '534d41c4-f5d0-45db-9914-b5d9e649f048',
+      '627690b0-f0c1-490d-b50e-c5ace32cd563',
+      '0785c640-99ce-4195-863b-01712d794b96',
+      'd675e08c-034d-4b8b-b60f-c362c6ebec34',
+      'b284cc51-cf3b-4251-a96e-4ce945ac1595'
     ] : [
-
+      'that-time-i-got-reincarnated-as-a-slime-season-3',
+      'wind-breaker',
+      'spice-and-wolf-merchant-meets-the-wise-wolf',
+      'mushoku-tensei-jobless-reincarnation-season-2-part-2',
+      'kaiju-no-8',
+      'delicious-in-dungeon'
     ];
 
     TITLES_POPULAR.headlinerVideo = headlinerVideo;
@@ -481,12 +491,12 @@ export async function UpdatePopularTitles() {
     const popular: ITitle[] = [];
 
     for (const key in popularIDs) {
-      const id = popularIDs[key];
+      const query = popularIDs[key];
 
-      const title = await Title.findOne({ id });
-      if (!title) throw new E404(`Popular title ${id} is not found`);
+      const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
+      if (!title) throw new E404(`Popular title ${query} is not found`);
 
-      popular.push(dto.title(headliner?.toObject()));
+      popular.push(dto.title(title?.toObject()));
     }
 
     // Fetch recently updated
@@ -494,7 +504,7 @@ export async function UpdatePopularTitles() {
     const updatedRecently = updatedRecentlyRaw.map(el => dto.title(el.toObject()));
 
     // Fetch hight rating
-    const hightRatingRaw = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => a.rating!.IMDB! - b.rating!.IMDB!).slice(0, 20);
+    const hightRatingRaw = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20);
     const hightRating = hightRatingRaw.map(el => dto.title(el.toObject()));
 
     TITLES_POPULAR.categories = {

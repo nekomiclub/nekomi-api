@@ -12,6 +12,7 @@ import Title from '../Models/Title';
 import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
+import { TRoleCapability } from '../interfaces/Roles';
 
 
 
@@ -119,6 +120,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     let { query } = req.params as { query: string };
     let parsedLib: ITitle[] | null = null;
+    let parsedCapabilities: TRoleCapability[] | null = null;
     let privateMode = true;
 
     // Get query from session
@@ -145,6 +147,8 @@ export async function getQuery(req: express.Request, res: express.Response) {
       if (data.origin === 'animee.club') {
         privateMode = !data.verified;
       }
+
+      parsedCapabilities = await handler.parseRoles(user.roles);
     }
 
     const lib = user.libs.find(el => el.id === parseLib);
@@ -162,7 +166,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode), parsedLib });
+    return res.status(200).json({ msg: `Ok.${privateMode ? ' Sensitive information hidden' : ''}`, user: dto.user(user.toObject(), privateMode), parsedLib, parsedCapabilities });
   });
 }
 

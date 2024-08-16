@@ -17,6 +17,7 @@
 - [POST](./endpoints.md#post-title) / [PATCH](./endpoints.md#patch-title) / [DELETE](./endpoints.md#delete-title) /title
   - [GET /:query](./endpoints.md#get-titlequery)
   - [GET /popular](./endpoints.md/#get-titlepopular)
+  - [GET /total](./endpoints.md/#get-titletotal)
   
 - /dev
   - [GET /AccessControl](./endpoints.md#get-devaccesscontrol)
