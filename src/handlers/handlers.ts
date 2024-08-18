@@ -42,10 +42,9 @@ export function addZeroIfNumberSingle(num: number): string {
 
 /** Get full UTC0 time
  * @requires addZeroIfNumberSingle()
- * @version re-1.0.0
  */
-export function getUTC() {
-  const now = new Date();
+export function getUTC(time?: number) {
+  const now = time ? new Date(time) : new Date();
 
   return {
     y: now.getUTCFullYear(),
@@ -56,13 +55,13 @@ export function getUTC() {
     secs: now.getUTCSeconds(),
     ms: now.getUTCMilliseconds(),
     date: `${now.getUTCFullYear()}.${addZeroIfNumberSingle(now.getUTCMonth() + 1)}.${addZeroIfNumberSingle(now.getUTCDate())}`,
+    dateReversed: `${addZeroIfNumberSingle(now.getUTCDate())}.${addZeroIfNumberSingle(now.getUTCMonth() + 1)}.${now.getUTCFullYear()}`,
     time: `${addZeroIfNumberSingle(now.getUTCHours())}:${addZeroIfNumberSingle(now.getUTCMinutes())}`,
     timestamp: now.getTime()
   };
 }
 
 /** Get file extension from file name
- * @version re-1.0.0
  * @example
  * getFileExtension('file.txt') => txt
  * getFileExtension('file.test.txt') => txt

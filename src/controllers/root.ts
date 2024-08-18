@@ -11,9 +11,12 @@ import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
 
+
+
 let TitleSearch: Fuse<ITitle>;
 let DubberSearch: Fuse<IDubber>;
 let UserSeacrh: Fuse<IUser>;
+
 
 /** Global search engines */
 export type TSearchEngine = 'dubber' | 'user' | 'title';
@@ -67,7 +70,7 @@ interface ISearchQuery {
   limit?: number
 
   /** Results page
-   * @default 1
+   * @default 0
    */
   page?: number
 
@@ -81,6 +84,7 @@ export interface ISearchExtended<T = any> {
   item: T
 }
 
+/** @see /docs/routes/root.md */
 export async function getSearch(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { q } = req.query as ISearchQuery;

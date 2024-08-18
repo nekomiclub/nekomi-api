@@ -75,12 +75,16 @@ export async function postSignin(req: express.Request, res: express.Response) {
   });
 }
 
+/** @see /docs/routes/user.md */
 export async function getLogout(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     return res.status(200).clearCookie(config.vars.sessionCookie).json({ msg: 'User logged out' });
   });
 }
 
+
+
+/** @see /docs/routes/user.md */
 export async function getValidate(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const session = req.cookies[config.vars.sessionCookie];
@@ -113,10 +117,13 @@ export async function getValidate(req: express.Request, res: express.Response) {
   });
 }
 
+
+
+/** @see /docs/routes/user.md */
 export async function getQuery(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const CSRFToken = req.header(config.vars.csrfHeader);
-    const { detailed, parseLib } = req.query as { detailed?: boolean, parseLib?: string };
+    const { detailed, parseLib } = req.query as { detailed?: string, parseLib?: string };
 
     let { query } = req.params as { query: string };
     let parsedLib: ITitle[] | null = null;

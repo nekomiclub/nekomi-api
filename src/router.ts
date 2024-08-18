@@ -48,13 +48,14 @@ TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.delete
 
 
 //! Must be below all endpoints
-TitleRouter.get('/:query', RouteValidation.privateCORS, TitleController.getTitleQuery);
+TitleRouter.get('/:query', TitleController.getTitleQuery);
 
 
 
 //* ------------------ DUBBER ROUTER ------------------
-ApiV1.get(`/dubber/:query`, RouteValidation.privateCORS, v1CDubber.getOne);
-ApiV1.post(`/dubber/parse`, RouteValidation.privateCORS, RouteValidation.postDubbersParse, v1CDubber.parse);
+ApiV1.get(`/dubber/all`, v1CDubber.getAll);
+ApiV1.post(`/dubber/parse`, RouteValidation.postDubbersParse, v1CDubber.parse);
+ApiV1.get(`/dubber/:query`, v1CDubber.getOne);
 
 
 
@@ -62,8 +63,8 @@ ApiV1.post(`/dubber/parse`, RouteValidation.privateCORS, RouteValidation.postDub
 import * as UserController from './controllers/user';
 
 UserRouter.get(`/logout`, RouteValidation.userLogout, UserController.getLogout);
-UserRouter.get(`/validate`, UserController.getValidate);
-UserRouter.get(`/:query`, RouteValidation.privateCORS, UserController.getQuery);
+UserRouter.get(`/validate`, RouteValidation.userValidate, UserController.getValidate);
+UserRouter.get(`/:query`, UserController.getQuery);
 UserRouter.post(`/signin`, RouteValidation.userSignin, UserController.postSignin);
 UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
 

@@ -1,11 +1,13 @@
-# ANIMEE API 1.1.2
+# ANIMEE API
+Animee-core (API) is an animee.club backend. Provides title, dubber & user APIs.
 
-The whole backend of animee & gateway for local services (e.g: animee-uploads)
-
-## [ENDPOINTS](./docs/endpoints.md) |  [ENDPOINTS TREE](./docs/tree.md) | [ROLES](./docs/roles.md)
-### [How animee-core works](./docs/howItWork.md)
+## Docs
+- [Endpoints](./docs/endpoints.md)
+- [Features](./docs/features.md)
+- [Roles](./docs/roles.md)
+- [Secrets](./docs/secrets.md)
 
 ## Dependencies
+- animee-uploads (PATCH /title)
 - fk-usapi
 - fk-authority
-- animee-uploads (/title)

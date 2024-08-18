@@ -20,6 +20,14 @@ export async function getOne(req: express.Request, res: express.Response) {
   });
 }
 
+export async function getAll(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    const dubbers = (await Dubbers.find()).map(dubber => dto.dubber(dubber.toObject()));
+
+    return res.status(200).json({ msg: 'ok', dubbers });
+  });
+}
+
 export async function parse(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { queries } = req.body as { queries: string[] };

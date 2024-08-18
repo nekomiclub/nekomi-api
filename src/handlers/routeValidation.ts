@@ -13,15 +13,6 @@ export const publicCORS = cors({
   credentials: false
 });
 
-/** CORS that works with cookies and pass only specified origins */
-export const privateCORS = cors({
-  origin: [
-    config.URL.client,
-    config.URL.updater,
-  ],
-  credentials: true
-});
-
 /** Proxy file uploading */
 const upload = multer();
 
@@ -59,6 +50,10 @@ export const userSignin = [
 ];
 
 export const userLogout = [
+  CSRFCheck(['animee.club']),
+];
+
+export const userValidate = [
   CSRFCheck(['animee.club']),
 ];
 

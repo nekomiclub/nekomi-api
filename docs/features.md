@@ -1,8 +1,24 @@
-## How something work in Animee-core
-[Return](../README.md)
+# FEATURES
 
-### Inner data
-Inner data - Presented by req.animee and contains some of user data, like id and capabilities. These managed by AccessControl middleware. Capabilities will be managed only if AccessMiddleware has required capabilities.
+[HOME](../README.md)
+
+------------------------------------------------------------------
+
+[Inner data](#inner-data) <br>
+[Tests & mocks](#testing-and-mocking-data) <br>
+
+------------------------------------------------------------------
+
+## Inner data
+Inner data - stores at ```req.animee```. Contains some useful data from middlewares to other requests. You can view full interface at ```src/interfaces/globals.d.ts```
+
+| PROPERTY          | MANAGED      | DESCRIPTION               |
+| ----------------- | ------------ | ------------------------- |
+| ?userID           | AcessControl | Current user ID           |
+| ?userCapabilities | AcessControl | Current user capabilities |
+| ---               | ---          | ---                       |
+
+------------------------------------------------------------------
 
 ### Testing and mocking data
 Animee-core contains a lot of axios requests to other services, like fk-usapi or fk-authority. Tests must be standalone, so in test mode axios requests will be
@@ -35,4 +51,6 @@ const CSRFMock: IMock<IM_CSRFCheck> = {
 .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock])) // Mocked data MUST be an array
 ```
 
-[Return](../README.md)
+------------------------------------------------------------------
+
+[HOME](../README.md)

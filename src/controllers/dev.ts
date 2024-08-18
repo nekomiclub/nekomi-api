@@ -7,12 +7,14 @@ import { E500, catchError } from '../handlers/Errors';
   ! DO NOT CHANGE THEM IF NOT NECESSARY
 */
 
+/** @see /docs/routes/dev.md */
 export async function getAccessControl(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     return res.status(200).json('ok');
   });
 }
 
+/** @see /docs/routes/dev.md */
 export async function getCSRFCheck(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     return res.status(200).json('ok');
