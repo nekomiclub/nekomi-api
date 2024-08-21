@@ -7,7 +7,7 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E403, E404, E500, E501, E503, ErrorConstructor, catchError, writeLog } from '../handlers/Errors';
+import { E400, E401, E403, E404, E500, E501, E503, ErrorConstructor, catchError, writeLog } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode, prodMode } from '../config';
@@ -302,7 +302,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             // ignore
           }
 
-          return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!` });
+          return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!`, episode: ep });
         } catch (e) {
           if (e instanceof AxiosError) {
             if (e.code === 'ECONNREFUSED') {
@@ -423,16 +423,30 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { id } = req.params as { id: string };
+    const { key } = req.query as { key?: string };
     const UserData = req.animee;
+
+    if (!key) {
+      const msg = `-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${UserData.userID}\nKey: ${singCSRFToken()}\n----------------`;
+      writeLog('warn', msg, 'deleteTitle');
+
+      throw new E401(`DELETE KEY IS NOT PROVIDED. NEW ONE ISSUED`);
+    }
 
     const title = await Title.findOne({ id });
 
     if (!title) throw new E404(`Title ${id} is not found`);
 
-    updateSearch('title');
-    writeLog('warn', `Title ${id} deleted by ${UserData.userID}`, 'deleteTitle');
+    const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+      token: key
+    });
+
+    if (!data.verified || data.origin !== 'api.animee.club') throw new E403('KEY INVALID');
 
     await title.deleteOne();
+
+    updateSearch('title');
+    writeLog('warn', `Title ${id} deleted by ${UserData.userID}`, 'deleteTitle');
   });
 }
 
