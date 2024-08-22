@@ -10,7 +10,7 @@ import * as dto from '../handlers/dtos';
 import { E400, E401, E403, E404, E500, E501, E503, ErrorConstructor, catchError, writeLog } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
-import { config, devMode, prodMode } from '../config';
+import { config, devMode, prodMode, testMode } from '../config';
 import { decodeToken, singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
 import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
@@ -436,12 +436,22 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     const title = await Title.findOne({ id });
 
     if (!title) throw new E404(`Title ${id} is not found`);
+    let isVerified = false;
+    let origin = '';
 
-    const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
-      token: key
-    });
+    if (testMode) {
+      isVerified = true;
+      origin = 'api.animee.club';
+    } else {
+      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+        token: key
+      });
 
-    if (!data.verified || data.origin !== 'api.animee.club') throw new E403('KEY INVALID');
+      isVerified = data.verified;
+      origin = data.origin;
+    }
+
+    if (!isVerified || origin !== 'api.animee.club') throw new E403('KEY INVALID');
 
     await title.deleteOne();
 

@@ -78,7 +78,7 @@ export async function createTitle(creator: string, { ageRate, id, code, country,
   const title = new Title(payload);
   await title.save();
 
-  writeLog(`info`, `New title (${id}) created by ${creator}`, `Title/createTitle`);
+  writeLog(`info`, `New title (${ID}) created by ${creator}`, `Title/createTitle`);
 
   return ID;
 }

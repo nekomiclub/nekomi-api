@@ -7,6 +7,7 @@ import User, { createUser } from '../Models/User';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { ITitle, TAnimeGenre } from '../interfaces/Title';
 import { IM_AccessControl, IM_CSRFCheck, IMock } from '../interfaces/Mocks';
+import { singCSRFToken } from '../services/TokenService';
 
 const config = cfg.config;
 const baseURL = `http://${ip.address()}`;
@@ -146,7 +147,7 @@ describe('TitleController', () => {
 
     test('T2 Pass - Deleted', async () => {
       await request(baseURL)
-        .delete(`/title/${T2_ID}`)
+        .delete(`/title/${T2_ID}?key=${singCSRFToken()}`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
@@ -155,11 +156,20 @@ describe('TitleController', () => {
 
     test('T2 Reject - Not found', async () => {
       await request(baseURL)
-        .delete(`/title/_INVALID`)
+        .delete(`/title/_INVALID?key=${singCSRFToken()}`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify(mockedData))
         .expect(404);
+    });
+
+    test('T2 Reject - Not allowed', async () => {
+      await request(baseURL)
+        .delete(`/title/_INVALID`)
+        .set('Authorization', '_MOCKED')
+        .set(config.vars.csrfHeader, '_MOCKED')
+        .set(config.vars.mockHeader, JSON.stringify(mockedData))
+        .expect(401);
     });
 
     test('T2 Reject - Perm missmatch', async () => {
@@ -173,7 +183,7 @@ describe('TitleController', () => {
       };
 
       await request(baseURL)
-        .delete(`/title/_INVALID`)
+        .delete(`/title/_INVALID?key=${singCSRFToken()}`)
         .set('Authorization', '_MOCKED')
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock]))
