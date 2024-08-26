@@ -18,13 +18,6 @@ const upload = multer();
 
 
 
-//* Validation
-export const postDubbersParse = [
-  body('queries')
-    .notEmpty().withMessage('IDs are required')
-];
-
-
 //* ------------------ DEV MIDDLEWARES ------------------
 
 export const devGetAccessControl = [

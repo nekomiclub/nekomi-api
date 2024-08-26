@@ -1,18 +1,16 @@
 import express from 'express';
 
 import * as RouteValidation from './handlers/routeValidation';
-import * as v1CDubber from './controllers/v1/dubber';
 import * as v1CProxy from './controllers/v1/proxy';
 
 
-/** @deprecated use specified routers */
-export const ApiV1 = express.Router();
 
 export const RootRouter = express.Router();
 export const ProxyRouter = express.Router();
 
 export const UserRouter = express.Router();
 export const TitleRouter = express.Router();
+export const DubberRouter = express.Router();
 
 export const DevRouter = express.Router();
 
@@ -45,17 +43,18 @@ TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
 
-
-
 //! Must be below all endpoints
 TitleRouter.get('/:query', TitleController.getTitleQuery);
 
 
 
 //* ------------------ DUBBER ROUTER ------------------
-ApiV1.get(`/dubber/all`, v1CDubber.getAll);
-ApiV1.post(`/dubber/parse`, RouteValidation.postDubbersParse, v1CDubber.parse);
-ApiV1.get(`/dubber/:query`, v1CDubber.getOne);
+import * as DubberController from './controllers/dubber';
+
+DubberRouter.get(`/all`, DubberController.getAll);
+
+//! Must be below all endpoints
+DubberRouter.get(`/:query`, DubberController.getOne);
 
 
 

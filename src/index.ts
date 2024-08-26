@@ -94,12 +94,13 @@ if (testMode) {
   });
 }
 
-app.use('/v1', router.ApiV1);
 app.use('/proxy', router.ProxyRouter);
-app.use('/', router.RootRouter);
 
+app.use('/dubber', router.DubberRouter);
 app.use('/user', router.UserRouter);
 app.use('/title', router.TitleRouter);
+
+app.use('/', router.RootRouter);
 
 if (devMode) {
   app.use('/dev', router.DevRouter);

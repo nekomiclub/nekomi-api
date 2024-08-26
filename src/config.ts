@@ -4,7 +4,7 @@ import ip from 'ip';
 
 import { IANIMEE_CONFIG } from '../interfaces';
 import { writeLog } from './handlers/Errors';
-import { SEC_CSRF } from './secrets';
+import CSRF from './secrets/CSRF';
 
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
@@ -29,7 +29,7 @@ export const config = {
   /** Secrets */
   secrets: {
     /* CSRF Token */
-    CSRF: SEC_CSRF
+    CSRF
   },
 
   /** URLs */

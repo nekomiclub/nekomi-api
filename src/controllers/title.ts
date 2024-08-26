@@ -364,7 +364,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
     function changeNamesHandler() {
-      if (!Array.isArray(changeNames?.alt)) throw new E400('Alt names must be an array');
+      if (changeNames?.alt && !Array.isArray(changeNames?.alt)) throw new E400('Alt names must be an array');
 
       Patcher.changeNames({
         alt: changeNames?.alt,
