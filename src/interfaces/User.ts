@@ -2,14 +2,10 @@ export interface IUser {
   /** ID */
   id: string
 
-  /** Statistics
-   * Inherit stats
-   */
+  /** Statistics  */
   statistics: IUserStatistics
 
-  /** Titles libs
-   * Inherit lists
-   */
+  /** Titles libs */
   libs: IUserLib[]
 
   /** Roles */
@@ -20,19 +16,50 @@ export interface IUser {
 
   /** Avatar URL */
   avatar: string
+
+  /** Events subscribes
+   * @see docs/features.md#user-subscribes
+   * @access only API
+   */
+  subscribes: string[]
+
+  watchProgress: IUserWatchProgress[]
+
+  /** Telegram linked account data.
+   * @access only API
+   */
+  telegramData: null | {
+    id: number
+  }
 }
 
-/** User animee statistics
- * Inherit IUserStats
- */
+/** User animee statistics */
 export interface IUserStatistics {
   /** UTC0 account creation timestamp */
   accountCreated: number
 
   /** Watch time in minutes
-   * @todo May be renamed into viewtime
+   * @deprecated refactored into viewtime.
    */
   timeSpent: number
+
+  /** Viewtime in seconds */
+  viewtime: number
+
+  isTelegramLinked: boolean
+}
+
+/** User watch progress item */
+export interface IUserWatchProgress {
+  titleID: string
+  dubberID: string
+  episodeOrder: number
+
+  /** Watch progress in seconds */
+  progress: number
+
+  /** Last update UTC-0 timestamp */
+  updatedAt: number
 }
 
 /** User lib type */

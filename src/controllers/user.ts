@@ -16,6 +16,27 @@ import { TRoleCapability } from '../interfaces/Roles';
 
 
 
+/** Type of patchUserMethods array */
+type TPatchUserMethod = 'editFolderItem' | 'increaseViewtime'
+
+interface IPatchUserBody {
+  /** Method */
+  method: TPatchUserMethod
+
+  //* editFolderItem method
+  /** Title id to be patched */
+  titleId?: string
+
+  /** Folder id to be patched */
+  folderId?: string
+
+  //* increaseViewtime method
+  /** Add viewtime */
+  viewtime?: number
+}
+
+
+
 export async function postSignin(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { session } = req.body as { session: string };
@@ -177,24 +198,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
   });
 }
 
-/** Type of patchUserMethods array */
-type TPatchUserMethod = 'editFolderItem' | 'increaseViewtime'
 
-interface IPatchUserBody {
-  /** Method */
-  method: TPatchUserMethod
-
-  //* editFolderItem method
-  /** Title id to be patched */
-  titleId?: string
-
-  /** Folder id to be patched */
-  folderId?: string
-
-  //* increaseViewtime method
-  /** Add viewtime */
-  viewtime?: number
-}
 
 export async function patchUser(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
@@ -278,5 +282,31 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
       modifyStack.push(`Viewtime increased by ${+viewtime}s. Total viewtime - ${user.statistics.timeSpent}m`);
     }
+  });
+}
+
+
+
+export async function postLinkTelegram(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
+
+    const user = await User.findOne({ id: animeeID });
+    const thisTelegramID = await User.find({ 'telegramData.id': telegramID });
+
+    if (!user) throw new E404(`User ${animeeID} is not found`);
+    if (user.telegramData || thisTelegramID.length) throw new E400('This Telegram ID already linked');
+
+    user.statistics.isTelegramLinked = true;
+    user.telegramData = {
+      id: telegramID
+    };
+
+    user.markModified('statistics');
+
+    writeLog('info', `User ${animeeID} linked telegram (${telegramID})`, 'postLinkTelegram');
+    await user.save();
+
+    return res.status(200).json({ msg: 'Account linked', username: user.username });
   });
 }

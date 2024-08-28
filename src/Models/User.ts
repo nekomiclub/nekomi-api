@@ -13,7 +13,10 @@ export const User = mongoose.model<IUser>('user', new Schema({
   statistics: Object,
   roles: Array,
   avatar: String,
-  username: String
+  username: String,
+  subscribes: Array,
+  watchProgress: Array,
+  telegramData: Object
 }));
 
 /** Create new user
@@ -98,10 +101,15 @@ export async function createUser({ id, roles, avatar, username, libs, test }: {
     roles,
     statistics: {
       accountCreated: getUTC().timestamp,
-      timeSpent: 0
+      timeSpent: 0,
+      viewtime: 0,
+      isTelegramLinked: false
     },
     avatar,
-    username
+    username,
+    subscribes: [],
+    watchProgress: [],
+    telegramData: null
   };
 
   const user = new User(payload);

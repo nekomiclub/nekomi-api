@@ -138,6 +138,10 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
     updateSearch();
     UpdatePopularTitles();
 
+    if (prodMode) {
+      await handler.patchUsersModels();
+    }
+
     setInterval(() => {
       // Update cache
       updateSearch();

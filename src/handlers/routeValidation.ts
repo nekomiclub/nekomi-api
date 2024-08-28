@@ -36,6 +36,12 @@ export const userPatch = [
   AccessControl(['basic']),
 ];
 
+export const userLinkTelegram = [
+  CSRFCheck(['bot.animee.club']),
+  body(['animeeID', 'telegramID'])
+    .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
+];
+
 export const userSignin = [
   CSRFCheck(['animee.club']),
   body('session')

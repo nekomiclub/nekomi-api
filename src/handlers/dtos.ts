@@ -67,7 +67,9 @@ export function user(raw: IMongodbDocument, privateMode?: boolean): IUser {
     'libs'
   ] : [];
 
-  hideKeys(excludeKeys, user);
+  const alwaysExcludedKeys: (keyof IUser)[] = ['subscribes', 'telegramData'];
+
+  hideKeys([...excludeKeys, ...alwaysExcludedKeys], user);
 
   return user;
 }

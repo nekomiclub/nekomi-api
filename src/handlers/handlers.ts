@@ -130,3 +130,31 @@ export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckV
 
   return true;
 }
+
+export async function patchUsersModels() {
+  const startedAt = getUTC().timestamp;
+  const users = await User.find();
+  let usersModified = 0;
+
+  console.log(`Users models patching started`);
+
+  for (const key in users) {
+    const user = users[key];
+
+    user.statistics.viewtime = +(user.statistics.viewtime || user.statistics.timeSpent * 60).toFixed(0);
+    user.watchProgress = user.watchProgress || [];
+    user.subscribes = user.subscribes || [];
+    user.telegramData = user.telegramData || null;
+
+    user.markModified('watchProgress');
+    user.markModified('subscribes');
+    user.markModified('statistics');
+    user.markModified('telegramData');
+
+    await user.save();
+
+    usersModified += 1;
+  }
+
+  console.log(`Users models patching ended within - ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}s. Modified ${usersModified} - users`);
+}
