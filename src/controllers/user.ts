@@ -13,6 +13,7 @@ import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
+import { TNotifyEvent } from '../services/NotifyService';
 
 
 
@@ -250,14 +251,23 @@ export async function patchUser(req: express.Request, res: express.Response) {
         throw new E404(`Title ${titleId} is not found`);
       }
 
+      const subscribeEvent: TNotifyEvent = 'new_episode';
+      const subscribe = `${subscribeEvent}/${titleId}`;
+
       if (folder.titles.includes(titleId)) {
         // Delete title
         folder.titles = folder.titles.filter(el => el !== titleId);
-        modifyMsg = `Title (${titleId}) deleted from folder (${folderId})`;
+
+        if (folder.type === 'watching') user.subscribes = user.subscribes.filter(el => el !== subscribe);
+
+        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ' + subscribe' : ''}) deleted from folder (${folderId})`;
       } else {
         // Add title
         folder.titles.push(titleId);
-        modifyMsg = `Title (${titleId}) pushed to folder (${folderId})`;
+
+        if (folder.type === 'watching') user.subscribes.push(subscribe);
+
+        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ' + subscribe' : ''}) pushed to folder (${folderId})`;
       }
 
       // Filter same
@@ -272,6 +282,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       modifyStack.push(modifyMsg);
 
       user.markModified('libs');
+      user.markModified('subs');
     }
 
     async function increaseViewtime() {

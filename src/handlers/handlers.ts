@@ -16,6 +16,7 @@ import { TRoleCapability } from '../interfaces/Roles';
 import { E500 } from './Errors';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
 import { IMock, TMockID } from '../interfaces/Mocks';
+import { TNotifyEvent } from '../services/NotifyService';
 
 
 
@@ -145,6 +146,11 @@ export async function patchUsersModels() {
     user.watchProgress = user.watchProgress || [];
     user.subscribes = user.subscribes || [];
     user.telegramData = user.telegramData || null;
+
+    user.libs.find(el => el.type === 'watching')?.titles.forEach(id => {
+      const event: TNotifyEvent = 'new_episode';
+      user.subscribes.push(`${event}/${id}`);
+    });
 
     user.markModified('watchProgress');
     user.markModified('subscribes');

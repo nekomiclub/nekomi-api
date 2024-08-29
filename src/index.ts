@@ -23,6 +23,7 @@ import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
 import { WebSocketListen } from './controllers/webSocket';
 import { UpdatePopularTitles } from './controllers/title';
+import { INotifyNewEpisode, NotifyService } from './services/NotifyService';
 
 
 
@@ -108,6 +109,9 @@ if (devMode) {
 
 wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
+/** Implementation of NotifyService */
+export const Notify = new NotifyService();
+
 
 
 (async function () {
@@ -137,6 +141,8 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
   try {
     updateSearch();
     UpdatePopularTitles();
+
+    // Notify.broadcast('new_episode', JSON.stringify({ dubberID: '6f194501-fbb5-423c-a065-e8774a7486ce', episodeOrder: 13, titleID: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7' } as INotifyNewEpisode));
 
     if (prodMode) {
       await handler.patchUsersModels();

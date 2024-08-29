@@ -20,6 +20,8 @@ import { updateSearch } from './root';
 import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
+import { Notify } from '..';
+import { INotifyNewEpisode } from '../services/NotifyService';
 
 
 
@@ -301,6 +303,14 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           } catch (e) {
             // ignore
           }
+
+          const notifyPayload: INotifyNewEpisode = {
+            dubberID: dubber.id,
+            episodeOrder: order,
+            titleID: title.id
+          };
+
+          Notify.broadcast('new_episode', JSON.stringify(notifyPayload));
 
           return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!`, episode: ep });
         } catch (e) {

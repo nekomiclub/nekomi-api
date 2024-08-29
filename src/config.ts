@@ -40,8 +40,11 @@ export const config = {
     /** Animee updater */
     updater: prodMode ? `https://updater.animee.club` : `http://${getIP('0.0.0.0')}:3000`,
 
-    /** Media */
+    /** Animee Media */
     media: prodMode ? `https://media.animee.club` : `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
+
+    /** Animee Bot */
+    bot: `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
 
 
     //* Fullkekw services
