@@ -2,13 +2,19 @@ export interface IUser {
   /** ID */
   id: string
 
-  /** Statistics  */
+  /** Statistics
+   * @access CSRF required
+   */
   statistics: IUserStatistics
 
-  /** Titles libs */
+  /** Titles libs
+   * @access CSRF required
+   */
   libs: IUserLib[]
 
-  /** Roles */
+  /** Roles
+   * @access CSRF required
+   */
   roles: string[]
 
   /** Username */
@@ -23,6 +29,9 @@ export interface IUser {
    */
   subscribes: string[]
 
+  /** Synced watch progress
+   * @access CSRF required
+   */
   watchProgress: IUserWatchProgress[]
 
   /** Telegram linked account data.
@@ -31,6 +40,11 @@ export interface IUser {
   telegramData: null | {
     id: number
   }
+
+  /** Token for linking telegram to animee account
+   * @access CSRF required
+   */
+  telegramLinkToken: string | null
 }
 
 /** User animee statistics */

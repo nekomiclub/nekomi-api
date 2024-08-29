@@ -62,9 +62,13 @@ import * as UserController from './controllers/user';
 
 UserRouter.get(`/logout`, RouteValidation.userLogout, UserController.getLogout);
 UserRouter.get(`/validate`, RouteValidation.userValidate, UserController.getValidate);
+UserRouter.get(`/linkTelegram/token`, RouteValidation.userLinkTelegramToken, UserController.getLinkTelegramToken);
+
 UserRouter.post(`/signin`, RouteValidation.userSignin, UserController.postSignin);
-UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
 UserRouter.post(`/linkTelegram`, RouteValidation.userLinkTelegram, UserController.postLinkTelegram);
+UserRouter.post(`/linkTelegram/verify`, RouteValidation.userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify);
+
+UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
 
 //! Must be below all endpoints
 UserRouter.get(`/:query`, UserController.getQuery);

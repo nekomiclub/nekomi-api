@@ -359,3 +359,40 @@ export async function postLinkTelegram(req: express.Request, res: express.Respon
     return res.status(200).json({ msg: 'Account linked', username: user.username });
   });
 }
+
+export async function getLinkTelegramToken(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    const user = await User.findOne({ id: req.animee.userID! });
+
+    if (!user) throw new E404('User not found');
+
+    if (user.statistics.isTelegramLinked) throw new E403('Account already linked');
+
+    const token = handler.makeStringID(24);
+
+    user.telegramLinkToken = token;
+    user.markModified('telegramLinkToken');
+
+    await user.save();
+
+    return res.status(200).json({ msg: 'ok', token });
+  });
+}
+
+export async function postLinkTelegramTokenVerify(req: express.Request, res: express.Response) {
+  await catchError(req, res, async () => {
+    const { token } = req.body as { token: string };
+    const user = await User.findOne({ telegramLinkToken: token });
+
+    if (!user) throw new E404('User not found');
+
+    user.telegramLinkToken = null;
+    user.markModified('telegramLinkToken');
+
+    await user.save();
+
+    writeLog('info', `Telegram link token removed for ${user.id}`, 'postLinkTelegramTokenVerify');
+
+    return res.status(200).json({ msg: 'ok', verified: true, id: user.id });
+  });
+}

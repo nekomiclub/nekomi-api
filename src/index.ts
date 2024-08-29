@@ -139,8 +139,11 @@ export const Notify = new NotifyService();
 
   // Post-init callback
   try {
-    updateSearch();
-    UpdatePopularTitles();
+    await Promise.all([
+      await updateSearch(),
+      await UpdatePopularTitles(),
+      await handler.removeUsersLinkTelegramToken(),
+    ]);
 
     // Notify.broadcast('new_episode', JSON.stringify({ dubberID: '6f194501-fbb5-423c-a065-e8774a7486ce', episodeOrder: 13, titleID: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7' } as INotifyNewEpisode));
 
@@ -148,10 +151,13 @@ export const Notify = new NotifyService();
       await handler.patchUsersModels();
     }
 
-    setInterval(() => {
+    setInterval(async () => {
       // Update cache
-      updateSearch();
-      UpdatePopularTitles();
+      await Promise.all([
+        await updateSearch(),
+        await UpdatePopularTitles(),
+        await handler.removeUsersLinkTelegramToken(),
+      ]);
     }, 43200000); // 43200000 // 12h
   } catch (e) {
     writeLog('error', e, 'initialization/postInit');

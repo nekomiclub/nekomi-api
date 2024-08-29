@@ -64,7 +64,9 @@ export function user(raw: IMongodbDocument, privateMode?: boolean): IUser {
   const excludeKeys: (keyof IUser)[] = privateMode ? [
     'roles',
     'statistics',
-    'libs'
+    'libs',
+    'watchProgress',
+    'telegramLinkToken'
   ] : [];
 
   const alwaysExcludedKeys: (keyof IUser)[] = ['subscribes', 'telegramData'];

@@ -42,6 +42,17 @@ export const userLinkTelegram = [
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
+export const userLinkTelegramToken = [
+  CSRFCheck(['animee.club']),
+  AccessControl(['basic'])
+];
+
+export const userLinkTelegramTokenVerify = [
+  CSRFCheck(['bot.animee.club']),
+  body('token')
+    .notEmpty().withMessage('Token can not be empty')
+];
+
 export const userSignin = [
   CSRFCheck(['animee.club']),
   body('session')

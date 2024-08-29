@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { write } from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
 import axios, { AxiosError } from 'axios';
@@ -13,7 +13,7 @@ import User from '../Models/User';
 import { user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
-import { E500 } from './Errors';
+import { E500, writeLog } from './Errors';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
 import { IMock, TMockID } from '../interfaces/Mocks';
 import { TNotifyEvent } from '../services/NotifyService';
@@ -146,6 +146,7 @@ export async function patchUsersModels() {
     user.watchProgress = user.watchProgress || [];
     user.subscribes = user.subscribes || [];
     user.telegramData = user.telegramData || null;
+    user.telegramLinkToken = user.telegramLinkToken || null;
 
     user.libs.find(el => el.type === 'watching')?.titles.forEach(id => {
       const event: TNotifyEvent = 'new_episode';
@@ -163,4 +164,34 @@ export async function patchUsersModels() {
   }
 
   console.log(`Users models patching ended within - ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}s. Modified ${usersModified} - users`);
+}
+
+export function makeStringID(length: number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
+/** Remove users telegramLinkToken */
+export async function removeUsersLinkTelegramToken() {
+  const users = await User.find({ telegramLinkToken: { $ne: null } });
+
+  if (!users.length) return;
+
+  for (const key in users) {
+    const user = users[key];
+
+    user.telegramLinkToken = null;
+    user.markModified('telegramLinkToken');
+
+    await user.save();
+  }
+
+  writeLog('info', `Users telegram link tokens removed`, 'removeUsersLinkTelegramToken');
 }
