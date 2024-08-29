@@ -64,6 +64,10 @@ interface ITitlesPopular {
   }
 }
 
+export interface IChangeEpMeta extends ITitleEpisodeMeta {
+  action: 'edit' | 'delete'
+}
+
 /** PATCH title form data type */
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
@@ -144,10 +148,6 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
     return res.status(201).json({ msg: 'Title created!', id });
   });
-}
-
-export interface IChangeEpMeta extends ITitleEpisodeMeta {
-  action: 'edit' | 'delete'
 }
 
 export async function patchTitle(req: express.Request, res: express.Response) {

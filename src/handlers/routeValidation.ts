@@ -32,7 +32,7 @@ export const devGetCSRFCheck = [
 //* ------------------ USER MIDDLEWARES ------------------
 
 export const userPatch = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
   AccessControl(['basic']),
 ];
 

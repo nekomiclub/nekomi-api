@@ -10,24 +10,25 @@
 - /
   - /search | [GET](./routes/root.md#get-search)
 
-- /title | [POST](./routes/title.md)
-  - /:id | [PATCH](./routes/title.md) | [DELETE](./routes/title.md)
-  - /:query | [GET](./routes/title.md)
-  - /total | [GET](./routes/title.md)
-  - /popular | [GET](./routes/title.md)
+- /title | [POST](./routes/title.md#post-title)
+  - /total | [GET](./routes/title.md#get-titletotal)
+  - /popular | [GET](./routes/title.md#get-titlepopular)
+  - /:id | [PATCH](./routes/title.md#patch-titleid) | [DELETE](./routes/title.md#delete-titleid)
+  - /:query | [GET](./routes/title.md#get-titlequery)
 
-- /v1/dubber
-  - /:query | [GET](./routes/dubber.md)
+- /dubber
   - /parse | [POST](./routes/dubber.md)
+  - /:query | [GET](./routes/dubber.md)
 
 - /user | [PATCH](./routes/user.md#patch-user)
-  - /:query | [GET](./routes/user.md#get-userquery)
   - /logout | [GET](./routes/user.md#get-userlogout)
   - /validate | [GET](./routes/user.md#get-uservalidate)
   - /signin | [POST](./routes/user.md#post-usersignin)
+  - /linkTelegram | [POST](./routes/user.md#post-userlinktelegram)
+  - /:query | [GET](./routes/user.md#get-userquery)
 
 - /proxy
-  - /postSnap | [POST](./routes/proxy.md#post-proxypostsnap)
+  - /postSnap (DEPRECATED) | [POST](./routes/proxy.md#post-proxypostsnap)
   - /parseMetadata | [POST](./routes/proxy.md#post-proxyparsemetadata)
 
 ---

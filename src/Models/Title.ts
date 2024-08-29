@@ -339,7 +339,7 @@ export class TitlePatcher {
   }
 
   /** Change year
-   * Min year: 200
+   * Min year: 2000
    * Max year: 2030
    */
   changeYear(year: number) {

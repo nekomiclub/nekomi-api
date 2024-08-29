@@ -156,22 +156,28 @@ Some payload is not provided
 ------------------------------------------------------------------
 
 ## PATCH /user
-| VERSION |               CSRF               | ACCESS |
-| :-----: | :------------------------------: | :----: |
-|  1.2.2  | updater.animee.club, animee.club | basic  |
+| VERSION |    CSRF     | ACCESS |
+| :-----: | :---------: | :----: |
+|  1.2.3  | animee.club | basic  |
 
-Patch own user instance
+Patch own user instance.
 
 
 
 **PARAMETERS**
 
-| NAME      | TYPE             | DESCRIPTION          | NOTES                     |
-| --------- | ---------------- | -------------------- | ------------------------- |
-| method    | TPatchUserMethod | Patch method         | ---                       |
-| ?titleId  | string           | Title to patch       | Method - editFolderItem   |
-| ?folderId | string           | Lib to patch         | Method - editFolderItem   |
-| ?viewtime | number           | Increase viewtime by | Method - increaseViewtime |
+| NAME          | TYPE             | DESCRIPTION              | NOTES                                       |
+| ------------- | ---------------- | ------------------------ | ------------------------------------------- |
+| method        | TPatchUserMethod | Patch method             | ---                                         |
+| ?titleId      | string           | ---                      | Method - editFolderItem, patchWatchProgress |
+| ?folderId     | string           | ---                      | Method - editFolderItem                     |
+| ?dubberID     | string           | ---                      | Method - patchWatchProgress                 |
+| ?episodeOrder | number           | ---                      | Method - patchWatchProgress                 |
+| ?viewtime     | number           | User session viewtime    | Method - patchWatchProgress                 |
+| ?progress     | number           | User video progress in s | Method - patchWatchProgress                 |
+
+**editFolderItem** - Add/remove title from specified lib. Will add/remove **new_episode** subscribe on changes in **watching** lib
+**patchWatchProgress** - Add new/edit watchProgress record. Syncs player on different devices
 
 **RESPONSES**
 
@@ -188,7 +194,42 @@ User patched
 **400 - Payload invalid** <br>
 
 **404 - Not found** <br>
-User, title or lib
+
+------------------------------------------------------------------
+
+## POST /user/linkTelegram
+| VERSION |      CSRF       | ACCESS |
+| :-----: | :-------------: | :----: |
+|  1.2.3  | bot.animee.club |  ---   |
+
+Link telegram to animee account.
+
+
+
+**PARAMETERS**
+
+| NAME       | TYPE             | DESCRIPTION  | NOTES |
+| ---------- | ---------------- | ------------ | ----- |
+| method     | TPatchUserMethod | Patch method | ---   |
+| animeeID   | string           | ---          | ---   |
+| telegramID | number           | ---          | ---   |
+
+**RESPONSES**
+
+**200 - Success** <br>
+Linked
+
+```ts
+{
+  msg: 'OK',
+  username: string
+}
+```
+
+**400 - Account already linked** <br>
+Animee account / this telegram account already linked
+
+**404 - Not found** <br>
 
 ------------------------------------------------------------------
 

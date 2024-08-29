@@ -14,26 +14,32 @@ import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
 import { TNotifyEvent } from '../services/NotifyService';
+import Dubbers from '../Models/Dubber';
 
 
 
 /** Type of patchUserMethods array */
-type TPatchUserMethod = 'editFolderItem' | 'increaseViewtime'
+type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress'
 
 interface IPatchUserBody {
   /** Method */
   method: TPatchUserMethod
 
-  //* editFolderItem method
-  /** Title id to be patched */
+  //* editFolderItem, patchWatchProgress methods
   titleId?: string
 
-  /** Folder id to be patched */
+  //* editFolderItem method
   folderId?: string
 
-  //* increaseViewtime method
-  /** Add viewtime */
+  //* patchWatchProgress method
+  dubberID?: string
+  episodeOrder?: number
+
+  /** Session viewtime in seconds */
   viewtime?: number
+
+  /** Current video progress in seconds */
+  progress?: number
 }
 
 
@@ -201,10 +207,11 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
 
 
+/** @see /docs/routes/user.md */
 export async function patchUser(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { userID } = req.animee;
-    const { method, folderId, titleId, viewtime } = req.body as IPatchUserBody;
+    const { method } = req.body as IPatchUserBody;
 
     const user = await User.findOne({ id: userID });
     let modifyStack: string[] = [];
@@ -215,8 +222,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
     if (method === 'editFolderItem') {
       await editFolderItem();
-    } else if (method === 'increaseViewtime') {
-      await increaseViewtime();
+    } else if (method === 'patchWatchProgress') {
+      await patchWatchProgress();
     } else {
       throw new E400('Invalid method');
     }
@@ -235,6 +242,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
     /** Patch folder */
     async function editFolderItem() {
+      const { folderId, titleId } = req.body as IPatchUserBody;
+
       if (!folderId || !titleId || !user) {
         throw new E400(`Folder ID and title ID are required`);
       }
@@ -285,19 +294,48 @@ export async function patchUser(req: express.Request, res: express.Response) {
       user.markModified('subs');
     }
 
-    async function increaseViewtime() {
-      if (!user || !viewtime || isNaN(+viewtime)) throw new E400('Invalid payload or viewtime is NaN');
+    async function patchWatchProgress() {
+      const { progress, titleId, episodeOrder, dubberID, viewtime } = req.body as IPatchUserBody;
 
-      user.statistics.timeSpent += +(+viewtime / 60).toFixed(4);
+      if (!user || !viewtime || !progress || !titleId || episodeOrder === undefined || !dubberID) throw new E400('Some field are invalid or missing');
+      if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new E400('Viewtime, episodeOrder and progress can not be NaN');
+
+      const dubber = await Dubbers.findOne({ id: dubberID });
+      const title = await Title.findOne({ id: titleId });
+
+      if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
+      if (!title) throw new E404(`Title ${titleId} is not found`);
+
+      let watchProgress = user.watchProgress.find(el => el.titleID === titleId);
+
+      if (watchProgress) {
+        watchProgress.updatedAt = handler.getUTC().timestamp;
+        watchProgress.episodeOrder = episodeOrder;
+        watchProgress.progress = progress;
+      } else {
+        watchProgress = {
+          dubberID,
+          episodeOrder,
+          progress,
+          titleID: title.id,
+          updatedAt: handler.getUTC().timestamp
+        };
+      }
+
+      user.statistics.viewtime += viewtime;
+      user.watchProgress = [...user.watchProgress.filter(el => el.titleID !== titleId), watchProgress!];
+
       user.markModified('statistics');
+      user.markModified('watchProgress');
 
-      modifyStack.push(`Viewtime increased by ${+viewtime}s. Total viewtime - ${user.statistics.timeSpent}m`);
+      modifyStack.push(`Viewtime increased by ${+viewtime}s. Total viewtime - ${(user.statistics.viewtime / 60).toFixed(2)}m`);
     }
   });
 }
 
 
 
+/** @see /docs/routes/user.md */
 export async function postLinkTelegram(req: express.Request, res: express.Response) {
   await catchError(req, res, async () => {
     const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
