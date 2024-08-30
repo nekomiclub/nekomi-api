@@ -143,6 +143,7 @@ export async function patchUsersModels() {
     const user = users[key];
 
     user.statistics.viewtime = +(user.statistics.viewtime || user.statistics.timeSpent * 60).toFixed(0);
+    user.statistics.isTelegramLinked = user.statistics.isTelegramLinked || false;
     user.watchProgress = user.watchProgress || [];
     user.subscribes = user.subscribes || [];
     user.telegramData = user.telegramData || null;

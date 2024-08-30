@@ -69,7 +69,7 @@ async function newEpisode(payload: string) {
   if (!title) throw new E404(`Title ${titleID} is not found`);
   if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
-  const users = (await User.find({ subscribes: `${event}/${title.id}` })).filter(el => el.statistics.isTelegramLinked);
+  const users = (await User.find({ subscribes: `${event}/${title.id}` })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === title.id));
   const broadcastPayload: INotifyNewEpisodeBroadcast = {
     title: dto.title(title.toObject()),
     dubber: dto.dubber(dubber.toObject()),

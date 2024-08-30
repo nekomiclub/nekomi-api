@@ -145,7 +145,7 @@ export const Notify = new NotifyService();
       await handler.removeUsersLinkTelegramToken(),
     ]);
 
-    // Notify.broadcast('new_episode', JSON.stringify({ dubberID: '6f194501-fbb5-423c-a065-e8774a7486ce', episodeOrder: 13, titleID: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7' } as INotifyNewEpisode));
+    // Notify.broadcast('new_episode', JSON.stringify({ dubberID: '075fb2d0-73f3-4738-953b-59fd0484412c', episodeOrder: 13, titleID: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7' } as INotifyNewEpisode));
 
     if (prodMode) {
       await handler.patchUsersModels();
