@@ -46,6 +46,7 @@ interface IPatchTitleBody {
   setDetails?: string
 
   editEpMeta?: IChangeEpMeta
+  parseIMDBEpisodesMetas?: string
 
   deleteEpisode?: {
     episodeOrder?: string
@@ -155,7 +156,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     const { id } = req.params as { id: string };
     const { userID, userCapabilities } = req.animee;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
-    const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, } = req.body as IPatchTitleBody;
+    const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, parseIMDBEpisodesMetas } = req.body as IPatchTitleBody;
 
     const title = await Title.findOne({ id });
     const changes: string[] = [];
@@ -338,6 +339,9 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (setSeason !== undefined) await execWithCap('titleEdit', () => Patcher.changeSeason(setSeason));
     if (setStatus !== undefined) await execWithCap('titleEdit', () => Patcher.changeStatus(setStatus));
     if (setType !== undefined) await execWithCap('titleEdit', () => Patcher.changeType(setType));
+
+    // titleEditEpsMeta - Tests are not possible
+    if (parseIMDBEpisodesMetas !== undefined) await execWithCap('titleEditEpsMeta', async () => await Patcher.parseIMDBEpisodesMeta(parseIMDBEpisodesMetas));
 
     // titleEdit - Tests required
     if (setYear !== undefined) await execWithCap('titleEdit', changeYearHandler);

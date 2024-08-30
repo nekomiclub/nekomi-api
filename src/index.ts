@@ -95,8 +95,6 @@ if (testMode) {
   });
 }
 
-app.use('/proxy', router.ProxyRouter);
-
 app.use('/dubber', router.DubberRouter);
 app.use('/user', router.UserRouter);
 app.use('/title', router.TitleRouter);
@@ -144,12 +142,6 @@ export const Notify = new NotifyService();
       await UpdatePopularTitles(),
       await handler.removeUsersLinkTelegramToken(),
     ]);
-
-    // Notify.broadcast('new_episode', JSON.stringify({ dubberID: '075fb2d0-73f3-4738-953b-59fd0484412c', episodeOrder: 13, titleID: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7' } as INotifyNewEpisode));
-
-    if (prodMode) {
-      await handler.patchUsersModels();
-    }
 
     setInterval(async () => {
       // Update cache

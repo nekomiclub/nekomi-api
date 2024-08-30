@@ -2,9 +2,9 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
-import { createID, getUTC } from '../handlers/handlers';
+import { createID, getUTC, parseIMDBDate } from '../handlers/handlers';
 import { DeepPartial } from '../interfaces/Interfaces';
-import { E400, E404, E503, writeLog } from '../handlers/Errors';
+import { E400, E404, E503, ErrorConstructor, writeLog } from '../handlers/Errors';
 import { IChangeEpMeta } from '../controllers/title';
 import Dubbers from './Dubber';
 import axios, { AxiosError } from 'axios';
@@ -12,6 +12,7 @@ import { singCSRFToken } from '../services/TokenService';
 import { config, testMode } from '../config';
 import * as cfg from '../config';
 import { $http } from '../handlers/http';
+import puppeteer from 'puppeteer';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,
@@ -470,6 +471,86 @@ export class TitlePatcher {
     } catch (e) {
       // ignore
     }
+  }
+
+  /** Parse IMDB episodes meta */
+  async parseIMDBEpisodesMeta(link: string) {
+    const label = `[ParseIMDBEpisodesMeta]:`;
+    let url = new URL('https://example.com');
+
+    try {
+      url = new URL(link);
+    } catch (e) {
+      throw new E400('URL parsing error');
+    }
+
+    if (url.host === 'example.com') throw new E400('URL parsing error');
+    if (url.host !== 'www.imdb.com' && url.host !== 'imdb.com') throw new E400('Host is not IMDB');
+    if (!url.pathname.includes('/title') || !url.pathname.includes('/episodes')) throw new E400('Pathname is not including /title or /episodes');
+
+    const href = `${url.origin}${url.pathname}`;
+    const results: ITitleEpisodeMeta[] = [];
+
+    const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
+
+    // Navigate & wait for loading
+    await page.goto(href);
+    await page.waitForSelector('#home_img');
+
+    // Parse
+    const data = await page.$$eval('.ipc-page-section', el => {
+      const cfg = {
+        titleClass: '.ipc-title__text',
+        dateoutClass: '.sc-ccd6e31b-10',
+        cardClass: '.sc-ccd6e31b-4'
+      };
+
+      const cards = el[2].querySelectorAll(cfg.cardClass);
+      let tmp: ITitleEpisodeMeta[] = [];
+
+      cards.forEach((card: any, i: number) => {
+        const title = card.querySelector(cfg.titleClass).innerText.split('∙ ')[1] as string;
+        i++;
+
+        tmp.push({
+          names: {
+            eng: title,
+            ukr: title.includes('Episode') ? `${i} епізод` : '~~~'
+          },
+          order: i,
+          dateOut: card.querySelector(cfg.dateoutClass).innerText
+        });
+      });
+
+      return tmp;
+    });
+
+    await browser.close();
+
+    data.forEach(el => {
+      results.push({
+        dateOut: parseIMDBDate(`${el.dateOut}`),
+        names: el.names,
+        order: +el.order
+      });
+    });
+
+    let newEpisodes = 0;
+
+    results.forEach(meta => {
+      if (!this.title.episodesMeta.some(el => el.order === meta.order)) {
+        this.title.episodesMeta.push(meta);
+        newEpisodes += 1;
+      }
+    });
+
+    this.title.episodesMeta = this.title.episodesMeta.sort((a, b) => a.order - b.order);
+    this.save();
+
+    writeLog('info', `${label} Parsed ${newEpisodes} episodes metas`, `TitlePatcher`);
   }
 }
 

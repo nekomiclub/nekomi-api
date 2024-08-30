@@ -94,26 +94,27 @@ Create new title instance
 
 **PARAMETERS**
 
-| NAME            | TYPE                | DESCRIPTION                  | NOTES                                                       |
-| --------------- | ------------------- | ---------------------------- | ----------------------------------------------------------- |
-| changeNames.ukr | ?string             | Set ukr name                 | titleEdit, @max - 320                                       |
-| changeNames.eng | ?string             | Set eng name                 | titleEdit, @max - 320. Will change code                     |
-| changeNames.alt | ?string[]           | Set alt names                | titleEdit, @max - 20                                        |
-| setRating       | ?number             | Set IMDB rating              | titleEdit, @min - 1, @max - 10                              |
-| setDescription  | ?string             | ---                          | titleEdit, @max - 2200                                      |
-| setStatus       | ?TAnimeStatus       | ---                          | titleEdit                                                   |
-| setEps          | ?number             | Set episodesCount            | titleEdit, @min - 0, @max - 9999. Will set null if equals 0 |
-| setGenres       | ?TAnimeGenre[]      | ---                          | titleEdit, @max - 10                                        |
-| setSeason       | ?TAnimeSeason       | ---                          | titleEdit                                                   |
-| setType         | ?TTitleType         | ---                          | titleEdit                                                   |
-| setYear         | ?number             | ---                          | titleEdit, @min - 2000, @max - 2050                         |
-| setStudios      | ?string[]           | ---                          | titleEdit  @max - 5 items, 24 symbols                       |
-| setCountry      | ?TTitleCountry      | ---                          | titleEdit                                                   |
-| setDetails      | ?string             | ---                          | titleEdit, @max - 500                                       |
-| editEpMeta      | ?IChangeEpMeta      | Add/Edit/Remove episode meta | titleEditEpsMeta                                            |
-| deleteEpisode   | see IPatchTitleBody | ---                          | seriesDelete                                                |
-| change_poster   | multipart/form-data | ---                          | titleEdit, Will delete prev version                         |
-| upload_episode  | multipart/form-data | ---                          | seriesAdd, Will trigger new_episode notify                  |
+| NAME                   | TYPE                | DESCRIPTION                  | NOTES                                                       |
+| ---------------------- | ------------------- | ---------------------------- | ----------------------------------------------------------- |
+| changeNames.ukr        | ?string             | Set ukr name                 | titleEdit, @max - 320                                       |
+| changeNames.eng        | ?string             | Set eng name                 | titleEdit, @max - 320. Will change code                     |
+| changeNames.alt        | ?string[]           | Set alt names                | titleEdit, @max - 20                                        |
+| setRating              | ?number             | Set IMDB rating              | titleEdit, @min - 1, @max - 10                              |
+| setDescription         | ?string             | ---                          | titleEdit, @max - 2200                                      |
+| setStatus              | ?TAnimeStatus       | ---                          | titleEdit                                                   |
+| setEps                 | ?number             | Set episodesCount            | titleEdit, @min - 0, @max - 9999. Will set null if equals 0 |
+| setGenres              | ?TAnimeGenre[]      | ---                          | titleEdit, @max - 10                                        |
+| setSeason              | ?TAnimeSeason       | ---                          | titleEdit                                                   |
+| setType                | ?TTitleType         | ---                          | titleEdit                                                   |
+| setYear                | ?number             | ---                          | titleEdit, @min - 2000, @max - 2050                         |
+| setStudios             | ?string[]           | ---                          | titleEdit  @max - 5 items, 24 symbols                       |
+| setCountry             | ?TTitleCountry      | ---                          | titleEdit                                                   |
+| setDetails             | ?string             | ---                          | titleEdit, @max - 500                                       |
+| editEpMeta             | ?IChangeEpMeta      | Add/Edit/Remove episode meta | titleEditEpsMeta                                            |
+| parseIMDBEpisodesMetas | ?string             | Parse IMDB episodes metas    | titleEditEpsMeta                                            |
+| deleteEpisode          | see IPatchTitleBody | ---                          | seriesDelete                                                |
+| change_poster          | multipart/form-data | ---                          | titleEdit, Will delete prev version                         |
+| upload_episode         | multipart/form-data | ---                          | seriesAdd, Will trigger new_episode notify                  |
 
 **RESPONSES**
 

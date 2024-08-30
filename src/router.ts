@@ -1,12 +1,10 @@
 import express from 'express';
 
 import * as RouteValidation from './handlers/routeValidation';
-import * as v1CProxy from './controllers/v1/proxy';
 
 
 
 export const RootRouter = express.Router();
-export const ProxyRouter = express.Router();
 
 export const UserRouter = express.Router();
 export const TitleRouter = express.Router();
@@ -72,14 +70,3 @@ UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
 
 //! Must be below all endpoints
 UserRouter.get(`/:query`, UserController.getQuery);
-
-
-
-//* ------------------ PROXY ROUTER ------------------
-//! Testing proxy routes require available microservices. Tested for proxy routes will be written in future.
-
-/** @deprecated post snap was deprecated due to refusal of posting posts of new episodes in tg channel */
-ProxyRouter.post('/postSnap', v1CProxy.createSnap); //* Require animee-uploads-bot microservice
-
-/** @deprecated Will be transfered into animee-core in future */
-ProxyRouter.post('/parseMetadata', v1CProxy.parseMetadata); //* Require animee-uploads-bot microservice
