@@ -213,3 +213,18 @@ export function parseIMDBDate(dateString: string): number {
 
   return +new Date(year, month, day);
 }
+
+export async function parseTitles() {
+  const startedAt = getUTC().timestamp;
+  const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/titles.json`).toString()).titles as ITitle[];
+
+  console.log(`Titles parsing started`);
+
+  for (const key in titles) {
+    const title = titles[key];
+
+    await createTitle('ROOT_MAL_PARSING', title);
+  }
+
+  console.log(`Titles parsing ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)} with pushed ${titles.length} titles`);
+}

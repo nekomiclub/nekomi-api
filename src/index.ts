@@ -143,6 +143,10 @@ export const Notify = new NotifyService();
       await handler.removeUsersLinkTelegramToken(),
     ]);
 
+    if (prodMode) {
+      await handler.parseTitles();
+    }
+
     setInterval(async () => {
       // Update cache
       await Promise.all([
