@@ -24,6 +24,7 @@ import { updateSearch } from './controllers/root';
 import { WebSocketListen } from './controllers/webSocket';
 import { UpdatePopularTitles } from './controllers/title';
 import { INotifyNewEpisode, NotifyService } from './services/NotifyService';
+import { LoggerService } from './services/LoggerService';
 
 
 
@@ -109,6 +110,7 @@ wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
 
 /** Implementation of NotifyService */
 export const Notify = new NotifyService();
+export const Logger = new LoggerService();
 
 
 
