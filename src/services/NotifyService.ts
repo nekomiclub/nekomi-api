@@ -4,7 +4,7 @@ import Title from '../Models/Title';
 import User from '../Models/User';
 import { ITitle } from '../interfaces/Title';
 import * as dto from '../handlers/dtos';
-import Dubbers from '../Models/Dubber';
+import Dubber from '../Models/Dubber';
 import { IDubber } from '../interfaces/Dubber';
 import { $http } from '../handlers/http';
 import { config } from '../config';
@@ -64,7 +64,7 @@ async function newEpisode(payload: string) {
   const { dubberID, episodeOrder, titleID } = data;
 
   const title = await Title.findOne({ id: titleID });
-  const dubber = await Dubbers.findOne({ id: dubberID });
+  const dubber = await Dubber.findOne({ id: dubberID });
 
   if (!title) throw new E404(`Title ${titleID} is not found`);
   if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);

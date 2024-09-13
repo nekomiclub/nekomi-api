@@ -6,7 +6,7 @@ import { DeepPartial } from '../interfaces/Interfaces';
 import { getUTC } from '../handlers/handlers';
 import { writeLog } from '../handlers/Errors';
 
-export const Dubbers = mongoose.model<IDubber>('dubber', new Schema({
+export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,
@@ -16,9 +16,11 @@ export const Dubbers = mongoose.model<IDubber>('dubber', new Schema({
   createdAt: Number,
   description: String || null,
   leader: String || null,
-  editors: Array || null,
-  members: Array || null,
+  editors: Array,
+  members: Array,
   rating: Number,
+  avatar: String,
+  membersInvitePending: Array
 }));
 
 interface ICreateDubber extends Partial<IDubber> {
@@ -39,17 +41,17 @@ export async function createDubber({
   rating,
   socials,
   support,
-  thumbURL
+  avatar
 }: ICreateDubber) {
   const ID = id || uuid.v4();
 
   const payload: IDubber = {
+    id: ID,
     code,
     name,
     createdAt: createdAt || getUTC().timestamp,
     description: description === undefined ? '' : description,
     editors: editors || [],
-    id: ID,
     leader: leader || null,
     members: members || [],
     rating: rating || 0,
@@ -66,10 +68,12 @@ export async function createDubber({
       patreon: null,
       privatbank: null
     },
-    thumbURL: thumbURL || ''
+    thumbURL: avatar || '',
+    avatar: avatar || '',
+    membersInvitePending: []
   };
 
-  const dubber = new Dubbers(payload);
+  const dubber = new Dubber(payload);
   await dubber.save();
 
   writeLog('info', `New dubber ${id} created`, 'Dubber/createDubber');
@@ -77,4 +81,4 @@ export async function createDubber({
   return ID;
 }
 
-export default Dubbers; 
+export default Dubber; 

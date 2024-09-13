@@ -6,7 +6,7 @@ import { createID, getUTC, parseIMDBDate } from '../handlers/handlers';
 import { DeepPartial } from '../interfaces/Interfaces';
 import { E400, E404, E503, ErrorConstructor, writeLog } from '../handlers/Errors';
 import { IChangeEpMeta } from '../controllers/title';
-import Dubbers from './Dubber';
+import Dubber from './Dubber';
 import axios, { AxiosError } from 'axios';
 import { singCSRFToken } from '../services/TokenService';
 import { config, testMode } from '../config';

@@ -144,7 +144,7 @@ export const Notify = new NotifyService();
     ]);
 
     if (prodMode) {
-      await handler.parseTitles();
+      await handler.updateDubbers();
     }
 
     setInterval(async () => {

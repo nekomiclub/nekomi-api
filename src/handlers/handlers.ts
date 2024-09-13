@@ -6,7 +6,7 @@ import ip from 'ip';
 import express from 'express';
 import * as uuid from 'uuid';
 
-import Dubbers from '../Models/Dubber';
+import Dubber from '../Models/Dubber';
 import Title, { createTitle } from '../Models/Title';
 import { testMode, devMode, config, prodMode } from '../config';
 import User from '../Models/User';
@@ -214,17 +214,45 @@ export function parseIMDBDate(dateString: string): number {
   return +new Date(year, month, day);
 }
 
-export async function parseTitles() {
+// export async function parseTitles() {
+//   const startedAt = getUTC().timestamp;
+//   const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/titles.json`).toString()).titles as ITitle[];
+
+//   console.log(`Titles parsing started`);
+
+//   for (const key in titles) {
+//     const title = titles[key];
+
+//     await createTitle('ROOT_MAL_PARSING', title);
+//   }
+
+//   console.log(`Titles parsing ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)} with pushed ${titles.length} titles`);
+// }
+
+export async function updateDubbers() {
   const startedAt = getUTC().timestamp;
-  const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/titles.json`).toString()).titles as ITitle[];
+  writeLog(`info`, `[DubbersUpdating]: Updating started`, `updateDubbers`);
 
-  console.log(`Titles parsing started`);
+  const dubbers = await Dubber.find();
+  let touched = 0;
 
-  for (const key in titles) {
-    const title = titles[key];
+  for (const key in dubbers) {
+    const dubber = dubbers[key];
 
-    await createTitle('ROOT_MAL_PARSING', title);
+    try {
+      dubber.membersInvitePending = dubber.membersInvitePending || [];
+      dubber.avatar = dubber.avatar || dubber.thumbURL;
+
+      // dubber.set('rating', undefined, { strict: false });
+
+      await dubber.save();
+
+      touched += 1;
+      writeLog(`info`, `[DubbersUpdating]: Dubber ${dubber.name}/${dubber.id} updated`, `updateDubbers`);
+    } catch (e) {
+      writeLog(`error`, `[DubbersUpdating]: An error occured while updating ${dubber.name}/${dubber.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`, 'updateDubbers');
+    }
   }
 
-  console.log(`Titles parsing ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)} with pushed ${titles.length} titles`);
+  writeLog(`info`, `[DubbersUpdating]: Updating ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}. Touched - ${touched} dubbers`, `updateDubbers`);
 }

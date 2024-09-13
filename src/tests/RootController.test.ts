@@ -8,7 +8,7 @@ import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { ITitle, TAnimeGenre } from '../interfaces/Title';
 import { IM_AccessControl, IM_CSRFCheck, IMock } from '../interfaces/Mocks';
 import { IFK_UsapiAuthRefresh } from '../interfaces/FullkekwResponses';
-import Dubbers, { createDubber } from '../Models/Dubber';
+import Dubber, { createDubber } from '../Models/Dubber';
 import { ISearchExtended, updateSearch } from '../controllers/root';
 
 const config = cfg.config;

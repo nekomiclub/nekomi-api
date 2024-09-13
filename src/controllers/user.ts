@@ -14,7 +14,7 @@ import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
 import { TNotifyEvent } from '../services/NotifyService';
-import Dubbers from '../Models/Dubber';
+import Dubber from '../Models/Dubber';
 
 
 
@@ -300,7 +300,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       if (!user || !viewtime || !progress || !titleId || episodeOrder === undefined || !dubberID) throw new E400('Some field are invalid or missing');
       if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new E400('Viewtime, episodeOrder and progress can not be NaN');
 
-      const dubber = await Dubbers.findOne({ id: dubberID });
+      const dubber = await Dubber.findOne({ id: dubberID });
       const title = await Title.findOne({ id: titleId });
 
       if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);

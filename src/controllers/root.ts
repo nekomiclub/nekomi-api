@@ -6,7 +6,7 @@ import { E400, E500, catchError } from '../handlers/Errors';
 import { ITitle } from '../interfaces/Title';
 import Title from '../Models/Title';
 import { checkValue } from '../handlers/handlers';
-import Dubbers from '../Models/Dubber';
+import Dubber from '../Models/Dubber';
 import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
@@ -25,7 +25,7 @@ export type TSearchEngine = 'dubber' | 'user' | 'title';
 export async function updateSearch(specify?: TSearchEngine) {
   const titles = await Title.find();
   const users = await User.find();
-  const dubbers = await Dubbers.find();
+  const dubbers = await Dubber.find();
 
   if (specify === undefined || specify === 'title') {
     TitleSearch = new Fuse(titles.map(el => {

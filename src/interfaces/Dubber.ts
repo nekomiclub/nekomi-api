@@ -1,16 +1,43 @@
 /** Dubber interface */
 export interface IDubber {
-  /** ID */
   id: string
-
-  /** Code */
   code: string
-
-  /** Title */
   name: string
 
-  /** Avatar */
+  /** Avatar
+   * @deprecated use avatar instead
+   */
   thumbURL: string
+
+  /** Avatar URL
+   * @since 1.3.0 migrated thumbURL
+   */
+  avatar: string
+
+  /** Creation UTC-0 timestamp */
+  createdAt: number
+
+  /** Description */
+  description: string | null
+
+  /** Leader ID */
+  leader: string | null
+
+  /** Editors IDs */
+  editors: string[]
+
+  /** Members IDs */
+  members: string[]
+
+  /** Members invite pending
+   * @since 1.3.0
+   */
+  membersInvitePending: string[]
+
+  /** Rating
+   * @deprecated outdated
+   */
+  rating: number
 
   /** Social links */
   socials: {
@@ -28,22 +55,4 @@ export interface IDubber {
     bymeacoffee: string | null
     patreon: string | null
   }
-
-  /** Creation timestamp */
-  createdAt: number
-
-  /** Description */
-  description: string | null
-
-  /** Leader */
-  leader: string | null
-
-  /** Editors */
-  editors: string[] | null
-
-  /** Members */
-  members: string[] | null
-
-  /** Rating */
-  rating: number
 }

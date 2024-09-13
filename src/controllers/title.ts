@@ -15,7 +15,7 @@ import { decodeToken, singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
 import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
-import Dubbers from '../Models/Dubber';
+import Dubber from '../Models/Dubber';
 import { updateSearch } from './root';
 import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
@@ -120,7 +120,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
       for (const key in dubberIDs) {
         const dubberID = dubberIDs[key];
 
-        const dubber = await Dubbers.findOne({ id: dubberID });
+        const dubber = await Dubber.findOne({ id: dubberID });
 
         if (!dubber) continue;
 
@@ -238,7 +238,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           throw new E400(`An error occured while parsing qualities field - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
         }
 
-        const dubber = await Dubbers.findOne({ id: dubID });
+        const dubber = await Dubber.findOne({ id: dubID });
 
         // Reject if dub is not found
         if (!dubber) throw new E404(`Dub ${dubID} is not found`);
