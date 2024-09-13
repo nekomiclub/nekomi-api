@@ -4,7 +4,7 @@ import * as uuid from 'uuid';
 import { IDubber } from '../interfaces/Dubber';
 import { DeepPartial } from '../interfaces/Interfaces';
 import { getUTC } from '../handlers/handlers';
-import { writeLog } from '../handlers/Errors';
+import { Logger } from '..';
 
 export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
@@ -76,7 +76,7 @@ export async function createDubber({
   const dubber = new Dubber(payload);
   await dubber.save();
 
-  writeLog('info', `New dubber ${id} created`, 'Dubber/createDubber');
+  Logger.debug(`[Dubber]: New dubber @${code}/${id} created`);
 
   return ID;
 }

@@ -7,7 +7,7 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E401, E403, E404, E500, E501, E503, ErrorConstructor, catchError, writeLog } from '../handlers/Errors';
+import { E400, E401, E403, E404, E500, E501, E503, ErrorConstructor, catchError } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode, prodMode, testMode } from '../config';
@@ -20,7 +20,7 @@ import { updateSearch } from './root';
 import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
-import { Notify } from '..';
+import { Logger, Notify } from '..';
 import { INotifyNewEpisode } from '../services/NotifyService';
 
 
@@ -157,6 +157,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     const { userID, userCapabilities } = req.animee;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
     const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, parseIMDBEpisodesMetas } = req.body as IPatchTitleBody;
+    const requestTimestamp = getUTC().timestamp;
 
     const title = await Title.findOne({ id });
     const changes: string[] = [];
@@ -204,7 +205,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             validateStatus: (s) => s < 500,
           });
 
-          writeLog('info', `New poster for title ${title.id} uploaded by ${userID}`, 'patchTitle/changePoster');
+          Logger.debug(`[TitleController/Patch]: New poster for ${title.id} uploaded by ${userID}`);
 
           title.poster = `${config.URL.media}/${postData.id}`;
           title.markModified('poster');
@@ -270,10 +271,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         formData.set('qualities', JSON.stringify(qualities));
 
         try {
+          Logger.debug(`[TitleController/Patch]: New episode ${ep.order}/${ep.dubberID} uploading in ${title.id} by ${userID} started`);
+
           // Upload
           const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData);
-
-          writeLog('info', `New episide (${ep.dubberID}/${ep.order}) for title ${title.id} uploaded by ${userID}`, 'patchTitle/uploadEpisode');
 
           const id = data.id;
           const frames = data.frames;
@@ -312,6 +313,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           };
 
           Notify.broadcast('new_episode', JSON.stringify(notifyPayload));
+
+          Logger.debug(`[TitleController/Patch]: New episode ${ep.order}/${ep.dubberID} uploaded in ${title.id} by ${userID} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
 
           return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!`, episode: ep });
         } catch (e) {
@@ -365,7 +368,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     updateSearch('title');
 
     Patcher.getLog().forEach(el => changes.push(el));
-    writeLog('info', `Title ${title.id} patched by ${userID}. Changed - ${changes.join(', ')}`, 'patchTitle');
+    Logger.debug(`[TitleController/Patch]: Title ${title.id} patched by ${userID}. Stack - ${changes.join(', ')}`);
 
     return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed` });
 
@@ -441,8 +444,8 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     const UserData = req.animee;
 
     if (!key) {
-      const msg = `-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${UserData.userID}\nKey: ${singCSRFToken()}\n----------------`;
-      writeLog('warn', msg, 'deleteTitle');
+      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${UserData.userID}\nKey: ${singCSRFToken()}\n----------------`);
+      Logger.trace(`[TitleController/Delete]: Title ${id} delete request by ${UserData.userID} detected. Delete token issued in server console`);
 
       throw new E401(`DELETE KEY IS NOT PROVIDED. NEW ONE ISSUED`);
     }
@@ -470,7 +473,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     await title.deleteOne();
 
     updateSearch('title');
-    writeLog('warn', `Title ${id} deleted by ${UserData.userID}`, 'deleteTitle');
+    Logger.debug(`[TitleController/Delete]: Title ${id} deleted by ${UserData.userID}`);
   });
 }
 
@@ -486,8 +489,6 @@ export async function getPopular(req: express.Request, res: express.Response) {
 
 
 export async function UpdatePopularTitles() {
-  if (devMode) console.log('Updating popular titles...');
-
   try {
     const headlinerSrc = await Title.findOne({ id: 'dev-headliner' });
     const titles = await Title.find();
@@ -553,12 +554,12 @@ export async function UpdatePopularTitles() {
 
 
 
-    if (devMode) console.log('Popular titles updated');
+    Logger.info(`[TitleController/PopularTitles]: Popular titles updated`);
   } catch (e) {
     if (e instanceof ErrorConstructor) {
-      writeLog('warn', e.msg, 'UpdatePopularTitles');
+      Logger.error(`[TitleController/PopularTitles/HTTP]: ${e.code} - ${e.msg}`);
     } else {
-      writeLog('error', e, 'UpdatePopularTitles');
+      Logger.error(`[TitleController/PopularTitles/Uncaught]: Uncaught error occured`, e);
     }
   }
 }

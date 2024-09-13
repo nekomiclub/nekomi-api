@@ -3,7 +3,6 @@ import path from 'path';
 import ip from 'ip';
 
 import { IANIMEE_CONFIG } from '../interfaces';
-import { writeLog } from './handlers/Errors';
 import CSRF from './secrets/CSRF';
 
 
@@ -95,35 +94,6 @@ export const config = {
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (devMode) {
   config.service.PORTS.HTTP = 80;
-}
-
-/** Check service filesystem validity */
-export async function checkFilesystem() {
-  const self = path.resolve();
-
-  const requiredFolders = [
-    `${self}/logs`,
-  ];
-
-  const requiredFiles = [
-    `${self}/logs/.log`,
-    `${self}/logs/error.log`,
-    `${self}/logs/fatal.log`,
-  ];
-
-  requiredFolders.forEach(folder => {
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder);
-      writeLog('info', `Not existing ${folder} created`, 'checkFilesystem');
-    }
-  });
-
-  requiredFiles.forEach(file => {
-    if (!fs.existsSync(file)) {
-      fs.writeFileSync(file, '');
-      writeLog('info', `Not existing ${file} created`, 'checkFilesystem');
-    }
-  });
 }
 
 /** Change IP to current if it match 0.0.0.0 */

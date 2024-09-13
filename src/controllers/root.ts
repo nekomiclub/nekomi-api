@@ -10,6 +10,7 @@ import Dubber from '../Models/Dubber';
 import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
+import { Logger } from '..';
 
 
 
@@ -58,6 +59,8 @@ export async function updateSearch(specify?: TSearchEngine) {
       includeScore: true
     });
   }
+
+  Logger.info(`[RootController/Search]: Search ${specify ? `(${specify} engine only)` : '(all engines)'} updated`);
 }
 
 interface ISearchQuery {

@@ -3,9 +3,9 @@ import { IUser, IUserLib } from '../interfaces/User';
 import { DeepPartial } from '../interfaces/Interfaces';
 import { createID, getUTC } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
-import { writeLog } from '../handlers/Errors';
 import { testMode } from '../config';
 import * as cfg from '../config';
+import { Logger } from '..';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,
@@ -117,7 +117,8 @@ export async function createUser({ id, roles, avatar, username, libs, test }: {
   const user = new User(payload);
 
   await user.save();
-  writeLog('info', `New user ${id} created`, 'User/createUser');
+
+  Logger.debug(`[User]: User @${username}/${id} crated`);
 
   return id;
 }

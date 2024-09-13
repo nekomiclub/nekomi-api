@@ -1,10 +1,12 @@
 import { addZeroIfNumberSingle, getUTC } from '../handlers/handlers';
 import path from 'path';
 import fs from 'fs';
+import chalk from 'chalk';
 
 export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace'] as const;
 export type TLogType = typeof LOG_TYPES[number];
 
+/** Standalone Logging service */
 export class LoggerService {
   private MAX_TYPE_LENGTH = Math.max(...LOG_TYPES.map(el => el.length));
   private ROOT_DIR = path.resolve();
@@ -24,12 +26,22 @@ export class LoggerService {
     const date = `${getUTC().dateReversed}/${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}:${getUTC().ms < 100 ? `0${addZeroIfNumberSingle(getUTC().ms)}` : getUTC().ms}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
-    const log = `${parsedType} (${date}) | ${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;
+    const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;
+    const log = `${parsedType} (${date}) | ${logMessage}`;
 
     this.prepend(log, this.LOG_FILE);
 
-    if (type === 'error') {
+    if (type === 'error' || type === 'fail') {
       this.prepend(log, this.LOG_ERROR_FILE);
+      console.log(chalk.red(`${parsedType} | ${logMessage}`));
+    } else if (type === 'info') {
+      console.log(chalk.green(`${parsedType} | ${logMessage}`));
+    } else if (type === 'debug' || type === 'trace') {
+      console.log(chalk.grey(`${parsedType} | ${logMessage}`));
+    } else if (type === 'warn') {
+      console.log(chalk.yellow(`${parsedType} | ${logMessage}`));
+    } else {
+      console.log(`${chalk.bgRed(`(TYPE NOT SPECIFIED IN LOGGER SERVICE)`)} ${parsedType} | ${logMessage}`);
     }
   }
 
@@ -83,6 +95,16 @@ export class LoggerService {
       type: 'trace',
       msg
     });
+  }
+
+  /** Fire all log events */
+  test() {
+    this.fail('This is test message :)');
+    this.error('This is test message :)');
+    this.info('This is test message :)');
+    this.debug('This is test message :)');
+    this.trace('This is test message :)');
+    this.warn('This is test message :)');
   }
 
 

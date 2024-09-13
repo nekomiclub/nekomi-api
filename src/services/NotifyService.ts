@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { E400, E404, ErrorConstructor, writeLog } from '../handlers/Errors';
+import { E400, E404, ErrorConstructor } from '../handlers/Errors';
 import Title from '../Models/Title';
 import User from '../Models/User';
 import { ITitle } from '../interfaces/Title';
@@ -8,6 +8,7 @@ import Dubber from '../Models/Dubber';
 import { IDubber } from '../interfaces/Dubber';
 import { $http } from '../handlers/http';
 import { config } from '../config';
+import { Logger } from '..';
 
 //! MUST BE SYNCED WITH animee-bot 
 export type TNotifyEvent = 'new_episode';
@@ -40,11 +41,11 @@ export class NotifyService {
       }
     } catch (e) {
       if (e instanceof ErrorConstructor) {
-        writeLog('error', `[HTTP_ERR at ${event}]: ${e.code} - ${e.msg}`, 'NotifyService');
+        Logger.error(`[Notify/HTTP]: An error occured while processing ${event}: ${e.code} - ${e.msg}`);
       } else if (e instanceof AxiosError) {
-        writeLog('error', `[AXIOS_ERR at ${event}]: ${e.code} - ${JSON.stringify(e.response?.data)}`, 'NotifyService');
+        Logger.error(`[Notify/Axios]: An error occured while processing ${event}: ${e.code}`, e);
       } else {
-        writeLog('error', `[UNKNOWN at ${event}]: ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`, 'NotifyService');
+        Logger.error(`[Notify]: An uncaught error occured while processing ${event}`, e);
       }
     }
   }

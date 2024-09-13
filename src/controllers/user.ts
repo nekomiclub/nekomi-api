@@ -5,7 +5,7 @@ import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
-import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500, writeLog } from '../handlers/Errors';
+import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500 } from '../handlers/Errors';
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
@@ -15,6 +15,7 @@ import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
 import { TNotifyEvent } from '../services/NotifyService';
 import Dubber from '../Models/Dubber';
+import { Logger } from '..';
 
 
 
@@ -50,6 +51,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     let payload: IFK_UsapiAuthRefresh | null = null;
 
     if (testMode) {
+      Logger.debug(`[UserController/Signin]: Refresh payload mocked due to test mode`);
       payload = handler.getMockData<IFK_UsapiAuthRefresh>(req, 'UserSignin').data;
     } else {
       try {
@@ -85,6 +87,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       await user.save();
     } else {
       // User not exist, create new one
+      Logger.info(`[UserController/Signin]: User is new, welcome!`);
 
       await createUser({
         id: payload.id,
@@ -234,7 +237,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       // ignore
     }
 
-    writeLog('info', `User ${userID} modified. Stack - ${modifyStack.join(', ')}`, 'patchUser');
+    Logger.debug(`[UserController/Patch]: User ${userID} modified. Stack - ${modifyStack.join(', ')}`);
 
     return res.status(200).json({ msg: 'User modified', stack: modifyStack.join('\n') });
 
@@ -353,7 +356,7 @@ export async function postLinkTelegram(req: express.Request, res: express.Respon
 
     user.markModified('statistics');
 
-    writeLog('info', `User ${animeeID} linked telegram (${telegramID})`, 'postLinkTelegram');
+    Logger.info(`[UserController/LinkTelegram]: User ${animeeID} linked telegram with id ${telegramID}`);
     await user.save();
 
     return res.status(200).json({ msg: 'Account linked', username: user.username });
@@ -391,7 +394,7 @@ export async function postLinkTelegramTokenVerify(req: express.Request, res: exp
 
     await user.save();
 
-    writeLog('info', `Telegram link token removed for ${user.id}`, 'postLinkTelegramTokenVerify');
+    Logger.info(`[UserController/LinkTelegram]: Telegram link token verified and revoked for ${user.id}`);
 
     return res.status(200).json({ msg: 'ok', verified: true, id: user.id });
   });

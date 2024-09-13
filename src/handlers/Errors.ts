@@ -7,6 +7,7 @@ import { validationResult } from 'express-validator';
 
 import { config, devMode, prodMode } from '../config';
 import { createID, getUTC } from './handlers';
+import { Logger } from '..';
 
 
 
@@ -112,7 +113,7 @@ export async function catchError(req: express.Request, res: express.Response, cb
       if (devMode) console.error(emsg);
 
       if (e.code >= 500) {
-        writeLog('error', emsg, 'catchError/http');
+        Logger.error(emsg);
       }
 
       return res.status(e.code).json({ ...e, date, url: `${req.method} ${req.baseUrl}` });
@@ -124,22 +125,22 @@ export async function catchError(req: express.Request, res: express.Response, cb
       let reqUrl = e.config?.url;
 
       if (status === 500) {
-        emsg = `Internal server error occured. Code - ${e.code}`;
+        emsg = `[AXIOS]: Internal server error occured. Code - ${e.code}`;
       } else if (status === 501) {
-        emsg = `Not implemented. Code - ${e.code}`;
+        emsg = `[AXIOS]: Not implemented. Code - ${e.code}`;
       } else if (status === 502) {
-        emsg = `Bad gateway. Code - ${e.code}`;
+        emsg = `[AXIOS]: Bad gateway. Code - ${e.code}`;
       } else if (status === 503) {
-        emsg = `Service unavailable. Try in a few minutes. Code - ${e.code}`;
+        emsg = `[AXIOS]: Service unavailable. Try in a few minutes. Code - ${e.code}`;
       }
 
       if (status >= 500) {
-        writeLog('error', `${emsg}; Req: ${reqUrl}; At: ${req.baseUrl}`, 'catchError/axios');
+        Logger.error(`${emsg}; Req: ${reqUrl}; At: ${req.baseUrl}`);
 
         if (reqUrl?.includes(ip.address())) {
           const id = createID();
 
-          writeLog('debug', `Hidden local port with id - ${id}. URL - ${reqUrl}`, `catchError/axios`);
+          Logger.debug(`[AXIOS]: Local port hidden with id - ${id}`);
           reqUrl = `local:${id}`;
         }
       } else {
@@ -158,51 +159,9 @@ export async function catchError(req: express.Request, res: express.Response, cb
       console.log(emsg);
       console.log(JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
 
-      writeLog('error', e, 'catchError/unexpected');
+      Logger.error(`[Uncaught]: Uncaught error occured`, e);
 
       return res.status(503).json({ msg: emsg, date, url: `${req.method} ${req.baseUrl}` });
     }
   }
-}
-
-/** Log type
- * Info - Information log
- * Warn - Warning log
- * Error - Error log
- * Fatal - Fatal error, service may not be available
- */
-type TLogType = 'info' | 'warn' | 'error' | 'fatal' | 'debug'
-
-/** Logger */
-export function writeLog(type: TLogType, msg: any, at: string) {
-  const date = `[${getUTC().date} ${getUTC().time}]`;
-  const prefix = type === 'fatal' ? 'FATAL ERROR' : type.toUpperCase();
-
-  const emsg = `${prefix} ${date} (at ${at}): ${JSON.stringify(msg, Object.getOwnPropertyNames(msg))}`;
-
-  if (type === 'fatal') {
-    console.log(`\nFatal error occured ----------------------------\n`);
-    console.error(msg);
-    console.error(`\nFatal error ended ----------------------------\n`);
-
-    prepend(emsg, `${path.resolve()}/logs/fatal.log`);
-  } else if (type === 'error') {
-    console.log(`\nAn error occured ----------------------------`);
-    console.error(msg);
-    console.log('----------------------------');
-
-    prepend(emsg, `${path.resolve()}/logs/error.log`);
-    prepend(emsg, `${path.resolve()}/logs/.log`);
-  } else {
-    console.log(msg);
-
-    prepend(emsg, `${path.resolve()}/logs/.log`);
-  }
-}
-
-function prepend(data: string, path: string) {
-  const rows = fs.readFileSync(path).toString().split('\n');
-  rows.unshift(data);
-
-  fs.writeFileSync(path, rows.join('\n'));
 }

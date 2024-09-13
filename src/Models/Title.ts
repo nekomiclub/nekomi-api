@@ -4,7 +4,7 @@ import { convert as urlSlugConvert } from 'url-slug';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { createID, getUTC, parseIMDBDate } from '../handlers/handlers';
 import { DeepPartial } from '../interfaces/Interfaces';
-import { E400, E404, E503, ErrorConstructor, writeLog } from '../handlers/Errors';
+import { E400, E404, E503, ErrorConstructor } from '../handlers/Errors';
 import { IChangeEpMeta } from '../controllers/title';
 import Dubber from './Dubber';
 import axios, { AxiosError } from 'axios';
@@ -13,6 +13,7 @@ import { config, testMode } from '../config';
 import * as cfg from '../config';
 import { $http } from '../handlers/http';
 import puppeteer from 'puppeteer';
+import { Logger } from '..';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,
@@ -79,7 +80,7 @@ export async function createTitle(creator: string, { ageRate, id, code, country,
   const title = new Title(payload);
   await title.save();
 
-  writeLog(`info`, `New title (${ID}) created by ${creator}`, `Title/createTitle`);
+  Logger.debug(`[TitleController]: New title created by - ${creator} with id - ${id}`);
 
   return ID;
 }
@@ -448,7 +449,7 @@ export class TitlePatcher {
         });
       }
 
-      writeLog('warn', `Episode (${order} in ${dubID}) for ${this.title.id} deleted by ${by}`, `Title/TitlePatcher/deleteEpisode`);
+      Logger.debug(`[TitleController]: Episode ${order}/${dubID} in ${this.title.id} deleted by ${by}`);
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
@@ -549,8 +550,6 @@ export class TitlePatcher {
 
     this.title.episodesMeta = this.title.episodesMeta.sort((a, b) => a.order - b.order);
     this.save();
-
-    writeLog('info', `${label} Parsed ${newEpisodes} episodes metas`, `TitlePatcher`);
   }
 }
 

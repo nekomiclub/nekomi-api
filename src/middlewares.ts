@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import axios, { AxiosError } from 'axios';
 
-import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, writeLog, E503 } from './handlers/Errors';
+import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, E503 } from './handlers/Errors';
 import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
@@ -11,6 +11,7 @@ import { getMockData, parseRoles } from './handlers/handlers';
 import { IM_CSRFCheck } from './interfaces/Mocks';
 import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from './interfaces/FullkekwResponses';
 import { $http } from './handlers/http';
+import { Logger } from '.';
 
 
 
@@ -40,6 +41,8 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       }
 
       if (testMode) {
+        Logger.debug(`[Middleware/AccessControl]: Out request data mocked due to test mode`);
+
         const data = getMockData(req, 'AccessControl').data;
 
         id = data.id;
@@ -91,12 +94,12 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       }
 
       if (user.username !== username) {
-        writeLog(`info`, 'User patched by AccessControl: Username changed to usapi variant', `AccessControl`);
+        Logger.debug(`[Middleware/AccessControl]: User ${user.id} username synced with fullkekw-usapi (${user.username} > ${username})`);
         user.username = username;
       }
 
       if (user.avatar !== avatar) {
-        writeLog(`info`, 'User patched by AccessControl: Avatar changed to usapi variant', `AccessControl`);
+        Logger.debug(`[Middleware/AccessControl]: User ${user.id} avatar URL synced with fullkekw-usapi`);
         user.avatar = avatar;
       }
 
@@ -153,6 +156,7 @@ export function CSRFCheck(origins?: string[]) {
       };
 
       if (testMode) {
+        Logger.debug(`[Middleware/CSRFCheck]: Out request data mocked due to test mode`);
         data = getMockData<IM_CSRFCheck>(req, 'CSRFCheck').data;
       } else {
         try {

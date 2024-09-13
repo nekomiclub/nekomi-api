@@ -1,6 +1,6 @@
 import { devMode } from '../config';
-import { E400, ErrorConstructor, writeLog } from '../handlers/Errors';
-import { wss } from '../index';
+import { E400, ErrorConstructor } from '../handlers/Errors';
+import { Logger, wss } from '../index';
 import { IWS, IWSPollPresence, IWSSendPresence, TWSType } from '../interfaces/WebSocket';
 
 let OnlineSIDs: string[] = [];
@@ -47,11 +47,11 @@ export function WebSocketListen() {
         }
       } catch (e) {
         if (e instanceof ErrorConstructor) {
-          const emsg = `[WS ${e.code}]: ${e.msg}`;
+          const emsg = `[WebSocket ${e.code}]: ${e.msg}`;
           if (devMode) console.error(emsg);
 
           if (e.code >= 500) {
-            writeLog('error', emsg, 'catchError/WS');
+            Logger.error(emsg);
           }
 
           const payload: IWS = {
@@ -61,7 +61,13 @@ export function WebSocketListen() {
 
           return ws.send(JSON.stringify(payload));
         } else {
-          writeLog('error', e, 'webSocket');
+          const payload: IWS = {
+            type: 'error',
+            payload: `Uncaught websocket error occured`
+          };
+
+          Logger.error('[WebSocket]: Uncaught error occured', e);
+          return ws.send(JSON.stringify(payload));
         }
       }
     });

@@ -10,12 +10,13 @@ import fs from 'fs';
 import path from 'path';
 import ip from 'ip';
 import process from 'process';
+import chalk from 'chalk';
 
-import { devMode, testMode, config, prodMode, checkFilesystem } from './config';
+import { devMode, testMode, config, prodMode } from './config';
 
 import * as router from './router';
 import * as handler from './handlers/handlers';
-import { E403, writeLog } from './handlers/Errors';
+import { E403 } from './handlers/Errors';
 import Title, { TitlePatcher } from './Models/Title';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';
@@ -28,9 +29,17 @@ import { LoggerService } from './services/LoggerService';
 
 
 
+chalk.level = 1;
+
+
+
+export const Logger = new LoggerService();
+
+
 
 if (prodMode && ip.address() !== config.vars.prodIP) {
-  writeLog('fatal', `Startup denied for ${ip.address()}.`, 'initialization');
+  Logger.error(`[Startup]: Startup denied for ${ip.address()} (IP does not match default production IP)`);
+
   throw new Error(`
     ----------------------------
     ANIMEE-CORE STARTUP DENIED
@@ -46,15 +55,14 @@ const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/priv
 const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8') : '';
 const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8') : '';
 
-//! DO NOT CHANGE IF NOT NECESSARY
-const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}`;
+const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}` as const;
 
 mongoose.set('strictQuery', false);
 
 mongoose.connect(MONGO_URI, {
   retryWrites: true,
 }).catch(e => {
-  writeLog('fatal', e, 'initialization/mongoose');
+  Logger.error('[Startup/MongoDB]: MongoDB connection errored', e);
 });
 
 export const app = express();
@@ -88,13 +96,11 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
-if (testMode) {
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    writeLog('debug', `Request - ${req.method} ${req.url}`, 'TESTING');
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  Logger.trace(`[Request]: ${req.method} - ${req.url}`);
 
-    next();
-  });
-}
+  next();
+});
 
 app.use('/dubber', router.DubberRouter);
 app.use('/user', router.UserRouter);
@@ -106,35 +112,29 @@ if (devMode) {
   app.use('/dev', router.DevRouter);
 }
 
-wss.on('error', e => { writeLog('error', e, 'initialization/websocket'); });
+wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
+wss.on('listening', () => {
+  const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
+  Logger.info(`[Startup]: Websocket server started in ${mode} mode at ws://${config.service.HOST}:${config.service.PORTS.WS}`);
+});
 
 /** Implementation of NotifyService */
 export const Notify = new NotifyService();
-export const Logger = new LoggerService();
 
 
 
 (async function () {
+  const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
+
   // Pre-init callback
   try {
-    await checkFilesystem();
     WebSocketListen();
   } catch (e) {
-    writeLog('fatal', e, 'initialization/preInit');
+    Logger.error('[Startup/Pre-init Callback]: An error occured in one of pre-init handlers', e);
   }
 
   app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
-    console.log(`
-      ----------------------------
-      ANIMEE-CORE STARTED UP
-    
-      Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
-      Mode: ${prodMode ? 'Production' : 'Development'} ${testMode ? '(Testing)' : ''}
-      HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
-      HTTPS: ${prodMode ? 'NGINX serve' : 'Disabled in dev mode'}
-      WS: ${config.service.HOST}:${config.service.PORTS.WS}
-      ----------------------------
-    `);
+    Logger.info(`[Startup]: HTTP server started in ${mode} mode at http://${config.service.HOST}:${config.service.PORTS.HTTP}`);
   });
 
   // Post-init callback
@@ -149,7 +149,20 @@ export const Logger = new LoggerService();
       await handler.updateDubbers();
     }
 
+    console.log(`
+      ----------------------------
+      ANIMEE-CORE STARTED UP
+    
+      Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
+      Mode: ${mode}
+      HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
+      WS: ${config.service.HOST}:${config.service.PORTS.WS}
+      ----------------------------
+    `);
+
     setInterval(async () => {
+      Logger.info(`[Startup/Post-init Callback]: Cache updated`);
+
       // Update cache
       await Promise.all([
         await updateSearch(),
@@ -158,6 +171,6 @@ export const Logger = new LoggerService();
       ]);
     }, 43200000); // 43200000 // 12h
   } catch (e) {
-    writeLog('error', e, 'initialization/postInit');
+    Logger.error('[Startup/Post-init Callback]: An error occured in one of post-init handlers', e);
   }
 })();

@@ -13,10 +13,11 @@ import User from '../Models/User';
 import { user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
-import { E500, writeLog } from './Errors';
+import { E500 } from './Errors';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
 import { IMock, TMockID } from '../interfaces/Mocks';
 import { TNotifyEvent } from '../services/NotifyService';
+import { Logger } from '..';
 
 
 
@@ -194,7 +195,7 @@ export async function removeUsersLinkTelegramToken() {
     await user.save();
   }
 
-  writeLog('info', `Users telegram link tokens removed`, 'removeUsersLinkTelegramToken');
+  Logger.info(`[Handler/UsersTelegramToken]: Tokens revoked due to server restart`);
 }
 
 /** Parse WEK, MON MM, YYYY */
@@ -231,7 +232,7 @@ export function parseIMDBDate(dateString: string): number {
 
 export async function updateDubbers() {
   const startedAt = getUTC().timestamp;
-  writeLog(`info`, `[DubbersUpdating]: Updating started`, `updateDubbers`);
+  Logger.info(`[DubbersUpdating]: Updating started at ${getUTC().time}`);
 
   const dubbers = await Dubber.find();
   let touched = 0;
@@ -248,11 +249,11 @@ export async function updateDubbers() {
       await dubber.save();
 
       touched += 1;
-      writeLog(`info`, `[DubbersUpdating]: Dubber ${dubber.name}/${dubber.id} updated`, `updateDubbers`);
+      Logger.info(`[DubbersUpdating]: Dubber ${dubber.name}/${dubber.id} updated`);
     } catch (e) {
-      writeLog(`error`, `[DubbersUpdating]: An error occured while updating ${dubber.name}/${dubber.id} - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`, 'updateDubbers');
+      Logger.error(`[DubbersUpdating]: An error occured while updating ${dubber.name}/${dubber.id}`, e);
     }
   }
 
-  writeLog(`info`, `[DubbersUpdating]: Updating ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}. Touched - ${touched} dubbers`, `updateDubbers`);
+  Logger.info(`[DubbersUpdating]: Updating ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}. Touched - ${touched} dubbers`);
 }
