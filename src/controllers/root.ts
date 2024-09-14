@@ -2,7 +2,6 @@ import express from 'express';
 import Fuse, { FuseResult } from 'fuse.js';
 import * as dto from '../handlers/dtos';
 
-import { E400, E500, catchError } from '../handlers/Errors';
 import { ITitle } from '../interfaces/Title';
 import Title from '../Models/Title';
 import { checkValue } from '../handlers/handlers';
@@ -11,6 +10,7 @@ import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
 import { Logger } from '..';
+import { E400, E418, ERR_INVALID_PAYLOAD, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
 
 
 
@@ -89,7 +89,7 @@ export interface ISearchExtended<T = any> {
 
 /** @see /docs/routes/root.md */
 export async function getSearch(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { q } = req.query as ISearchQuery;
     let { limit, page, engines } = req.query as ISearchQuery;
 
@@ -100,13 +100,13 @@ export async function getSearch(req: express.Request, res: express.Response) {
     limit = checkValue(limit, { notNaN: true, maxLength: 100, minLength: 1 }) ? +limit! : 30;
     page = checkValue(page, { notNaN: true, minLength: 0 }) ? +page! : 0;
 
-    if (q === undefined || engines === undefined) throw new E400('Can not search without specified query or engines');
+    if (q === undefined || engines === undefined) throw new ERR_INVALID_PAYLOAD('Can not search without specified query or engines');
 
     try {
       // @ts-ignore
       engines = JSON.parse(engines as string);
     } catch (e) {
-      throw new E400('An error occured while parsing search engines');
+      throw new ERR_INVALID_PAYLOAD('An error occured while parsing search engines');
     }
 
     engines = engines || [];
@@ -150,7 +150,7 @@ export async function getSearch(req: express.Request, res: express.Response) {
           matches.forEach(match => rawResults.push({ type: 'user', item: match }));
         }
       } catch (e) {
-        throw new E400('Search is not ready yet. Try in a few minutes');
+        throw new ERR_NOT_READY();
       }
     }
 

@@ -16,7 +16,6 @@ import { devMode, testMode, config, prodMode } from './config';
 
 import * as router from './router';
 import * as handler from './handlers/handlers';
-import { E403 } from './handlers/Errors';
 import Title, { TitlePatcher } from './Models/Title';
 import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';

@@ -5,7 +5,6 @@ import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
-import { ErrorConstructor, E400, E401, E403, E404, catchError, E501, E500 } from '../handlers/Errors';
 import User, { createUser } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
@@ -16,7 +15,7 @@ import { TRoleCapability } from '../interfaces/Roles';
 import { TNotifyEvent } from '../services/NotifyService';
 import Dubber from '../Models/Dubber';
 import { Logger } from '..';
-import { HandleRequest } from '../services/ErrorService';
+import { E400, E404, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
 
 
 
@@ -47,7 +46,7 @@ interface IPatchUserBody {
 
 
 export async function postSignin(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { session } = req.body as { session: string };
     let payload: IFK_UsapiAuthRefresh | null = null;
 
@@ -77,7 +76,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       }
     }
 
-    if (!payload) throw new E400('Invalid payload');
+    if (!payload) throw new ERR_INVALID_PAYLOAD();
 
     let user = await User.findOne({ id: payload.id });
 
@@ -109,7 +108,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
 /** @see /docs/routes/user.md */
 export async function getLogout(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     return res.status(200).clearCookie(config.vars.sessionCookie).json({ msg: 'User logged out' });
   });
 }
@@ -118,7 +117,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 
 /** @see /docs/routes/user.md */
 export async function getValidate(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const session = req.cookies[config.vars.sessionCookie];
 
     if (session) {
@@ -166,7 +165,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
     if (query === '*') {
       const cookie = req.cookies[config.vars.sessionCookie];
 
-      if (!cookie) throw new E401(`Can not get user without session cookie provided`);
+      if (!cookie) throw new ERR_MISSING_AUTHORIZATION(`Can not get own user without session cookie provided`);
 
       const token = TokenService.decodeToken<{ userId: string }>(cookie);
       query = token.payload!.userId;
@@ -213,7 +212,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
 /** @see /docs/routes/user.md */
 export async function patchUser(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { userID } = req.animee;
     const { method } = req.body as IPatchUserBody;
 
@@ -229,7 +228,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
     } else if (method === 'patchWatchProgress') {
       await patchWatchProgress();
     } else {
-      throw new E400('Invalid method');
+      throw new ERR_INVALID_PAYLOAD('Invalid method');
     }
 
     try {
@@ -249,7 +248,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       const { folderId, titleId } = req.body as IPatchUserBody;
 
       if (!folderId || !titleId || !user) {
-        throw new E400(`Folder ID and title ID are required`);
+        throw new ERR_INVALID_PAYLOAD();
       }
 
       const folder = user.libs.find(el => el.id === folderId);
@@ -301,8 +300,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
     async function patchWatchProgress() {
       const { progress, titleId, episodeOrder, dubberID, viewtime } = req.body as IPatchUserBody;
 
-      if (!user || !viewtime || !progress || !titleId || episodeOrder === undefined || !dubberID) throw new E400('Some field are invalid or missing');
-      if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new E400('Viewtime, episodeOrder and progress can not be NaN');
+      if (!user || !viewtime || !progress || !titleId || episodeOrder === undefined || !dubberID) throw new ERR_INVALID_PAYLOAD();
+      if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new ERR_TYPE_INVALID('Viewtime, episodeOrder and progress can not be NaN');
 
       const dubber = await Dubber.findOne({ id: dubberID });
       const title = await Title.findOne({ id: titleId });
@@ -341,7 +340,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
 /** @see /docs/routes/user.md */
 export async function postLinkTelegram(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
 
     const user = await User.findOne({ id: animeeID });
@@ -365,12 +364,12 @@ export async function postLinkTelegram(req: express.Request, res: express.Respon
 }
 
 export async function getLinkTelegramToken(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const user = await User.findOne({ id: req.animee.userID! });
 
     if (!user) throw new E404('User not found');
 
-    if (user.statistics.isTelegramLinked) throw new E403('Account already linked');
+    if (user.statistics.isTelegramLinked) throw new E400('Account already linked');
 
     const token = handler.makeStringID(24);
 
@@ -384,7 +383,7 @@ export async function getLinkTelegramToken(req: express.Request, res: express.Re
 }
 
 export async function postLinkTelegramTokenVerify(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { token } = req.body as { token: string };
     const user = await User.findOne({ telegramLinkToken: token });
 

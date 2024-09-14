@@ -1,13 +1,13 @@
 import express from 'express';
-import { ErrorConstructor, E400, E401, E403, E404, catchError } from '../handlers/Errors';
 import fs from 'fs';
 import * as dto from '../handlers/dtos';
 import Dubber from '../Models/Dubber';
 import { devMode } from '../config';
 import { IDubber } from '../interfaces/Dubber';
+import { E404, HandleRequest } from '../services/ErrorService';
 
 export async function getOne(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { query } = req.params;
 
     const dubber = await Dubber.findOne({ $or: [{ id: query }, { code: query }] });
@@ -21,7 +21,7 @@ export async function getOne(req: express.Request, res: express.Response) {
 }
 
 export async function getAll(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const dubbers = (await Dubber.find()).map(dubber => dto.dubber(dubber.toObject()));
 
     return res.status(200).json({ msg: 'ok', dubbers });

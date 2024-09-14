@@ -1,5 +1,4 @@
 import { AxiosError } from 'axios';
-import { E400, E404, ErrorConstructor } from '../handlers/Errors';
 import Title from '../Models/Title';
 import User from '../Models/User';
 import { ITitle } from '../interfaces/Title';
@@ -9,6 +8,7 @@ import { IDubber } from '../interfaces/Dubber';
 import { $http } from '../handlers/http';
 import { config } from '../config';
 import { Logger } from '..';
+import { E404, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 
 //! MUST BE SYNCED WITH animee-bot 
 export type TNotifyEvent = 'new_episode';
@@ -40,8 +40,8 @@ export class NotifyService {
         }
       }
     } catch (e) {
-      if (e instanceof ErrorConstructor) {
-        Logger.error(`[Notify/HTTP]: An error occured while processing ${event}: ${e.code} - ${e.msg}`);
+      if (e instanceof HTTPErrorConstructor) {
+        Logger.error(`[Notify/HTTP]: An error occured while processing ${event}: ${e.code} - ${e.message}`);
       } else if (e instanceof AxiosError) {
         Logger.error(`[Notify/Axios]: An error occured while processing ${event}: ${e.code}`, e);
       } else {
@@ -59,7 +59,7 @@ async function newEpisode(payload: string) {
   try {
     data = JSON.parse(payload) as INotifyNewEpisode;
   } catch (e) {
-    throw new E400('JSON parsing error');
+    throw new ERR_INVALID_PAYLOAD('JSON parsing error');
   }
 
   const { dubberID, episodeOrder, titleID } = data;

@@ -8,7 +8,7 @@ import { Logger } from '..';
 import { devMode } from '../config';
 import chalk from 'chalk';
 
-export const HTTP_ERROR_CORES = [400, 401, 403, 404, 500, 501, 502, 503] as const;
+export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
 
 export class HTTPErrorConstructor {
@@ -54,6 +54,13 @@ export class E404 extends HTTPErrorConstructor {
   }
 }
 
+/** HTTP_BAD_REQUEST */
+export class E418 extends HTTPErrorConstructor {
+  constructor(message: string, code?: string) {
+    super({ message, status: 418, code: code || 'HTTP_TEAPOT' });
+  }
+}
+
 /** HTTP_INTERNAL */
 export class E500 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
@@ -84,7 +91,11 @@ export class E503 extends HTTPErrorConstructor {
 
 
 
-/** Handle request errors */
+/** Handle request errors like
+ * HTTPErrorConstructor, Axios, express-validator & uncaught
+ * 
+ * @param preventFullfilled prevent default fullfilled response
+ */
 export async function HandleRequest(req: express.Request, res: express.Response, cb: () => any | Promise<any>, preventFullfilled?: boolean) {
   try {
     const validation = validationResult(req);
@@ -154,6 +165,42 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 //* --------------- DEFAULT EXCEPTIONS ---------------
 export class ERR_INVALID_PAYLOAD extends E400 {
   constructor(message?: string) {
-    super(message || 'Invalid payload. Match payload with endpoint documentation payload.', 'ERR_INVALID_PAYLOAD');
+    super(message || 'Invalid payload. Match payload with endpoint documentation.', 'ERR_INVALID_PAYLOAD');
+  }
+}
+
+export class ERR_TYPE_INVALID extends E400 {
+  constructor(message?: string) {
+    super(message || 'Value type invalid. Match it`s type with endpoint documentation.', 'ERR_TYPE_INVALID');
+  }
+}
+
+export class ERR_ALREADY_EXIST extends E400 {
+  constructor(message?: string) {
+    super(message || 'Object already exist, new one can not be created.', 'ERR_ALREADY_EXIST');
+  }
+}
+
+export class ERR_LENGTH_INVALID extends E400 {
+  constructor(message?: string) {
+    super(message || 'Length is out of range.', 'ERR_LENGTH_INVALID');
+  }
+}
+
+export class ERR_NOT_READY extends E418 {
+  constructor(message?: string) {
+    super(message || 'Endpoint response is not ready yet, try in a few minutes.', 'ERR_NOT_READY');
+  }
+}
+
+export class ERR_MISSING_AUTHORIZATION extends E400 {
+  constructor(message?: string) {
+    super(message || 'Authorization cookie/header is missing.', 'ERR_MISSING_AUTHORIZATION');
+  }
+}
+
+export class ERR_ACCESS_REJECTED extends E400 {
+  constructor(message?: string) {
+    super(message || 'You are not allowed to have access for that.', 'ERR_ACCESS_REJECTED');
   }
 }

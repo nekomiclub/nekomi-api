@@ -7,7 +7,6 @@ import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import { E400, E401, E403, E404, E500, E501, E503, ErrorConstructor, catchError } from '../handlers/Errors';
 import Title, { TitlePatcher, createTitle } from '../Models/Title';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode, prodMode, testMode } from '../config';
@@ -22,6 +21,7 @@ import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
 import { Logger, Notify } from '..';
 import { INotifyNewEpisode } from '../services/NotifyService';
+import { E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
 
 
 
@@ -88,7 +88,7 @@ const TITLES_POPULAR: ITitlesPopular = {
 
 
 export async function getTitleQuery(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { query } = req.params as { query: string };
     const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
     const CSRFToken = req.header(config.vars.csrfHeader);
@@ -98,7 +98,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     let privateMode = true;
 
     if (!title) {
-      throw new E404(`Title (${query}) is not found`);
+      throw new E404(`Title ${query} is not found`);
     }
 
     if (CSRFToken && detailed) {
@@ -133,7 +133,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 }
 
 export async function getTotal(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const titles = await Title.find();
 
     return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.filter(el => el.country !== 'Other').length });
@@ -141,7 +141,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
 }
 
 export async function postTitle(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const UserData = req.animee;
     const id = await createTitle(UserData.userID!, {});
 
@@ -152,7 +152,7 @@ export async function postTitle(req: express.Request, res: express.Response) {
 }
 
 export async function patchTitle(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { id } = req.params as { id: string };
     const { userID, userCapabilities } = req.animee;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
@@ -172,12 +172,8 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: string, dubID?: string };
       let { qualities } = req.body as { qualities?: string | number[] };
 
-      if (!file) {
-        throw new E400('File is not provided');
-      }
-
-      if (!type) {
-        throw new E400('Type is not provided');
+      if (!file || !type) {
+        throw new ERR_INVALID_PAYLOAD();
       }
 
       const { buffer, originalname, filename, mimetype } = file;
@@ -189,7 +185,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
       formData.set('uploadedBy', userID);
 
       if (type === 'change_poster') {
-        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('titleEdit')) throw new E403('You do not have access to change poster');
+        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
 
         formData.set('type', 'photo/title/poster');
 
@@ -229,14 +225,14 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           }
         }
       } else if (type === 'upload_episode') {
-        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('seriesAdd')) throw new E403('You do not have access to uploading episodes');
+        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
 
-        if (!dubID || !episodeOrder || !qualities) throw new E400('DubID, episode order and qualities are not required');
+        if (!dubID || !episodeOrder || !qualities) throw new ERR_INVALID_PAYLOAD();
 
         try {
           qualities = JSON.parse(qualities as string) as number[];
         } catch (e) {
-          throw new E400(`An error occured while parsing qualities field - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`);
+          throw new ERR_INVALID_PAYLOAD(`An error occured while parsing qualities`);
         }
 
         const dubber = await Dubber.findOne({ id: dubID });
@@ -245,12 +241,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         if (!dubber) throw new E404(`Dub ${dubID} is not found`);
 
         // Reject if episode is NaN
-        if (isNaN(+episodeOrder)) throw new E400('Episode can not be NaN');
+        if (isNaN(+episodeOrder)) throw new ERR_TYPE_INVALID('Episode can not be NaN');
         const order = +episodeOrder;
 
         // Reject if episode exist
         if (title.episodes.some(el => el.dubberID === dubber.id && el.order === order)) {
-          throw new E400(`Episode ${order} in ${dubber.id} already exist`);
+          throw new ERR_ALREADY_EXIST(`Episode ${order} in ${dubber.id} already exist`);
         }
 
         const ep: ITitleEpisode = {
@@ -375,13 +371,13 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
     async function execWithCap(capability: TRoleCapability, cb: () => any | Promise<any>) {
-      if (!userCapabilities?.includes(capability) && !userCapabilities!.includes('root')) throw new E403('Patching not allowed');
+      if (!userCapabilities?.includes(capability) && !userCapabilities!.includes('root')) throw new ERR_ACCESS_REJECTED();
 
       return await cb();
     }
 
     function changeNamesHandler() {
-      if (changeNames?.alt && !Array.isArray(changeNames?.alt)) throw new E400('Alt names must be an array');
+      if (changeNames?.alt && !Array.isArray(changeNames?.alt)) throw new ERR_TYPE_INVALID('Alt names must be an array');
 
       Patcher.changeNames({
         alt: changeNames?.alt,
@@ -391,32 +387,32 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
     function changeRatingHandler() {
-      if (isNaN(+setRating!)) throw new E400('Rating can not be NaN');
+      if (isNaN(+setRating!)) throw new ERR_TYPE_INVALID('Rating can not be NaN');
 
       Patcher.changeRating(+setRating!, 'IMDB');
     }
 
     function changeStudiosHandler() {
-      if (!Array.isArray(setStudios)) throw new E400('Studios must be an array');
+      if (!Array.isArray(setStudios)) throw new ERR_TYPE_INVALID('Studios must be an array');
 
       Patcher.changeStudios(setStudios);
     }
 
     function changeEpisodesCountHandler() {
-      if (isNaN(+setEps!)) throw new E400('Episodes count (setEps) can not be NaN');
+      if (isNaN(+setEps!)) throw new ERR_TYPE_INVALID('Episodes count can not be NaN');
 
       Patcher.changeEpisodesCount(+setEps!);
     }
 
     function changeYearHandler() {
-      if (isNaN(+setYear!)) throw new E400('Year can not be NaN');
+      if (isNaN(+setYear!)) throw new ERR_TYPE_INVALID('Year can not be NaN');
 
       Patcher.changeYear(+setYear!);
     }
 
     function changeEpisodeMeta() {
-      if (isNaN(+editEpMeta!.dateOut!)) throw new E400('DateOut in episode meta can not be NaN');
-      if (isNaN(+editEpMeta!.order!)) throw new E400('Order in episode meta can not be NaN');
+      if (isNaN(+editEpMeta!.dateOut!)) throw new ERR_TYPE_INVALID('DateOut in episode meta can not be NaN');
+      if (isNaN(+editEpMeta!.order!)) throw new ERR_TYPE_INVALID('Order in episode meta can not be NaN');
 
       Patcher.changeEpisodeMeta({
         action: editEpMeta!.action!,
@@ -427,7 +423,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     }
 
     async function deleteEpisodeHandler() {
-      if (isNaN(+deleteEpisode!.episodeOrder!)) throw new E400('Order in episode meta can not be NaN');
+      if (isNaN(+deleteEpisode!.episodeOrder!)) throw new ERR_TYPE_INVALID('Order in episode meta can not be NaN');
 
       await Patcher.deleteEpisode(userID!, {
         dubID: deleteEpisode!.dubID!,
@@ -438,7 +434,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 }
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const { id } = req.params as { id: string };
     const { key } = req.query as { key?: string };
     const UserData = req.animee;
@@ -447,7 +443,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${UserData.userID}\nKey: ${singCSRFToken()}\n----------------`);
       Logger.trace(`[TitleController/Delete]: Title ${id} delete request by ${UserData.userID} detected. Delete token issued in server console`);
 
-      throw new E401(`DELETE KEY IS NOT PROVIDED. NEW ONE ISSUED`);
+      throw new ERR_MISSING_AUTHORIZATION(`DELETE KEY IS NOT PROVIDED. NEW ONE ISSUED`);
     }
 
     const title = await Title.findOne({ id });
@@ -468,7 +464,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       origin = data.origin;
     }
 
-    if (!isVerified || origin !== 'api.animee.club') throw new E403('KEY INVALID');
+    if (!isVerified || origin !== 'api.animee.club') throw new ERR_ACCESS_REJECTED('KEY INVALID');
 
     await title.deleteOne();
 
@@ -478,8 +474,8 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 }
 
 export async function getPopular(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
-    if (!TITLES_POPULAR.headliner) throw new E500('Popular titles is not ready yet');
+  await HandleRequest(req, res, async () => {
+    if (!TITLES_POPULAR.headliner) throw new ERR_NOT_READY();
 
     return res.status(200).json({ msg: 'ok', ...TITLES_POPULAR });
   });
@@ -494,7 +490,7 @@ export async function UpdatePopularTitles() {
     const titles = await Title.find();
 
     if (!headlinerSrc) {
-      throw new E500('HEADLINER SRC TITLE IS NOT FOUND');
+      throw new E503('HEADLINER SRC TITLE IS NOT FOUND');
     }
 
     // TODO Make normal logic
@@ -556,7 +552,7 @@ export async function UpdatePopularTitles() {
 
     Logger.info(`[TitleController/PopularTitles]: Popular titles updated`);
   } catch (e) {
-    if (e instanceof ErrorConstructor) {
+    if (e instanceof HTTPErrorConstructor) {
       Logger.error(`[TitleController/PopularTitles/HTTP]: ${e.code} - ${e.msg}`);
     } else {
       Logger.error(`[TitleController/PopularTitles/Uncaught]: Uncaught error occured`, e);

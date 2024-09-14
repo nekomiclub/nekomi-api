@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import axios, { AxiosError } from 'axios';
 
-import { ErrorConstructor, E400, E401, E403, E500, E404, catchError, E503 } from './handlers/Errors';
 import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
 import User from './Models/User';
@@ -12,6 +11,7 @@ import { IM_CSRFCheck } from './interfaces/Mocks';
 import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from './interfaces/FullkekwResponses';
 import { $http } from './handlers/http';
 import { Logger } from '.';
+import { E404, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
 
 
 
@@ -26,7 +26,7 @@ import { Logger } from '.';
  */
 export function AccessControl(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    await catchError(req, res, async () => {
+    await HandleRequest(req, res, async () => {
       req.animee = req.animee || {};
 
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
@@ -37,7 +37,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 
       // Reject if authorization cookie is missing
       if (!token) {
-        throw new E401('No authorization provided');
+        throw new ERR_MISSING_AUTHORIZATION();
       }
 
       if (testMode) {
@@ -125,7 +125,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       });
 
       if (!pass) {
-        throw new E403('Access rejected');
+        throw new ERR_ACCESS_REJECTED();
       }
 
       return next();
@@ -142,13 +142,13 @@ export function AccessControl(capabilities: TRoleCapability[]) {
  */
 export function CSRFCheck(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    await catchError(req, res, async () => {
+    await HandleRequest(req, res, async () => {
       origins = origins || [];
 
       const token = req.header(config.vars.csrfHeader);
 
       // Reject if header undefined
-      if (!token) throw new E401('CSRF required');
+      if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
       let data: IM_CSRFCheck = {
         verified: false,
@@ -178,14 +178,9 @@ export function CSRFCheck(origins?: string[]) {
         }
       }
 
-      // Reject if token invalid
-      if (!data.verified) {
-        throw new E403('CSRF rejected');
-      }
-
-      // Reject if origin invalid
-      if (!origins.includes(data.origin)) {
-        throw new E403('CSRF origin missmatch');
+      // Reject if token or origin invalid
+      if (!data.verified || !origins.includes(data.origin)) {
+        throw new ERR_ACCESS_REJECTED('CSRF token rejected');
       }
 
       return next();

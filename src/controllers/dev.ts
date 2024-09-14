@@ -1,5 +1,5 @@
 import express from 'express';
-import { E500, catchError } from '../handlers/Errors';
+import { HandleRequest } from '../services/ErrorService';
 
 /*
   ! THESE CONTROLLERS ARE USED ONLY FOR TESTING PURPOSES
@@ -9,14 +9,14 @@ import { E500, catchError } from '../handlers/Errors';
 
 /** @see /docs/routes/dev.md */
 export async function getAccessControl(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     return res.status(200).json('ok');
   });
 }
 
 /** @see /docs/routes/dev.md */
 export async function getCSRFCheck(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     return res.status(200).json('ok');
   });
 }

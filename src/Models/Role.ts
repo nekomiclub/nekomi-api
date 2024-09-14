@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IRole } from '../interfaces/Roles';
+import { Logger } from '..';
 
 /** Roles mongodb model */
 export const Role = mongoose.model<IRole>('role', new Schema({
@@ -15,8 +16,7 @@ export async function createRole(payload: IRole) {
 
   await role.save();
 
-  // TODO Write log about creation role
-  console.log(`[Role]: New role created - ${payload.code} (${payload.id})`);
+  Logger.debug(`[Role]: New role created - ${payload.code}/${payload.id} with [${payload.capabilities.join(', ')}] capabilities`)
 }
 
 export default Role; 

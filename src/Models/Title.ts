@@ -4,7 +4,6 @@ import { convert as urlSlugConvert } from 'url-slug';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { createID, getUTC, parseIMDBDate } from '../handlers/handlers';
 import { DeepPartial } from '../interfaces/Interfaces';
-import { E400, E404, E503, ErrorConstructor } from '../handlers/Errors';
 import { IChangeEpMeta } from '../controllers/title';
 import Dubber from './Dubber';
 import axios, { AxiosError } from 'axios';
@@ -14,6 +13,7 @@ import * as cfg from '../config';
 import { $http } from '../handlers/http';
 import puppeteer from 'puppeteer';
 import { Logger } from '..';
+import { E404, E503, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,
@@ -128,7 +128,7 @@ export class TitlePatcher {
     if (ukr) {
       const trimmed = ukr.trim().replace(/\s+/g, ' ');
 
-      if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Ukranian name can not be greater than ${MAX_LENGTH} symbols`);
+      if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} Ukranian name can not be greater than ${MAX_LENGTH} symbols`);
 
       this.log.push(`${label} Changed ukranian name - ${this.title.names.ukr} > ${trimmed}`);
 
@@ -142,7 +142,7 @@ export class TitlePatcher {
         separator: '-'
       });
 
-      if (trimmed.length > MAX_LENGTH) throw new E400(`${label} English name can not be greater than ${MAX_LENGTH} symbols`);
+      if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} English name can not be greater than ${MAX_LENGTH} symbols`);
 
       this.log.push(`${label} Changed english name - ${this.title.names.eng} > ${trimmed}`);
       this.log.push(`${label} Changed code - ${this.title.code} > ${code}`);
@@ -155,12 +155,12 @@ export class TitlePatcher {
     if (alt) {
       const trimmedArr: string[] = [];
 
-      if (alt.length > MAX_ALTS) throw new E400(`${label} Alt names can not be more than ${MAX_ALTS}`);
+      if (alt.length > MAX_ALTS) throw new ERR_LENGTH_INVALID(`${label} Alt names can not be more than ${MAX_ALTS}`);
 
       alt.forEach(name => {
         const trimmed = name.trim().replace(/\s+/g, ' ');
 
-        if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Alt name can not be greater than ${MAX_LENGTH} symbols`);
+        if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} Alt name can not be greater than ${MAX_LENGTH} symbols`);
 
         trimmedArr.push(trimmed);
       });
@@ -175,7 +175,7 @@ export class TitlePatcher {
   changeAgeRate(ageRate: TAnimeAgeRate) {
     const label = '[ChangeAgeRate]:';
 
-    if (!AnimeAgeRates.includes(ageRate)) throw new E400(`${label} Age rate (${ageRate}) is invalid`);
+    if (!AnimeAgeRates.includes(ageRate)) throw new ERR_INVALID_PAYLOAD(`${label} Age rate (${ageRate}) is invalid`);
 
     this.log.push(`${label} Changed age rate - ${this.title.ageRate} > ${ageRate}`);
     this.title.markModified('ageRate');
@@ -187,7 +187,7 @@ export class TitlePatcher {
   changeCountry(country: TTitleCountry) {
     const label = '[ChangeCountry]:';
 
-    if (!TitleCountries.includes(country)) throw new E400(`${label} Country (${country}) is invalid`);
+    if (!TitleCountries.includes(country)) throw new ERR_INVALID_PAYLOAD(`${label} Country (${country}) is invalid`);
 
     this.log.push(`${label} Changed country - ${this.title.country} > ${country}`);
     this.title.markModified('country');
@@ -203,7 +203,7 @@ export class TitlePatcher {
     const trimmed = description.trim().replace(/\s+/g, ' ');
     const MAX_LENGTH = 2200;
 
-    if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Description can not be greater than ${MAX_LENGTH} symbols`);
+    if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} Description can not be greater than ${MAX_LENGTH} symbols`);
 
     this.log.push(`${label} Changed description - ${this.title.description.length} symbols > ${trimmed.length} symbols`);
     this.title.markModified('description');
@@ -226,7 +226,7 @@ export class TitlePatcher {
     } else {
       const trimmed = details.trim().replace(/\s+/g, ' ');
 
-      if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Details can not be greater than ${MAX_LENGTH} symbols`);
+      if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} Details can not be greater than ${MAX_LENGTH} symbols`);
 
       this.log.push(`${label} Changed details - ${this.title.details?.length || 0} symbols > ${trimmed.length} symbols`);
 
@@ -251,7 +251,7 @@ export class TitlePatcher {
 
       this.title.episodesCount = null;
     } else {
-      if (count < MIN_VAL || count > MAX_VAL) throw new E400(`${label} Episodes count can not be less than ${MIN_VAL} or greater than ${MAX_VAL}`);
+      if (count < MIN_VAL || count > MAX_VAL) throw new ERR_LENGTH_INVALID(`${label} Episodes count can not be less than ${MIN_VAL} or greater than ${MAX_VAL}`);
 
       this.log.push(`${label} Changed episodes count - ${this.title.episodesCount} > ${count}`);
 
@@ -268,10 +268,10 @@ export class TitlePatcher {
     const label = '[ChangeGenres]:';
     const MAX_LENGTH = 10;
 
-    if (genres.length > MAX_LENGTH) throw new E400(`Genres can not be more than ${MAX_LENGTH}`);
+    if (genres.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`Genres can not be more than ${MAX_LENGTH}`);
 
     genres.forEach(genre => {
-      if (!AnimeGenres.includes(genre)) throw new E400(`${label} Genre (${genre}) is invalid`);
+      if (!AnimeGenres.includes(genre)) throw new ERR_INVALID_PAYLOAD(`${label} Genre (${genre}) is invalid`);
     });
 
     this.log.push(`${label} Changed genres - ${this.title.genres.join(', ')} > ${genres.join(', ')}`);
@@ -294,7 +294,7 @@ export class TitlePatcher {
 
       this.title.rating[type] = null;
     } else {
-      if (rating < 1 || rating > 10) throw new E400(`${label} ${type} rating can not be less than 1 or greater than 10`);
+      if (rating < 1 || rating > 10) throw new ERR_INVALID_PAYLOAD(`${label} ${type} rating can not be less than 1 or greater than 10`);
 
       this.log.push(`${label} ${type} rating changed - ${this.title.rating[type]} > ${rating}`);
 
@@ -308,7 +308,7 @@ export class TitlePatcher {
   changeSeason(season: TAnimeSeason) {
     const label = '[ChangeSeason]:';
 
-    if (!AnimeSeasons.includes(season)) throw new E400(`${label} Season (${season}) is invalid`);
+    if (!AnimeSeasons.includes(season)) throw new ERR_INVALID_PAYLOAD(`${label} Season (${season}) is invalid`);
 
     this.log.push(`${label} Changed season - ${this.title.season} > ${season}`);
     this.title.markModified('season');
@@ -320,7 +320,7 @@ export class TitlePatcher {
   changeStatus(status: TAnimeStatus) {
     const label = '[ChangeStatus]:';
 
-    if (!AnimeStatuses.includes(status)) throw new E400(`${label} Status (${status}) is invalid`);
+    if (!AnimeStatuses.includes(status)) throw new ERR_INVALID_PAYLOAD(`${label} Status (${status}) is invalid`);
 
     this.log.push(`${label} Changed status - ${this.title.status} > ${status}`);
     this.title.markModified('status');
@@ -332,7 +332,7 @@ export class TitlePatcher {
   changeType(type: TTitleType) {
     const label = '[ChangeType]:';
 
-    if (!TitleTypes.includes(type)) throw new E400(`${label} Type (${type}) is invalid`);
+    if (!TitleTypes.includes(type)) throw new ERR_INVALID_PAYLOAD(`${label} Type (${type}) is invalid`);
 
     this.log.push(`${label} Changed type - ${this.title.type} > ${type}`);
     this.title.markModified('type');
@@ -349,7 +349,7 @@ export class TitlePatcher {
     const MIN_YEAR = 2000;
     const MAX_YEAR = 2030;
 
-    if (year < MIN_YEAR || year > MAX_YEAR) throw new E400(`${label} Year can not be less than ${MIN_YEAR} or greater than ${MAX_YEAR}`);
+    if (year < MIN_YEAR || year > MAX_YEAR) throw new ERR_LENGTH_INVALID(`${label} Year can not be less than ${MIN_YEAR} or greater than ${MAX_YEAR}`);
 
     this.log.push(`${label} Changed year - ${this.title.year} > ${year}`);
     this.title.markModified('year');
@@ -366,12 +366,12 @@ export class TitlePatcher {
     const trimmedArr: string[] = [];
     const MAX_LENGTH = 24;
 
-    if (studios.length > 5) throw new E400(`${label} Studios can not be more than 5`);
+    if (studios.length > 5) throw new ERR_LENGTH_INVALID(`${label} Studios can not be more than 5`);
 
     studios.forEach(studio => {
       const trimmed = studio.trim().replace(/\s+/g, ' ');
 
-      if (trimmed.length > MAX_LENGTH) throw new E400(`${label} Studio name can not be greater than ${MAX_LENGTH} symbols`);
+      if (trimmed.length > MAX_LENGTH) throw new ERR_LENGTH_INVALID(`${label} Studio name can not be greater than ${MAX_LENGTH} symbols`);
 
       trimmedArr.push(trimmed);
     });
@@ -397,8 +397,8 @@ export class TitlePatcher {
       if (!ep) {
         this.log.push(`${label} Meta for #${order} episode added`);
 
-        if (dateOut < 0) throw new E400(`${label} DateOut can not be less than 0`);
-        if (order < 1 || order > 9999) throw new E400(`${label} Order can not be less than 1 or greater than 9999`);
+        if (dateOut < 0) throw new ERR_LENGTH_INVALID(`${label} DateOut can not be less than 0`);
+        if (order < 1 || order > 9999) throw new ERR_LENGTH_INVALID(`${label} Order can not be less than 1 or greater than 9999`);
 
         this.title.episodesMeta.push({
           dateOut,
@@ -426,7 +426,7 @@ export class TitlePatcher {
 
       this.title.episodesMeta = this.title.episodesMeta.filter(el => !(el.order === order));
     } else {
-      throw new E400(`${label} Action (${action}) is invalid`);
+      throw new ERR_INVALID_PAYLOAD(`${label} Action (${action}) is invalid`);
     }
   }
 
@@ -482,12 +482,12 @@ export class TitlePatcher {
     try {
       url = new URL(link);
     } catch (e) {
-      throw new E400('URL parsing error');
+      throw new ERR_INVALID_PAYLOAD('URL parsing error');
     }
 
-    if (url.host === 'example.com') throw new E400('URL parsing error');
-    if (url.host !== 'www.imdb.com' && url.host !== 'imdb.com') throw new E400('Host is not IMDB');
-    if (!url.pathname.includes('/title') || !url.pathname.includes('/episodes')) throw new E400('Pathname is not including /title or /episodes');
+    if (url.host === 'example.com') throw new ERR_INVALID_PAYLOAD('URL parsing error');
+    if (url.host !== 'www.imdb.com' && url.host !== 'imdb.com') throw new ERR_INVALID_PAYLOAD('Host is not IMDB');
+    if (!url.pathname.includes('/title') || !url.pathname.includes('/episodes')) throw new ERR_INVALID_PAYLOAD('Pathname is not including /title or /episodes');
 
     const href = `${url.origin}${url.pathname}`;
     const results: ITitleEpisodeMeta[] = [];

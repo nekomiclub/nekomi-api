@@ -1,7 +1,7 @@
 import { devMode } from '../config';
-import { E400, ErrorConstructor } from '../handlers/Errors';
 import { Logger, wss } from '../index';
 import { IWS, IWSPollPresence, IWSSendPresence, TWSType } from '../interfaces/WebSocket';
+import { ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
 
 let OnlineSIDs: string[] = [];
 
@@ -14,7 +14,7 @@ export function WebSocketListen() {
         if (data.type === 'send_presence') {
           const { payload } = data as IWS<IWSSendPresence>;
 
-          if (!payload.SID) throw new E400('SID is not provided');
+          if (!payload.SID) throw new ERR_INVALID_PAYLOAD('SID is not provided');
 
           if (!OnlineSIDs.includes(payload.SID)) OnlineSIDs.push(payload.SID);
 
@@ -29,7 +29,7 @@ export function WebSocketListen() {
         } else if (data.type === 'disconnect_presence') {
           const { payload } = data as IWS<IWSSendPresence>;
 
-          if (!payload.SID) throw new E400('SID is not provided');
+          if (!payload.SID) throw new ERR_INVALID_PAYLOAD('SID is not provided');
 
           OnlineSIDs = OnlineSIDs.filter(el => el !== payload.SID);
         }
@@ -46,11 +46,11 @@ export function WebSocketListen() {
           broadcast(pollPayload);
         }
       } catch (e) {
-        if (e instanceof ErrorConstructor) {
-          const emsg = `[WebSocket ${e.code}]: ${e.msg}`;
+        if (e instanceof HTTPErrorConstructor) {
+          const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
           if (devMode) console.error(emsg);
 
-          if (e.code >= 500) {
+          if (e.status >= 500) {
             Logger.error(emsg);
           }
 
