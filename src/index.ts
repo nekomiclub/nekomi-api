@@ -177,6 +177,6 @@ export const Notify = new NotifyService();
 app.get('*', (req: express.Request, res: express.Response) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
 
-  Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404. If route is different of API routes, report it as Vulnerability attemp`);
+  Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
   return res.status(404).json({ message: 'Not Found' });
 });
