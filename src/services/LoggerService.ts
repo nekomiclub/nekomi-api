@@ -14,7 +14,7 @@ export class LoggerService {
   private LOG_FOLDER = `${this.ROOT_DIR}/logs`;
   private LOG_FILE = `${this.LOG_FOLDER}/.log`;
   private LOG_ERROR_FILE = `${this.LOG_FOLDER}/error.log`;
-  private LOG_FILE_MAX_ROWS = 30000;
+  private LOG_FILE_MAX_ROWS = 5000;
 
   constructor() {
     this.checkFilesystem();

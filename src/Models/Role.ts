@@ -16,7 +16,7 @@ export async function createRole(payload: IRole) {
 
   await role.save();
 
-  Logger.debug(`[Role]: New role created - ${payload.code}/${payload.id} with [${payload.capabilities.join(', ')}] capabilities`)
+  Logger.debug(`[Role]: New role created - ${payload.code}/${payload.id} with [${payload.capabilities.join(', ')}] capabilities`);
 }
 
 export default Role; 

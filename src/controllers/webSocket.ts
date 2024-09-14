@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { devMode } from '../config';
 import { Logger, wss } from '../index';
 import { IWS, IWSPollPresence, IWSSendPresence, TWSType } from '../interfaces/WebSocket';
@@ -14,7 +15,7 @@ export function WebSocketListen() {
         if (data.type === 'send_presence') {
           const { payload } = data as IWS<IWSSendPresence>;
 
-          if (!payload.SID) throw new ERR_INVALID_PAYLOAD('SID is not provided');
+          if (!payload || !payload.SID) throw new ERR_INVALID_PAYLOAD();
 
           if (!OnlineSIDs.includes(payload.SID)) OnlineSIDs.push(payload.SID);
 
@@ -26,12 +27,14 @@ export function WebSocketListen() {
           };
 
           ws.send(JSON.stringify(response));
+          Logger.info(`[WebSocket]: New site connection - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
         } else if (data.type === 'disconnect_presence') {
           const { payload } = data as IWS<IWSSendPresence>;
 
-          if (!payload.SID) throw new ERR_INVALID_PAYLOAD('SID is not provided');
+          if (!payload || !payload.SID) throw new ERR_INVALID_PAYLOAD();
 
           OnlineSIDs = OnlineSIDs.filter(el => el !== payload.SID);
+          Logger.info(`[WebSocket]: Site disconnect - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
         }
 
         // Broadcats new SIDs count
@@ -48,7 +51,7 @@ export function WebSocketListen() {
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
           const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
-          if (devMode) console.error(emsg);
+          if (devMode) console.error(chalk.red(emsg));
 
           if (e.status >= 500) {
             Logger.error(emsg);
