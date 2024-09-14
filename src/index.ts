@@ -7,7 +7,7 @@ import https from 'https';
 import http from 'http';
 import cors, { CorsOptions } from 'cors';
 import fs from 'fs';
-import path from 'path';
+import path, { resolve } from 'path';
 import ip from 'ip';
 import process from 'process';
 import chalk from 'chalk';
@@ -145,10 +145,6 @@ export const Notify = new NotifyService();
       await handler.removeUsersLinkTelegramToken(),
     ]);
 
-    if (prodMode) {
-      await handler.updateDubbers();
-    }
-
     console.log(`
       ----------------------------
       ANIMEE-CORE STARTED UP
@@ -174,3 +170,13 @@ export const Notify = new NotifyService();
     Logger.error('[Startup/Post-init Callback]: An error occured in one of post-init handlers', e);
   }
 })();
+
+
+
+//! MUST BE BELOW ALL CODE
+app.get('*', (req: express.Request, res: express.Response) => {
+  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
+
+  Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404. If route is different of API routes, report it as Vulnerability attemp`);
+  return res.status(404).json({ message: 'Not Found' });
+});

@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
 
-export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace'] as const;
+export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace', 'suspicious'] as const;
 export type TLogType = typeof LOG_TYPES[number];
 
 /** Standalone Logging service */
@@ -14,6 +14,7 @@ export class LoggerService {
   private LOG_FOLDER = `${this.ROOT_DIR}/logs`;
   private LOG_FILE = `${this.LOG_FOLDER}/.log`;
   private LOG_ERROR_FILE = `${this.LOG_FOLDER}/error.log`;
+  private LOG_SUSPICIOUS_FILE = `${this.LOG_FOLDER}/suspicious.log`;
   private LOG_FILE_MAX_ROWS = 5000;
 
   constructor() {
@@ -43,8 +44,15 @@ export class LoggerService {
       console.debug(chalk.grey(`${parsedType} | ${logMessage}`));
     } else if (type === 'warn') {
       console.log(chalk.yellow(`${parsedType} | ${logMessage}`));
+    } else if (type === 'suspicious') {
+      null;
     } else {
       console.log(`${chalk.bgRed(`(TYPE NOT SPECIFIED IN LOGGER SERVICE)`)} ${parsedType} | ${logMessage}`);
+    }
+
+    if (type === 'suspicious') {
+      this.prepend(log, this.LOG_SUSPICIOUS_FILE);
+      console.log(`${chalk.bgHex('#e74c3c').black('SUSPICIOUS')} ${chalk.yellow(`(${date}) | ${logMessage}`)}`);
     }
   }
 
@@ -100,6 +108,13 @@ export class LoggerService {
     });
   }
 
+  suspicious(msg: string) {
+    this.append({
+      type: 'suspicious',
+      msg
+    });
+  }
+
   /** Fire all log events */
   test() {
     this.fail('[Testing]: This is test message :)');
@@ -116,7 +131,7 @@ export class LoggerService {
   private checkFilesystem() {
     const requiredFolders = [this.LOG_FOLDER];
 
-    const requiredFiles = [this.LOG_FILE, this.LOG_ERROR_FILE];
+    const requiredFiles = [this.LOG_FILE, this.LOG_ERROR_FILE, this.LOG_SUSPICIOUS_FILE];
 
     requiredFolders.forEach(folder => {
       if (!fs.existsSync(folder)) {
