@@ -52,7 +52,7 @@ export class LoggerService {
 
     if (type === 'suspicious') {
       this.prepend(log, this.LOG_SUSPICIOUS_FILE);
-      console.log(`${chalk.bgHex('#e74c3c').black('SUSPICIOUS')} ${chalk.yellow(`${parsedType} | ${logMessage}`)}`);
+      console.log(`${chalk.bgHex('#e74c3c').black('SUSPICIOUS')} ${chalk.yellow(`| ${logMessage}`)}`);
     }
   }
 

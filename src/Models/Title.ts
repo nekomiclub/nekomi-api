@@ -110,6 +110,12 @@ export class TitlePatcher {
 
   /** Save document */
   async save() {
+    const prev = this.title.updatedAt;
+    this.title.updatedAt = getUTC().timestamp;
+    this.title.markModified('updatedAt');
+
+    console.log(`change updated at - ${prev} > ${this.title.updatedAt}`);
+
     await this.title.save();
   }
 

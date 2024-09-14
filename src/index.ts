@@ -174,9 +174,12 @@ export const Notify = new NotifyService();
 
 
 //! MUST BE BELOW ALL CODE
-app.get('*', (req: express.Request, res: express.Response) => {
+app.all('*', (req: express.Request, res: express.Response) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
 
-  Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
-  return res.status(404).json({ message: 'Not Found' });
+  if (req.url !== '/') {
+    Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
+  }
+
+  return res.status(404).json({ message: 'Not Found', msg: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
 });

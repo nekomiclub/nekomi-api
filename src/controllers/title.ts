@@ -267,8 +267,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         formData.set('qualities', JSON.stringify(qualities));
 
         try {
-          Logger.debug(`[TitleController/Patch]: New episode ${ep.order}/${ep.dubberID} uploading in ${title.id} by ${userID} started`);
-
           // Upload
           const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData);
 
@@ -310,7 +308,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
           Notify.broadcast('new_episode', JSON.stringify(notifyPayload));
 
-          Logger.debug(`[TitleController/Patch]: New episode ${ep.order}/${ep.dubberID} uploaded in ${title.id} by ${userID} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
+          Logger.debug(`[TitleController/Patch]: Episode ${ep.order}/${ep.dubberID} uploaded in ${title.id} by ${userID} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
 
           return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!`, episode: ep });
         } catch (e) {
@@ -535,7 +533,7 @@ export async function UpdatePopularTitles() {
     }
 
     // Fetch recently updated
-    const updatedRecentlyRaw = titles.sort((a, b) => a.updatedAt - b.updatedAt).slice(0, 20);
+    const updatedRecentlyRaw = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20);
     const updatedRecently = updatedRecentlyRaw.map(el => dto.title(el.toObject()));
 
     // Fetch hight rating
