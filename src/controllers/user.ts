@@ -16,6 +16,7 @@ import { TRoleCapability } from '../interfaces/Roles';
 import { TNotifyEvent } from '../services/NotifyService';
 import Dubber from '../Models/Dubber';
 import { Logger } from '..';
+import { HandleRequest } from '../services/ErrorService';
 
 
 
@@ -152,7 +153,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
 
 /** @see /docs/routes/user.md */
 export async function getQuery(req: express.Request, res: express.Response) {
-  await catchError(req, res, async () => {
+  await HandleRequest(req, res, async () => {
     const CSRFToken = req.header(config.vars.csrfHeader);
     const { detailed, parseLib } = req.query as { detailed?: string, parseLib?: string };
 

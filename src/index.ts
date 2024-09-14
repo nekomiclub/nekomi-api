@@ -97,7 +97,8 @@ app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  Logger.trace(`[Request]: ${req.method} - ${req.url}`);
+  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
+  Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
 
   next();
 });

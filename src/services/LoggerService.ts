@@ -18,6 +18,9 @@ export class LoggerService {
 
   constructor() {
     this.checkFilesystem();
+
+    console.clear();
+    this.debug(`[Startup]: ------------------ DRY RUN ------------------`);
   }
 
   /** Write log */
@@ -37,7 +40,7 @@ export class LoggerService {
     } else if (type === 'info') {
       console.log(chalk.green(`${parsedType} | ${logMessage}`));
     } else if (type === 'debug' || type === 'trace') {
-      console.log(chalk.grey(`${parsedType} | ${logMessage}`));
+      console.debug(chalk.grey(`${parsedType} | ${logMessage}`));
     } else if (type === 'warn') {
       console.log(chalk.yellow(`${parsedType} | ${logMessage}`));
     } else {
@@ -99,12 +102,12 @@ export class LoggerService {
 
   /** Fire all log events */
   test() {
-    this.fail('This is test message :)');
-    this.error('This is test message :)');
-    this.info('This is test message :)');
-    this.debug('This is test message :)');
-    this.trace('This is test message :)');
-    this.warn('This is test message :)');
+    this.fail('[Testing]: This is test message :)');
+    this.error('[Testing]: This is test message :)');
+    this.info('[Testing]: This is test message :)');
+    this.debug('[Testing]: This is test message :)');
+    this.trace('[Testing]: This is test message :)');
+    this.warn('[Testing]: This is test message :)');
   }
 
 
