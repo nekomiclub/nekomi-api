@@ -25,6 +25,9 @@ import { WebSocketListen } from './controllers/webSocket';
 import { UpdatePopularTitles } from './controllers/title';
 import { INotifyNewEpisode, NotifyService } from './services/NotifyService';
 import { LoggerService } from './services/LoggerService';
+import banned_routes from '../banned_routes';
+import { IBannedIP } from '../interfaces';
+import { IPBanService } from './services/IPBanService';
 
 
 
@@ -33,6 +36,7 @@ chalk.level = 1;
 
 
 export const Logger = new LoggerService();
+const IPBan = new IPBanService();
 
 
 
@@ -90,13 +94,21 @@ const CORSOpt: CorsOptions = {
   credentials: true,
 };
 
+
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
+  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const record = IPBan.checkBanned(IP);
+
+  if (record.type === 'perm') {
+    return res.status(403).json({ message: 'You have been permanently banned due to inappropriate requests. If you think this is an error, contact animee support at discord server.', code: 'ERR_IP_BAN' });
+  }
+
   Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
 
   next();
@@ -166,6 +178,10 @@ export const Notify = new NotifyService();
         await handler.removeUsersLinkTelegramToken(),
       ]);
     }, 43200000); // 43200000 // 12h
+
+    setInterval(() => {
+      IPBan.resetTempBanned();
+    }, 300000); // 300000 // 5m
   } catch (e) {
     Logger.error('[Startup/Post-init Callback]: An error occured in one of post-init handlers', e);
   }
@@ -175,11 +191,22 @@ export const Notify = new NotifyService();
 
 //! MUST BE BELOW ALL CODE
 app.all('*', (req: express.Request, res: express.Response) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || undefined;
+  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
   if (req.url !== '/') {
-    Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
+    let banned = false;
+    banned_routes.forEach(el => el.test(req.url) ? banned = true : null);
+
+    if (banned) {
+      IPBan.banIP(IP);
+      const record = IPBan.checkBanned(IP);
+      Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} added to IP block list. Attemps to permanent ban - ${record.attempsRemain}`);
+
+      return res.status(404).json({ message: `Your requests are suspicious. After ${record.attempsRemain} same requests you will be permanently banned.`, code: 'ERR_NOT_FOUND', status: 404 });
+    }
   }
+
+  Logger.debug(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
 
   return res.status(404).json({ message: 'Not Found', msg: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
 });
