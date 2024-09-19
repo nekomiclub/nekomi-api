@@ -4,6 +4,7 @@ import ip from 'ip';
 
 import { IANIMEE_CONFIG } from '../interfaces';
 import CSRF from './secrets/CSRF';
+import { preserveIP } from './handlers/handlers';
 
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
@@ -34,34 +35,34 @@ export const config = {
   /** URLs */
   URL: {
     /** Animee client */
-    client: prodMode ? `https://animee.club` : `http://${getIP('0.0.0.0')}:3001`,
+    client: prodMode ? `https://animee.club` : `http://${preserveIP('0.0.0.0')}:3001`,
 
     /** Animee updater */
-    updater: prodMode ? `https://updater.animee.club` : `http://${getIP('0.0.0.0')}:3000`,
+    updater: prodMode ? `https://updater.animee.club` : `http://${preserveIP('0.0.0.0')}:3000`,
 
     /** Animee Media */
-    media: prodMode ? `https://media.animee.club` : `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
+    media: prodMode ? `https://media.animee.club` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
 
     /** Animee Bot */
-    bot: `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
+    bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
 
 
     //* Fullkekw services
 
     /** Fullkekw authority service */
-    fullkekw_authority: prodMode ? `https://authority.animee.club` : `http://${getIP('0.0.0.0')}:45010`,
+    fullkekw_authority: prodMode ? `https://authority.animee.club` : `http://${preserveIP('0.0.0.0')}:45010`,
 
 
     //* Local services
 
     /** Fullkekw user API */
-    fullkekw_usapi: `http://${getIP('0.0.0.0')}:45660`,
+    fullkekw_usapi: `http://${preserveIP('0.0.0.0')}:45660`,
 
     /** Animee uploads */
-    uploads: `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
+    uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
 
     /** Animee uploads bot */
-    uploadsBot: `http://${getIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.PORTS.HTTP}`,
+    uploadsBot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.PORTS.HTTP}`,
   },
 
   /** Service variables */
@@ -94,13 +95,4 @@ export const config = {
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (devMode) {
   config.service.PORTS.HTTP = 80;
-}
-
-/** Change IP to current if it match 0.0.0.0 */
-function getIP(raw: string): string {
-  if (raw === '0.0.0.0') {
-    return ip.address();
-  } else {
-    return raw;
-  }
 }

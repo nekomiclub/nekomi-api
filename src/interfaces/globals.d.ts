@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws';
 import { TRoleCapability } from './Roles';
 
 declare global {
@@ -17,4 +18,11 @@ declare global {
       }
     }
   }
+}
+
+declare class WebSocketExtended extends WebSocket {
+  /** Socket internal data */
+  _data: {
+    TBD?: void
+  };
 }

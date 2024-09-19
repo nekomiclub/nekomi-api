@@ -21,22 +21,25 @@ import { createUser } from './Models/User';
 import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
-import { WebSocketListen } from './controllers/webSocket';
 import { UpdatePopularTitles } from './controllers/title';
 import { INotifyNewEpisode, NotifyService } from './services/NotifyService';
 import { LoggerService } from './services/LoggerService';
 import { IBannedIP } from '../interfaces';
+import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 
 
 
+// Console color mode
 chalk.level = 1;
 
 
 
 export const Logger = new LoggerService();
+export const Notify = new NotifyService();
 
 
 
+// Prevent run production not on production IP
 if (prodMode && ip.address() !== config.vars.prodIP) {
   Logger.error(`[Startup]: Startup denied for ${ip.address()} (IP does not match default production IP)`);
 
@@ -80,13 +83,10 @@ export const wss = devMode ? new WebSocketServer({
 const CORSOpt: CorsOptions = {
   origin: [
     'https://animee.club',
-    'https://www.animee.club',
-    'https://updater.animee.club',
     'https://auth.animee.club',
     'https://api.animee.club',
     devMode ? 'http://192.168.0.106:3001' : '',
     devMode ? 'http://192.168.0.106:3000' : '',
-    'https://animee-git-dev-unniiiverse.vercel.app'
   ],
   credentials: true,
 };
@@ -98,6 +98,7 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
+// Trace requests
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
@@ -106,10 +107,10 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
   next();
 });
 
+// Routing
 app.use('/dubber', router.DubberRouter);
 app.use('/user', router.UserRouter);
 app.use('/title', router.TitleRouter);
-
 app.use('/', router.RootRouter);
 
 if (devMode) {
@@ -122,54 +123,52 @@ wss.on('listening', () => {
   Logger.info(`[Startup]: Websocket server started in ${mode} mode at ws://${config.service.HOST}:${config.service.PORTS.WS}`);
 });
 
-/** Implementation of NotifyService */
-export const Notify = new NotifyService();
-
 
 
 (async function () {
   const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
 
-  // Pre-init callback
-  try {
-    WebSocketListen();
-  } catch (e) {
-    Logger.error('[Startup/Pre-init Callback]: An error occured in one of pre-init handlers', e);
-  }
+  const LONG_TERM_HANDLERS = [
+    await updateSearch(),
+    await UpdatePopularTitles(),
+    await handler.removeUsersLinkTelegramToken(),
+  ] as const;
 
   app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
     Logger.info(`[Startup]: HTTP server started in ${mode} mode at http://${config.service.HOST}:${config.service.PORTS.HTTP}`);
   });
 
+  wss.on('connection', WebsocketRouter);
+
   // Post-init callback
   try {
-    await Promise.all([
-      await updateSearch(),
-      await UpdatePopularTitles(),
-      await handler.removeUsersLinkTelegramToken(),
-    ]);
+    await Promise.all(LONG_TERM_HANDLERS);
 
     console.log(`
       ----------------------------
       ANIMEE-CORE STARTED UP
     
-      Date: ${handler.getUTC().date} UTC0 ${handler.getUTC().time}
+      Date: ${handler.getUTC().dateReversed} UTC-0 ${handler.getUTC().time}
       Mode: ${mode}
-      HTTP: ${config.service.HOST}:${config.service.PORTS.HTTP} ${devMode ? '(changed default, see config.ts)' : ''}
-      WS: ${config.service.HOST}:${config.service.PORTS.WS}
+      HTTP: http://${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
+      WS: ${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
 
+    console.log(handler.getNewUTC());
+
+    // Cache updating
     setInterval(async () => {
       Logger.info(`[Startup/Post-init Callback]: Cache updated`);
 
       // Update cache
-      await Promise.all([
-        await updateSearch(),
-        await UpdatePopularTitles(),
-        await handler.removeUsersLinkTelegramToken(),
-      ]);
+      await Promise.all(LONG_TERM_HANDLERS);
     }, 43200000); // 43200000 // 12h
+
+    // Poll site online
+    setInterval(async () => {
+      await WebSocketOnlinePoll();
+    }, 600000); // 600000 // 10m
   } catch (e) {
     Logger.error('[Startup/Post-init Callback]: An error occured in one of post-init handlers', e);
   }
@@ -177,7 +176,7 @@ export const Notify = new NotifyService();
 
 
 
-//! MUST BE BELOW ALL CODE
+// 404 catcher. Writes suspicious logs
 app.all('*', (req: express.Request, res: express.Response) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 

@@ -1,86 +1,175 @@
 import chalk from 'chalk';
+import http from 'http';
+
 import { devMode } from '../config';
 import { Logger, wss } from '../index';
-import { IWS, IWSPollPresence, IWSSendPresence, TWSType } from '../interfaces/WebSocket';
-import { ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
+import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, Message, Request, Response, TWS_Request, TWS_Type, WS_TYPES } from '../interfaces/WebSocket';
+import { E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
+import { WebSocket } from 'ws';
+import { WebSocketExtended } from '../interfaces/globals';
 
-let OnlineSIDs: string[] = [];
 
-export function WebSocketListen() {
-  wss.on('connection', ws => {
-    ws.on('message', message => {
-      try {
-        const data = JSON.parse(message.toString()) as IWS;
+type TRouterFunction = (message: IWS_Route) => Promise<void>
 
-        if (data.type === 'send_presence') {
-          const { payload } = data as IWS<IWSSendPresence>;
+const ROUTER: { [TYPE in TWS_Request]?: TRouterFunction } = {
+  ping,
+  site_connected,
+  site_disconnected,
+};
 
-          if (!payload || !payload.SID) throw new ERR_INVALID_PAYLOAD();
+const OnlineSIDs: string[] = [];
 
-          if (!OnlineSIDs.includes(payload.SID)) OnlineSIDs.push(payload.SID);
 
-          const response: IWS<IWSPollPresence> = {
-            type: 'poll_presence',
-            payload: {
-              online: OnlineSIDs.length
-            }
-          };
 
-          ws.send(JSON.stringify(response));
-          Logger.info(`[WebSocket]: New site connection - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
-        } else if (data.type === 'disconnect_presence') {
-          const { payload } = data as IWS<IWSSendPresence>;
+/** Handle websocket requests */
+export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingMessage) {
+  ws.on('message', async message => {
+    try {
+      const parsed = JSON.parse(message.toString()) as Message;
+      const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || 'IP_UNDEFINED';
 
-          if (!payload || !payload.SID) throw new ERR_INVALID_PAYLOAD();
+      // Ensure inner data is not undefined
+      ws._data = ws._data || {};
 
-          OnlineSIDs = OnlineSIDs.filter(el => el !== payload.SID);
-          Logger.info(`[WebSocket]: Site disconnect - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
+      if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload) throw new ERR_INVALID_PAYLOAD('Websocket type or payload is invalid');
+
+      const route = ROUTER[parsed.type] as TRouterFunction;
+      if (!route) throw new E501(`Route ${parsed.type} is found, but not implemented yet`);
+
+      Logger.trace(`[Websocket/Request/${IP}]: ${JSON.stringify(parsed)}`);
+
+      await route({ ws, message: parsed });
+    } catch (e) {
+      if (e instanceof HTTPErrorConstructor) {
+        const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
+        if (devMode) console.error(chalk.red(emsg));
+
+        if (e.status >= 500) {
+          Logger.error(emsg);
         }
 
-        // Broadcats new SIDs count
-        if (data.type === 'send_presence' || data.type === 'disconnect_presence') {
-          const pollPayload: IWS<IWSPollPresence> = {
-            type: 'poll_presence',
-            payload: {
-              online: OnlineSIDs.length
-            }
-          };
+        const payload: Response = {
+          type: 'error',
+          payload: e
+        };
 
-          broadcast(pollPayload);
-        }
-      } catch (e) {
-        if (e instanceof HTTPErrorConstructor) {
-          const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
-          if (devMode) console.error(chalk.red(emsg));
-
-          if (e.status >= 500) {
-            Logger.error(emsg);
+        return ws.send(JSON.stringify(payload));
+      } else {
+        const payload: Response = {
+          type: 'error',
+          payload: {
+            message: `Uncaught websocket error occured`
           }
+        };
 
-          const payload: IWS = {
-            type: 'error',
-            payload: e
-          };
-
-          return ws.send(JSON.stringify(payload));
-        } else {
-          const payload: IWS = {
-            type: 'error',
-            payload: `Uncaught websocket error occured`
-          };
-
-          Logger.error('[WebSocket]: Uncaught error occured', e);
-          return ws.send(JSON.stringify(payload));
-        }
+        Logger.error('[WebSocket]: Uncaught error occured', e);
+        return ws.send(JSON.stringify(payload));
       }
-    });
+    }
   });
 }
 
-async function broadcast(message: IWS) {
-  wss.clients.forEach(ws => {
-    if (message.type === 'poll_presence') {
-      return ws.send(JSON.stringify(message));
+/** Poll active clients */
+export async function WebSocketOnlinePoll() {
+  const request: Request = {
+    type: 'online_poll',
+    payload: {
+      message: 'Please, send back site_connected request'
     }
+  };
+
+  Logger.info(`[WebSocker]: Site online polling started, current online reseted`);
+  OnlineSIDs.splice(0, OnlineSIDs.length - 1);
+
+  return await broadcast(request);
+}
+
+
+
+//* ----------- ROUTES
+
+async function ping({ ws, message }: IWS_Route) {
+  const response: Response = {
+    type: 'pong',
+    payload: {
+      message: 'Pong!'
+    }
+  };
+
+  ws.send(JSON.stringify(response));
+}
+
+async function site_connected({ ws, message }: IWS_Route) {
+  const { payload } = message as Request<IWS_SiteConnection>;
+
+  if (!payload.SID) throw new ERR_INVALID_PAYLOAD('Payload or SID are missing');
+
+  if (!OnlineSIDs.includes(payload.SID)) {
+    OnlineSIDs.push(payload.SID);
+  } else {
+    const response: Response = {
+      type: 'ok',
+      payload: {
+        message: 'Session already stored'
+      }
+    };
+
+    return ws.send(JSON.stringify(response));
+  }
+
+  Logger.debug(`[WebSocket]: New site connection - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
+
+  const response: Response<IWS_OnlineChanged> = {
+    type: 'online_changed',
+    payload: {
+      online: OnlineSIDs.length
+    }
+  };
+
+  return await broadcast(response);
+}
+
+async function site_disconnected({ ws, message }: IWS_Route) {
+  const { payload } = message as Request<IWS_SiteConnection>;
+
+  if (!payload.SID) throw new ERR_INVALID_PAYLOAD('Payload or SID are missing');
+
+  const index = OnlineSIDs.findIndex(el => el === payload.SID);
+
+  if (index !== -1) {
+    OnlineSIDs.splice(index, 1);
+  } else {
+    const response: Response = {
+      type: 'ok',
+      payload: {
+        message: 'Session is not stored'
+      }
+    };
+
+    return ws.send(JSON.stringify(response));
+  }
+
+  Logger.debug(`[WebSocket]: Site disconnected - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
+
+  const response: Response<IWS_OnlineChanged> = {
+    type: 'online_changed',
+    payload: {
+      online: OnlineSIDs.length
+    }
+  };
+
+  return await broadcast(response);
+}
+
+
+
+//* ----------- HANDLERS
+
+/** Broadcast message to all websocket clients */
+async function broadcast(message: Message) {
+  Logger.debug(`[WebSocket]: Broadcasted - ${JSON.stringify(message)}`);
+
+  wss.clients.forEach(ws => {
+    return ws.send(JSON.stringify(message));
   });
 }

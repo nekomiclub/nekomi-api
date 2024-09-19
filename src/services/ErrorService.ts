@@ -54,7 +54,7 @@ export class E404 extends HTTPErrorConstructor {
   }
 }
 
-/** HTTP_BAD_REQUEST */
+/** HTTP_TEAPOT */
 export class E418 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
     super({ message, status: 418, code: code || 'HTTP_TEAPOT' });

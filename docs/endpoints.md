@@ -27,9 +27,8 @@
   - /linkTelegram | [POST](./routes/user.md#post-userlinktelegram)
   - /:query | [GET](./routes/user.md#get-userquery)
 
-- /proxy
-  - /postSnap (DEPRECATED) | [POST](./routes/proxy.md#post-proxypostsnap)
-  - /parseMetadata | [POST](./routes/proxy.md#post-proxyparsemetadata)
+- Websocket
+  - 
 
 ---
 
