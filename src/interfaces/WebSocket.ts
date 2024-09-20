@@ -9,8 +9,8 @@ export const WS_REQUEST_TYPES = [
 ] as const;
 
 export const WS_RESPONSE_TYPES = [
-  'ok',
   'pong',
+  'ok',
   'error',
   'online_changed',
 ] as const;

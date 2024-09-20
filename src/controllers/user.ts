@@ -12,10 +12,10 @@ import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
-import { TNotifyEvent } from '../services/NotifyService';
 import Dubber from '../Models/Dubber';
 import { Logger } from '..';
 import { E400, E404, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { TNotifyEvent } from '../interfaces/Notify';
 
 
 
@@ -263,23 +263,32 @@ export async function patchUser(req: express.Request, res: express.Response) {
         throw new E404(`Title ${titleId} is not found`);
       }
 
-      const subscribeEvent: TNotifyEvent = 'new_episode';
-      const subscribe = `${subscribeEvent}/${titleId}`;
+      const newEpisodeSubscribeEvent: TNotifyEvent = 'new_episode';
+      const newEpisodeSubscribe = `${newEpisodeSubscribeEvent}/${titleId}`;
+
+      const airingStartedEvent: TNotifyEvent = 'airing_started';
+      const airingStartedSubscribe = `${airingStartedEvent}/${titleId}`;
 
       if (folder.titles.includes(titleId)) {
         // Delete title
         folder.titles = folder.titles.filter(el => el !== titleId);
 
-        if (folder.type === 'watching') user.subscribes = user.subscribes.filter(el => el !== subscribe);
+        // Remove new_episode subscribe
+        if (folder.type === 'watching') user.subscribes = user.subscribes.filter(el => el !== newEpisodeSubscribe);
+        // Remove airing_started subscribe
+        if (folder.type === 'plans') user.subscribes = user.subscribes.filter(el => el !== airingStartedSubscribe);
 
-        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ' + subscribe' : ''}) deleted from folder (${folderId})`;
+        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ` + ${newEpisodeSubscribe} sub` : folder.type === 'plans' ? ` + ${airingStartedEvent} sub` : ''}) deleted from folder (${folderId})`;
       } else {
         // Add title
         folder.titles.push(titleId);
 
-        if (folder.type === 'watching') user.subscribes.push(subscribe);
+        // Add new_episode subscribe
+        if (folder.type === 'watching') user.subscribes.push(newEpisodeSubscribe);
+        // Add airing_started subscribe
+        if (folder.type === 'plans') user.subscribes.push(airingStartedSubscribe);
 
-        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ' + subscribe' : ''}) pushed to folder (${folderId})`;
+        modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ` + ${newEpisodeSubscribe} sub` : folder.type === 'plans' ? ` + ${airingStartedEvent} sub` : ''}) pushed to folder (${folderId})`;
       }
 
       // Filter same

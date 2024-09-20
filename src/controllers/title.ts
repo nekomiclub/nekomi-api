@@ -20,7 +20,7 @@ import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
 import { Logger, Notify } from '..';
-import { INotifyNewEpisode } from '../services/NotifyService';
+import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/Notify';
 import { E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
 
 
@@ -300,13 +300,28 @@ export async function patchTitle(req: express.Request, res: express.Response) {
             // ignore
           }
 
-          const notifyPayload: INotifyNewEpisode = {
+          const notifyNewEpisodePayload: INotifyNewEpisode = {
             dubberID: dubber.id,
             episodeOrder: order,
             titleID: title.id
           };
 
-          Notify.broadcast('new_episode', JSON.stringify(notifyPayload));
+          Notify.broadcast({
+            event: 'new_episode',
+            payload: notifyNewEpisodePayload
+          });
+
+          // Send airing_started notify if this is first episode
+          if (title.episodes.length === 1) {
+            const notifyAiringStartedPayload: INotifyAiringStarted = {
+              titleID: title.id
+            };
+
+            Notify.broadcast({
+              event: 'airing_started',
+              payload: notifyAiringStartedPayload
+            });
+          }
 
           Logger.debug(`[TitleController/Patch]: Episode ${ep.order}/${ep.dubberID} uploaded in ${title.id} by ${userID} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
 

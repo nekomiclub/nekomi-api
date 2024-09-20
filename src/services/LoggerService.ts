@@ -161,3 +161,5 @@ export class LoggerService {
     fs.writeFileSync(path, rows.join('\n'));
   }
 }
+
+export default LoggerService;

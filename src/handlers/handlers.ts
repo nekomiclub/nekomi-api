@@ -10,14 +10,15 @@ import Dubber from '../Models/Dubber';
 import Title, { createTitle } from '../Models/Title';
 import { testMode, devMode, config, prodMode } from '../config';
 import User from '../Models/User';
-import { user } from './dtos';
+import { title, user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
 import { IMock, TMockID } from '../interfaces/Mocks';
-import { TNotifyEvent } from '../services/NotifyService';
 import { Logger } from '..';
 import { E500 } from '../services/ErrorService';
+import { TNotifyEvent } from '../interfaces/Notify';
+import inquirer from 'inquirer';
 
 
 
@@ -94,7 +95,7 @@ interface IGetNewUTC {
 /** Get UTC date
  * @param timestamp Timestamp to start from. Default - now
  */
-export function getNewUTC(timestamp?: number): IGetNewUTC {
+export function getNewUTC(timestamp?: number | null): IGetNewUTC {
   const now = timestamp ? new Date(timestamp) : new Date();
 
   return {
@@ -190,6 +191,14 @@ export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckV
 }
 
 export async function patchUsersModels() {
+  const data = await inquirer.prompt([{
+    message: 'PROCEED PATCHING USER MODELS?',
+    type: 'confirm',
+    name: 'proceed',
+  }]);
+
+  if (!data.proceed) return console.log(`PATCHING USER MODELS ABORTED`);
+
   const startedAt = getUTC().timestamp;
   const users = await User.find();
   let usersModified = 0;
@@ -198,23 +207,24 @@ export async function patchUsersModels() {
 
   for (const key in users) {
     const user = users[key];
+    const titlesIDs = user.libs.find(el => el.type === 'plans')!.titles;
+    const titles: ITitle[] = [];
 
-    user.statistics.viewtime = +(user.statistics.viewtime || user.statistics.timeSpent * 60).toFixed(0);
-    user.statistics.isTelegramLinked = user.statistics.isTelegramLinked || false;
-    user.watchProgress = user.watchProgress || [];
-    user.subscribes = user.subscribes || [];
-    user.telegramData = user.telegramData || null;
-    user.telegramLinkToken = user.telegramLinkToken || null;
+    if (!titlesIDs.length) continue;
 
-    user.libs.find(el => el.type === 'watching')?.titles.forEach(id => {
-      const event: TNotifyEvent = 'new_episode';
-      user.subscribes.push(`${event}/${id}`);
+    for (const key in titlesIDs) {
+      const id = titlesIDs[key];
+
+      const title = await Title.findOne({ id });
+      titles.push(title!.toObject());
+    }
+
+    titles.forEach(title => {
+      const subscribeEvent: TNotifyEvent = 'airing_started';
+      const subscribe = `${subscribeEvent}/${title.id}`;
+
+      if (title.year === 2024 && title.episodes.length === 0 && (title.status === 'announcement' || title.status === 'ongoing') && !user.subscribes.includes(subscribe)) user.subscribes.push(subscribe);
     });
-
-    user.markModified('watchProgress');
-    user.markModified('subscribes');
-    user.markModified('statistics');
-    user.markModified('telegramData');
 
     await user.save();
 

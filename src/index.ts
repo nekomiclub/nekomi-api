@@ -22,8 +22,8 @@ import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
 import { UpdatePopularTitles } from './controllers/title';
-import { INotifyNewEpisode, NotifyService } from './services/NotifyService';
-import { LoggerService } from './services/LoggerService';
+import NotifyService from './services/NotifyService';
+import LoggerService from './services/LoggerService';
 import { IBannedIP } from '../interfaces';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 
@@ -155,7 +155,9 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    console.log(handler.getNewUTC());
+    if (prodMode) {
+      await handler.patchUsersModels();
+    }
 
     // Cache updating
     setInterval(async () => {
