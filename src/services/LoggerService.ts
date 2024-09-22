@@ -58,7 +58,7 @@ export class LoggerService {
 
 
 
-  /** Business logic log */
+  /** Business logic, general information */
   info(msg: string) {
     this.append({
       type: 'info',
@@ -66,7 +66,7 @@ export class LoggerService {
     });
   }
 
-  /** In-service warn */
+  /** Warns */
   warn(msg: string) {
     this.append({
       type: 'warn',
@@ -74,7 +74,7 @@ export class LoggerService {
     });
   }
 
-  /** In-service error */
+  /** Errors */
   error(msg: string, e?: any) {
     this.append({
       type: 'error',
@@ -83,7 +83,7 @@ export class LoggerService {
     });
   }
 
-  /** User request error */
+  /** Process fail */
   fail(msg: string, e?: any) {
     this.append({
       type: 'fail',
@@ -92,7 +92,7 @@ export class LoggerService {
     });
   }
 
-  /** Tech stack log */
+  /** Tech details */
   debug(msg: string) {
     this.append({
       type: 'debug',
@@ -100,7 +100,7 @@ export class LoggerService {
     });
   }
 
-  /** Request / Response */
+  /** Trace request */
   trace(msg: string) {
     this.append({
       type: 'trace',
@@ -108,6 +108,7 @@ export class LoggerService {
     });
   }
 
+  /** Write suspicious activity */
   suspicious(msg: string) {
     this.append({
       type: 'suspicious',

@@ -285,8 +285,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
         // Add new_episode subscribe
         if (folder.type === 'watching') user.subscribes.push(newEpisodeSubscribe);
-        // Add airing_started subscribe
-        if (folder.type === 'plans') user.subscribes.push(airingStartedSubscribe);
+        // Add airing_started subscribe if there is no episodes in title, status is announcement or ongoing and year is current
+        if (folder.type === 'plans' && title.episodes.length === 0 && (title.status === 'announcement' || title.status === 'ongoing') && title.year === handler.getNewUTC().year) user.subscribes.push(airingStartedSubscribe);
 
         modifyMsg = `Title (${titleId}${folder.type === 'watching' ? ` + ${newEpisodeSubscribe} sub` : folder.type === 'plans' ? ` + ${airingStartedEvent} sub` : ''}) pushed to folder (${folderId})`;
       }

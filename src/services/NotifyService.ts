@@ -134,6 +134,13 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
   await $http.post(`${config.URL.bot}/broadcast`, broadcastPayload);
+
+  users.forEach(async user => {
+    user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
+    await user.save();
+
+    Logger.debug(`[Notify]: User ${event} subscibe removed due to firs fire`);
+  });
 }
 
 export default NotifyService;

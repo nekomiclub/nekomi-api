@@ -27,8 +27,7 @@
   - /linkTelegram | [POST](./routes/user.md#post-userlinktelegram)
   - /:query | [GET](./routes/user.md#get-userquery)
 
-- Websocket
-  - 
+- [WebSocket](./routes/websocket.md)
 
 ---
 

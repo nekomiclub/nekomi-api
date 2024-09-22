@@ -53,11 +53,4 @@ const CSRFMock: IMock<IM_CSRFCheck> = {
 
 ------------------------------------------------------------------
 
-## User subscribes
-User subscribes events
-
-**new_episode/[INotifyNewEpisode]** - New episode patched event. Triggered after sucess episode uploading.  
-
-------------------------------------------------------------------
-
 [HOME](../README.md)

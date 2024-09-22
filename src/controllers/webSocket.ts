@@ -36,7 +36,7 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       const route = ROUTER[parsed.type] as TRouterFunction;
       if (!route) throw new E501(`Route ${parsed.type} is found, but not implemented yet`);
 
-      Logger.trace(`[Websocket/Request/${IP}]: ${JSON.stringify(parsed)}`);
+      Logger.trace(`[Request/${IP}]: WebSocket - ${JSON.stringify(parsed)}`);
 
       await route({ ws, message: parsed });
     } catch (e) {

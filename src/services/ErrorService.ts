@@ -131,8 +131,6 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       const code = e.response?.data.code || e.code || 'HTTP_ERROR';
       const message = e.response?.data.message || e.response?.data.msg || e.message || 'Message not provided';
 
-      console.log(e);
-
       const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll(ip.address(), 'local.addr')}`;
 
       let reqURL = e.config?.url;
