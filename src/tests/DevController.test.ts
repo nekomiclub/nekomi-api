@@ -1,6 +1,5 @@
 import ip from 'ip';
 import request from 'supertest';
-import { app } from '..';
 import { config } from '../config';
 import mongoose from 'mongoose';
 import User, { createUser } from '../Models/User';

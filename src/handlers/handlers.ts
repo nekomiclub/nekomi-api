@@ -18,7 +18,6 @@ import { IMock, TMockID } from '../interfaces/Mocks';
 import { Logger } from '..';
 import { E500 } from '../services/ErrorService';
 import { TNotifyEvent } from '../interfaces/Notify';
-import inquirer from 'inquirer';
 
 
 
@@ -191,14 +190,6 @@ export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckV
 }
 
 export async function patchUsersModels() {
-  const data = await inquirer.prompt([{
-    message: 'PROCEED PATCHING USER MODELS?',
-    type: 'confirm',
-    name: 'proceed',
-  }]);
-
-  if (!data.proceed) return console.log(`PATCHING USER MODELS ABORTED`);
-
   const startedAt = getUTC().timestamp;
   const users = await User.find();
   let usersModified = 0;
