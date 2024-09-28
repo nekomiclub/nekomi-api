@@ -1,3 +1,10 @@
+import { config } from '../config';
+
+export const FK_USAPI_ROUTES = {
+  get_user: (id: string) => `${config.URL.fullkekw_usapi}/user/${id}`,
+  refresh: `${config.URL.fullkekw_usapi}/auth/refresh`,
+};
+
 /** GET fk-usapi/user/:id */
 export interface IFK_UsapiGetUser {
   msg: string
@@ -31,6 +38,10 @@ export interface IFK_UsapiAuthRefresh {
 }
 
 
+
+export const FK_AUTHORITY_ROUTES = {
+  verify: `${config.URL.fullkekw_authority}/verify`,
+};
 
 /** POST fk-authority/verify */
 export interface IFK_AuthorityVerify {

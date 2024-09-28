@@ -323,3 +323,8 @@ export function preserveIP(raw: string): string {
     return raw;
   }
 }
+
+/** Will return default value if current is undefined, if not will return current value */
+export function setDefaultProp(value: any, toBe: any) {
+  return value === undefined ? toBe : value;
+}

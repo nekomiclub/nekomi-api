@@ -26,6 +26,7 @@ import NotifyService from './services/NotifyService';
 import LoggerService from './services/LoggerService';
 import { IBannedIP } from '../interfaces';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
+import { MiddlewareService } from './services/MiddlewareService';
 
 
 
@@ -128,7 +129,7 @@ wss.on('listening', () => {
 (async function () {
   const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
 
-  const LONG_TERM_HANDLERS = [
+  const REPETATIVE_HANDLERS = [
     await updateSearch(),
     await UpdatePopularTitles(),
     await handler.removeUsersLinkTelegramToken(),
@@ -142,7 +143,7 @@ wss.on('listening', () => {
 
   // Post-init callback
   try {
-    await Promise.all(LONG_TERM_HANDLERS);
+    await Promise.all(REPETATIVE_HANDLERS);
 
     console.log(`
       ----------------------------
@@ -155,16 +156,17 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    if (prodMode) {
-      await handler.patchUsersModels();
-    }
+    // await new MiddlewareService({ testMode: true }).checkCSRF(singCSRFToken(), ['animee.club'], {
+    //   origin: 'animee.club',
+    //   verified: true
+    // });
 
     // Cache updating
     setInterval(async () => {
       Logger.info(`[Startup/Post-init Callback]: Cache updated`);
 
       // Update cache
-      await Promise.all(LONG_TERM_HANDLERS);
+      await Promise.all(REPETATIVE_HANDLERS);
     }, 43200000); // 43200000 // 12h
 
     // Poll site online
