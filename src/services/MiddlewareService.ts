@@ -1,3 +1,5 @@
+import * as cfg from '../config';
+
 import { AxiosError } from 'axios';
 import { config } from '../config';
 import { setDefaultProp } from '../handlers/handlers';
@@ -11,13 +13,13 @@ interface Props {
 }
 
 export class MiddlewareService {
-  private testMode = false;
+  private testMode = cfg.testMode;
 
   constructor(props?: Props) {
     if (props) {
       const { testMode } = props;
 
-      this.testMode = setDefaultProp(testMode, false);
+      this.testMode = setDefaultProp(testMode, cfg.testMode);
     }
   }
 
