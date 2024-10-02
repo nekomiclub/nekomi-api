@@ -4,9 +4,9 @@ import { addZeroIfNumberSingle, getUTC } from '../handlers/handlers';
 import axios, { AxiosError } from 'axios';
 import ip from 'ip';
 
-import { Logger } from '..';
 import { devMode } from '../config';
 import chalk from 'chalk';
+import { Logger } from './LoggerService';
 
 export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];

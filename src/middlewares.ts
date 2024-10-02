@@ -10,8 +10,8 @@ import { getMockData, parseRoles } from './handlers/handlers';
 import { IM_CSRFCheck } from './interfaces/Mocks';
 import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from './interfaces/FullkekwResponses';
 import { $http } from './handlers/http';
-import { Logger } from '.';
 import { E404, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
+import { Logger } from './services/LoggerService';
 
 
 

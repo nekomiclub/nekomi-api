@@ -12,8 +12,8 @@ import { config, testMode } from '../config';
 import * as cfg from '../config';
 import { $http } from '../handlers/http';
 import puppeteer from 'puppeteer';
-import { Logger } from '..';
 import { E404, E503, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
 
 export const Title = mongoose.model<ITitle>('title', new Schema({
   id: String,

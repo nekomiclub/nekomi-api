@@ -3,8 +3,8 @@ import * as uuid from 'uuid';
 
 import { IDubber } from '../interfaces/Dubber';
 import { DeepPartial } from '../interfaces/Interfaces';
-import { getUTC } from '../handlers/handlers';
-import { Logger } from '..';
+import { Logger } from '../services/LoggerService';
+import { getNewUTC } from '../handlers/handler';
 
 export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
@@ -49,7 +49,7 @@ export async function createDubber({
     id: ID,
     code,
     name,
-    createdAt: createdAt || getUTC().timestamp,
+    createdAt: createdAt || getNewUTC().timestamp,
     description: description === undefined ? '' : description,
     editors: editors || [],
     leader: leader || null,

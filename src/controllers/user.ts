@@ -13,9 +13,9 @@ import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubber from '../Models/Dubber';
-import { Logger } from '..';
 import { E400, E404, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
 import { TNotifyEvent } from '../interfaces/Notify';
+import { Logger } from '../services/LoggerService';
 
 
 

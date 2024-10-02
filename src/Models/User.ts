@@ -5,7 +5,7 @@ import { createID, getUTC } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import { testMode } from '../config';
 import * as cfg from '../config';
-import { Logger } from '..';
+import { Logger } from '../services/LoggerService';
 
 export const User = mongoose.model<IUser>('user', new Schema({
   id: String,

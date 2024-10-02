@@ -15,25 +15,30 @@ import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
 import { IMock, TMockID } from '../interfaces/Mocks';
-import { Logger } from '..';
 import { E500 } from '../services/ErrorService';
 import { TNotifyEvent } from '../interfaces/Notify';
+import { Logger } from '../services/LoggerService';
 
 
 
 /** Create UUID v4 id
  * @param preventPrefix prevent 'devid' prefix. In prod mode set true by default 
+ * @deprecated
 */
 export function createID(preventPrefix?: boolean): string {
   return preventPrefix || prodMode ? uuid.v4() : `devid-${uuid.v4()}`;
 }
 
-/** Get random number in range */
+/** Get random number in range
+ * @deprecated
+ */
 export function randomNumber(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
 }
 
-/** Turn number to string & add zero before number if it less than 10 */
+/** Turn number to string & add zero before number if it less than 10
+ * @deprecated
+ */
 export function addZeroIfNumberSingle(num: number): string {
   return num <= 9 ? `0${num}` : `${num}`;
 }
@@ -93,6 +98,7 @@ interface IGetNewUTC {
 
 /** Get UTC date
  * @param timestamp Timestamp to start from. Default - now
+ * @deprecated
  */
 export function getNewUTC(timestamp?: number | null): IGetNewUTC {
   const now = timestamp ? new Date(timestamp) : new Date();
@@ -313,18 +319,4 @@ export async function updateDubbers() {
   }
 
   Logger.info(`[DubbersUpdating]: Updating ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)}. Touched - ${touched} dubbers`);
-}
-
-/** Return current IPv4 if raw match 0.0.0.0 */
-export function preserveIP(raw: string): string {
-  if (raw === '0.0.0.0') {
-    return ip.address();
-  } else {
-    return raw;
-  }
-}
-
-/** Will return default value if current is undefined, if not will return current value */
-export function setDefaultProp(value: any, toBe: any) {
-  return value === undefined ? toBe : value;
 }

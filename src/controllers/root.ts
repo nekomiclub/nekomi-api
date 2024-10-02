@@ -9,8 +9,8 @@ import Dubber from '../Models/Dubber';
 import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
-import { Logger } from '..';
 import { E400, E418, ERR_INVALID_PAYLOAD, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
 
 
 

@@ -19,9 +19,10 @@ import { updateSearch } from './root';
 import { $http } from '../handlers/http';
 import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
-import { Logger, Notify } from '..';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/Notify';
 import { E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
+import { Notify } from '../services/NotifyService';
 
 
 

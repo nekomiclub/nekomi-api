@@ -14,7 +14,7 @@ import chalk from 'chalk';
 
 import { devMode, testMode, config, prodMode } from './config';
 
-import * as router from './router';
+import Router from './router';
 import * as handler from './handlers/handlers';
 import Title, { TitlePatcher } from './Models/Title';
 import { createUser } from './Models/User';
@@ -22,21 +22,16 @@ import { singCSRFToken } from './services/TokenService';
 import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
 import { UpdatePopularTitles } from './controllers/title';
-import NotifyService from './services/NotifyService';
-import LoggerService from './services/LoggerService';
 import { IBannedIP } from '../interfaces';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { MiddlewareService } from './services/MiddlewareService';
+import { Logger } from './services/LoggerService';
+import { preserveIP } from './handlers/handler';
 
 
 
 // Console color mode
 chalk.level = 1;
-
-
-
-export const Logger = new LoggerService();
-export const Notify = new NotifyService();
 
 
 
@@ -109,14 +104,14 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 });
 
 // Routing
-app.use('/dubber', router.DubberRouter);
-app.use('/user', router.UserRouter);
-app.use('/title', router.TitleRouter);
-app.use('/', router.RootRouter);
+app.use('/dubber', Router.DubberRouter);
+app.use('/user', Router.UserRouter);
+app.use('/title', Router.TitleRouter);
 
 if (devMode) {
-  app.use('/dev', router.DevRouter);
+  app.use('/dev', Router.DevRouter);
 }
+app.use('/', Router.RootRouter);
 
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
 wss.on('listening', () => {
@@ -151,8 +146,8 @@ wss.on('listening', () => {
     
       Date: ${handler.getUTC().dateReversed} UTC-0 ${handler.getUTC().time}
       Mode: ${mode}
-      HTTP: http://${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
-      WS: ${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
+      HTTP: http://${preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
+      WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
 

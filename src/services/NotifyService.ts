@@ -7,9 +7,9 @@ import Dubber from '../Models/Dubber';
 import { IDubber } from '../interfaces/Dubber';
 import { $http } from '../handlers/http';
 import { config, devMode } from '../config';
-import { Logger } from '..';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/Notify';
+import { Logger } from './LoggerService';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -20,7 +20,7 @@ const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
 
 
 
-export class NotifyService {
+class NotifyService {
   /** Broadcast notification */
   async broadcast(payload: IEventPayload) {
     const event = payload.event;
@@ -143,4 +143,4 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
   });
 }
 
-export default NotifyService;
+export const Notify = new NotifyService();

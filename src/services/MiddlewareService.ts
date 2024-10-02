@@ -2,7 +2,6 @@ import * as cfg from '../config';
 
 import { AxiosError } from 'axios';
 import { config } from '../config';
-import { setDefaultProp } from '../handlers/handlers';
 import { $http } from '../handlers/http';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IM_CSRFCheck } from '../interfaces/Mocks';
@@ -19,7 +18,7 @@ export class MiddlewareService {
     if (props) {
       const { testMode } = props;
 
-      this.testMode = setDefaultProp(testMode, cfg.testMode);
+      this.testMode = testMode !== undefined ? testMode : cfg.testMode;
     }
   }
 
@@ -32,7 +31,7 @@ export class MiddlewareService {
    * @param origins Will check if token origin match one of specified origins, if empty will only verify
    */
   async checkCSRF(token: string, origins?: string[], mockData?: IM_CSRFCheck): Promise<boolean> {
-    origins = setDefaultProp(origins, []) as string[];
+    origins = origins !== undefined ? origins : [];
 
     const DATA: IM_CSRFCheck = {
       origin: 'NULL',

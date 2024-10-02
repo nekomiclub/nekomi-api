@@ -1,4 +1,4 @@
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handlers';
+import { addZeroIfNumberSingle, getNewUTC } from '../handlers/handler';
 import path from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
@@ -6,8 +6,8 @@ import chalk from 'chalk';
 export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace', 'suspicious'] as const;
 export type TLogType = typeof LOG_TYPES[number];
 
-/** Standalone Logging service */
-export class LoggerService {
+/** Logging service */
+class LoggerService {
   private MAX_TYPE_LENGTH = Math.max(...LOG_TYPES.map(el => el.length));
   private ROOT_DIR = path.resolve();
 
@@ -27,7 +27,7 @@ export class LoggerService {
   /** Write log */
   private append({ msg, type, e }: { type: TLogType, msg: string, e?: any }) {
     const emsg = e?.msg || e?.message || e?.data?.message || e?.data?.msg || e?.response?.data?.message || e?.response?.data?.message;
-    const date = `${getUTC().dateReversed}/${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}:${getUTC().ms < 100 ? `0${addZeroIfNumberSingle(getUTC().ms)}` : getUTC().ms}`;
+    const date = `${getNewUTC().date}/${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}:${getNewUTC().ms < 100 ? `0${addZeroIfNumberSingle(getNewUTC().ms)}` : getNewUTC().ms}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
     const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;
@@ -163,4 +163,6 @@ export class LoggerService {
   }
 }
 
-export default LoggerService;
+
+
+export const Logger = new LoggerService();

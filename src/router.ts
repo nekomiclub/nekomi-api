@@ -4,13 +4,21 @@ import * as RouteValidation from './handlers/routeValidation';
 
 
 
-export const RootRouter = express.Router();
+const RootRouter = express.Router();
 
-export const UserRouter = express.Router();
-export const TitleRouter = express.Router();
-export const DubberRouter = express.Router();
+const UserRouter = express.Router();
+const TitleRouter = express.Router();
+const DubberRouter = express.Router();
 
-export const DevRouter = express.Router();
+const DevRouter = express.Router();
+
+export default {
+  RootRouter,
+  UserRouter,
+  TitleRouter,
+  DubberRouter,
+  DevRouter,
+};
 
 
 

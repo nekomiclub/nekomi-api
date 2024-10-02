@@ -2,11 +2,12 @@ import chalk from 'chalk';
 import http from 'http';
 
 import { devMode } from '../config';
-import { Logger, wss } from '../index';
+import { wss } from '../index';
 import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, Message, Request, Response, TWS_Request, TWS_Type, WS_TYPES } from '../interfaces/WebSocket';
 import { E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
 import { WebSocket } from 'ws';
 import { WebSocketExtended } from '../interfaces/globals';
+import { Logger } from '../services/LoggerService';
 
 
 type TRouterFunction = (message: IWS_Route) => Promise<void>

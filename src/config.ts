@@ -4,7 +4,7 @@ import ip from 'ip';
 
 import { IANIMEE_CONFIG } from '../interfaces';
 import CSRF from './secrets/CSRF';
-import { preserveIP } from './handlers/handlers';
+import { preserveIP } from './handlers/handler';
 
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;

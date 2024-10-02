@@ -10,7 +10,8 @@
     "start": "npx tsx ./src/index.ts prodMode",
     "test": "npx jest --silent",
     "test-verbose": "npx jest",
-    "build": "npx eslint . --fix --ext .ts && npx tsc"
+    "build": "npx eslint . --fix --ext .ts && npx tsc",
+    "find_circular": "npx madge --circular --extensions ts ."
   },
   "keywords": [],
   "author": "unniiiverse",
