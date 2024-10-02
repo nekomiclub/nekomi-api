@@ -27,6 +27,7 @@ import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { MiddlewareService } from './services/MiddlewareService';
 import { Logger } from './services/LoggerService';
 import { preserveIP } from './handlers/handler';
+import { DubberService } from './Models/Dubber';
 
 
 
@@ -151,10 +152,7 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    // await new MiddlewareService({ testMode: true }).checkCSRF(singCSRFToken(), ['animee.club'], {
-    //   origin: 'animee.club',
-    //   verified: true
-    // });
+    const dubber = new DubberService();
 
     // Cache updating
     setInterval(async () => {

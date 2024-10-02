@@ -87,6 +87,16 @@ export const config = {
 
     /** Service domain */
     domain: 'api.animee.club',
+
+    /** Default avatar for new animee creations */
+    defaultAvatar: 'http://example.com',
+  }
+};
+
+export const rules = {
+  CreateUser: {
+    minNameLength: 6,
+    maxNameLength: 32
   }
 };
 
