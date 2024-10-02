@@ -1,6 +1,6 @@
 import express from 'express';
 import { validationResult } from 'express-validator';
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handlers';
+import { addZeroIfNumberSingle, getNewUTC } from '../handlers/handler';
 import axios, { AxiosError } from 'axios';
 import ip from 'ip';
 
@@ -114,7 +114,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       } catch (e) { null; }
     }
   } catch (e) {
-    const date = `${getUTC().dateReversed} UTC-0 ${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}`;
+    const date = `${getNewUTC().date} UTC-0 ${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}`;
 
     if (e instanceof HTTPErrorConstructor) {
       const emsg = `[HTTP/${e.status}]: ${e.code} - ${e.message}`;

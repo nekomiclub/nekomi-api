@@ -4,11 +4,11 @@ import { convert as createSlug } from 'url-slug';
 
 import { IDubber } from '../interfaces/Dubber';
 import { createID, getNewUTC } from '../handlers/handler';
-import { config, rules } from '../config';
+import { config, prodMode, rules } from '../config';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 
-/** To create/patch Dubber instance use DubberService */
+/** To create/patch/delete Dubber instance use DubberService */
 export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
   code: String,
@@ -29,12 +29,16 @@ export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
 interface IDubberCreate {
   name: string
   code: string
+
+  /** Id can be set only in dev mode */
+  id?: string
 }
 
 /** Create/path Dubber instance */
 export class DubberService {
   /** Crete new Dubber instance */
-  async create({ name, code }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
+  static async create({ name, code, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
+    id = prodMode ? createID() : id || createID();
     code = createSlug(code);
 
     const nameValid = validator.isLength(name, {
@@ -53,7 +57,7 @@ export class DubberService {
     if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${code} already exist`);
 
     const payload: IDubber = {
-      id: createID(),
+      id,
       name,
       code,
       avatar: config.vars.defaultAvatar,
@@ -88,8 +92,14 @@ export class DubberService {
     return instance;
   }
 
+  static async delete(id: string, reason?: string) {
+    await DubberModel.deleteMany({ id });
+
+    Logger.debug(`[DubberService]: Deleted dubber with id ${id}. Reason - ${reason || 'Not provided'}`);
+  }
+
   /** Path exist Dubber instance  */
-  async patch(id: string, body: Partial<IDubber>) {
+  static async patch(id: string, body: Partial<IDubber>) {
     const dubber = await DubberModel.findOne({ id });
     if (!dubber) throw new E404(`Dubber ${id} is not found`);
 
