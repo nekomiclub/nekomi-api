@@ -35,7 +35,7 @@ See ```Request/Response``` interfaces in ```interfaces/WebSocket.ts```.
 - Return: ```broadcast``` **online_changed**
 
 ### online_poll
-- (Server-side) Poll clients about their connection. Client must send back **site_connected** event *Will reset current OnlineSIDs*
+- (Server-side) Poll clients about their connection. Client must send back **site_connected** event *Will reset current OnlineClients*
 - Payload: none
 - Return: none
 

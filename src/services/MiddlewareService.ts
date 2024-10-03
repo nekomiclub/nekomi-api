@@ -36,7 +36,7 @@ export class MiddlewareService {
    * 
    * @returns user
    */
-  async checkAccess(token: string, capabilities?: TRoleCapability[], mockData?: IM_AccessControl): Promise<HydratedDocument<IUser>> {
+  async checkAccess(token: string, capabilities?: TRoleCapability[], mockData?: IM_AccessControl): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
     capabilities = capabilities !== undefined ? capabilities : [];
 
     const DATA: IM_AccessControl = {
@@ -71,19 +71,19 @@ export class MiddlewareService {
     // TODO: Sync user username & avatar
 
     //* Pass if no capabilities required
-    if (!capabilities.length) return user;
+    if (!capabilities.length) return { user, capabilities: [] };
 
     const caps = this.testMode ? DATA.capabilities : await parseRoles(user.roles);
 
     //* Pass if user is root
-    if (caps.includes('root')) return user;
+    if (caps.includes('root')) return { user, capabilities: caps };
 
     capabilities.forEach(cap => {
       if (!caps.includes(cap)) throw new ERR_ACCESS_REJECTED();
     });
 
     //* Pass if everything is ok
-    return user;
+    return { user, capabilities: caps };
   }
 
   /** Check CSRF token

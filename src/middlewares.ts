@@ -29,17 +29,17 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       if (!token) throw new ERR_MISSING_AUTHORIZATION();
 
       try {
-        const user = await Middleware.checkAccess(token, capabilities);
+        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities);
 
         req.animee.user = req.animee.user || {
           id: 'NULL',
           username: 'NULL',
-          roles: [],
+          capabilities: [],
         };
 
         req.animee.user.id = user.id;
         req.animee.user.username = user.username;
-        req.animee.user.roles = user.roles;
+        req.animee.user.capabilities = userCaps;
       } catch (e) {
         if (e instanceof AxiosError && (e.response?.status === 403 || e.response?.status === 400 || e.response?.status === 404)) {
           const message = 'Your session has expired. Re-login in fullkekw';

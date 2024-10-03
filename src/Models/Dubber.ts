@@ -34,7 +34,7 @@ interface IDubberCreate {
   id?: string
 }
 
-/** Create/path Dubber instance */
+/** Create/path/delete Dubber instance */
 export class DubberService {
   /** Crete new Dubber instance */
   static async create({ name, code, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {

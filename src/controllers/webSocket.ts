@@ -9,7 +9,7 @@ import { WebSocketExtended } from '../interfaces/globals';
 import { Logger } from '../services/LoggerService';
 
 
-type TRouterFunction = (message: IWS_Route) => Promise<void>
+type TRouterFunction = (message: IWS_Route, IP: string) => Promise<void>
 
 const ROUTER: { [TYPE in TWS_Request]?: TRouterFunction } = {
   ping,
@@ -17,7 +17,7 @@ const ROUTER: { [TYPE in TWS_Request]?: TRouterFunction } = {
   site_disconnected,
 };
 
-const OnlineSIDs: string[] = [];
+let OnlineClients: string[] = [];
 
 
 
@@ -29,16 +29,16 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || 'IP_UNDEFINED';
 
       // Ensure inner data is not undefined
-      ws._data = ws._data || {};
+      ws.animee = ws.animee !== undefined ? ws.animee : {};
 
       if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload) throw new ERR_INVALID_PAYLOAD('Websocket type or payload is invalid');
 
       const route = ROUTER[parsed.type] as TRouterFunction;
-      if (!route) throw new E501(`Route ${parsed.type} is found, but not implemented yet`);
+      if (!route) throw new E501(`Route ${parsed.type} is found but not implemented yet`);
 
       Logger.trace(`[Request/${IP}]: WebSocket - ${JSON.stringify(parsed)}`);
 
-      await route({ ws, message: parsed });
+      await route({ ws, message: parsed }, IP);
     } catch (e) {
       if (e instanceof HTTPErrorConstructor) {
         const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
@@ -78,8 +78,8 @@ export async function WebSocketOnlinePoll() {
     }
   };
 
-  Logger.info(`[WebSocker]: Site online polling started, current online reseted`);
-  OnlineSIDs.splice(0, OnlineSIDs.length - 1);
+  Logger.info(`[WebSocket]: Site online polling started, current online reseted`);
+  OnlineClients.splice(0, OnlineClients.length - 1);
 
   return await broadcast(request);
 }
@@ -99,13 +99,14 @@ async function ping({ ws, message }: IWS_Route) {
   ws.send(JSON.stringify(response));
 }
 
-async function site_connected({ ws, message }: IWS_Route) {
+async function site_connected({ ws, message }: IWS_Route, IP: string) {
   const { payload } = message as Request<IWS_SiteConnection>;
+  const id = IP !== 'IP_UNDEFINED' ? IP : payload.SID;
 
-  if (!payload.SID) throw new ERR_INVALID_PAYLOAD('Payload or SID are missing');
+  if (!payload.SID) throw new ERR_INVALID_PAYLOAD('SID is missing');
 
-  if (!OnlineSIDs.includes(payload.SID)) {
-    OnlineSIDs.push(payload.SID);
+  if (!OnlineClients.includes(id)) {
+    OnlineClients.push(id);
   } else {
     const response: Response = {
       type: 'ok',
@@ -117,27 +118,26 @@ async function site_connected({ ws, message }: IWS_Route) {
     return ws.send(JSON.stringify(response));
   }
 
-  Logger.debug(`[WebSocket]: New site connection - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
+  Logger.debug(`[WebSocket]: New site connection - ${id}. Current online - ${OnlineClients.length}`);
 
   const response: Response<IWS_OnlineChanged> = {
     type: 'online_changed',
     payload: {
-      online: OnlineSIDs.length
+      online: OnlineClients.length
     }
   };
 
   return await broadcast(response);
 }
 
-async function site_disconnected({ ws, message }: IWS_Route) {
+async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
   const { payload } = message as Request<IWS_SiteConnection>;
+  const id = IP !== 'IP_UNDEFINED' ? IP : payload.SID;
 
-  if (!payload.SID) throw new ERR_INVALID_PAYLOAD('Payload or SID are missing');
+  if (!id) throw new ERR_INVALID_PAYLOAD('SID is missing');
 
-  const index = OnlineSIDs.findIndex(el => el === payload.SID);
-
-  if (index !== -1) {
-    OnlineSIDs.splice(index, 1);
+  if (OnlineClients.some(el => el === IP || el === payload.SID)) {
+    OnlineClients = OnlineClients.filter(el => el !== IP && el !== payload.SID);
   } else {
     const response: Response = {
       type: 'ok',
@@ -149,12 +149,12 @@ async function site_disconnected({ ws, message }: IWS_Route) {
     return ws.send(JSON.stringify(response));
   }
 
-  Logger.debug(`[WebSocket]: Site disconnected - ${payload.SID}. Current online - ${OnlineSIDs.length}`);
+  Logger.debug(`[WebSocket]: Site disconnected - ${id}. Current online - ${OnlineClients.length}`);
 
   const response: Response<IWS_OnlineChanged> = {
     type: 'online_changed',
     payload: {
-      online: OnlineSIDs.length
+      online: OnlineClients.length
     }
   };
 

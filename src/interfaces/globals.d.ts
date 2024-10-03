@@ -24,7 +24,7 @@ declare global {
         user?: {
           id: string
           username: string
-          roles: string[]
+          capabilities: TRoleCapability[]
         }
 
         /** Request origin verified by CSRF
@@ -38,7 +38,7 @@ declare global {
 
 declare class WebSocketExtended extends WebSocket {
   /** Socket internal data */
-  _data: {
+  animee: {
     TBD?: void
   };
 }
