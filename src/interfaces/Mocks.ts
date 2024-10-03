@@ -18,16 +18,14 @@ export interface IMock<T = any> {
 
 /** AccessControl mock */
 export interface IM_AccessControl {
-  /** User ID */
   id: string
-
-  /** Required capabilities */
-  capabilities?: TRoleCapability[]
+  capabilities: TRoleCapability[]
+  username: string
+  avatar: string
 }
 
 /** CSRFCheck mock */
 export interface IM_CSRFCheck {
-  /** CSRF validity */
   verified: boolean
 
   /** CSRF origin */

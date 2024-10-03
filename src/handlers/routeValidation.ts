@@ -18,16 +18,6 @@ const upload = multer();
 
 
 
-//* ------------------ DEV MIDDLEWARES ------------------
-
-export const devGetAccessControl = [
-  AccessControl(['dubber'])
-];
-
-export const devGetCSRFCheck = [
-  CSRFCheck([config.vars.domain])
-];
-
 
 //* ------------------ USER MIDDLEWARES ------------------
 

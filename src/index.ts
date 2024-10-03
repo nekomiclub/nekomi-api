@@ -95,11 +95,12 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
-// Trace requests
+// Trace requests & set animee internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
   Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
+  req.animee = req.animee !== undefined ? req.animee : {};
 
   next();
 });
@@ -108,10 +109,6 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 app.use('/dubber', Router.DubberRouter);
 app.use('/user', Router.UserRouter);
 app.use('/title', Router.TitleRouter);
-
-if (devMode) {
-  app.use('/dev', Router.DevRouter);
-}
 app.use('/', Router.RootRouter);
 
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });

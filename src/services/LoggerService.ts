@@ -27,7 +27,7 @@ class LoggerService {
   /** Write log */
   private append({ msg, type, e }: { type: TLogType, msg: string, e?: any }) {
     const emsg = e?.msg || e?.message || e?.data?.message || e?.data?.msg || e?.response?.data?.message || e?.response?.data?.message;
-    const date = `${getNewUTC().date}/${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}:${getNewUTC().ms < 100 ? `0${addZeroIfNumberSingle(getNewUTC().ms)}` : getNewUTC().ms}`;
+    const date = `${getNewUTC().fulldate}/${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}:${getNewUTC().ms < 100 ? `0${addZeroIfNumberSingle(getNewUTC().ms)}` : getNewUTC().ms}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
     const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;

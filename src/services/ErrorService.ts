@@ -114,7 +114,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       } catch (e) { null; }
     }
   } catch (e) {
-    const date = `${getNewUTC().date} UTC-0 ${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}`;
+    const date = `${getNewUTC().fulldate} UTC-0 ${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}`;
 
     if (e instanceof HTTPErrorConstructor) {
       const emsg = `[HTTP/${e.status}]: ${e.code} - ${e.message}`;
@@ -191,13 +191,13 @@ export class ERR_NOT_READY extends E418 {
   }
 }
 
-export class ERR_MISSING_AUTHORIZATION extends E400 {
+export class ERR_MISSING_AUTHORIZATION extends E404 {
   constructor(message?: string) {
     super(message || 'Authorization cookie/header is missing.', 'ERR_MISSING_AUTHORIZATION');
   }
 }
 
-export class ERR_ACCESS_REJECTED extends E400 {
+export class ERR_ACCESS_REJECTED extends E403 {
   constructor(message?: string) {
     super(message || 'You are not allowed to have access for that.', 'ERR_ACCESS_REJECTED');
   }

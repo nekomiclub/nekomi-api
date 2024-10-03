@@ -30,7 +30,7 @@ export const config = {
   secrets: {
     /* CSRF Token */
     CSRF
-  },
+  } as const,
 
   /** URLs */
   URL: {
@@ -63,7 +63,7 @@ export const config = {
 
     /** Animee uploads bot */
     uploadsBot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.PORTS.HTTP}`,
-  },
+  } as const,
 
   /** Service variables */
   vars: {
@@ -90,7 +90,7 @@ export const config = {
 
     /** Default avatar for new animee creations */
     defaultAvatar: 'http://example.com',
-  }
+  } as const
 };
 
 export const rules = {

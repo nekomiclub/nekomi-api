@@ -8,13 +8,29 @@ declare global {
       animee: {
         /** User id
          * @requires AccessControl middleware
+         * @deprecated use user.id instead
          */
         userID?: string
 
         /** User capabilities
          * @requires AccessControl middleware
+         * @deprecated use user.capabilities instead
          */
         userCapabilities?: TRoleCapability[],
+
+        /** Request user
+         * @requires AccessControl middleware
+         */
+        user?: {
+          id: string
+          username: string
+          roles: string[]
+        }
+
+        /** Request origin verified by CSRF
+         * @requires CheckCSRF middleware
+         */
+        CSRF_origin?: string
       }
     }
   }

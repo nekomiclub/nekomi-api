@@ -10,24 +10,12 @@ const UserRouter = express.Router();
 const TitleRouter = express.Router();
 const DubberRouter = express.Router();
 
-const DevRouter = express.Router();
-
 export default {
   RootRouter,
   UserRouter,
   TitleRouter,
-  DubberRouter,
-  DevRouter,
+  DubberRouter
 };
-
-
-
-//* ------------------ DEV ROUTER ------------------
-// Test-only routes
-import * as DevController from './controllers/dev';
-
-DevRouter.get('/AccessControl', RouteValidation.devGetAccessControl, DevController.getAccessControl);
-DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
 
 
 
