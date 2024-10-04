@@ -93,7 +93,7 @@ export const config = {
   } as const
 };
 
-export const rules = {
+export const RULES = {
   CreateUser: {
     minNameLength: 6,
     maxNameLength: 32

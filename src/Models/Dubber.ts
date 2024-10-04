@@ -4,7 +4,7 @@ import { convert as createSlug } from 'url-slug';
 
 import { IDubber } from '../interfaces/Dubber';
 import { createID, getNewUTC } from '../handlers/handler';
-import { config, prodMode, rules } from '../config';
+import { config, prodMode, RULES } from '../config';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 
@@ -41,17 +41,9 @@ export class DubberService {
     id = prodMode ? createID() : id || createID();
     code = createSlug(code);
 
-    const nameValid = validator.isLength(name, {
-      max: rules.CreateUser.maxNameLength,
-      min: rules.CreateUser.minNameLength
-    });
-    if (!nameValid) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
+    if (!validator.isLength(name, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
 
-    const codeValid = validator.isLength(code, {
-      max: rules.CreateUser.maxNameLength,
-      min: rules.CreateUser.minNameLength
-    });
-    if (!codeValid) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
+    if (!validator.isLength(code, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
     const existDubber = await DubberModel.findOne({ code });
     if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${code} already exist`);
@@ -92,8 +84,12 @@ export class DubberService {
     return instance;
   }
 
-  static async delete(id: string, reason?: string) {
-    await DubberModel.deleteMany({ id });
+  static async delete(id: string, reason?: string, size?: 'one' | 'many') {
+    if (size === undefined || size === 'one') {
+      await DubberModel.deleteOne({ id });
+    } else if (size === 'many') {
+      await DubberModel.deleteMany({ id });
+    }
 
     Logger.debug(`[DubberService]: Deleted dubber with id ${id}. Reason - ${reason || 'Not provided'}`);
   }

@@ -1,13 +1,23 @@
 import mongoose, { HydratedDocument, Schema } from 'mongoose';
 
-import { IUser, IUserLib } from '../interfaces/User';
+import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../interfaces/User';
 import { getUTC } from '../handlers/handlers';
 import * as cfg from '../config';
 import { config } from '../config';
 import { Logger } from '../services/LoggerService';
 import validator from 'validator';
-import { ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { createID, getNewUTC } from '../handlers/handler';
+import Title from './Title';
+import Role from './Role';
+import { TNotifyEvent } from '../interfaces/Notify';
+import DubberModel from './Dubber';
+
+
+
+interface IUserServiceProps {
+  user: HydratedDocument<IUser>
+}
 
 interface IUserCreate {
   id: string
@@ -15,6 +25,24 @@ interface IUserCreate {
 
   avatar?: string
 }
+
+interface IPatchLib {
+  titleID: string
+  libID: string
+}
+
+interface IPatchRole {
+  code: string
+}
+
+interface IPatchSubsribe {
+  event: TNotifyEvent
+
+  /** Subscribe key */
+  key: string
+}
+
+
 
 /** To create/patch/delete User instance use UserService */
 export const UserModel = mongoose.model<IUser>('user', new Schema({
@@ -136,9 +164,18 @@ export async function createUser({ id, roles, avatar, username, libs, test }: {
 
 /** Create/path/delete User instance */
 export class UserService {
+  readonly user: HydratedDocument<IUser>;
+  readonly stack: string[] = [];
+
+  constructor({ user }: IUserServiceProps) {
+    this.user = user;
+  }
+
+
+
   static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
-    if (!validator.isAlpha(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha`);
-    if (!validator.isLength(username, { min: cfg.rules.CreateUser.minNameLength, max: cfg.rules.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
+    if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
+    if (!validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
     const existUser = await UserModel.findOne({ $or: [{ id }, { username }] });
@@ -224,14 +261,204 @@ export class UserService {
     return user;
   }
 
-  static async delete(id: string, reason?: string) {
-    await UserModel.deleteMany({ id });
+  static async delete(id: string, reason?: string, size?: 'one' | 'many') {
+    if (size === undefined || size === 'one') {
+      await UserModel.deleteOne({ id });
+    } else if (size === 'many') {
+      await UserModel.deleteMany({ id });
+    }
 
     Logger.debug(`[UserService]: Deleted user with id ${id}. Reason - ${reason || 'Not provided'}`);
   }
 
-  static async patch(id: string, body: Partial<IUser>) {
+  /** Save document
+   * @returns current patch stack
+   */
+  async save(): Promise<string[]> {
+    await this.user.save();
 
+    Logger.debug(`[UserService]: User ${this.user.id} patched! Stack - ${this.stack.length ? this.stack.join('; ') : 'Nothing patched...'}`);
+
+    return this.stack;
+  }
+
+  //* ------------ AVATAR
+
+  /** Patch user telegram data */
+  async patchAvatar({ url }: { url: string }) {
+    if (!validator.isURL(url)) throw new ERR_INVALID_PAYLOAD(`Avatar URL is invalid`);
+
+    this.stack.push(`Avatar URL changed (${this.user.avatar} > ${url})`);
+    this.user.avatar = url;
+  }
+
+  //* ------------ USERNAME
+
+  /** Patch user telegram data */
+  async patchUsername({ username }: { username: string }) {
+    if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
+    if (!validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
+
+    const existUser = await UserModel.findOne({ username, id: { $ne: this.user.id } });
+    if (existUser) throw new ERR_ALREADY_EXIST(`User with username ${username} already exist`);
+
+    this.stack.push(`Username changed (${this.user.username} > ${username})`);
+    this.user.username = username;
+  }
+
+  //* ------------ TELEGRAM LINK TOKEN
+
+  /** Patch user telegram data */
+  async patchTelegramLinkToken({ token }: { token: string }) {
+    this.stack.push(`Telegram link token changed (${this.user.telegramLinkToken} > ${token})`);
+    this.user.telegramLinkToken = token;
+  }
+
+  //* ------------ STATS
+
+  /** Patch user statistics
+   * @param viewtime will INCREASE CURRENT BY PROVIDED SECONDS
+   */
+  async patchStatistics({ isTelegramLinked, viewtime }: Partial<IUserStatistics>) {
+    if (isTelegramLinked !== undefined) {
+      this.stack.push(`Changed isTelegramLinked (${this.user.statistics.isTelegramLinked} > ${isTelegramLinked})`);
+      this.user.statistics.isTelegramLinked = isTelegramLinked;
+    }
+
+    if (viewtime !== undefined) {
+      if (viewtime < 0 || viewtime > 120000) throw new ERR_INVALID_PAYLOAD(`Viewtime can not be increased by more than 2h or less than 0s`);
+
+      this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s > ${viewtime}s)`);
+      this.user.statistics.viewtime += viewtime;
+    }
+  }
+
+  //* ------------ WATCH PROGRESS
+
+  /** Patch user watch progress
+   * @param updatedAt is optional
+   */
+  async patchWatchProgress({ dubberID, episodeOrder, progress, titleID }: IUserWatchProgress) {
+    const dubber = await DubberModel.findOne({ id: dubberID });
+    if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
+
+    const title = await Title.findOne({ id: titleID });
+    if (!title) throw new E404(`Title ${titleID} is not found`);
+
+    const item = this.user.watchProgress.find(el => el.dubberID === dubberID && el.titleID === titleID);
+
+    if (item) {
+      // Patch exist
+
+      this.stack.push(`Watch progress for ${item.episodeOrder} in title ${title.id} in dub ${dubber.id} changed (progress: ${item.progress}s > ${progress}s; ep: ${item.episodeOrder} > ${episodeOrder})`);
+
+      item.episodeOrder = episodeOrder;
+      item.progress = progress;
+      item.updatedAt = getNewUTC().timestamp;
+
+    } else {
+      // Create new
+
+      const item: IUserWatchProgress = {
+        dubberID,
+        episodeOrder,
+        progress,
+        titleID,
+        updatedAt: getNewUTC().timestamp
+      };
+
+      this.user.watchProgress.push(item);
+      this.stack.push(`Added new watch progress item for ${episodeOrder} episode in title ${title.id} in dub ${dubber.id}`);
+    }
+  }
+
+  //* ------------ TELEGRAM DATA
+
+  /** Patch user telegram data */
+  async patchTelegramData({ id }: Partial<IUserTelegramData>) {
+
+  }
+
+  //* ------------ LIB
+
+  /** Add title to lib */
+  async addToLib({ libID, titleID }: IPatchLib) {
+    const lib = this.user.libs.find(el => el.id === libID);
+    if (!lib) throw new E404(`Lib ${libID} is not found`);
+
+    const title = await Title.findOne({ id: titleID });
+    if (!title) throw new E404(`Title ${titleID} is not found`);
+
+    if (!lib.titles.includes(title.id)) {
+      lib.titles.push(title.id);
+      this.stack.push(`Added title ${title.id} to lib ${lib.id}`);
+    }
+
+    this.user.markModified('libs');
+  }
+
+  /** Remove title from lib */
+  async removeFromLib({ libID, titleID }: IPatchLib) {
+    const lib = this.user.libs.find(el => el.id === libID);
+    if (!lib) throw new E404(`Lib ${libID} is not found`);
+
+    const title = await Title.findOne({ id: titleID });
+    if (!title) throw new E404(`Title ${titleID} is not found`);
+
+    lib.titles = lib.titles.filter(el => el !== title.id);
+    this.stack.push(`Removed title ${title.id} from lib ${lib.id}`);
+
+    this.user.markModified('libs');
+  }
+
+  //* ------------ ROLE
+
+  /** Add user role */
+  async addRole({ code }: IPatchRole) {
+    const role = await Role.findOne({ code });
+    if (!role) throw new E404(`Role ${code} is not found`);
+
+    if (!this.user.roles.includes(code)) {
+      this.user.roles.push(code);
+      this.stack.push(`Added role ${role.id}`);
+    }
+
+    this.user.markModified('roles');
+  }
+
+  /** Remove user role */
+  async removeRole({ code }: IPatchRole) {
+    const role = await Role.findOne({ code });
+    if (!role) throw new E404(`Role ${code} is not found`);
+
+    this.user.roles = this.user.roles.filter(el => el !== code);
+    this.stack.push(`Removed role ${role.id}`);
+
+    this.user.markModified('roles');
+  }
+
+  //* ------------ SUBSCRIBES
+
+  /** Add user subscribe */
+  async addSubscribe({ event, key }: IPatchSubsribe) {
+    const subscribe = `${event}/${key}`;
+
+    if (!this.user.subscribes.includes(subscribe)) {
+      this.user.subscribes.push(subscribe);
+      this.stack.push(`Added subscribe ${subscribe}`);
+    }
+
+    this.user.markModified('subscribes');
+  }
+
+  /** Remove user subscribe */
+  async removeSubscribe({ event, key }: IPatchSubsribe) {
+    const subscribe = `${event}/${key}`;
+
+    this.user.subscribes = this.user.subscribes.filter(el => el !== subscribe);
+    this.stack.push(`Removed subscribe ${subscribe}`);
+
+    this.user.markModified('subscribes');
   }
 }
 

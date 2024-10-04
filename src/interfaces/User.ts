@@ -37,9 +37,7 @@ export interface IUser {
   /** Telegram linked account data.
    * @access only API
    */
-  telegramData: null | {
-    id: number
-  }
+  telegramData: null | IUserTelegramData
 
   /** Token for linking telegram to animee account
    * @access CSRF required
@@ -74,6 +72,10 @@ export interface IUserWatchProgress {
 
   /** Last update UTC-0 timestamp */
   updatedAt: number
+}
+
+export interface IUserTelegramData {
+  id: number
 }
 
 /** User lib type */

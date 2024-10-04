@@ -149,8 +149,6 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    const dubber = new DubberService();
-
     // Cache updating
     setInterval(async () => {
       Logger.info(`[Startup/Post-init Callback]: Cache updated`);
