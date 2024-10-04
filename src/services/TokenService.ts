@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 import { config, devMode, prodMode } from '../config';
-import { getUTC } from '../handlers/handlers';
+import { getUTC, makeStringID } from '../handlers/handlers';
 
 /** Decoded token interface */
 interface ITokenPayload<T = any> {
@@ -20,7 +20,7 @@ interface ITokenPayload<T = any> {
 const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 
 /** Token methods */
-type TTokenMethod = 'CSRF';
+type TTokenMethod = 'CSRF' | 'TelegramLink';
 
 /** Decode JWT token.
  * @param method If specified, will also verify token with this method
@@ -87,4 +87,19 @@ export function singCSRFToken(): string {
   }, config.secrets.CSRF, {
     algorithm: 'RS256'
   });
+}
+
+export class TokenService {
+  static signToken(method: TTokenMethod, payload?: object): string {
+    let token = '';
+
+    switch (method) {
+      case 'TelegramLink': {
+        token = makeStringID(24);
+        break;
+      }
+    }
+
+    return token;
+  }
 }

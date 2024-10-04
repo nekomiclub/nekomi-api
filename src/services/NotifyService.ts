@@ -20,7 +20,11 @@ const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
 
 
 
-class NotifyService {
+export class NotifyService {
+  static createEvent({ event, key }: { event: TNotifyEvent, key: string }) {
+    return `${event}/${key}`;
+  }
+
   /** Broadcast notification */
   async broadcast(payload: IEventPayload) {
     const event = payload.event;

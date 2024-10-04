@@ -42,6 +42,11 @@ interface IPatchSubsribe {
   key: string
 }
 
+interface IPatchTelegramData extends Partial<IUserTelegramData> {
+  /** Write telegramData to null */
+  remove?: boolean
+}
+
 
 
 /** To create/patch/delete User instance use UserService */
@@ -290,6 +295,8 @@ export class UserService {
 
     this.stack.push(`Avatar URL changed (${this.user.avatar} > ${url})`);
     this.user.avatar = url;
+
+    this.user.markModified('avatar');
   }
 
   //* ------------ USERNAME
@@ -309,9 +316,14 @@ export class UserService {
   //* ------------ TELEGRAM LINK TOKEN
 
   /** Patch user telegram data */
-  async patchTelegramLinkToken({ token }: { token: string }) {
+  async patchTelegramLinkToken({ token }: { token: string | null }) {
+    const existUser = await UserModel.findOne({ telegramLinkToken: token, id: { $ne: this.user.id } });
+    if (existUser) throw new ERR_ALREADY_EXIST(`User with this telegram token already exist`);
+
     this.stack.push(`Telegram link token changed (${this.user.telegramLinkToken} > ${token})`);
     this.user.telegramLinkToken = token;
+
+    this.user.markModified('telegramLinkToken');
   }
 
   //* ------------ STATS
@@ -331,6 +343,8 @@ export class UserService {
       this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s > ${viewtime}s)`);
       this.user.statistics.viewtime += viewtime;
     }
+
+    this.user.markModified('statistics');
   }
 
   //* ------------ WATCH PROGRESS
@@ -370,13 +384,35 @@ export class UserService {
       this.user.watchProgress.push(item);
       this.stack.push(`Added new watch progress item for ${episodeOrder} episode in title ${title.id} in dub ${dubber.id}`);
     }
+
+    this.user.markModified('watchProgress');
   }
 
   //* ------------ TELEGRAM DATA
 
-  /** Patch user telegram data */
-  async patchTelegramData({ id }: Partial<IUserTelegramData>) {
+  /** Patch user telegram data
+   * @param remove Will set null to telegramData object
+   */
+  async patchTelegramData({ id, remove }: IPatchTelegramData) {
+    if (remove) {
+      this.user.telegramData = null;
+      this.user.markModified('telegramData');
 
+      return;
+    }
+
+    if (this.user.telegramData === null && id === undefined) throw new ERR_INVALID_PAYLOAD(`Telegram data is not specified and id is not provided`);
+
+    this.user.telegramData = this.user.telegramData !== null ? this.user.telegramData : {
+      id: id!
+    };
+
+    if (id !== undefined) {
+      this.user.telegramData.id = id;
+      this.stack.push(`Changed telegram data id (${this.user.telegramData.id} > ${id})`);
+    }
+
+    this.user.markModified('telegramData');
   }
 
   //* ------------ LIB
