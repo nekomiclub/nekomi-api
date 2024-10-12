@@ -362,13 +362,14 @@ export class UserService {
     const title = await Title.findOne({ id: titleID });
     if (!title) throw new E404(`Title ${titleID} is not found`);
 
-    const item = this.user.watchProgress.find(el => el.dubberID === dubberID && el.titleID === titleID);
+    const item = this.user.watchProgress.find(el => el.titleID === titleID);
 
     if (item) {
       // Patch exist
 
-      this.stack.push(`Watch progress for ${item.episodeOrder} in title ${title.id} in dub ${dubber.id} changed (progress: ${item.progress}s > ${progress}s; ep: ${item.episodeOrder} > ${episodeOrder})`);
+      this.stack.push(`Watch progress for ${item.episodeOrder} in title ${title.id} changed (progress: ${item.progress}s > ${progress}s; ${item.episodeOrder !== episodeOrder ? `ep: ${item.episodeOrder} > ${episodeOrder};` : ''} ${item.dubberID !== dubberID ? `dubber: ${item.dubberID} > ${dubberID}` : ''})`);
 
+      item.dubberID = dubberID;
       item.episodeOrder = episodeOrder;
       item.progress = progress;
       item.updatedAt = getNewUTC().timestamp;

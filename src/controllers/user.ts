@@ -51,10 +51,10 @@ interface IPatchUserBody {
 
 export async function postSignin(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const { session: token } = req.body as { session: string };
+    const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
-    const session: IFK_UsapiAuthRefresh = {};
+    const DATA: IFK_UsapiAuthRefresh = {};
 
 
 
@@ -62,30 +62,30 @@ export async function postSignin(req: express.Request, res: express.Response) {
     if (!testMode) {
       const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
         headers: {
-          Cookie: `session=${token}`
+          Cookie: `session=${session}`
         }
       });
 
-      session.id = data.id;
-      session.avatar = data.avatar;
-      session.username = data.username;
+      DATA.id = data.id;
+      DATA.avatar = data.avatar;
+      DATA.username = data.username;
     } else {
       const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
 
-      session.id = data.id;
-      session.avatar = data.avatar;
-      session.username = data.username;
+      DATA.id = data.id;
+      DATA.avatar = data.avatar;
+      DATA.username = data.username;
     }
 
-    let user = await User.findOne({ id: session.id });
+    let user = await User.findOne({ id: DATA.id });
     let isUserNew = false;
 
     if (user) {
       // Sync animee data with fullkekw user api
       const patch = new UserService({ user });
 
-      if (user.username !== session.username) await patch.patchUsername({ username: session.username });
-      if (user.avatar !== session.avatar) await patch.patchAvatar({ url: session.avatar });
+      if (user.username !== DATA.username) await patch.patchUsername({ username: DATA.username });
+      if (user.avatar !== DATA.avatar) await patch.patchAvatar({ url: DATA.avatar });
 
       await patch.save();
 
@@ -94,7 +94,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       // User is not found, create new
       Logger.info(`[UserController]: New user signed in, welcome!`);
 
-      user = await UserService.create(session);
+      user = await UserService.create(DATA);
       isUserNew = true;
     }
 
@@ -106,9 +106,9 @@ export async function postSignin(req: express.Request, res: express.Response) {
       domain: prodMode ? '.animee.club' : undefined
     }).json({
       message: 'User signed in',
-      id: session.id,
-      username: session.username,
-      avatar: session.avatar
+      id: DATA.id,
+      username: DATA.username,
+      avatar: DATA.avatar
     });
   });
 }
