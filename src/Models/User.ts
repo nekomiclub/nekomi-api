@@ -317,8 +317,11 @@ export class UserService {
 
   /** Patch user telegram data */
   async patchTelegramLinkToken({ token }: { token: string | null }) {
-    const existUser = await UserModel.findOne({ telegramLinkToken: token, id: { $ne: this.user.id } });
-    if (existUser) throw new ERR_ALREADY_EXIST(`User with this telegram token already exist`);
+    // Ignore finding exist user if token is null
+    if (token !== null) {
+      const existUser = await UserModel.findOne({ telegramLinkToken: token, id: { $ne: this.user.id } });
+      if (existUser) throw new ERR_ALREADY_EXIST(`User with this telegram token already exist`);
+    }
 
     this.stack.push(`Telegram link token changed (${this.user.telegramLinkToken} > ${token})`);
     this.user.telegramLinkToken = token;

@@ -115,7 +115,7 @@ Parse user library (till 1.3.2 will be true by default)
 {
   message: 'OK',
   user: IUser,
-  parsedCapabilities: TRoleCapability[]
+  parsedRoles: TRoleCapability[]
 }
 ```
 
@@ -162,7 +162,7 @@ Some payload is not provided
 ## PATCH /user
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.3  | animee.club | basic  |
+|  1.3.1  | animee.club | basic  |
 
 Patch own user instance.
 

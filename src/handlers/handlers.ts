@@ -149,7 +149,9 @@ export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]>
   return caps;
 }
 
-/** Get mock data */
+/** Get mock data
+ * @deprecated
+ */
 export function getMockData<T = any>(req: express.Request, id: TMockID): IMock<T> {
   let mocks: IMock[] = [];
 

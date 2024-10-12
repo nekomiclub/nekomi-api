@@ -24,6 +24,8 @@ const upload = multer();
 export const userPatch = [
   CSRFCheck(['animee.club']),
   AccessControl(['basic']),
+  body('method')
+    .notEmpty().withMessage('Patch method must be provided')
 ];
 
 export const userLinkTelegram = [

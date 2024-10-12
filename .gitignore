@@ -3,3 +3,4 @@ dist
 docs/secrets.md
 logs
 .old
+.cache

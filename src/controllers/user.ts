@@ -17,6 +17,8 @@ import { E400, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD
 import { TNotifyEvent } from '../interfaces/Notify';
 import { Logger } from '../services/LoggerService';
 import { getNewUTC } from '../handlers/handler';
+import { getMockData } from '../handlers/mocks';
+import { IM_CSRFCheck } from '../interfaces/Mocks';
 
 
 
@@ -57,17 +59,26 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
 
     // Validate session
-    const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-      headers: {
-        Cookie: `session=${token}`
-      }
-    });
+    if (!testMode) {
+      const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
+        headers: {
+          Cookie: `session=${token}`
+        }
+      });
 
-    session.id = data.id;
-    session.avatar = data.avatar;
-    session.username = data.username;
+      session.id = data.id;
+      session.avatar = data.avatar;
+      session.username = data.username;
+    } else {
+      const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+
+      session.id = data.id;
+      session.avatar = data.avatar;
+      session.username = data.username;
+    }
 
     let user = await User.findOne({ id: session.id });
+    let isUserNew = false;
 
     if (user) {
       // Sync animee data with fullkekw user api
@@ -77,16 +88,19 @@ export async function postSignin(req: express.Request, res: express.Response) {
       if (user.avatar !== session.avatar) await patch.patchAvatar({ url: session.avatar });
 
       await patch.save();
+
+      isUserNew = false;
     } else {
       // User is not found, create new
       Logger.info(`[UserController]: New user signed in, welcome!`);
 
       user = await UserService.create(session);
+      isUserNew = true;
     }
 
 
 
-    return res.status(200).cookie(config.vars.sessionCookie, session, {
+    return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
       domain: prodMode ? '.animee.club' : undefined
@@ -118,16 +132,24 @@ export async function getValidate(req: express.Request, res: express.Response) {
     const session: IFK_UsapiAuthRefresh = {};
 
     try {
-      // Sync animee data with fullkekw user api
-      const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-        headers: {
-          Cookie: `session=${token}`
-        }
-      });
+      if (!testMode) {
+        // Sync animee data with fullkekw user api
+        const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
+          headers: {
+            Cookie: `session=${token}`
+          }
+        });
 
-      session.id = data.id;
-      session.avatar = data.avatar;
-      session.username = data.username;
+        session.id = data.id;
+        session.avatar = data.avatar;
+        session.username = data.username;
+      } else {
+        const { data } = getMockData(req, 'FkUsapiAuthRefresh');
+
+        session.id = data.id;
+        session.avatar = data.avatar;
+        session.username = data.username;
+      }
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') throw e;
@@ -163,33 +185,48 @@ export async function getQuery(req: express.Request, res: express.Response) {
     let { query } = req.params as { query: string };
 
     let privateMode = true; // If private mode is true, client can not get some private information
-    let parsedCapabilities: TRoleCapability[] | undefined = undefined;
+    let parsedRoles: TRoleCapability[] | undefined = undefined;
     let parsedLib: ITitle[] | undefined = undefined;
 
 
 
     // Get user by session
     if (query === '*') {
+      const DATA: IFK_UsapiAuthRefresh = {
+        avatar: '',
+        id: '',
+        msg: '',
+        username: ''
+      };
+
       const token = req.cookies[config.vars.sessionCookie];
       if (!token) throw new ERR_MISSING_AUTHORIZATION(`Can not get own data (*) without session cookie provided`);
 
-      try {
-        const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-          headers: {
-            Cookie: `session=${token}`
+      if (!testMode) {
+        try {
+          const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
+            headers: {
+              Cookie: `session=${token}`
+            }
+          });
+
+          DATA.username = data.username;
+        } catch (e) {
+          if (e instanceof AxiosError) {
+            if (e.code === 'ECONNREFUSED') throw e;
+
+            return res.status(401).clearCookie(config.vars.sessionCookie).json({ message: 'Session expired' });
+          } else {
+            throw e;
           }
-        });
-
-        query = data.username;
-      } catch (e) {
-        if (e instanceof AxiosError) {
-          if (e.code === 'ECONNREFUSED') throw e;
-
-          return res.status(401).clearCookie(config.vars.sessionCookie).json({ message: 'Session expired' });
-        } else {
-          throw e;
         }
+      } else {
+        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+
+        DATA.username = data.username;
       }
+
+      query = DATA.username;
     }
 
     const user = await User.findOne({ $or: [{ id: query }, { username: query }] });
@@ -197,12 +234,28 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-        token: CSRFToken
-      });
+      const DATA: IFK_AuthorityVerify = {
+        msg: '',
+        origin: '',
+        verified: false
+      };
 
-      if (data.verified && data.origin === 'animee.club') {
-        privateMode = !data.verified;
+      if (!testMode) {
+        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
+          token: CSRFToken
+        });
+
+        DATA.origin = data.origin;
+        DATA.verified = data.verified;
+      } else {
+        const { data } = getMockData<IM_CSRFCheck>(req, 'CSRFCheck');
+
+        DATA.origin = data.origin;
+        DATA.verified = data.verified;
+      }
+
+      if (DATA.verified && DATA.origin === 'animee.club') {
+        privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed user information due to token error`);
       }
@@ -211,7 +264,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
     // Parse user capabilities is client can get detailed info
     // TODO: !privateMode && parseRoles !== undefined
     if (!privateMode) {
-      parsedCapabilities = await handler.parseRoles(user.roles);
+      parsedRoles = await handler.parseRoles(user.roles);
     }
 
     // Parse user lib titles
@@ -228,7 +281,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       message: `OK. ${privateMode ? 'Sensetive information hidden.' : 'Sensetive information returned.'}`,
       user: dto.user(user.toObject(), privateMode),
       parsedLib,
-      parsedCapabilities
+      parsedRoles
     });
   });
 }
@@ -256,6 +309,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
     if (!handler) throw new ERR_INVALID_PAYLOAD(`Method ${method} is invalid`);
 
     await handler();
+    await patcher.save();
 
 
 

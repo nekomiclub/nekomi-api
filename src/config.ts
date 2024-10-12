@@ -46,6 +46,9 @@ export const config = {
     /** Animee Bot */
     bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
 
+    /** Anime API base url */
+    baseURL: prodMode ? `https://api.animee.club` : `http://${preserveIP('0.0.0.0')}`,
+
 
     //* Fullkekw services
 

@@ -5,14 +5,9 @@ import axios, { AxiosError } from 'axios';
 
 import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
-import User from './Models/User';
-import { getMockData, parseRoles } from './handlers/handlers';
-import { IM_CSRFCheck } from './interfaces/Mocks';
-import { IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from './interfaces/FullkekwResponses';
-import { $http } from './handlers/http';
 import { E404, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
-import { Logger } from './services/LoggerService';
 import { MiddlewareService } from './services/MiddlewareService';
+import { getMockData } from './handlers/mocks';
 
 
 const Middleware = new MiddlewareService();
@@ -29,7 +24,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       if (!token) throw new ERR_MISSING_AUTHORIZATION();
 
       try {
-        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities);
+        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'AccessControl').data : undefined);
 
         req.animee.user = req.animee.user || {
           id: 'NULL',
@@ -65,7 +60,7 @@ export function CSRFCheck(origins?: string[]) {
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
-      const origin = await Middleware.checkCSRF(token, origins);
+      const origin = await Middleware.checkCSRF(token, origins, testMode ? getMockData(req, 'CSRFCheck').data : undefined);
 
       req.animee.CSRF_origin = origin;
 

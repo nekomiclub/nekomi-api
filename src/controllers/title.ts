@@ -508,16 +508,16 @@ export async function UpdatePopularTitles() {
     }
 
     // TODO Make normal logic
-    const headlinerID = prodMode ? '538a4a13-d473-4e7d-be6a-13b26f10c53e' : '0bedcdb2-c666-4f90-9645-ad98f8bb53b7'; // Shikanoko Nokonoko Koshitantan | Classroom of the Elite 2
+    const headlinerID = prodMode ? '1db09f56-4ca8-4f11-9f6d-ca27ab682165' : '0bedcdb2-c666-4f90-9645-ad98f8bb53b7'; // DanDaDan | Classroom of the Elite 2
     const headlinerVideo = headlinerSrc.episodes.find(el => el.order === 1 && el.dubberID === '319ec974-3116-43e9-8966-51237f0479ae')!.qualities.q1080;
     const headlinerPoster = headlinerSrc.poster;
     const popularIDs = prodMode ? [
-      'c6b9b3e3-3c8d-4597-a464-c22bfeb654dd',
-      '534d41c4-f5d0-45db-9914-b5d9e649f048',
-      '627690b0-f0c1-490d-b50e-c5ace32cd563',
-      '0785c640-99ce-4195-863b-01712d794b96',
-      'd675e08c-034d-4b8b-b60f-c362c6ebec34',
-      'b284cc51-cf3b-4251-a96e-4ce945ac1595'
+      '10132d3e-366a-484b-8caa-be4d97e51f6b',
+      '33f283ac-0c22-4266-8ced-96292fe7ce7e',
+      '18be952e-40ae-4527-9266-042e3d813012',
+      '72d081e4-7783-4e2e-8dc8-b6fcd8926964',
+      'b4229fae-5908-4488-874d-57dce31d2ad7',
+      '0b342f7c-515a-4f58-b309-2de334f79dc8',
     ] : [
       'that-time-i-got-reincarnated-as-a-slime-season-3',
       'wind-breaker',

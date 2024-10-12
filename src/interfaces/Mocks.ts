@@ -1,6 +1,10 @@
 import { TRoleCapability } from './Roles';
 
-export type TMockID = 'AccessControl' | 'CSRFCheck' | 'UserSignin'
+export type TMockID =
+  'AccessControl'
+  /** Mocks fk-authority/verify endpoint */
+  | 'CSRFCheck'
+  | 'FkUsapiAuthRefresh'
 
 /** Mock interface */
 export interface IMock<T = any> {
