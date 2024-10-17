@@ -33,8 +33,3 @@ interface IANIMEE_CONFIG_SERVICE {
     }
   } | null
 }
-
-export interface IBannedIP {
-  ip: string
-  attempsRemain: number
-}

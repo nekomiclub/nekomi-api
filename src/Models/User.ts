@@ -63,109 +63,7 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
   telegramLinkToken: String
 }));
 
-/** Create new user
- * @deprecated use UserService instead
- * @returns user ID
- */
-export async function createUser({ id, roles, avatar, username, libs, test }: {
-  username: string
 
-  avatar: string
-
-  id?: string
-
-  roles?: string[],
-
-  /** Libs will be overridden only in test mode */
-  libs?: IUserLib[],
-
-  /** Specify test mode */
-  test?: boolean
-}): Promise<string> {
-  const testMode = cfg.testMode || test;
-
-  id = id || createID();
-  roles = roles || ['user'];
-  libs = (testMode && libs?.length) ? libs : [
-    {
-      createdAt: getUTC().timestamp,
-      id: createID(),
-      settings: {
-        hidden: false,
-        immortal: true,
-        name: 'Улюблені'
-      },
-      titles: [],
-      type: 'favorite'
-    }, {
-      createdAt: getUTC().timestamp,
-      id: createID(),
-      settings: {
-        hidden: false,
-        immortal: true,
-        name: 'Переглянуті'
-      },
-      titles: [],
-      type: 'watched'
-    }, {
-      createdAt: getUTC().timestamp,
-      id: createID(),
-      settings: {
-        hidden: false,
-        immortal: true,
-        name: 'Переглядаю'
-      },
-      titles: [],
-      type: 'watching'
-    }, {
-      createdAt: getUTC().timestamp,
-      id: createID(),
-      settings: {
-        hidden: true,
-        immortal: true,
-        name: 'Плани'
-      },
-      titles: [],
-      type: 'plans'
-    }, {
-      createdAt: getUTC().timestamp,
-      id: createID(),
-      settings: {
-        hidden: true,
-        immortal: true,
-        name: 'Відкладені'
-      },
-      titles: [],
-      type: 'delayed'
-    }
-  ];
-
-  const payload: IUser = {
-    id,
-    libs,
-    roles,
-    statistics: {
-      accountCreated: getUTC().timestamp,
-      timeSpent: 0,
-      viewtime: 0,
-      isTelegramLinked: false
-    },
-    avatar,
-    username,
-    subscribes: [],
-    watchProgress: [],
-    telegramData: null,
-    telegramLinkToken: null
-  };
-
-  const user = new UserModel(payload);
-
-  await user.save();
-
-  Logger.debug(`[User]: User @${username}/${id} crated`);
-
-  return id;
-}
 
 /** Create/path/delete User instance */
 export class UserService {
@@ -266,10 +164,10 @@ export class UserService {
     return user;
   }
 
-  static async delete(id: string, reason?: string, size?: 'one' | 'many') {
-    if (size === undefined || size === 'one') {
+  static async delete(id: string, reason?: string, count?: 'one' | 'many') {
+    if (count === undefined || count === 'one') {
       await UserModel.deleteOne({ id });
-    } else if (size === 'many') {
+    } else if (count === 'many') {
       await UserModel.deleteMany({ id });
     }
 

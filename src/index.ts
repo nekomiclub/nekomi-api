@@ -16,18 +16,14 @@ import { devMode, testMode, config, prodMode } from './config';
 
 import Router from './router';
 import * as handler from './handlers/handlers';
-import Title, { TitlePatcher } from './Models/Title';
-import { createUser } from './Models/User';
-import { singCSRFToken } from './services/TokenService';
-import { ITitleEpisode } from './interfaces/Title';
 import { updateSearch } from './controllers/root';
 import { UpdatePopularTitles } from './controllers/title';
-import { IBannedIP } from '../interfaces';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { MiddlewareService } from './services/MiddlewareService';
 import { Logger } from './services/LoggerService';
 import { preserveIP } from './handlers/handler';
 import { DubberService } from './Models/Dubber';
+import TitleModel, { TitleService } from './Models/Title';
 
 
 
@@ -148,6 +144,11 @@ wss.on('listening', () => {
       WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
+
+    const title = await TitleModel.find();
+    const patcher = new TitleService({ title: title[0] });
+
+    patcher.patchNames({ ukr: '  fsdh 12312      r782 fgsd     ' });
 
     // Cache updating
     setInterval(async () => {

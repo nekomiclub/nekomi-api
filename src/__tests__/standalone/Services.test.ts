@@ -3,7 +3,7 @@ import { config } from '../config';
 import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../services/ErrorService';
 import { MiddlewareService } from '../services/MiddlewareService';
 import { singCSRFToken } from '../services/TokenService';
-import User, { createUser } from '../Models/User';
+import User, { UserModel, UserService } from './models/User';
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService({ testMode: true });
@@ -30,7 +30,7 @@ describe('Middleware Service', () => {
     beforeAll(async () => {
       await purge();
 
-      await createUser({
+      await UserService.create({
         avatar: '#',
         username: TestID1,
         id: TestID1

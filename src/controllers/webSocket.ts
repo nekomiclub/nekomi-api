@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import http from 'http';
 
-import { devMode } from '../config';
+import { devMode, prodMode } from '../config';
 import { wss } from '../index';
 import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, Message, Request, Response, TWS_Request, TWS_Type, WS_TYPES } from '../interfaces/WebSocket';
 import { E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
@@ -108,6 +108,8 @@ async function site_connected({ ws, message }: IWS_Route, IP: string) {
   if (!OnlineClients.includes(id)) {
     OnlineClients.push(id);
   } else {
+    if (!devMode) return;
+
     const response: Response = {
       type: 'ok',
       payload: {
@@ -139,6 +141,8 @@ async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
   if (OnlineClients.some(el => el === IP || el === payload.SID)) {
     OnlineClients = OnlineClients.filter(el => el !== IP && el !== payload.SID);
   } else {
+    if (!devMode) return;
+
     const response: Response = {
       type: 'ok',
       payload: {

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-import { config, RULES } from '../../config';
-import { DubberService } from '../../Models/Dubber';
-import { ERR_ALREADY_EXIST, ERR_LENGTH_INVALID } from '../../services/ErrorService';
+import { config, RULES } from '../../../config';
+import { DubberService } from '../../../Models/Dubber';
+import { ERR_ALREADY_EXIST, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
 
 
 
@@ -21,8 +21,8 @@ afterAll(() => {
 
 
 
-describe('Dubber model', () => {
-  const TestID1 = `test-models--D1`;
+describe('Dubber Service', () => {
+  const TestID1 = `test-models_dubber--D1`;
 
   beforeAll(async () => {
     await purge();

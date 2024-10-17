@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-import { config, RULES } from '../../config';
-import { TNotifyEvent } from '../../interfaces/Notify';
-import { DubberService } from '../../Models/Dubber';
-import Title, { createTitle } from '../../Models/Title';
-import { UserService } from '../../Models/User';
-import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../services/ErrorService';
+import { config, RULES } from '../../../config';
+import { TNotifyEvent } from '../../../interfaces/Notify';
+import { DubberService } from '../../../Models/Dubber';
+import Title, { createTitle } from '../../../Models/Title';
+import { UserService } from '../../../Models/User';
+import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
 
 
 
@@ -24,16 +24,16 @@ afterAll(() => {
 
 
 
-describe('User model', () => {
+describe('User Model', () => {
   let User: UserService;
 
-  const TestTitleID1 = `test-models_title--T1`;
-  const TestDubberID1 = `test-models_dubber--D1`;
+  const TestTitleID1 = `test-models_user--T1`;
+  const TestDubberID1 = `test-models_user--D1`;
 
-  const TestID1 = `test-models--U1`;
+  const TestID1 = `test-models_user--U1`;
   const TestUS1 = `testusername1`;
 
-  const TestID2 = `test-models--U2`;
+  const TestID2 = `test-models_user--U2`;
   const TestUS2 = `testusername2`;
 
   beforeAll(async () => {
@@ -116,11 +116,7 @@ describe('User model', () => {
     });
   });
 
-  test('delete', async () => {
-    await UserService.delete(TestID1, 'Test delete', 'one');
-
-    expect(true).toBeTruthy();
-  });
+  // Delete already tested in purge function
 
   //* Patch
 

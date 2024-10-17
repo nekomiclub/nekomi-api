@@ -70,6 +70,9 @@ export const config = {
 
   /** Service variables */
   vars: {
+    /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
+    INTERNAL_ROOT_USER_ID: 'animeeclub',
+
     /** Animee cookie with fullkekw usapi session */
     sessionCookie: 'SEC_31N',
 
@@ -93,6 +96,9 @@ export const config = {
 
     /** Default avatar for new animee creations */
     defaultAvatar: 'http://example.com',
+
+    /** Default poster for new animee titles */
+    defaultPoster: 'http://example.com',
   } as const
 };
 
@@ -100,6 +106,23 @@ export const RULES = {
   CreateUser: {
     minNameLength: 6,
     maxNameLength: 32
+  },
+  PatchTitle: {
+    minNameLength: 1,
+    maxNameLength: 320,
+    maxAltNamesCount: 7,
+    maxDescriptionLength: 2200,
+    maxDetailsLength: 500,
+    minEpisode: 1,
+    maxEpisode: 9999,
+    maxGenresCount: 10,
+    minRating: 1,
+    maxRating: 10,
+    minYear: 2000,
+    maxYear: 2050,
+    maxStudiosCount: 5,
+    minStudioLength: 3,
+    maxStudioLength: 32,
   }
 };
 

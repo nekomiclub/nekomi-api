@@ -5,7 +5,7 @@ import * as dto from '../handlers/dtos';
 import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
-import User, { createUser, UserService } from '../Models/User';
+import User, { UserService } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
 import { FK_AUTHORITY_ROUTES, FK_USAPI_ROUTES, IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
