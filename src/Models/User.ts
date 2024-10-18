@@ -1,7 +1,6 @@
 import mongoose, { HydratedDocument, Schema } from 'mongoose';
 
 import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../interfaces/User';
-import { getUTC } from '../handlers/handlers';
 import * as cfg from '../config';
 import { config } from '../config';
 import { Logger } from '../services/LoggerService';

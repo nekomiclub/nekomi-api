@@ -333,12 +333,12 @@ describe('Title Model', () => {
       await Title.parseIMDBEpisodesMeta('https://imdb.com/');
 
       expect(true).toBeTruthy();
-    })
+    });
 
     test('Reject - URL invalid', async () => {
       // URL parsing error
       try {
-        await Title.parseIMDBEpisodesMeta('fsdhkdshfiu  sdfsfdsdfdsf')
+        await Title.parseIMDBEpisodesMeta('fsdhkdshfiu  sdfsfdsdfdsf');
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -349,7 +349,7 @@ describe('Title Model', () => {
 
       // Domain missmatch
       try {
-        await Title.parseIMDBEpisodesMeta('https://google.com')
+        await Title.parseIMDBEpisodesMeta('https://google.com');
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -357,7 +357,7 @@ describe('Title Model', () => {
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       }
-    })
+    });
   });
 
   describe('patchEpisodeMeta', () => {
@@ -538,7 +538,7 @@ describe('Title Model', () => {
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       }
-    })
+    });
 
     test('Reject - access rejected', async () => {
       const user = (await UserModel.findOne({ id: TestID1 }))!;

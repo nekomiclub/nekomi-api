@@ -3,16 +3,12 @@
 
 ---
 
-- /dev | *DEV MODE ONLY*
-  - /AccessControl | [GET](./routes/dev.md#get-devaccesscontrol)
-  - /CSRFCheck | [GET](./routes/dev.md#get-devcsrfcheck)
-
 - /
   - /search | [GET](./routes/root.md#get-search)
 
 - /title | [POST](./routes/title.md#post-title)
   - /total | [GET](./routes/title.md#get-titletotal)
-  - /popular | [GET](./routes/title.md#get-titlepopular)
+  - /home_wrapped | [GET](./routes/title.md#get-titlehome_wrapped)
   - /:id | [PATCH](./routes/title.md#patch-titleid) | [DELETE](./routes/title.md#delete-titleid)
   - /:query | [GET](./routes/title.md#get-titlequery)
 

@@ -7,7 +7,7 @@ import express from 'express';
 import * as uuid from 'uuid';
 
 import Dubber from '../Models/Dubber';
-import Title, { createTitle } from '../Models/Title';
+import Title from '../Models/Title';
 import { testMode, devMode, config, prodMode } from '../config';
 import User from '../Models/User';
 import { title, user } from './dtos';

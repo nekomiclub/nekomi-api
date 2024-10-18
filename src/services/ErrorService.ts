@@ -150,6 +150,8 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 
       return res.status(status).json({ message: emsg, msg: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
     } else {
+      console.error(e);
+
       const emsg = `[Uncaught]: Uncaught error occured. Behaivour reported`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 

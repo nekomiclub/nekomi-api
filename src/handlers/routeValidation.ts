@@ -61,28 +61,28 @@ export const userValidate = [
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
-export const getTitlePopular = [
+export const getHomeWrapped = [
   CSRFCheck(['animee.club']),
 ];
 
 export const postTitle = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
   AccessControl(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
   AccessControl(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
   AccessControl(['titleDelete']),
 ];
 
 //* ------------------ ROOT MIDDLEWARES ------------------
 
 export const getSearch = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  CSRFCheck(['animee.club']),
 ];

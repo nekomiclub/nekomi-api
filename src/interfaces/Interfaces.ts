@@ -9,3 +9,16 @@ export type DeepPartial<T> = {
 export type Partial<T> = {
   [P in keyof T]?: T[P];
 };
+
+export interface IConfigData {
+  HomeWrapped: {
+    featured: {
+      /** Title ID */
+      id: string
+
+      backgroundURL: string
+      videoURL: string
+    }[]
+    popular: string[]
+  }
+}

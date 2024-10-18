@@ -31,7 +31,7 @@ RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
-TitleRouter.get('/popular', RouteValidation.getTitlePopular, TitleController.getPopular);
+TitleRouter.get('/home_wrapped', RouteValidation.getHomeWrapped, TitleController.getHomeWrapped);
 TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 
 //! Must be below all endpoints

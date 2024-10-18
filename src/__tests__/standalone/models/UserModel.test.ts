@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { config, RULES } from '../../../config';
 import { TNotifyEvent } from '../../../interfaces/Notify';
 import { DubberService } from '../../../Models/Dubber';
-import Title, { createTitle } from '../../../Models/Title';
+import Title, { TitleService } from '../../../Models/Title';
 import { UserService } from '../../../Models/User';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
 
@@ -44,7 +44,7 @@ describe('User Model', () => {
 
     await UserService.create({ id: TestID2, username: TestUS2 });
     await DubberService.create({ name: TestDubberID1, id: TestDubberID1, code: TestDubberID1 });
-    await createTitle('Test', {
+    await TitleService.create({
       id: TestTitleID1
     });
   });
@@ -58,7 +58,7 @@ describe('User Model', () => {
     await UserService.delete(TestID2, 'Test purge', 'many');
 
     await DubberService.delete(TestDubberID1, 'Test purge', 'many');
-    await Title.deleteMany({ id: TestTitleID1 });
+    await TitleService.delete(TestTitleID1, 'Test purge', 'many');
   }
 
   describe('create', () => {

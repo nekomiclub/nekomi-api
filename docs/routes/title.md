@@ -7,7 +7,7 @@
 ## GET /title/:query
 | VERSION | CSRF  | ACCESS |
 | :-----: | :---: | :----: |
-|  1.2.2  |  ---  |  ---   |
+|  1.3.1  |  ---  |  ---   |
 
 Get title by query (id or code)
 
@@ -15,12 +15,12 @@ Get title by query (id or code)
 
 **PARAMETERS**
 
-| NAME                  | TYPE     | DESCRIPTION              | NOTES                               |
-| --------------------- | -------- | ------------------------ | ----------------------------------- |
-| (param) :query        | string   | Query (id or code)       | ---                                 |
-| (query) detailed      | ?boolean | Get detailed information | (updater).animee.club CSRF required |
-| (query) parseDubbers  | ?boolean | Parse episodes dubbers   | (updater).animee.club CSRF required |
-| (header) X-CSRF-Token | ?string  | ---                      | ---                                 |
+| NAME                  | TYPE     | DESCRIPTION              | NOTES                     |
+| --------------------- | -------- | ------------------------ | ------------------------- |
+| (param) :query        | string   | Query (id or code)       | ---                       |
+| (query) detailed      | ?boolean | Get detailed information | animee.club CSRF required |
+| (query) parseDubbers  | ?boolean | Parse episodes dubbers   | animee.club CSRF required |
+| (header) X-CSRF-Token | ?string  | ---                      | ---                       |
 
 **RESPONSES**
 
@@ -28,9 +28,9 @@ Get title by query (id or code)
 
 ```ts
 {
-  msg: 'OK',
-  title: ITitle[],
-  parsedDubbers: IDubber[] | null
+  message: 'OK',
+  title: ITitle,
+  parsedDubbers?: IDubber[]
 }
 ```
 
@@ -41,7 +41,7 @@ Get title by query (id or code)
 ## GET /title/total
 | VERSION | CSRF  | ACCESS |
 | :-----: | :---: | :----: |
-|  1.2.2  |  ---  |  ---   |
+|  1.3.1  |  ---  |  ---   |
 
 Get total & renewed titles count
 
@@ -53,7 +53,7 @@ Get total & renewed titles count
 
 ```ts
 {
-  msg: 'OK'
+  message: 'OK'
   total: number, // Total titles instances count
   renewed: number // Total renewed titles where (country defined)
 }
@@ -62,9 +62,9 @@ Get total & renewed titles count
 ------------------------------------------------------------------
 
 ## POST /title
-| VERSION |         CSRF          |  ACCESS  |
-| :-----: | :-------------------: | :------: |
-|  1.2.2  | (updater).animee.club | titleAdd |
+| VERSION |    CSRF     |  ACCESS  |
+| :-----: | :---------: | :------: |
+|  1.3.1  | animee.club | titleAdd |
 
 Create new title instance
 
@@ -76,45 +76,49 @@ Create new title instance
 
 ```ts
 {
-  msg: 'OK',
-  id: string
+  message: 'OK',
+  id: string,
+  title: ITitle
 }
 ```
 
 ------------------------------------------------------------------
 
 ## PATCH /title/:id
-| VERSION |         CSRF          | ACCESS |
-| :-----: | :-------------------: | :----: |
-|  1.2.2  | (updater).animee.club | basic  |
+| VERSION |    CSRF     |  ACCESS   |
+| :-----: | :---------: | :-------: |
+|  1.3.1  | animee.club | see notes |
 
-{DESCRIPTION}
+Patch title fields
 
 
 
 **PARAMETERS**
+| NAME                  | TYPE            | DESCRIPTION                  | NOTES                                                                        |
+| --------------------- | --------------- | ---------------------------- | ---------------------------------------------------------------------------- |
+| names.eng             | ?string         | ---                          | titleEdit, minmax - `(min/max)NameLength`, Will change title code            |
+| names.ukr             | ?string         | ---                          | titleEdit, minmax - `(min/max)NameLength`                                    |
+| names.alt             | ?string[]       | ---                          | titleEdit, minmax - `(min/max)NameLength`, max arr size - `maxAltNamesCount` |
+| ageRate               | ?TAgeRate       | ---                          | titleEdit                                                                    |
+| country               | ?TTitleCountry  | ---                          | titleEdit                                                                    |
+| season                | ?TAnimeSeason   | ---                          | titleEdit                                                                    |
+| status                | ?TAnimeStatus   | ---                          | titleEdit                                                                    |
+| type                  | ?TTitleType     | ---                          | titleEdit                                                                    |
+| description           | ?string         | ---                          | titleEdit, max - `maxDescriptionLength`                                      |
+| details               | ?string / null  | ---                          | titleEdit, max- `maxDetailsLength`, Will set null if length equal 0          |
+| genres                | ?TAnimeGenre[]  | ---                          | titleEdit, max arr size - `maxGenresCount`                                   |
+| studios               | ?string[]       | ---                          | titleEdit, minmax - `(min/max)StudioLength`, max arr size `maxStudiosCount`  |
+| year                  | ?number         | ---                          | titleEdit, minmax - `(min/max)Year`                                          |
+| episodesCount         | ?number         | ---                          | titleEdit, minmax - `(min/max)Episode`                                       |
+| IMDBRating            | ?number         | ---                          | titleEdit, minmax - `(min/max)Rating`                                        |
+| AnimeeRating          | ?number         | ---                          | titleEdit, minmax - `(min/max)Rating`                                        |
+| editEpMeta            | ?IChangeEpMeta  | Add/Edit/Remove episode meta | titleEditEpsMeta                                                             |
+| parseIMDBEpisodesMeta | ?string         | imdb.com episodes meta URL   | titleEditEpsMeta                                                             |
+| deleteEpisode         | ?IDeleteEpisode | ---                          | seriesDelete                                                                 |
+| ------- FORM DATA     | ---             | ---                          | ---                                                                          |
+| uploadEpisode         | ?IUploadEpisode | ---                          | seriesAdd                                                                    |
+| uploadPoster          | ?IUploadPoster  | ---                          | titleEdit                                                                    |
 
-| NAME                   | TYPE                | DESCRIPTION                  | NOTES                                                       |
-| ---------------------- | ------------------- | ---------------------------- | ----------------------------------------------------------- |
-| changeNames.ukr        | ?string             | Set ukr name                 | titleEdit, @max - 320                                       |
-| changeNames.eng        | ?string             | Set eng name                 | titleEdit, @max - 320. Will change code                     |
-| changeNames.alt        | ?string[]           | Set alt names                | titleEdit, @max - 20                                        |
-| setRating              | ?number             | Set IMDB rating              | titleEdit, @min - 1, @max - 10                              |
-| setDescription         | ?string             | ---                          | titleEdit, @max - 2200                                      |
-| setStatus              | ?TAnimeStatus       | ---                          | titleEdit                                                   |
-| setEps                 | ?number             | Set episodesCount            | titleEdit, @min - 0, @max - 9999. Will set null if equals 0 |
-| setGenres              | ?TAnimeGenre[]      | ---                          | titleEdit, @max - 10                                        |
-| setSeason              | ?TAnimeSeason       | ---                          | titleEdit                                                   |
-| setType                | ?TTitleType         | ---                          | titleEdit                                                   |
-| setYear                | ?number             | ---                          | titleEdit, @min - 2000, @max - 2050                         |
-| setStudios             | ?string[]           | ---                          | titleEdit  @max - 5 items, 24 symbols                       |
-| setCountry             | ?TTitleCountry      | ---                          | titleEdit                                                   |
-| setDetails             | ?string             | ---                          | titleEdit, @max - 500                                       |
-| editEpMeta             | ?IChangeEpMeta      | Add/Edit/Remove episode meta | titleEditEpsMeta                                            |
-| parseIMDBEpisodesMetas | ?string             | Parse IMDB episodes metas    | titleEditEpsMeta                                            |
-| deleteEpisode          | see IPatchTitleBody | ---                          | seriesDelete                                                |
-| change_poster          | multipart/form-data | ---                          | titleEdit, Will delete prev version                         |
-| upload_episode         | multipart/form-data | ---                          | seriesAdd, Will trigger new_episode notify                  |
 
 **RESPONSES**
 
@@ -134,9 +138,9 @@ Create new title instance
 ------------------------------------------------------------------
 
 ## DELETE /title/:id
-| VERSION |         CSRF          |      ACCESS       |
-| :-----: | :-------------------: | :---------------: |
-|  1.2.2  | (updater).animee.club | titleDelete + key |
+| VERSION |    CSRF     |   ACCESS    |
+| :-----: | :---------: | :---------: |
+|  1.3.1  | animee.club | titleDelete |
 
 Delete title
 
@@ -144,9 +148,9 @@ Delete title
 
 **PARAMETERS**
 
-| NAME | TYPE   | DESCRIPTION  | NOTES                                     |
-| ---- | ------ | ------------ | ----------------------------------------- |
-| key  | string | Deletion key | Will be issued in console if not provided |
+| NAME        | TYPE    | DESCRIPTION  | NOTES                                     |
+| ----------- | ------- | ------------ | ----------------------------------------- |
+| (query) key | ?string | Deletion key | Will be issued in console if not provided |
 
 **RESPONSES**
 
@@ -159,31 +163,40 @@ Deletion key not provided or invalid
 
 ------------------------------------------------------------------
 
-## GET /title/popular
+## GET /title/home_wrapped
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.2  | animee.club |  ---   |
+|  1.3.1  | animee.club |  ---   |
 
-Get popular titles
+Get home wrapped titles. Return user watch progress on featured titles if session provided
+
+**PARAMETERS**
+
+| NAME             | TYPE    | DESCRIPTION    |
+| ---------------- | ------- | -------------- |
+| (cookie) session | ?string | Session cookie |
 
 
 
 **RESPONSES**
 
 **200 - Success** <br>
-{DESCRIPTION}
-
 ```ts
 {
   msg: 'OK',
-  headliner: ITitle | null,
-  headlinerVideo: string,
-  headlinerPoster: string,
-  categories: {
-    popular: ITitle[],
-    updatedRecently: ITitle[],
-    hightRating: ITitle[],
-  }
+  featured: ITitleWithMediaMeta[],
+  popular: ITitle[],
+  updatedRecently: ITitle[],
+  hightRating: ITitle[],
+}
+```
+
+**200 - Success** <br>
+Return user watch progress on featured titles if session provided
+```ts
+{
+  ...rest
+  watchProgress: IUserWatchProgress[]
 }
 ```
 

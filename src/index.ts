@@ -17,13 +17,13 @@ import { devMode, testMode, config, prodMode } from './config';
 import Router from './router';
 import * as handler from './handlers/handlers';
 import { updateSearch } from './controllers/root';
-import { UpdatePopularTitles } from './controllers/title';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { MiddlewareService } from './services/MiddlewareService';
 import { Logger } from './services/LoggerService';
 import { preserveIP } from './handlers/handler';
 import { DubberService } from './Models/Dubber';
 import TitleModel, { TitleService } from './Models/Title';
+import Cache from './services/CacheService';
 
 
 
@@ -120,7 +120,6 @@ wss.on('listening', () => {
 
   const REPETATIVE_HANDLERS = [
     await updateSearch(),
-    await UpdatePopularTitles(),
     await handler.removeUsersLinkTelegramToken(),
   ] as const;
 
@@ -155,7 +154,11 @@ wss.on('listening', () => {
       Logger.info(`[Startup/Post-init Callback]: Cache updated`);
 
       // Update cache
-      await Promise.all(REPETATIVE_HANDLERS);
+      await Promise.all([
+        updateSearch(),
+        handler.removeUsersLinkTelegramToken(),
+        Cache.updateHomeWrapped()
+      ]);
     }, 43200000); // 43200000 // 12h
 
     // Poll site online

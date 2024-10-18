@@ -8,7 +8,7 @@ import { IFK_UsapiAuthRefresh } from '../../interfaces/FullkekwResponses';
 import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
 import exp from 'constants';
 import { createID, getNewUTC } from '../../handlers/handler';
-import Title, { createTitle } from '../../Models/Title';
+import Title, { TitleService } from '../../Models/Title';
 import { IUser } from '../../interfaces/User';
 import { NotifyService } from '../../services/NotifyService';
 
@@ -51,13 +51,13 @@ describe('User controller', () => {
     User = new UserService({ user });
     User3 = new UserService({ user: user3 });
 
-    await createTitle('test', {
+    await TitleService.create({
       id: TestID1,
       year: getNewUTC().year,
       status: 'announcement'
     });
 
-    await createTitle('test', {
+    await TitleService.create({
       id: TestID2,
       year: getNewUTC().year - 1,
       status: 'out'
