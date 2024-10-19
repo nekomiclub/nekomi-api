@@ -15,15 +15,16 @@ import chalk from 'chalk';
 import { devMode, testMode, config, prodMode } from './config';
 
 import Router from './router';
-import * as handler from './handlers/handlers';
 import { updateSearch } from './controllers/root';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { MiddlewareService } from './services/MiddlewareService';
 import { Logger } from './services/LoggerService';
-import { preserveIP } from './handlers/handler';
+import { getUTC, preserveIP } from './handlers/handler';
 import { DubberService } from './Models/Dubber';
 import TitleModel, { TitleService } from './Models/Title';
 import Cache from './services/CacheService';
+import { removeUsersLinkTelegramToken } from './handlers/handlers';
+import { patchUserModel } from './handlers/modelPatchers';
 
 
 
@@ -120,7 +121,7 @@ wss.on('listening', () => {
 
   const REPETATIVE_HANDLERS = [
     await updateSearch(),
-    await handler.removeUsersLinkTelegramToken(),
+    await removeUsersLinkTelegramToken(),
   ] as const;
 
   app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
@@ -137,17 +138,16 @@ wss.on('listening', () => {
       ----------------------------
       ANIMEE-CORE STARTED UP
     
-      Date: ${handler.getUTC().dateReversed} UTC-0 ${handler.getUTC().time}
+      Date: ${getUTC().date} UTC-0 ${getUTC().time}
       Mode: ${mode}
       HTTP: http://${preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
       WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
 
-    const title = await TitleModel.find();
-    const patcher = new TitleService({ title: title[0] });
-
-    patcher.patchNames({ ukr: '  fsdh 12312      r782 fgsd     ' });
+    if (prodMode) {
+      await patchUserModel(); // Patch fields
+    }
 
     // Cache updating
     setInterval(async () => {
@@ -156,7 +156,7 @@ wss.on('listening', () => {
       // Update cache
       await Promise.all([
         updateSearch(),
-        handler.removeUsersLinkTelegramToken(),
+        removeUsersLinkTelegramToken(),
         Cache.updateHomeWrapped()
       ]);
     }, 43200000); // 43200000 // 12h
@@ -182,5 +182,3 @@ app.all('*', (req: express.Request, res: express.Response) => {
 
   return res.status(404).json({ message: 'Not Found', msg: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
 });
-
-const a: IAuthorityVerify = {};

@@ -4,3 +4,4 @@ docs/secrets.md
 logs
 .old
 .cache
+.dump

@@ -59,7 +59,8 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
   subscribes: Array,
   watchProgress: Array,
   telegramData: Object,
-  telegramLinkToken: String
+  telegramLinkToken: String,
+  banner: String,
 }));
 
 
@@ -141,13 +142,13 @@ export class UserService {
       id,
       username,
       avatar: avatar || config.vars.defaultAvatar,
+      banner: config.vars.defaultUserBanner,
       libs,
       roles: ['user'],
       statistics: {
         accountCreated: getUTC().timestamp,
         isTelegramLinked: false,
-        viewtime: 0,
-        timeSpent: 0
+        viewtime: 0
       },
       subscribes: [],
       telegramData: null,

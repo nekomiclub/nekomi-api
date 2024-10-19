@@ -23,6 +23,9 @@ export interface IUser {
   /** Avatar URL */
   avatar: string
 
+  /** User banner URL */
+  banner: string
+
   /** Events subscribes
    * @see docs/features.md#user-subscribes
    * @access only API
@@ -49,11 +52,6 @@ export interface IUser {
 export interface IUserStatistics {
   /** UTC0 account creation timestamp */
   accountCreated: number
-
-  /** Watch time in minutes
-   * @deprecated refactored into viewtime.
-   */
-  timeSpent: number
 
   /** Viewtime in seconds */
   viewtime: number

@@ -138,10 +138,13 @@ export const config = {
     /** CSRF token expiration */
     CSRF_EXPIRE: 180000,
 
-    /** Default avatar for new animee creations */
+    /** Default avatar for animee creations */
     defaultAvatar: 'http://example.com',
 
-    /** Default poster for new animee titles */
+    /** Default banner for users */
+    defaultUserBanner: 'http://example.com',
+
+    /** Default poster for animee titles */
     defaultPoster: 'http://example.com',
   },
 
