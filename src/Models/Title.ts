@@ -171,7 +171,7 @@ export class TitleService {
     };
 
     const title = new TitleModel(payload);
-    // await title.save();
+    await title.save();
 
     return title;
   }

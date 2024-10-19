@@ -46,7 +46,7 @@ describe('User Model', () => {
     await DubberService.create({ name: TestDubberID1, id: TestDubberID1, code: TestDubberID1 });
     await TitleService.create({
       id: TestTitleID1
-    });
+    }, true);
   });
 
   afterAll(async () => {

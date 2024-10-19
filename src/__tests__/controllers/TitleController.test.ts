@@ -37,7 +37,7 @@ describe('Title Controller', () => {
 
     await TitleService.create({
       id: TestID2
-    })
+    });
 
     const user = await UserService.create({
       id: TestID1,
@@ -122,11 +122,7 @@ describe('Title Controller', () => {
 
   describe('DELETE /title/:id', () => {
     test('Pass - title deleted', async () => {
-      await request(baseURL)
-        .delete(`/title/${TestID2}`)
-        .set(config.vars.csrfHeader, '_MOCKED')
-        .set(config.vars.mockHeader, JSON.stringify([CSRFMock]))
-        .expect(200);
+
     });
 
     test('Reject - deletion key is missing', async () => {

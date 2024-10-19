@@ -55,13 +55,13 @@ describe('User controller', () => {
       id: TestID1,
       year: getNewUTC().year,
       status: 'announcement'
-    });
+    }, true);
 
     await TitleService.create({
       id: TestID2,
       year: getNewUTC().year - 1,
       status: 'out'
-    });
+    }, true);
   });
 
   afterAll(async () => {

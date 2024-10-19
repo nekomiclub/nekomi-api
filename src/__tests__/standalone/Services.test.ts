@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { config } from '../config';
-import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../services/ErrorService';
-import { MiddlewareService } from '../services/MiddlewareService';
-import { singCSRFToken } from '../services/TokenService';
-import User, { UserModel, UserService } from './models/User';
+import { config } from '../../config';
+import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../../services/ErrorService';
+import { MiddlewareService } from '../../services/MiddlewareService';
+import { singCSRFToken } from '../../services/TokenService';
+import User, { UserModel, UserService } from '../../Models/User';
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService({ testMode: true });
@@ -26,13 +26,14 @@ describe('Middleware Service', () => {
   describe('checkAccess', () => {
     /** Root user */
     const TestID1 = `test-services--U1`;
+    const TestID1_username = 'testservicesu1';
 
     beforeAll(async () => {
       await purge();
 
       await UserService.create({
-        avatar: '#',
-        username: TestID1,
+        avatar: 'http://example.com',
+        username: TestID1_username,
         id: TestID1
       });
     });

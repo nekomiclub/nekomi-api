@@ -198,7 +198,13 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           if (isNaN(+el)) throw new ERR_TYPE_INVALID(`Quality ${el} is not a number`);
         });
 
-        qualities = qualities.map(el => EpisodeQualities.includes(Number(el) as TEpisodeQuality) ? Number(el) as TEpisodeQuality : undefined).filter(el => el !== undefined);
+        let tmpQualities: TEpisodeQuality[] = [];
+
+        qualities.forEach(quality => {
+          if (EpisodeQualities.includes(quality)) tmpQualities.push(quality);
+        });
+
+        qualities = tmpQualities;
 
         const ep = await Patcher.uploadEpisode({
           file,
