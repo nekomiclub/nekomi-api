@@ -3,18 +3,21 @@ import * as cfg from '../config';
 import { AxiosError } from 'axios';
 import { config } from '../config';
 import { $http } from '../handlers/http';
-import { FK_AUTHORITY_ROUTES, FK_USAPI_ROUTES, IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from '../interfaces/FullkekwResponses';
 import { IM_AccessControl, IM_CSRFCheck } from '../interfaces/Mocks';
 import { E404, E500, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION } from './ErrorService';
 import { TRoleCapability } from '../interfaces/Roles';
 import User from '../Models/User';
 import { HydratedDocument } from 'mongoose';
 import { IUser } from '../interfaces/User';
-import { parseRoles } from '../handlers/handlers';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
+import { parseRoles } from '../Models/Role';
 
 interface Props {
   testMode?: boolean
 }
+
+export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
 export class MiddlewareService {
@@ -66,7 +69,7 @@ export class MiddlewareService {
     }
 
     const user = await User.findOne({ id: DATA.id });
-    if (!user) throw new E404(`User provided by token is not found`);
+    if (!user) throw new E404(`User ${DATA.id} is not found`);
 
     // TODO: Sync user username & avatar
 

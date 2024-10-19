@@ -4,13 +4,13 @@ import request from 'supertest';
 import { config } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/FullkekwResponses';
 import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
 import exp from 'constants';
-import { createID, getNewUTC } from '../../handlers/handler';
+import { createID, getUTC } from '../../handlers/handler';
 import Title, { TitleService } from '../../Models/Title';
 import { IUser } from '../../interfaces/User';
 import { NotifyService } from '../../services/NotifyService';
+import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 
 beforeAll(() => {
   const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
@@ -53,13 +53,13 @@ describe('User controller', () => {
 
     await TitleService.create({
       id: TestID1,
-      year: getNewUTC().year,
+      year: getUTC().year,
       status: 'announcement'
     }, true);
 
     await TitleService.create({
       id: TestID2,
-      year: getNewUTC().year - 1,
+      year: getUTC().year - 1,
       status: 'out'
     }, true);
   });
@@ -105,7 +105,6 @@ describe('User controller', () => {
       id: 'FkUsapiAuthRefresh',
       code: 200,
       data: {
-        msg: '',
         avatar: 'http://example.com',
         id: TestID1,
         username: TestUS1_newUsername
@@ -174,7 +173,6 @@ describe('User controller', () => {
         data: {
           avatar: '',
           id: TestID1,
-          msg: '',
           username: TestUS1_newUsername
         },
       };
@@ -262,7 +260,6 @@ describe('User controller', () => {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
-          msg: '',
           avatar: 'http://example.com',
           id: TestID1,
           username: TestUS1
@@ -284,7 +281,6 @@ describe('User controller', () => {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
-          msg: '',
           avatar: 'http://example.com',
           id: TestID2,
           username: TestUS2

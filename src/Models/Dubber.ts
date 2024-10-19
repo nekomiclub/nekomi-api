@@ -3,7 +3,7 @@ import validator from 'validator';
 import { convert as createSlug } from 'url-slug';
 
 import { IDubber } from '../interfaces/Dubber';
-import { createID, getNewUTC } from '../handlers/handler';
+import { createID, getUTC } from '../handlers/handler';
 import { config, prodMode, RULES } from '../config';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
@@ -53,7 +53,7 @@ export class DubberService {
       name,
       code,
       avatar: config.vars.defaultAvatar,
-      createdAt: getNewUTC().timestamp,
+      createdAt: getUTC().timestamp,
       description: null,
       editors: [],
       members: [],

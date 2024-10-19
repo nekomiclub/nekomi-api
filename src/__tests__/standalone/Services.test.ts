@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { config } from '../../config';
+import { config, CONSTS } from '../../config';
 import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../../services/ErrorService';
 import { MiddlewareService } from '../../services/MiddlewareService';
 import { singCSRFToken } from '../../services/TokenService';
@@ -109,14 +109,14 @@ describe('Middleware Service', () => {
   describe('checkCSRF', () => {
     test('Pass - No required origin', async () => {
       expect(await instance.checkCSRF('_MOCKED', [], {
-        origin: config.vars.domain,
+        origin: CONSTS.Domains.animee_api,
         verified: true
       })).toBeTruthy();
     });
 
     test('Pass - Required origin specified', async () => {
-      expect(await instance.checkCSRF('_MOCKED', [config.vars.domain], {
-        origin: config.vars.domain,
+      expect(await instance.checkCSRF('_MOCKED', [CONSTS.Domains.animee_api], {
+        origin: CONSTS.Domains.animee_api,
         verified: true
       })).toBeTruthy();
     });
@@ -136,7 +136,7 @@ describe('Middleware Service', () => {
 
     test('Pass - Origin missmatch', async () => {
       try {
-        await instance.checkCSRF('_MOCKED', [config.vars.domain], {
+        await instance.checkCSRF('_MOCKED', [CONSTS.Domains.animee_api], {
           origin: '_INVALID',
           verified: true
         });

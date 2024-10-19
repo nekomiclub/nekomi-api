@@ -11,15 +11,16 @@ import { TRoleCapability } from '../interfaces/Roles';
 import Dubber from '../Models/Dubber';
 import { updateSearch } from './root';
 import { $http } from '../handlers/http';
-import { FK_AUTHORITY_ROUTES, FK_USAPI_ROUTES, IFK_AuthorityVerify, IFK_UsapiAuthRefresh } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
-import { E403, E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
+import { E403, E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 import { getMockData } from '../handlers/mocks';
 import { IM_CSRFCheck } from '../interfaces/Mocks';
-import { EpisodeQualities, TEpisodeQuality } from '../interfaces/Services';
+import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
 import Cache from '../services/CacheService';
 import { IUserWatchProgress } from '../interfaces/User';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 
 
 
@@ -100,7 +101,6 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     // Check if client can get detailed data
     if (detailed !== undefined && CSRFToken !== undefined) {
       const DATA: IFK_AuthorityVerify = {
-        msg: '',
         origin: '',
         verified: false
       };
@@ -151,6 +151,9 @@ export async function getTotal(req: express.Request, res: express.Response) {
 
 export async function postTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const title = await TitleService.create({});
 
     updateSearch('title');
@@ -161,6 +164,9 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
 export async function patchTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { id } = req.params as { id: string };
     const { capabilities, id: userID, username } = req.animee.user!;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
@@ -325,6 +331,9 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { id } = req.params as { id: string };
     const { key } = req.query as { key?: string };
     const { id: userID, username } = req.animee.user!;
@@ -345,7 +354,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     };
 
     if (!testMode) {
-      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+      const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
         token: key
       });
 
@@ -372,13 +381,14 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
 export async function getHomeWrapped(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     if (!Cache.HomeWrapped.featured.length) throw new ERR_NOT_READY();
 
     const sessionToken = req.cookies[config.vars.sessionCookie];
     const session: IFK_UsapiAuthRefresh = {
       id: '',
       avatar: '',
-      msg: '',
       username: ''
     };
 

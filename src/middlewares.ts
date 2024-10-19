@@ -1,7 +1,5 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 
 import { config, devMode, prodMode, testMode } from './config';
 import { TRoleCapability } from './interfaces/Roles';
@@ -22,6 +20,9 @@ export function AccessControl(capabilities: TRoleCapability[]) {
     await HandleRequest(req, res, async () => {
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
       if (!token) throw new ERR_MISSING_AUTHORIZATION();
+
+      req.animee.middlewaresPassed = req.animee.middlewaresPassed || [];
+      req.animee.middlewaresPassed.push('checkAccess');
 
       try {
         const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'AccessControl').data : undefined);
@@ -51,18 +52,18 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 }
 
 /** CSRF-check middleware
- * Will write CSRF_origin in request animee data
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
 export function CSRFCheck(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
+      req.animee.middlewaresPassed = req.animee.middlewaresPassed || [];
+      req.animee.middlewaresPassed.push('checkCSRF');
+
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
       const origin = await Middleware.checkCSRF(token, origins, testMode ? getMockData(req, 'CSRFCheck').data : undefined);
-
-      req.animee.CSRF_origin = origin;
 
       return next();
     }, true);

@@ -182,3 +182,5 @@ app.all('*', (req: express.Request, res: express.Response) => {
 
   return res.status(404).json({ message: 'Not Found', msg: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
 });
+
+const a: IAuthorityVerify = {};

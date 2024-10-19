@@ -47,6 +47,18 @@ export function createID(): string {
   return uuid.v4();
 }
 
+export function createStringID(length: number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
 /** Get random number in range */
 export function randomNumber(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
@@ -60,7 +72,7 @@ export function addZeroIfNumberSingle(num: number): string {
 /** Get UTC date
  * @param timestamp Timestamp to start from. Default - now
  */
-export function getNewUTC(timestamp?: number | null): IGetNewUTC {
+export function getUTC(timestamp?: number | null): IGetNewUTC {
   const now = timestamp ? new Date(timestamp) : new Date();
 
   return {
@@ -80,3 +92,35 @@ export function getNewUTC(timestamp?: number | null): IGetNewUTC {
     timeAccurate: `${addZeroIfNumberSingle(now.getUTCHours())}:${addZeroIfNumberSingle(now.getUTCMinutes())}:${addZeroIfNumberSingle(now.getUTCMinutes())}.${now.getMilliseconds() < 100 ? `0${addZeroIfNumberSingle(now.getMilliseconds())}` : addZeroIfNumberSingle(now.getMilliseconds())}`,
   };
 }
+
+/** Parse WEK, MON MM, YYYY */
+export function parseIMDBDate(dateString: string): number {
+  const months = {
+    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+  };
+
+  const dateParts = dateString.split(' ');
+
+  const day = parseInt(dateParts[2]);
+  const month = months[dateParts[1]];
+  const year = parseInt(dateParts[3]);
+
+
+  return +new Date(year, month, day);
+}
+
+// export async function parseTitles() {
+//   const startedAt = getUTC().timestamp;
+//   const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/titles.json`).toString()).titles as ITitle[];
+
+//   console.log(`Titles parsing started`);
+
+//   for (const key in titles) {
+//     const title = titles[key];
+
+//     await createTitle('ROOT_MAL_PARSING', title);
+//   }
+
+//   console.log(`Titles parsing ended within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)} with pushed ${titles.length} titles`);
+// }

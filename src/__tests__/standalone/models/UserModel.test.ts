@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 import { config, RULES } from '../../../config';
-import { TNotifyEvent } from '../../../interfaces/Notify';
+import { TNotifyEvent } from '../../../interfaces/services/Notify';
 import { DubberService } from '../../../Models/Dubber';
 import Title, { TitleService } from '../../../Models/Title';
 import { UserService } from '../../../Models/User';

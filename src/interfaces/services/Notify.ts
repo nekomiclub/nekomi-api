@@ -1,5 +1,5 @@
-import { IDubber } from './Dubber';
-import { ITitle } from './Title';
+import { IDubber } from '../Dubber';
+import { ITitle } from '../Title';
 
 export const NOTIFY_EVENTS = [
   'new_episode',

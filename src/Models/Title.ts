@@ -2,7 +2,6 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
-import { parseIMDBDate, parseRoles } from '../handlers/handlers';
 import { IChangeEpMeta } from '../controllers/title';
 import { AxiosError } from 'axios';
 import { config, RULES } from '../config';
@@ -11,13 +10,15 @@ import { $http, $upload } from '../handlers/http';
 import puppeteer from 'puppeteer';
 import { E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
-import { createID, getNewUTC } from '../handlers/handler';
+import { createID, getUTC, parseIMDBDate } from '../handlers/handler';
 import validator from 'validator';
 import { IUser } from '../interfaces/User';
 import { IDubber } from '../interfaces/Dubber';
-import { TEpisodeQuality } from '../interfaces/Services';
-import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/Notify';
+import { TEpisodeQuality } from '../interfaces/http/Uploads';
+import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/services/Notify';
 import { Notify } from '../services/NotifyService';
+import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
+import { parseRoles } from './Role';
 
 
 
@@ -166,8 +167,8 @@ export class TitleService {
       status: status || 'announcement',
       studios: studios || ['Fullkekw'],
       type: type || 'serial',
-      updatedAt: getNewUTC().timestamp,
-      year: year || getNewUTC().year
+      updatedAt: getUTC().timestamp,
+      year: year || getUTC().year
     };
 
     const title = new TitleModel(payload);
@@ -190,7 +191,7 @@ export class TitleService {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    this.title.updatedAt = getNewUTC().timestamp;
+    this.title.updatedAt = getUTC().timestamp;
     await this.title.save();
 
     Logger.debug(`[TitleService]: Title ${this.title.id} patched! Stack - ${this.stack.length ? this.stack.join('; ') : 'Nothing patched...'}`);
@@ -561,7 +562,7 @@ export class TitleService {
    * Will check seriesAdd capability
    */
   async uploadEpisode({ file, user, dubber, episodeOrder, qualities }: IUploadEpisode, mockData?: IM_TitleSerciveUploadEpisode): Promise<ITitleEpisode> {
-    let requestTimestamp = getNewUTC().timestamp;
+    let requestTimestamp = getUTC().timestamp;
 
     const { buffer, originalname, filename, mimetype } = file;
 
@@ -663,7 +664,7 @@ export class TitleService {
         }
       }
 
-      Logger.debug(`[TitleService]: Episode ${ep.order}/${ep.dubberID} uploaded in ${this.title.id} by ${user.id} ended within ${((getNewUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
+      Logger.debug(`[TitleService]: Episode ${ep.order}/${ep.dubberID} uploaded in ${this.title.id} by ${user.id} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
 
       return ep;
     } catch (e) {
@@ -693,7 +694,9 @@ export class TitleService {
 
     try {
       if (!this.testMode) {
-        await $http.delete(`${config.URL.uploads}/upload/${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`, {
+        const uploadID = `${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`;
+
+        await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
           params: {
             withChildren: true,
             by: user.id
@@ -745,7 +748,7 @@ export class TitleService {
 
       // Upload poster
       if (!this.testMode) {
-        const { data: postData } = await $http.post<{ id: string }>(`${config.URL.uploads}/upload`, formData);
+        const { data: postData } = await $http.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
         UPLOAD_DATA.id = postData.id;
       } else {
         if (!mockData) throw new E500(`Mock data is not provided`);
@@ -759,7 +762,7 @@ export class TitleService {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.testMode) {
-            await $http.delete(`${config.URL.uploads}/upload/${uploadID}`, {
+            await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
               params: {
                 by: user.id
               }

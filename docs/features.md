@@ -12,12 +12,6 @@
 ## Inner data
 Inner data - stores at ```req.animee```. Contains some useful data from middlewares to other requests. You can view full interface at ```src/interfaces/globals.d.ts```
 
-| PROPERTY          | MANAGED      | DESCRIPTION               |
-| ----------------- | ------------ | ------------------------- |
-| ?userID           | AcessControl | Current user ID           |
-| ?userCapabilities | AcessControl | Current user capabilities |
-| ---               | ---          | ---                       |
-
 ------------------------------------------------------------------
 
 ### Testing and mocking data

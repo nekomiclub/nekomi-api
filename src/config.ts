@@ -1,11 +1,30 @@
 import fs from 'fs';
 import path from 'path';
-import ip from 'ip';
 
 import { IANIMEE_CONFIG } from '../interfaces';
 import CSRF from './secrets/CSRF';
 import { preserveIP } from './handlers/handler';
 import { IConfigData } from './interfaces/Interfaces';
+
+
+
+const ANIMEE_DOMAIN = 'animee.club';
+const FULLKEKW_DOMAIN = 'animee.club';
+
+export const CONSTS = {
+  Domains: {
+    animee: ANIMEE_DOMAIN,
+    animee_client: ANIMEE_DOMAIN,
+    animee_api: `api.${ANIMEE_DOMAIN}`,
+    animee_media: `media.${ANIMEE_DOMAIN}`,
+    animee_bot: `bot.${ANIMEE_DOMAIN}`,
+
+    fullkekw: FULLKEKW_DOMAIN,
+    fullkekw_authority: `authority.${FULLKEKW_DOMAIN}`,
+    fullkekw_usapi: `usapi.${FULLKEKW_DOMAIN}`,
+  }
+};
+
 
 
 const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
@@ -70,31 +89,24 @@ export const config = {
   /** URLs */
   URL: {
     /** Animee client */
-    client: prodMode ? `https://animee.club` : `http://${preserveIP('0.0.0.0')}:3001`,
-
-    /** Animee updater */
-    updater: prodMode ? `https://updater.animee.club` : `http://${preserveIP('0.0.0.0')}:3000`,
+    client: prodMode ? `https://${CONSTS.Domains.animee_client}` : `http://${preserveIP('0.0.0.0')}:3001`,
 
     /** Animee Media */
-    media: prodMode ? `https://media.animee.club` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
-
-    /** Animee Bot */
-    bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
+    media: prodMode ? `https://${CONSTS.Domains.animee_media}` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
 
     /** Anime API base url */
-    baseURL: prodMode ? `https://api.animee.club` : `http://${preserveIP('0.0.0.0')}`,
-
-
-    //* Fullkekw services
+    baseURL: prodMode ? `https://${CONSTS.Domains.animee_api}` : `http://${preserveIP('0.0.0.0')}`,
 
     /** Fullkekw authority service */
-    fullkekw_authority: prodMode ? `https://authority.animee.club` : `http://${preserveIP('0.0.0.0')}:45010`,
+    fullkekw_authority: prodMode ? `https://${CONSTS.Domains.fullkekw_authority}` : `http://${preserveIP('0.0.0.0')}:45010`,
 
+    /** Fullkekw user API */
+    fullkekw_usapi: prodMode ? CONSTS.Domains.fullkekw_usapi : `http://${preserveIP('0.0.0.0')}:45660`,
 
     //* Local services
 
-    /** Fullkekw user API */
-    fullkekw_usapi: `http://${preserveIP('0.0.0.0')}:45660`,
+    /** Animee Bot */
+    bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
 
     /** Animee uploads */
     uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
@@ -125,9 +137,6 @@ export const config = {
 
     /** CSRF token expiration */
     CSRF_EXPIRE: 180000,
-
-    /** Service domain */
-    domain: 'api.animee.club',
 
     /** Default avatar for new animee creations */
     defaultAvatar: 'http://example.com',

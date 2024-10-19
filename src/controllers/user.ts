@@ -2,23 +2,24 @@ import express from 'express';
 import axios, { AxiosError } from 'axios';
 
 import * as dto from '../handlers/dtos';
-import * as handler from '../handlers/handlers';
 import * as TokenService from '../services/TokenService';
 
 import User, { UserService } from '../Models/User';
 import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
-import { FK_AUTHORITY_ROUTES, FK_USAPI_ROUTES, IFK_AuthorityVerify, IFK_UsapiAuthRefresh, IFK_UsapiGetUser } from '../interfaces/FullkekwResponses';
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubber from '../Models/Dubber';
-import { E400, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
-import { TNotifyEvent } from '../interfaces/Notify';
+import { E400, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
-import { getNewUTC } from '../handlers/handler';
+import { getUTC } from '../handlers/handler';
 import { getMockData } from '../handlers/mocks';
 import { IM_CSRFCheck } from '../interfaces/Mocks';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
+import * as Role from '../Models/Role';
 
 
 
@@ -51,6 +52,8 @@ interface IPatchUserBody {
 
 export async function postSignin(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
@@ -116,6 +119,8 @@ export async function postSignin(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function getLogout(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     return res.status(200).clearCookie(config.vars.sessionCookie).json({ message: `Logged out` });
   });
 }
@@ -125,6 +130,8 @@ export async function getLogout(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function getValidate(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const token = req.cookies[config.vars.sessionCookie];
     if (!token) return res.status(202).json({ message: 'Session not provided' });
 
@@ -195,7 +202,6 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const DATA: IFK_UsapiAuthRefresh = {
         avatar: '',
         id: '',
-        msg: '',
         username: ''
       };
 
@@ -235,7 +241,6 @@ export async function getQuery(req: express.Request, res: express.Response) {
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
       const DATA: IFK_AuthorityVerify = {
-        msg: '',
         origin: '',
         verified: false
       };
@@ -264,7 +269,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
     // Parse user capabilities is client can get detailed info
     // TODO: !privateMode && parseRoles !== undefined
     if (!privateMode) {
-      parsedRoles = await handler.parseRoles(user.roles);
+      parsedRoles = await Role.parseRoles(user.roles);
     }
 
     // Parse user lib titles
@@ -291,13 +296,15 @@ export async function getQuery(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function patchUser(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { id } = req.animee.user!;
     const { method } = req.body as IPatchUserBody;
 
 
 
-    const user = await User.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found`);
+    const user = (await User.findOne({ id }))!;
 
     const patcher = new UserService({ user });
     const HANDLERS: { [type in TPatchUserMethod]: () => Promise<void> } = {
@@ -365,6 +372,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function postLinkTelegram(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
 
     const user = await User.findOne({ id: animeeID });
@@ -388,8 +397,10 @@ export async function postLinkTelegram(req: express.Request, res: express.Respon
 // TODO: Write in docs. Issue new telegram link token for user
 export async function getLinkTelegramToken(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const user = await User.findOne({ id: req.animee.user?.id });
-    if (!user) throw new E404(`User ${req.animee.user?.id} is not found`);
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+    const user = (await User.findOne({ id: req.animee.user?.id }))!;
     if (user.statistics.isTelegramLinked) throw new ERR_ALREADY_EXIST('Account already linked');
 
     const patch = new UserService({ user });
@@ -405,6 +416,8 @@ export async function getLinkTelegramToken(req: express.Request, res: express.Re
 // TODO: Write in docs. Verifies telegram link token
 export async function postLinkTelegramTokenVerify(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { token } = req.body as { token: string };
 
     const user = await User.findOne({ telegramLinkToken: token });

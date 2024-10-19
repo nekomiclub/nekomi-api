@@ -1,23 +1,12 @@
 import { WebSocket } from 'ws';
 import { TRoleCapability } from './Roles';
+import { TMiddlewareName } from '../services/MiddlewareService';
 
 declare global {
   namespace Express {
     interface Request {
       /** Animee internal data */
       animee: {
-        /** User id
-         * @requires AccessControl middleware
-         * @deprecated use user.id instead
-         */
-        userID?: string
-
-        /** User capabilities
-         * @requires AccessControl middleware
-         * @deprecated use user.capabilities instead
-         */
-        userCapabilities?: TRoleCapability[],
-
         /** Request user
          * @requires AccessControl middleware
          */
@@ -27,10 +16,8 @@ declare global {
           capabilities: TRoleCapability[]
         }
 
-        /** Request origin verified by CSRF
-         * @requires CheckCSRF middleware
-         */
-        CSRF_origin?: string
+        /** Request passed middlewares */
+        middlewaresPassed?: TMiddlewareName[]
       }
     }
   }

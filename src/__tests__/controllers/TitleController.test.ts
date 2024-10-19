@@ -5,8 +5,8 @@ import { config } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import DubberModel from '../../Models/Dubber';
 import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/FullkekwResponses';
 import TitleModel, { TitleService } from '../../Models/Title';
+import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 
 
 beforeAll(() => {
@@ -95,7 +95,6 @@ describe('Title Controller', () => {
     data: {
       avatar: '',
       id: TestID1,
-      msg: '',
       username: TestID1_username
     }
   };

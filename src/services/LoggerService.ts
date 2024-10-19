@@ -1,4 +1,4 @@
-import { addZeroIfNumberSingle, getNewUTC } from '../handlers/handler';
+import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
 import path from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
@@ -27,7 +27,7 @@ class LoggerService {
   /** Write log */
   private append({ msg, type, e }: { type: TLogType, msg: string, e?: any }) {
     const emsg = e?.msg || e?.message || e?.data?.message || e?.data?.msg || e?.response?.data?.message || e?.response?.data?.message;
-    const date = `${getNewUTC().fulldate}/${getNewUTC().time}.${addZeroIfNumberSingle(getNewUTC().secs)}:${getNewUTC().ms < 100 ? `0${addZeroIfNumberSingle(getNewUTC().ms)}` : getNewUTC().ms}`;
+    const date = `${getUTC().fulldate}/${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}:${getUTC().ms < 100 ? `0${addZeroIfNumberSingle(getUTC().ms)}` : getUTC().ms}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
     const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;

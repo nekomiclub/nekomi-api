@@ -3,7 +3,7 @@ import cors from 'cors';
 import multer from 'multer';
 
 import { AccessControl, CSRFCheck } from '../middlewares';
-import { config } from '../config';
+import { config, CONSTS } from '../config';
 
 
 
@@ -22,67 +22,67 @@ const upload = multer();
 //* ------------------ USER MIDDLEWARES ------------------
 
 export const userPatch = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['basic']),
   body('method')
     .notEmpty().withMessage('Patch method must be provided')
 ];
 
 export const userLinkTelegram = [
-  CSRFCheck(['bot.animee.club']),
+  CSRFCheck([CONSTS.Domains.animee_bot]),
   body(['animeeID', 'telegramID'])
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
 export const userLinkTelegramToken = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['basic'])
 ];
 
 export const userLinkTelegramTokenVerify = [
-  CSRFCheck(['bot.animee.club']),
+  CSRFCheck([CONSTS.Domains.animee_bot]),
   body('token')
     .notEmpty().withMessage('Token can not be empty')
 ];
 
 export const userSignin = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   body('session')
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
 export const userLogout = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
 ];
 
 export const userValidate = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const getHomeWrapped = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
 ];
 
 export const postTitle = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['titleDelete']),
 ];
 
 //* ------------------ ROOT MIDDLEWARES ------------------
 
 export const getSearch = [
-  CSRFCheck(['animee.club']),
+  CSRFCheck([CONSTS.Domains.animee]),
 ];

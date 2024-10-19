@@ -4,7 +4,7 @@ import { config, RULES } from '../../../config';
 import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
 import { TitleService } from '../../../Models/Title';
 import { ITitleEpisodeMeta, TAnimeGenre } from '../../../interfaces/Title';
-import { getNewUTC } from '../../../handlers/handler';
+import { getUTC } from '../../../handlers/handler';
 import UserModel, { UserService } from '../../../Models/User';
 import { Readable } from 'stream';
 import DubberModel, { DubberService } from '../../../Models/Dubber';
@@ -263,8 +263,8 @@ describe('Title Model', () => {
 
   describe('patchYear', () => {
     test('Pass - year changed', async () => {
-      await Title.patchYear(getNewUTC().year);
-      expect(Title.title.year).toBe(getNewUTC().year);
+      await Title.patchYear(getUTC().year);
+      expect(Title.title.year).toBe(getUTC().year);
     });
 
     test('Reject - length missmatch', async () => {
@@ -371,7 +371,7 @@ describe('Title Model', () => {
       // Add
       await Title.patchEpisodeMeta({
         action: 'edit',
-        dateOut: getNewUTC().timestamp,
+        dateOut: getUTC().timestamp,
         names: {
           eng: engObfuscated,
           ukr,
@@ -389,7 +389,7 @@ describe('Title Model', () => {
 
       await Title.patchEpisodeMeta({
         action: 'edit',
-        dateOut: getNewUTC().timestamp,
+        dateOut: getUTC().timestamp,
         names: {
           eng: newEng,
           ukr,
@@ -405,7 +405,7 @@ describe('Title Model', () => {
       // Add
       await Title.patchEpisodeMeta({
         action: 'edit',
-        dateOut: getNewUTC().timestamp,
+        dateOut: getUTC().timestamp,
         names: {
           eng: '123',
           ukr: '123',
@@ -415,7 +415,7 @@ describe('Title Model', () => {
 
       await Title.patchEpisodeMeta({
         action: 'delete',
-        dateOut: getNewUTC().timestamp,
+        dateOut: getUTC().timestamp,
         names: {
           eng: '_PASS',
           ukr: '_PASS',
@@ -431,7 +431,7 @@ describe('Title Model', () => {
       try {
         await Title.patchEpisodeMeta({
           action: 'edit',
-          dateOut: getNewUTC().timestamp,
+          dateOut: getUTC().timestamp,
           order: 3,
           names: {
             eng: 'X'.repeat(RULES.PatchTitle.maxNameLength + 1),
@@ -450,7 +450,7 @@ describe('Title Model', () => {
       try {
         await Title.patchEpisodeMeta({
           action: 'edit',
-          dateOut: getNewUTC().timestamp,
+          dateOut: getUTC().timestamp,
           order: 3,
           names: {
             eng: 'X'.repeat(RULES.PatchTitle.minNameLength - 1),

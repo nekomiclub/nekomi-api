@@ -6,10 +6,10 @@ import { config } from '../config';
 import { Logger } from '../services/LoggerService';
 import validator from 'validator';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
-import { createID, getNewUTC } from '../handlers/handler';
+import { createID, getUTC } from '../handlers/handler';
 import Title from './Title';
 import Role from './Role';
-import { TNotifyEvent } from '../interfaces/Notify';
+import { TNotifyEvent } from '../interfaces/services/Notify';
 import DubberModel from './Dubber';
 
 
@@ -85,7 +85,7 @@ export class UserService {
 
     const libs: IUserLib[] = [
       {
-        createdAt: getNewUTC().timestamp,
+        createdAt: getUTC().timestamp,
         id: createID(),
         settings: {
           hidden: false,
@@ -95,7 +95,7 @@ export class UserService {
         titles: [],
         type: 'favorite'
       }, {
-        createdAt: getNewUTC().timestamp,
+        createdAt: getUTC().timestamp,
         id: createID(),
         settings: {
           hidden: false,
@@ -105,7 +105,7 @@ export class UserService {
         titles: [],
         type: 'watched'
       }, {
-        createdAt: getNewUTC().timestamp,
+        createdAt: getUTC().timestamp,
         id: createID(),
         settings: {
           hidden: false,
@@ -115,7 +115,7 @@ export class UserService {
         titles: [],
         type: 'watching'
       }, {
-        createdAt: getNewUTC().timestamp,
+        createdAt: getUTC().timestamp,
         id: createID(),
         settings: {
           hidden: true,
@@ -125,7 +125,7 @@ export class UserService {
         titles: [],
         type: 'plans'
       }, {
-        createdAt: getNewUTC().timestamp,
+        createdAt: getUTC().timestamp,
         id: createID(),
         settings: {
           hidden: true,
@@ -144,7 +144,7 @@ export class UserService {
       libs,
       roles: ['user'],
       statistics: {
-        accountCreated: getNewUTC().timestamp,
+        accountCreated: getUTC().timestamp,
         isTelegramLinked: false,
         viewtime: 0,
         timeSpent: 0
@@ -269,7 +269,7 @@ export class UserService {
       item.dubberID = dubberID;
       item.episodeOrder = episodeOrder;
       item.progress = progress;
-      item.updatedAt = getNewUTC().timestamp;
+      item.updatedAt = getUTC().timestamp;
 
     } else {
       // Create new
@@ -279,7 +279,7 @@ export class UserService {
         episodeOrder,
         progress,
         titleID,
-        updatedAt: getNewUTC().timestamp
+        updatedAt: getUTC().timestamp
       };
 
       this.user.watchProgress.push(item);
