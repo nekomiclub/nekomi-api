@@ -145,7 +145,7 @@ export async function getTotal(req: express.Request, res: express.Response) {
     const total = titles.length;
     const renewed = titles.filter(el => el.country !== 'Other').length;
 
-    return res.status(200).json({ message: 'ok', total, renewed });
+    return res.status(200).json({ message: 'OK', total, renewed });
   });
 }
 
@@ -359,6 +359,8 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     await TitleService.delete(id, `Title deleted by ${userID}/${username}`, 'one');
 
     updateSearch('title');
+
+    return res.status(200).json({ message: 'Title deleted' });
   });
 }
 
@@ -378,16 +380,22 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
 
     // Parse user
     if (sessionToken) {
-      try {
-        const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-          headers: {
-            Cookie: `session=${sessionToken}`
-          }
-        });
+      if (!testMode) {
+        try {
+          const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
+            headers: {
+              Cookie: `session=${sessionToken}`
+            }
+          });
 
-        session.id = sessionData.id;
-      } catch (e) {
-        // Ignore
+          session.id = sessionData.id;
+        } catch (e) {
+          // Ignore
+        }
+      } else {
+        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+
+        session.id = data.id;
       }
     }
 

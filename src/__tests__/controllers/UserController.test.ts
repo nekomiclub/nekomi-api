@@ -28,15 +28,15 @@ afterAll(() => {
 const { baseURL } = config.URL;
 
 describe('User controller', () => {
-  const TestID1 = 'mocked-usercontroller-1'; // Title matching for airing_started event
+  const TestID1 = 'test-controllers_user--1'; // Title matching for airing_started event
   const TestUS1 = 'usercontroller1';
   const TestUS1_newUsername = 'usercontrollernew1';
 
   // Will be created
-  const TestID2 = 'mocked-usercontroller-2'; // Title not matching for airing_started event
+  const TestID2 = 'test-controllers_user--2'; // Title not matching for airing_started event
   const TestUS2 = 'usercontroller2';
 
-  const TestID3 = 'mocked-usercontroller-3';
+  const TestID3 = 'test-controllers_user--3';
   const TestUS3 = 'usercontroller3';
 
   let User: UserService;

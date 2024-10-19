@@ -16,9 +16,7 @@ export function getMockData<T = any>(req: express.Request, id: TMockID): IMock<T
 
   const mock = mocks.find(el => el.id === id);
 
-  if (!mock) {
-    throw new E500(`Mock ${id} undefined`);
-  }
+  if (!mock) throw new E500(`Mock ${id} undefined`);
 
   if (mock.code > 400) {
     throw new AxiosError(undefined, `${mock.code}`);
