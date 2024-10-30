@@ -3,7 +3,7 @@ import * as cfg from '../config';
 import { AxiosError } from 'axios';
 import { config } from '../config';
 import { $http } from '../handlers/http';
-import { IM_AccessControl, IM_CSRFCheck } from '../interfaces/Mocks';
+import { IM_AccessControl, IM_CSRFCheck } from '../interfaces/Mocks.ts';
 import { E404, E500, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION } from './ErrorService';
 import { TRoleCapability } from '../interfaces/Roles';
 import User from '../Models/User';

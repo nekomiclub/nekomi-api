@@ -14,7 +14,7 @@ import { title, user } from './dtos';
 import Role, { createRole } from '../Models/Role';
 import { TRoleCapability } from '../interfaces/Roles';
 import { ITitle, ITitleEpisode } from '../interfaces/Title';
-import { IMock, TMockID } from '../interfaces/Mocks';
+import { IMock, TMockID } from '../interfaces/Mocks.ts';
 import { E500 } from '../services/ErrorService';
 import { TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';

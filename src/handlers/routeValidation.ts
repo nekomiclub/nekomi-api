@@ -24,6 +24,7 @@ const upload = multer();
 export const userPatch = [
   CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['basic']),
+  upload.single('banner_file'),
   body('method')
     .notEmpty().withMessage('Patch method must be provided')
 ];

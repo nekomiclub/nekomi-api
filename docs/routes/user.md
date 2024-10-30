@@ -179,9 +179,11 @@ Patch own user instance.
 | ?episodeOrder | number           | ---                      | Method - patchWatchProgress                 |
 | ?viewtime     | number           | User session viewtime    | Method - patchWatchProgress                 |
 | ?progress     | number           | User video progress in s | Method - patchWatchProgress                 |
+| ?banner_file  | File             | Upload banner file       | Method - upload_banner                      |
 
 **editFolderItem** - Add/remove title from specified lib. Will add/remove **new_episode** subscribe on changes in **watching** lib
 **patchWatchProgress** - Add new/edit watchProgress record. Syncs player on different devices
+**upload_banner** - Upload profile banner
 
 **RESPONSES**
 

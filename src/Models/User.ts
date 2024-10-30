@@ -5,12 +5,15 @@ import * as cfg from '../config';
 import { config } from '../config';
 import { Logger } from '../services/LoggerService';
 import validator from 'validator';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { E404, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { createID, getUTC } from '../handlers/handler';
 import Title from './Title';
 import Role from './Role';
 import { TNotifyEvent } from '../interfaces/services/Notify';
 import DubberModel from './Dubber';
+import { AxiosError } from 'axios';
+import { $http } from '../handlers/http';
+import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
 
 
 
@@ -174,7 +177,7 @@ export class UserService {
     Logger.debug(`[UserService]: Deleted user with id ${id}. Reason - ${reason || 'Not provided'}`);
   }
 
-  /** Save document
+  /** Save the document
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
@@ -187,7 +190,7 @@ export class UserService {
 
   //* ------------ AVATAR
 
-  /** Patch user telegram data */
+  /** Patch avatar */
   async patchAvatar({ url }: { url: string }) {
     if (!validator.isURL(url)) throw new ERR_INVALID_PAYLOAD(`Avatar URL is invalid`);
 
@@ -197,9 +200,61 @@ export class UserService {
     this.user.markModified('avatar');
   }
 
+  //* ------------ BANNER
+
+  /** Upload profile banner. Will save the document */
+  async uploadBanner({ file }: { file: Express.Multer.File }) {
+    const { buffer, originalname, filename, mimetype } = file;
+    const formData = new FormData();
+
+    formData.append('file', new Blob([buffer], {
+      type: mimetype
+    }), originalname);
+    formData.set('uploadedBy', this.user.id);
+    formData.set('type', 'photo/user/banner');
+
+    const UPLOAD_DATA: { url: string } = {
+      url: ''
+    };
+
+    try {
+      // Upload banner
+      const { data: postData } = await $http.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
+      UPLOAD_DATA.url = postData.url;
+
+      // Remove previous banner if it not default
+      if (this.user.banner !== config.vars.defaultUserBanner) {
+        const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
+
+        await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
+          params: {
+            by: this.user.id
+          }
+        });
+      }
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        if (e.code === 'ECONNREFUSED') {
+          throw new E503('Animee-uploads is not available. Try in a few minutes');
+        }
+
+        throw e;
+      } else {
+        throw e;
+      }
+    }
+
+    this.user.banner = UPLOAD_DATA.url;
+    this.user.markModified('banner');
+
+    this.stack.push(`New avatar uploaded`);
+
+    await this.save();
+  }
+
   //* ------------ USERNAME
 
-  /** Patch user telegram data */
+  /** Patch username */
   async patchUsername({ username }: { username: string }) {
     if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
     if (!validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
@@ -213,7 +268,7 @@ export class UserService {
 
   //* ------------ TELEGRAM LINK TOKEN
 
-  /** Patch user telegram data */
+  /** Patch user telegram link token */
   async patchTelegramLinkToken({ token }: { token: string | null }) {
     // Ignore finding exist user if token is null
     if (token !== null) {

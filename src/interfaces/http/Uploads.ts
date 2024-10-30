@@ -21,4 +21,7 @@ export const ANIMEE_UPLOADS = {
 export interface IA_UploadsUpload {
   /** Upload ID */
   id: string
+
+  /** Upload URL */
+  url: string
 }

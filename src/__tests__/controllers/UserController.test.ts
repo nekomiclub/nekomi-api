@@ -3,7 +3,7 @@ import request from 'supertest';
 
 import { config } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
-import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks';
+import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks.ts';
 import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
 import exp from 'constants';
 import { createID, getUTC } from '../../handlers/handler';

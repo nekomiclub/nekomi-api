@@ -25,7 +25,7 @@ import * as Role from '../Models/Role';
 
 
 /** Type of patchUserMethods array */
-type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress'
+type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner'
 
 interface IPatchUserBody {
   /** Method */
@@ -253,7 +253,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
         DATA.origin = data.origin;
         DATA.verified = data.verified;
       } else {
-        const { data } = getMockData<IM_CSRFCheck>(req, 'CSRFCheck');
+        const { data } = getMockData<IM_CSRFCheck>(req, 'FkAuthorityVerify');
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -309,7 +309,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
     const patcher = new UserService({ user });
     const HANDLERS: { [type in TPatchUserMethod]: () => Promise<void> } = {
       editFolderItem,
-      patchWatchProgress
+      patchWatchProgress,
+      upload_banner,
     };
 
     const handler = HANDLERS[method];
@@ -363,6 +364,13 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
       await patcher.patchWatchProgress({ dubberID, titleID: titleId, episodeOrder, progress, updatedAt: 0 });
       await patcher.patchStatistics({ viewtime });
+    }
+
+    async function upload_banner() {
+      const file = req.file;
+      if (!file || file.fieldname !== 'banner_file') throw new ERR_TYPE_INVALID(`banner_file is not provided or not found`);
+
+      await patcher.uploadBanner({ file });
     }
   });
 }

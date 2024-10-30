@@ -4,7 +4,7 @@ import request from 'supertest';
 import { config } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import DubberModel from '../../Models/Dubber';
-import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks';
+import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks.ts';
 import TitleModel, { TitleService } from '../../Models/Title';
 import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 

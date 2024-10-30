@@ -151,7 +151,7 @@ wss.on('listening', () => {
 
     // Cache updating
     setInterval(async () => {
-      Logger.info(`[Startup/Post-init Callback]: Cache updated`);
+      Logger.info(`[Startup]: Cache updated`);
 
       // Update cache
       await Promise.all([

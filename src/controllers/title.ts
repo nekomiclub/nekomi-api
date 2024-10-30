@@ -15,7 +15,7 @@ import { IDubber } from '../interfaces/Dubber';
 import { E403, E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 import { getMockData } from '../handlers/mocks';
-import { IM_CSRFCheck } from '../interfaces/Mocks';
+import { IM_CSRFCheck } from '../interfaces/Mocks.ts';
 import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
 import Cache from '../services/CacheService';
 import { IUserWatchProgress } from '../interfaces/User';
