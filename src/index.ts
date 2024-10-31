@@ -145,10 +145,6 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    if (prodMode) {
-      await patchUserModel(); // Patch fields
-    }
-
     // Cache updating
     setInterval(async () => {
       Logger.info(`[Startup]: Cache updated`);

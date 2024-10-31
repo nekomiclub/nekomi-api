@@ -4,7 +4,7 @@ import * as dto from '../handlers/dtos';
 
 import Title, { TitleService } from '../Models/Title';
 import { ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
-import { config, devMode, prodMode, testMode } from '../config';
+import { config, CONSTS, devMode, prodMode, testMode } from '../config';
 import { singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
 import { TRoleCapability } from '../interfaces/Roles';
@@ -119,7 +119,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === 'animee.club') {
+      if (DATA.verified && DATA.origin === CONSTS.Domains.animee) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed title information due to token error`);
