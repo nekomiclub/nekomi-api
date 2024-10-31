@@ -3,7 +3,7 @@ import * as cfg from '../config';
 import { AxiosError } from 'axios';
 import { config } from '../config';
 import { $http } from '../handlers/http';
-import { IM_AccessControl, IM_CSRFCheck } from '../interfaces/Mocks.ts';
+import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { E404, E500, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION } from './ErrorService';
 import { TRoleCapability } from '../interfaces/Roles';
 import User from '../Models/User';
@@ -39,10 +39,10 @@ export class MiddlewareService {
    * 
    * @returns user
    */
-  async checkAccess(token: string, capabilities?: TRoleCapability[], mockData?: IM_AccessControl): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
+  async checkAccess(token: string, capabilities?: TRoleCapability[], mockData?: IM_FkUsapiAuthRefresh): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
     capabilities = capabilities !== undefined ? capabilities : [];
 
-    const DATA: IM_AccessControl = {
+    const DATA: IM_FkUsapiAuthRefresh = {
       id: '',
       avatar: '',
       username: '',
@@ -95,10 +95,10 @@ export class MiddlewareService {
    * 
    * @returns CSRF origin
    */
-  async checkCSRF(token: string, origins?: string[], mockData?: IM_CSRFCheck): Promise<string> {
+  async checkCSRF(token: string, origins?: string[], mockData?: IM_FkAuthorityVerify): Promise<string> {
     origins = origins !== undefined ? origins : [];
 
-    const DATA: IM_CSRFCheck = {
+    const DATA: IM_FkAuthorityVerify = {
       origin: 'NULL',
       verified: false
     };

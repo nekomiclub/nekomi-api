@@ -204,6 +204,7 @@ export async function postUpload(req: express.Request, res: express.Response) {
       type: mimetype
     }), originalname);
     formData.set('uploadedBy', userID);
+    formData.set('qualities', JSON.stringify([1080]));
     formData.set('type', type);
 
     try {

@@ -1,10 +1,10 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import { config } from '../../config';
+import { config, CONSTS } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import DubberModel from '../../Models/Dubber';
-import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks.ts';
+import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify, IMock } from '../../interfaces/Mocks';
 import TitleModel, { TitleService } from '../../Models/Title';
 import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 
@@ -69,17 +69,17 @@ describe('Title Controller', () => {
     await TitleService.delete(TestID2, 'Test purge', 'many');
   }
 
-  const CSRFMock: IMock<IM_CSRFCheck> = {
-    id: 'CSRFCheck',
+  const CSRFMock: IMock<IM_FkAuthorityVerify> = {
+    id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: 'animee.club',
+      origin: CONSTS.Domains.animee,
       verified: true
     }
   };
 
-  const ACMock: IMock<IM_AccessControl> = {
-    id: 'AccessControl',
+  const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
+    id: 'FkUsapiAuthRefresh',
     code: 200,
     data: {
       avatar: '',

@@ -15,7 +15,7 @@ import { IDubber } from '../interfaces/Dubber';
 import { E403, E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 import { getMockData } from '../handlers/mocks';
-import { IM_CSRFCheck } from '../interfaces/Mocks.ts';
+import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
 import Cache from '../services/CacheService';
 import { IUserWatchProgress } from '../interfaces/User';
@@ -113,7 +113,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         DATA.origin = data.origin;
         DATA.verified = data.verified;
       } else {
-        const { data } = getMockData<IM_CSRFCheck>(req, 'CSRFCheck');
+        const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -348,7 +348,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     const title = await Title.findOne({ id });
     if (!title) throw new E404(`Title ${id} is not found`);
 
-    const CSRF_DATA: IM_CSRFCheck = {
+    const CSRF_DATA: IM_FkAuthorityVerify = {
       origin: '',
       verified: false
     };
@@ -361,7 +361,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       CSRF_DATA.verified = data.verified;
       CSRF_DATA.origin = data.origin;
     } else {
-      const { data } = getMockData<IM_CSRFCheck>(req, 'CSRFCheck');
+      const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
 
       CSRF_DATA.verified = data.verified;
       CSRF_DATA.origin = data.origin;

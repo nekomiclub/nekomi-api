@@ -1,16 +1,16 @@
-/** Array of anime genres provided on animee.club */
+/** Array of anime genres provided on nekomi.club */
 export const AnimeGenres = ['chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy', 'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons', 'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music', 'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural', 'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller', 'erotica', 'gourmet'] as const;
 
 /** Type that implements AnimeGenres */
 export type TAnimeGenre = typeof AnimeGenres[number];
 
-/** Array of anime age ratings on animee.club
+/** Array of anime age ratings on nekomi.club
  * G - All Ages
  * PG - Children
  * PG-13 - Teens 13 or older
  * R17 - 17+ (violence & profanity)
  * R+ - Mild Nudity
- * Rx - Full nudity (not presented on animee.club, but?)
+ * Rx - Full nudity (not presented on nekomi.club, but?)
  */
 export const AnimeAgeRates = ['G', 'PG', 'PG-13', 'R-17', 'R+', 'Rx'] as const;
 

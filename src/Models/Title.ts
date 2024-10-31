@@ -152,8 +152,8 @@ export class TitleService {
       },
       ageRate: ageRate || 'PG-13',
       country: country || 'Other',
-      description: description || 'Це новий тайтл на animee.club :)',
-      details: details || 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері animee.',
+      description: description || 'Це новий тайтл на nekomi.club :)',
+      details: details || 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері nekomi.',
       episodes: [],
       episodesCount: episodesCount || null,
       episodesMeta: [],
@@ -670,7 +670,7 @@ export class TitleService {
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
-          throw new E503('Animee-uploads is not available. Try in a few minutes');
+          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
         }
 
         throw e;
@@ -711,7 +711,7 @@ export class TitleService {
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
-          throw new E503('Animee-uploads is not available. Try in a few minutes');
+          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
         }
 
         throw e;
@@ -758,7 +758,7 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match('animee.club') || this.title.poster.match(config.URL.baseURL)) {
+        if (this.title.poster.match(cfg.CONSTS.Domains.animee) || this.title.poster.match(config.URL.baseURL)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.testMode) {
@@ -793,7 +793,7 @@ export class TitleService {
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
-          throw new E503('Animee-uploads is not available. Try in a few minutes');
+          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
         }
 
         throw e;

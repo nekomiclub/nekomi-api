@@ -8,7 +8,7 @@ declare global {
       /** Animee internal data */
       animee: {
         /** Request user
-         * @requires AccessControl middleware
+         * @requires FkUsapiAuthRefresh middleware
          */
         user?: {
           id: string

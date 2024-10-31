@@ -15,7 +15,7 @@ const Middleware = new MiddlewareService();
  * Will write user object in request animee data
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
-export function AccessControl(capabilities: TRoleCapability[]) {
+export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
@@ -25,7 +25,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
       req.animee.middlewaresPassed.push('checkAccess');
 
       try {
-        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'AccessControl').data : undefined);
+        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'FkUsapiAuthRefresh').data : undefined);
 
         req.animee.user = req.animee.user || {
           id: 'NULL',
@@ -54,7 +54,7 @@ export function AccessControl(capabilities: TRoleCapability[]) {
 /** CSRF-check middleware
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
-export function CSRFCheck(origins?: string[]) {
+export function FkAuthorityVerify(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       req.animee.middlewaresPassed = req.animee.middlewaresPassed || [];
@@ -63,7 +63,7 @@ export function CSRFCheck(origins?: string[]) {
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
-      const origin = await Middleware.checkCSRF(token, origins, testMode ? getMockData(req, 'CSRFCheck').data : undefined);
+      const origin = await Middleware.checkCSRF(token, origins, testMode ? getMockData(req, 'FkAuthorityVerify').data : undefined);
 
       return next();
     }, true);

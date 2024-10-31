@@ -21,16 +21,16 @@ To test animee-core, you should run one process as ```npm run dev-test```, and s
 
 Mock example (may be changed in future, see one of tests to get real implementation of mock system)
 ```ts
-const ACMock: IMock<IM_AccessControl> = {
-  id: 'AccessControl',
+const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
+  id: 'FkUsapiAuthRefresh',
   code: 200,
   data: {
     id: 'USER_ID',
   }
 };
 
-const CSRFMock: IMock<IM_CSRFCheck> = {
-  id: 'CSRFCheck',
+const CSRFMock: IMock<IM_FkAuthorityVerify> = {
+  id: 'FkAuthorityVerify',
   code: 200,
   data: {
     verified: true,

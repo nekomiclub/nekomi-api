@@ -12,7 +12,7 @@ import ip from 'ip';
 import process from 'process';
 import chalk from 'chalk';
 
-import { devMode, testMode, config, prodMode } from './config';
+import { devMode, testMode, config, prodMode, CONSTS } from './config';
 
 import Router from './router';
 import { updateSearch } from './controllers/root';
@@ -39,7 +39,7 @@ if (prodMode && ip.address() !== config.vars.prodIP) {
 
   throw new Error(`
     ----------------------------
-    ANIMEE-CORE STARTUP DENIED
+    NEKOMI-CORE STARTUP DENIED
 
     Current IP (${ip.address()}) has no permission to startup at production mode.
     ----------------------------
@@ -48,9 +48,9 @@ if (prodMode && ip.address() !== config.vars.prodIP) {
 
 
 
-const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8') : '';
-const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8') : '';
-const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8') : '';
+const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/privkey.pem', 'utf8') : '';
+const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
+const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
 const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}` as const;
 
@@ -76,9 +76,9 @@ export const wss = devMode ? new WebSocketServer({
 
 const CORSOpt: CorsOptions = {
   origin: [
-    'https://animee.club',
-    'https://auth.animee.club',
-    'https://api.animee.club',
+    `https://${CONSTS.Domains.animee}`,
+    `https://${CONSTS.Domains.animee_auth}`,
+    `https://${CONSTS.Domains.animee_api}`,
     devMode ? 'http://192.168.0.106:3001' : '',
     devMode ? 'http://192.168.0.106:3000' : '',
   ],
@@ -92,7 +92,7 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
-// Trace requests & set animee internal object
+// Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
@@ -136,7 +136,7 @@ wss.on('listening', () => {
 
     console.log(`
       ----------------------------
-      ANIMEE-CORE STARTED UP
+      NEKOMI-CORE STARTED UP
     
       Date: ${getUTC().date} UTC-0 ${getUTC().time}
       Mode: ${mode}

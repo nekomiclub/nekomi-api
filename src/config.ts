@@ -8,12 +8,13 @@ import { IConfigData } from './interfaces/Interfaces';
 
 
 
-const ANIMEE_DOMAIN = 'animee.club';
-const FULLKEKW_DOMAIN = 'animee.club';
+const ANIMEE_DOMAIN = 'nekomi.club';
+const FULLKEKW_DOMAIN = 'nekomi.club';
 
 export const CONSTS = {
   Domains: {
     animee: ANIMEE_DOMAIN,
+    animee_auth: `auth.${ANIMEE_DOMAIN}`,
     animee_client: ANIMEE_DOMAIN,
     animee_api: `api.${ANIMEE_DOMAIN}`,
     animee_media: `media.${ANIMEE_DOMAIN}`,
@@ -41,14 +42,10 @@ const DATA: IConfigData = {
       id: '1db09f56-4ca8-4f11-9f6d-ca27ab682165',
       backgroundURL: '',
       videoURL: ''
-    }, {
-      id: '1db09f56-4ca8-4f11-9f6d-ca27ab682165',
-      backgroundURL: '',
-      videoURL: ''
     }] : [{
       id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-      backgroundURL: '',
-      videoURL: ''
+      backgroundURL: 'http://192.168.0.106:43120/devid-be3034c1-2a2f-465f-9e4c-e39219af4e47',
+      videoURL: 'http://192.168.0.106:43120/devid-59cfe164-c5b4-4304-ba65-7d8cf8de493a'
     }],
 
 
@@ -120,10 +117,10 @@ export const config = {
     /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
     INTERNAL_ROOT_USER_ID: 'animeeclub',
 
-    /** Animee cookie with fullkekw usapi session */
+    /** Nekomi cookie with fullkekw usapi session */
     sessionCookie: 'SEC_31N',
 
-    /** Animee cookie expiration offset */
+    /** Nekomi cookie expiration offset */
     sessionCookieExpireOffset: 2592000000,
 
     /** Mock data header */
@@ -138,13 +135,13 @@ export const config = {
     /** CSRF token expiration */
     CSRF_EXPIRE: 180000,
 
-    /** Default avatar for animee creations */
+    /** Default avatar for nekomi creations */
     defaultAvatar: 'http://example.com',
 
     /** Default banner for users */
     defaultUserBanner: 'http://example.com',
 
-    /** Default poster for animee titles */
+    /** Default poster for nekomi titles */
     defaultPoster: 'http://example.com',
   },
 

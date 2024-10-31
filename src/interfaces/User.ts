@@ -42,13 +42,13 @@ export interface IUser {
    */
   telegramData: null | IUserTelegramData
 
-  /** Token for linking telegram to animee account
+  /** Token for linking telegram to nekomi account
    * @access CSRF required
    */
   telegramLinkToken: string | null
 }
 
-/** User animee statistics */
+/** User nekomi statistics */
 export interface IUserStatistics {
   /** UTC0 account creation timestamp */
   accountCreated: number

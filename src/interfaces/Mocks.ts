@@ -18,16 +18,16 @@ export interface IMock<T = any> {
 }
 
 
-/** AccessControl mock */
-export interface IM_AccessControl {
+/** FkUsapiAuthRefresh mock */
+export interface IM_FkUsapiAuthRefresh {
   id: string
   capabilities: TRoleCapability[]
   username: string
   avatar: string
 }
 
-/** CSRFCheck mock */
-export interface IM_CSRFCheck {
+/** FkAuthorityVerify mock */
+export interface IM_FkAuthorityVerify {
   verified: boolean
 
   /** CSRF origin */

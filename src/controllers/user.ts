@@ -5,7 +5,7 @@ import * as dto from '../handlers/dtos';
 import * as TokenService from '../services/TokenService';
 
 import User, { UserService } from '../Models/User';
-import { config, devMode, prodMode, testMode } from '../config';
+import { config, CONSTS, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
@@ -16,7 +16,7 @@ import { TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
 import { getUTC } from '../handlers/handler';
 import { getMockData } from '../handlers/mocks';
-import { IM_CSRFCheck } from '../interfaces/Mocks';
+import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
 import * as Role from '../Models/Role';
@@ -253,13 +253,13 @@ export async function getQuery(req: express.Request, res: express.Response) {
         DATA.origin = data.origin;
         DATA.verified = data.verified;
       } else {
-        const { data } = getMockData<IM_CSRFCheck>(req, 'FkAuthorityVerify');
+        const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === 'animee.club') {
+      if (DATA.verified && DATA.origin === CONSTS.Domains.animee) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed user information due to token error`);

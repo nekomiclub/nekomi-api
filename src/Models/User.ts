@@ -235,7 +235,7 @@ export class UserService {
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
-          throw new E503('Animee-uploads is not available. Try in a few minutes');
+          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
         }
 
         throw e;

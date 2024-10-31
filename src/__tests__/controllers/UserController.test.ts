@@ -1,9 +1,9 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import { config } from '../../config';
+import { config, CONSTS } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
-import { IM_AccessControl, IM_CSRFCheck, IMock } from '../../interfaces/Mocks.ts';
+import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify, IMock } from '../../interfaces/Mocks';
 import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
 import exp from 'constants';
 import { createID, getUTC } from '../../handlers/handler';
@@ -77,17 +77,17 @@ describe('User controller', () => {
     await Title.deleteMany({ id: TestID2 });
   }
 
-  const CSRFMock: IMock<IM_CSRFCheck> = {
-    id: 'CSRFCheck',
+  const CSRFMock: IMock<IM_FkAuthorityVerify> = {
+    id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: 'animee.club',
+      origin: CONSTS.Domains.animee,
       verified: true
     }
   };
 
-  const ACMock: IMock<IM_AccessControl> = {
-    id: 'AccessControl',
+  const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
+    id: 'FkUsapiAuthRefresh',
     code: 200,
     data: {
       avatar: '',
@@ -100,7 +100,7 @@ describe('User controller', () => {
 
 
   describe('GET /user/validate', () => {
-    // Should refresh usapi session and sync usapi & animee user object
+    // Should refresh usapi session and sync usapi & nekomi user object
     const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
       id: 'FkUsapiAuthRefresh',
       code: 200,
@@ -196,11 +196,11 @@ describe('User controller', () => {
     });
 
     test('403 - Can not get private information with invalid csrf', async () => {
-      const CSRFMock: IMock<IM_CSRFCheck> = {
-        id: 'CSRFCheck',
+      const CSRFMock: IMock<IM_FkAuthorityVerify> = {
+        id: 'FkAuthorityVerify',
         code: 200,
         data: {
-          origin: 'animee.club',
+          origin: CONSTS.Domains.animee,
           verified: false
         }
       };
@@ -301,11 +301,11 @@ describe('User controller', () => {
 
 
   describe('POST /user/linkTelegram', () => {
-    const BotCSRF: IMock<IM_CSRFCheck> = {
-      id: 'CSRFCheck',
+    const BotCSRF: IMock<IM_FkAuthorityVerify> = {
+      id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: 'bot.animee.club',
+        origin: CONSTS.Domains.animee_bot,
         verified: true
       }
     };
@@ -348,11 +348,11 @@ describe('User controller', () => {
   });
 
   describe('POST /user/linkTelegram/verify', () => {
-    const BotCSRF: IMock<IM_CSRFCheck> = {
-      id: 'CSRFCheck',
+    const BotCSRF: IMock<IM_FkAuthorityVerify> = {
+      id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: 'bot.animee.club',
+        origin: CONSTS.Domains.animee_bot,
         verified: true
       }
     };
@@ -396,8 +396,8 @@ describe('User controller', () => {
 
 
   describe('PATCH /user', () => {
-    const ACMock: IMock<IM_AccessControl> = {
-      id: 'AccessControl',
+    const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
+      id: 'FkUsapiAuthRefresh',
       code: 200,
       data: {
         avatar: '',
@@ -499,8 +499,8 @@ describe('User controller', () => {
       });
 
       test('Add not event matching title in plans', async () => {
-        const ACMock: IMock<IM_AccessControl> = {
-          id: 'AccessControl',
+        const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
+          id: 'FkUsapiAuthRefresh',
           code: 200,
           data: {
             avatar: '',
