@@ -40,8 +40,8 @@ const DATA: IConfigData = {
   HomeWrapped: {
     featured: prodMode ? [{
       id: '1db09f56-4ca8-4f11-9f6d-ca27ab682165',
-      backgroundURL: '',
-      videoURL: ''
+      backgroundURL: 'https://media.nekomi.club/21df5d21-c78f-4e5b-a101-65ead751310e',
+      videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
     }] : [{
       id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
       backgroundURL: 'http://192.168.0.106:43120/devid-be3034c1-2a2f-465f-9e4c-e39219af4e47',
@@ -98,7 +98,7 @@ export const config = {
     fullkekw_authority: prodMode ? `https://${CONSTS.Domains.fullkekw_authority}` : `http://${preserveIP('0.0.0.0')}:45010`,
 
     /** Fullkekw user API */
-    fullkekw_usapi: prodMode ? CONSTS.Domains.fullkekw_usapi : `http://${preserveIP('0.0.0.0')}:45660`,
+    fullkekw_usapi: prodMode ? `https://${CONSTS.Domains.fullkekw_usapi}` : `http://${preserveIP('0.0.0.0')}:45660`,
 
     //* Local services
 
@@ -136,13 +136,13 @@ export const config = {
     CSRF_EXPIRE: 180000,
 
     /** Default avatar for nekomi creations */
-    defaultAvatar: 'http://example.com',
+    defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',
 
     /** Default banner for users */
-    defaultUserBanner: 'http://example.com',
+    defaultUserBanner: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
 
     /** Default poster for nekomi titles */
-    defaultPoster: 'http://example.com',
+    defaultPoster: 'https://media.nekomi.club/f55b8f18-6c59-4b1d-ae5e-ed22a918eb91',
   },
 
   DATA

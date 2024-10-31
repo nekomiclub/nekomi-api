@@ -106,7 +106,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
-      domain: prodMode ? '.animee.club' : undefined
+      domain: prodMode ? `.${CONSTS.Domains.animee}` : undefined
     }).json({
       message: 'User signed in',
       id: DATA.id,
