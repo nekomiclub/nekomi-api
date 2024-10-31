@@ -24,7 +24,7 @@ const upload = multer();
 export const userPatch = [
   CSRFCheck([CONSTS.Domains.animee]),
   AccessControl(['basic']),
-  upload.single('banner_file'),
+  upload.single('file'),
   body('method')
     .notEmpty().withMessage('Patch method must be provided')
 ];
@@ -86,4 +86,12 @@ export const deleteTitleId = [
 
 export const getSearch = [
   CSRFCheck([CONSTS.Domains.animee]),
+];
+
+export const postUpload = [
+  CSRFCheck([CONSTS.Domains.animee]),
+  AccessControl(['root']),
+  upload.single('file'),
+  body('type')
+    .notEmpty().withMessage('Type must be provided')
 ];

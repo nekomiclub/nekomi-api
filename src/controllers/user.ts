@@ -368,7 +368,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
 
     async function upload_banner() {
       const file = req.file;
-      if (!file || file.fieldname !== 'banner_file') throw new ERR_TYPE_INVALID(`banner_file is not provided or not found`);
+      if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
 
       await patcher.uploadBanner({ file });
     }
