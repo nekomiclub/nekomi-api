@@ -12,30 +12,24 @@ import ip from 'ip';
 import process from 'process';
 import chalk from 'chalk';
 
-import { devMode, testMode, config, prodMode } from './config';
+import { devMode, testMode, config, prodMode, CONSTS } from './config';
 
-import * as router from './router';
-import * as handler from './handlers/handlers';
-import Title, { TitlePatcher } from './Models/Title';
-import { createUser } from './Models/User';
-import { singCSRFToken } from './services/TokenService';
-import { ITitleEpisode } from './interfaces/Title';
+import Router from './router';
 import { updateSearch } from './controllers/root';
-import { UpdatePopularTitles } from './controllers/title';
-import NotifyService from './services/NotifyService';
-import LoggerService from './services/LoggerService';
-import { IBannedIP } from '../interfaces';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
+import { MiddlewareService } from './services/MiddlewareService';
+import { Logger } from './services/LoggerService';
+import { getUTC, preserveIP } from './handlers/handler';
+import { DubberService } from './Models/Dubber';
+import TitleModel, { TitleService } from './Models/Title';
+import Cache from './services/CacheService';
+import { removeUsersLinkTelegramToken } from './handlers/handlers';
+import { patchUserModel } from './handlers/modelPatchers';
 
 
 
 // Console color mode
 chalk.level = 1;
-
-
-
-export const Logger = new LoggerService();
-export const Notify = new NotifyService();
 
 
 
@@ -45,7 +39,7 @@ if (prodMode && ip.address() !== config.vars.prodIP) {
 
   throw new Error(`
     ----------------------------
-    ANIMEE-CORE STARTUP DENIED
+    NEKOMI-CORE STARTUP DENIED
 
     Current IP (${ip.address()}) has no permission to startup at production mode.
     ----------------------------
@@ -54,9 +48,9 @@ if (prodMode && ip.address() !== config.vars.prodIP) {
 
 
 
-const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/privkey.pem', 'utf8') : '';
-const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/cert.pem', 'utf8') : '';
-const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/animee.club/fullchain.pem', 'utf8') : '';
+const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/privkey.pem', 'utf8') : '';
+const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
+const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
 const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}` as const;
 
@@ -82,9 +76,9 @@ export const wss = devMode ? new WebSocketServer({
 
 const CORSOpt: CorsOptions = {
   origin: [
-    'https://animee.club',
-    'https://auth.animee.club',
-    'https://api.animee.club',
+    `https://${CONSTS.Domains.animee}`,
+    `https://${CONSTS.Domains.animee_auth}`,
+    `https://${CONSTS.Domains.animee_api}`,
     devMode ? 'http://192.168.0.106:3001' : '',
     devMode ? 'http://192.168.0.106:3000' : '',
   ],
@@ -98,24 +92,21 @@ app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
-// Trace requests
+// Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
   Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
+  req.animee = req.animee !== undefined ? req.animee : {};
 
   next();
 });
 
 // Routing
-app.use('/dubber', router.DubberRouter);
-app.use('/user', router.UserRouter);
-app.use('/title', router.TitleRouter);
-app.use('/', router.RootRouter);
-
-if (devMode) {
-  app.use('/dev', router.DevRouter);
-}
+app.use('/dubber', Router.DubberRouter);
+app.use('/user', Router.UserRouter);
+app.use('/title', Router.TitleRouter);
+app.use('/', Router.RootRouter);
 
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
 wss.on('listening', () => {
@@ -128,10 +119,9 @@ wss.on('listening', () => {
 (async function () {
   const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
 
-  const LONG_TERM_HANDLERS = [
+  const REPETATIVE_HANDLERS = [
     await updateSearch(),
-    await UpdatePopularTitles(),
-    await handler.removeUsersLinkTelegramToken(),
+    await removeUsersLinkTelegramToken(),
   ] as const;
 
   app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
@@ -142,29 +132,33 @@ wss.on('listening', () => {
 
   // Post-init callback
   try {
-    await Promise.all(LONG_TERM_HANDLERS);
+    await Promise.all(REPETATIVE_HANDLERS);
 
     console.log(`
       ----------------------------
-      ANIMEE-CORE STARTED UP
+      NEKOMI-CORE STARTED UP
     
-      Date: ${handler.getUTC().dateReversed} UTC-0 ${handler.getUTC().time}
+      Date: ${getUTC().date} UTC-0 ${getUTC().time}
       Mode: ${mode}
-      HTTP: http://${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
-      WS: ${handler.preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
+      HTTP: http://${preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
+      WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
 
     if (prodMode) {
-      await handler.patchUsersModels();
+      await patchUserModel(); // Patch fields
     }
 
     // Cache updating
     setInterval(async () => {
-      Logger.info(`[Startup/Post-init Callback]: Cache updated`);
+      Logger.info(`[Startup]: Cache updated`);
 
       // Update cache
-      await Promise.all(LONG_TERM_HANDLERS);
+      await Promise.all([
+        updateSearch(),
+        removeUsersLinkTelegramToken(),
+        Cache.updateHomeWrapped()
+      ]);
     }, 43200000); // 43200000 // 12h
 
     // Poll site online

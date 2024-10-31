@@ -2,8 +2,8 @@ import { query, body, param } from 'express-validator';
 import cors from 'cors';
 import multer from 'multer';
 
-import { AccessControl, CSRFCheck } from '../middlewares';
-import { config } from '../config';
+import { FkUsapiAuthRefresh, FkAuthorityVerify } from '../middlewares';
+import { config, CONSTS } from '../config';
 
 
 
@@ -18,79 +18,80 @@ const upload = multer();
 
 
 
-//* ------------------ DEV MIDDLEWARES ------------------
-
-export const devGetAccessControl = [
-  AccessControl(['dubber'])
-];
-
-export const devGetCSRFCheck = [
-  CSRFCheck([config.vars.domain])
-];
-
 
 //* ------------------ USER MIDDLEWARES ------------------
 
 export const userPatch = [
-  CSRFCheck(['animee.club']),
-  AccessControl(['basic']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['basic']),
+  upload.single('file'),
+  body('method')
+    .notEmpty().withMessage('Patch method must be provided')
 ];
 
 export const userLinkTelegram = [
-  CSRFCheck(['bot.animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee_bot]),
   body(['animeeID', 'telegramID'])
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
 export const userLinkTelegramToken = [
-  CSRFCheck(['animee.club']),
-  AccessControl(['basic'])
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['basic'])
 ];
 
 export const userLinkTelegramTokenVerify = [
-  CSRFCheck(['bot.animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee_bot]),
   body('token')
     .notEmpty().withMessage('Token can not be empty')
 ];
 
 export const userSignin = [
-  CSRFCheck(['animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
   body('session')
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
 export const userLogout = [
-  CSRFCheck(['animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
 ];
 
 export const userValidate = [
-  CSRFCheck(['animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
-export const getTitlePopular = [
-  CSRFCheck(['animee.club']),
+export const getHomeWrapped = [
+  FkAuthorityVerify([CONSTS.Domains.animee]),
 ];
 
 export const postTitle = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
-  AccessControl(['titleAdd']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
-  AccessControl(['basic']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
-  AccessControl(['titleDelete']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['titleDelete']),
 ];
 
 //* ------------------ ROOT MIDDLEWARES ------------------
 
 export const getSearch = [
-  CSRFCheck(['updater.animee.club', 'animee.club']),
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+];
+
+export const postUpload = [
+  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkUsapiAuthRefresh(['root']),
+  upload.single('file'),
+  body('type')
+    .notEmpty().withMessage('Type must be provided')
 ];

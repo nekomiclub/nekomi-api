@@ -1,134 +1,140 @@
 import express from 'express';
-import axios, { AxiosError } from 'axios';
-import { convert as urlSlugConvert } from 'url-slug';
-import ip from 'ip';
-import http from 'http';
-import https from 'https';
 
 import * as dto from '../handlers/dtos';
 
-import Title, { TitlePatcher, createTitle } from '../Models/Title';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
+import Title, { TitleService } from '../Models/Title';
+import { ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { config, devMode, prodMode, testMode } from '../config';
-import { decodeToken, singCSRFToken } from '../services/TokenService';
+import { singCSRFToken } from '../services/TokenService';
 import User from '../Models/User';
-import { checkValue, getUTC, parseRoles } from '../handlers/handlers';
 import { TRoleCapability } from '../interfaces/Roles';
 import Dubber from '../Models/Dubber';
 import { updateSearch } from './root';
 import { $http } from '../handlers/http';
-import { IFK_AuthorityVerify } from '../interfaces/FullkekwResponses';
 import { IDubber } from '../interfaces/Dubber';
-import { Logger, Notify } from '..';
-import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/Notify';
-import { E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
+import { E403, E404, E418, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest, HTTPErrorConstructor } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
+import { getMockData } from '../handlers/mocks';
+import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
+import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
+import Cache from '../services/CacheService';
+import { IUserWatchProgress } from '../interfaces/User';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
+
 
 
 
 interface IPatchTitleBody {
-  changeNames?: {
-    ukr?: string
+  names?: {
     eng?: string
+    ukr?: string
     alt?: string[]
   }
-
-  setRating?: number
-  setDescription?: string
-  setStatus?: TAnimeStatus
-  setEps?: number
-  setGenres?: TAnimeGenre[]
-  setAgeRate?: TAnimeAgeRate
-  setSeason?: TAnimeSeason
-  setType?: TTitleType
-  setYear?: number
-  setStudios?: string[]
-  setCountry?: TTitleCountry
-  setDetails?: string
+  ageRate?: TAnimeAgeRate
+  country?: TTitleCountry
+  description?: string
+  details?: string
+  genres?: TAnimeGenre[]
+  season?: TAnimeSeason
+  status?: TAnimeStatus
+  studios?: string[]
+  type?: TTitleType
+  year?: number
+  episodesCount?: number
+  IMDBRating?: number
+  AnimeeRating?: number
 
   editEpMeta?: IChangeEpMeta
-  parseIMDBEpisodesMetas?: string
+  parseIMDBEpisodesMeta?: string
 
-  deleteEpisode?: {
-    episodeOrder?: string
-    dubID?: string
-  },
+  deleteEpisode?: IDeleteEpisode
+
+  // Form Data
+  uploadEpisode?: IUploadEpisode
+
+  uploadPoster?: IUploadPoster
 }
 
-interface ITitlesPopular {
-  headliner: ITitle | null
-  headlinerVideo: string
-  headlinerPoster: string
-  categories: {
-    popular: ITitle[]
-    updatedRecently: ITitle[]
-    hightRating: ITitle[]
-  }
+interface IDeleteEpisode {
+  order: number
+  dubberID: string
+}
+
+interface IUploadEpisode {
+  /** req.file */
+  file?: Express.Multer.File
+  type: TPatchTitleFormDataType
+  order: number,
+  dubberID: string
+  qualities: TEpisodeQuality[]
+}
+
+interface IUploadPoster {
+  /** req.file */
+  file?: Express.Multer.File
+  type: TPatchTitleFormDataType
 }
 
 export interface IChangeEpMeta extends ITitleEpisodeMeta {
   action: 'edit' | 'delete'
 }
 
-/** PATCH title form data type */
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
-
-
-const TITLES_POPULAR: ITitlesPopular = {
-  headliner: null,
-  headlinerVideo: '',
-  headlinerPoster: '',
-  categories: {
-    hightRating: [],
-    popular: [],
-    updatedRecently: []
-  }
-};
 
 
 
 export async function getTitleQuery(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const { query } = req.params as { query: string };
-    const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
     const CSRFToken = req.header(config.vars.csrfHeader);
 
+    const { query } = req.params as { query: string };
+    const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
+
     const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
-    let parsedDubbers: IDubber[] | null = null;
+    if (!title) throw new E404(`Title ${query} is not found`);
+
+    let parsedDubbers: IDubber[] | undefined = undefined;
     let privateMode = true;
 
-    if (!title) {
-      throw new E404(`Title ${query} is not found`);
-    }
+    // Check if client can get detailed data
+    if (detailed !== undefined && CSRFToken !== undefined) {
+      const DATA: IFK_AuthorityVerify = {
+        origin: '',
+        verified: false
+      };
 
-    if (CSRFToken && detailed) {
-      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
-        token: CSRFToken
-      });
+      if (!testMode) {
+        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
+          token: CSRFToken
+        });
 
-      if (data.origin === 'animee.club' || data.origin === 'updater.animee.club') {
-        privateMode = !data.verified;
+        DATA.origin = data.origin;
+        DATA.verified = data.verified;
+      } else {
+        const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
+
+        DATA.origin = data.origin;
+        DATA.verified = data.verified;
+      }
+
+      if (DATA.verified && DATA.origin === 'animee.club') {
+        privateMode = !DATA.verified;
+      } else {
+        throw new ERR_ACCESS_REJECTED(`Can not get detailed title information due to token error`);
       }
     }
 
-    if (parseDubbers) {
+    if (parseDubbers !== undefined && !privateMode) {
       const dubberIDs: string[] = [];
-      parsedDubbers = [];
 
       title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
 
-      for (const key in dubberIDs) {
-        const dubberID = dubberIDs[key];
-
-        const dubber = await Dubber.findOne({ id: dubberID });
-
-        if (!dubber) continue;
-
-        parsedDubbers.push(dto.dubber(dubber.toObject()));
-      }
+      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => dto.dubber(dubber.toObject(), privateMode));
     }
 
-    return res.status(200).json({ msg: 'ok', title: dto.title(title.toObject(), privateMode), parsedDubbers });
+    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: dto.title(title.toObject(), privateMode), parsedDubbers });
   });
 }
 
@@ -136,311 +142,188 @@ export async function getTotal(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
     const titles = await Title.find();
 
-    return res.status(200).json({ msg: 'ok', total: titles.length, renewed: titles.filter(el => el.country !== 'Other').length });
+    const total = titles.length;
+    const renewed = titles.filter(el => el.country !== 'Other').length;
+
+    return res.status(200).json({ message: 'OK', total, renewed });
   });
 }
 
 export async function postTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const UserData = req.animee;
-    const id = await createTitle(UserData.userID!, {});
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+    const title = await TitleService.create({});
 
     updateSearch('title');
 
-    return res.status(201).json({ msg: 'Title created!', id });
+    return res.status(201).json({ message: 'New title created', id: title.id, title: dto.title(title.toObject()) });
   });
 }
 
 export async function patchTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { id } = req.params as { id: string };
-    const { userID, userCapabilities } = req.animee;
+    const { capabilities, id: userID, username } = req.animee.user!;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
-    const { changeNames, deleteEpisode, editEpMeta, setAgeRate, setCountry, setDescription, setDetails, setEps, setGenres, setRating, setSeason, setStatus, setStudios, setType, setYear, parseIMDBEpisodesMetas } = req.body as IPatchTitleBody;
-    const requestTimestamp = getUTC().timestamp;
 
     const title = await Title.findOne({ id });
-    const changes: string[] = [];
-
     if (!title) throw new E404(`Title ${id} is not found`);
 
-    const Patcher = new TitlePatcher(title, {});
+    const user = (await User.findOne({ id: userID }))!;
+    const Patcher = new TitleService({ title });
 
-    // Upload poster / Episode
-    if (contentType.match('multipart/form-data')) {
+    //* Handle Form Data
+    if (contentType.includes('multipart/form-data')) {
       const file = req.file;
-      const { type, dubID, episodeOrder } = req.body as { type?: TPatchTitleFormDataType, episodeOrder?: string, dubID?: string };
-      let { qualities } = req.body as { qualities?: string | number[] };
+      const { type } = req.body as { type: TPatchTitleFormDataType };
 
-      if (!file || !type) {
-        throw new ERR_INVALID_PAYLOAD();
-      }
-
-      const { buffer, originalname, filename, mimetype } = file;
-      const formData = new FormData();
-
-      formData.append('file', new Blob([buffer], {
-        type: mimetype
-      }), originalname);
-      formData.set('uploadedBy', userID);
+      if (!file) throw new ERR_INVALID_PAYLOAD(`File is not provided`);
 
       if (type === 'change_poster') {
-        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
+        const { id, posterURL } = await Patcher.uploadPoster({ file, user });
 
-        formData.set('type', 'photo/title/poster');
-
-        try {
-          if (title.poster.match('animee.club') || title.poster.match(ip.address())) {
-            await $http.delete(`${config.URL.uploads}/upload/${title.poster.split('/')[title.poster.split('/').length - 1]}?by=${id}`, {
-              validateStatus: (s) => s < 500,
-            });
-          }
-
-
-          const { data: postData } = await $http.post<{ id: string }>(`${config.URL.uploads}/upload`, formData, {
-            validateStatus: (s) => s < 500,
-          });
-
-          Logger.debug(`[TitleController/Patch]: New poster for ${title.id} uploaded by ${userID}`);
-
-          title.poster = `${config.URL.media}/${postData.id}`;
-          title.markModified('poster');
-
-          try {
-            await title.save();
-          } catch (e) {
-            // ignore
-          }
-
-          return res.status(200).json({ msg: 'Poster uploaded', id: postData.id });
-        } catch (e) {
-          if (e instanceof AxiosError) {
-            if (e.code === 'ECONNREFUSED') {
-              throw new E503('Animee-uploads is not available. Try in a few minutes');
-            }
-
-            throw e;
-          } else {
-            throw e;
-          }
-        }
+        return res.status(200).json({ message: 'Poster uploaded', id, posterURL });
       } else if (type === 'upload_episode') {
-        if (!userCapabilities!.includes('root') && !userCapabilities!.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+        const { dubberID, type } = req.body as IUploadEpisode;
+        let { order, qualities } = req.body as IUploadEpisode;
 
-        if (!dubID || !episodeOrder || !qualities) throw new ERR_INVALID_PAYLOAD();
+        const dubber = await Dubber.findOne({ id: dubberID });
+        if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
-        try {
-          qualities = JSON.parse(qualities as string) as number[];
-        } catch (e) {
-          throw new ERR_INVALID_PAYLOAD(`An error occured while parsing qualities`);
-        }
+        order = +order;
+        if (isNaN(order)) throw new ERR_TYPE_INVALID(`Order can not be NaN`);
 
-        const dubber = await Dubber.findOne({ id: dubID });
+        if (!Array.isArray(qualities)) throw new ERR_TYPE_INVALID(`Qualities is not an array`);
 
-        // Reject if dub is not found
-        if (!dubber) throw new E404(`Dub ${dubID} is not found`);
+        qualities.forEach(el => {
+          if (isNaN(+el)) throw new ERR_TYPE_INVALID(`Quality ${el} is not a number`);
+        });
 
-        // Reject if episode is NaN
-        if (isNaN(+episodeOrder)) throw new ERR_TYPE_INVALID('Episode can not be NaN');
-        const order = +episodeOrder;
+        let tmpQualities: TEpisodeQuality[] = [];
 
-        // Reject if episode exist
-        if (title.episodes.some(el => el.dubberID === dubber.id && el.order === order)) {
-          throw new ERR_ALREADY_EXIST(`Episode ${order} in ${dubber.id} already exist`);
-        }
+        qualities.forEach(quality => {
+          if (EpisodeQualities.includes(quality)) tmpQualities.push(quality);
+        });
 
-        const ep: ITitleEpisode = {
-          dubberID: dubber.id,
-          order,
-          frames: [],
-          qualities: {
-            q1080: '',
-            q240: null,
-            q480: null,
-            q4k: null,
-            q720: null,
-          }
-        };
+        qualities = tmpQualities;
 
-        // Upload episode
-        formData.set('type', 'video/title/episode');
-        formData.set('qualities', JSON.stringify(qualities));
+        const ep = await Patcher.uploadEpisode({
+          file,
+          user,
+          dubber,
+          episodeOrder: order,
+          qualities
+        });
 
-        try {
-          // Upload
-          const { data } = await $http.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData);
-
-          const id = data.id;
-          const frames = data.frames;
-
-          // Set sources
-          ep.qualities.q4k = qualities!.includes(2160) ? `${config.URL.media}/${id}_q_2160` : null;
-          ep.qualities.q1080 = `${config.URL.media}/${id}`;
-          ep.qualities.q720 = qualities!.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
-          ep.qualities.q480 = qualities!.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
-          ep.qualities.q240 = qualities!.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
-
-          // Set frames URLs
-          let i = 0;
-
-          while (i < frames) {
-            ep.frames.push(`${config.URL.media}/${id}_f_${i}`);
-            i++;
-          }
-
-          title.episodes.push(ep);
-
-          // Sort episodes in order
-          title.episodes.sort((a, b) => a.order - b.order);
-          title.markModified('episodes');
-
-          try {
-            await title.save();
-          } catch (e) {
-            // ignore
-          }
-
-          const notifyNewEpisodePayload: INotifyNewEpisode = {
-            dubberID: dubber.id,
-            episodeOrder: order,
-            titleID: title.id
-          };
-
-          Notify.broadcast({
-            event: 'new_episode',
-            payload: notifyNewEpisodePayload
-          });
-
-          // Send airing_started notify if this is first episode
-          if (title.episodes.length === 1) {
-            const notifyAiringStartedPayload: INotifyAiringStarted = {
-              titleID: title.id
-            };
-
-            Notify.broadcast({
-              event: 'airing_started',
-              payload: notifyAiringStartedPayload
-            });
-          }
-
-          Logger.debug(`[TitleController/Patch]: Episode ${ep.order}/${ep.dubberID} uploaded in ${title.id} by ${userID} ended within ${((getUTC().timestamp - requestTimestamp) / 1000).toFixed(2)}s`);
-
-          return res.status(201).json({ msg: `Episode ${order} in ${dubber.name} created with ${frames} frames!`, episode: ep });
-        } catch (e) {
-          if (e instanceof AxiosError) {
-            if (e.code === 'ECONNREFUSED') {
-              throw new E503('Animee-uploads is not available. Try in a few minutes');
-            }
-
-            throw e;
-          } else {
-            throw e;
-          }
-        }
-      }
-      return;
+        return res.status(201).json({ message: 'New episode uploaded', episode: ep });
+      } else throw new ERR_INVALID_PAYLOAD(`FormData type ${type} is invalid`);
     }
 
 
-    // titleEdit - Tests are not required
-    if (setDescription !== undefined) await execWithCap('titleEdit', () => Patcher.changeDescription(setDescription));
-    if (setDetails !== undefined) await execWithCap('titleEdit', () => Patcher.changeDetails(setDetails));
-    if (setAgeRate !== undefined) await execWithCap('titleEdit', () => Patcher.changeAgeRate(setAgeRate));
-    if (setCountry !== undefined) await execWithCap('titleEdit', () => Patcher.changeCountry(setCountry));
-    if (setGenres !== undefined) await execWithCap('titleEdit', () => Patcher.changeGenres(setGenres));
-    if (setSeason !== undefined) await execWithCap('titleEdit', () => Patcher.changeSeason(setSeason));
-    if (setStatus !== undefined) await execWithCap('titleEdit', () => Patcher.changeStatus(setStatus));
-    if (setType !== undefined) await execWithCap('titleEdit', () => Patcher.changeType(setType));
 
-    // titleEditEpsMeta - Tests are not possible
-    if (parseIMDBEpisodesMetas !== undefined) await execWithCap('titleEditEpsMeta', async () => await Patcher.parseIMDBEpisodesMeta(parseIMDBEpisodesMetas));
+    const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating } = req.body as IPatchTitleBody;
 
-    // titleEdit - Tests required
-    if (setYear !== undefined) await execWithCap('titleEdit', changeYearHandler);
-    if (changeNames !== undefined) await execWithCap('titleEdit', changeNamesHandler);
-    if (setRating !== undefined) await execWithCap('titleEdit', changeRatingHandler);
-    if (setStudios !== undefined) await execWithCap('titleEdit', changeStudiosHandler);
-    if (setEps !== undefined) await execWithCap('titleEdit', changeEpisodesCountHandler);
 
-    // titleEditEpsMeta - Test required
-    if (editEpMeta !== undefined) await execWithCap('titleEditEpsMeta', changeEpisodeMeta);
 
-    // seriesDelete - Test required
-    if (deleteEpisode !== undefined) await execWithCap('seriesDelete', deleteEpisodeHandler);
+    // titleEdit - Simple type
+    if (description !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDescription(description));
+    if (details !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDetails(details));
+    if (ageRate !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchAgeRate(ageRate));
+    if (country !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchCountry(country));
+    if (genres !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchGenres(genres));
+    if (season !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchSeason(season));
+    if (status !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchStatus(status));
+    if (type !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchType(type));
+    if (names !== undefined) await execWithCap('titleEdit', async () => Patcher.patchNames(names));
 
-    try {
-      await Patcher.save();
-    } catch (e) {
-      // ignore
-    }
+    // titleEdit - Not NaN
+    if (episodesCount !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchEpisodesCount(parseNaN('Episodes count', episodesCount)));
+    if (AnimeeRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', AnimeeRating), 'Animee'));
+    if (IMDBRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', IMDBRating), 'IMDB'));
+    if (year !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchYear(parseNaN('Year', year)));
 
-    updateSearch('title');
+    // titleEdit - Is array
+    if (studios !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchStudios(parseArray('Studios', studios, 'string')));
 
-    Patcher.getLog().forEach(el => changes.push(el));
-    Logger.debug(`[TitleController/Patch]: Title ${title.id} patched by ${userID}. Stack - ${changes.join(', ')}`);
+    // titleEditEpsMeta
+    if (parseIMDBEpisodesMeta !== undefined) await execWithCap('titleEditEpsMeta', async () => Patcher.parseIMDBEpisodesMeta(parseIMDBEpisodesMeta));
+    if (editEpMeta !== undefined) await execWithCap('titleEditEpsMeta', parseEditEpMeta);
 
-    return res.status(200).json({ msg: 'ok', changes: changes.length ? changes : `Nothing changed` });
+    // seriesDelete
+    if (deleteEpisode !== undefined) await execWithCap('seriesDelete', parseDeleteEpisode);
+
+
+
+    await Patcher.save();
+
+    return res.status(200).json({ message: 'Title patched', stack: Patcher.stack });
 
 
 
     async function execWithCap(capability: TRoleCapability, cb: () => any | Promise<any>) {
-      if (!userCapabilities?.includes(capability) && !userCapabilities!.includes('root')) throw new ERR_ACCESS_REJECTED();
+      if (!capabilities.includes('root') && !capabilities.includes(capability)) throw new ERR_ACCESS_REJECTED();
 
       return await cb();
     }
 
-    function changeNamesHandler() {
-      if (changeNames?.alt && !Array.isArray(changeNames?.alt)) throw new ERR_TYPE_INVALID('Alt names must be an array');
+    function parseNaN(label: string, val: string | number): number {
+      if (isNaN(+val)) throw new ERR_TYPE_INVALID(`${label} can not be NaN`);
+      return +val;
+    }
 
-      Patcher.changeNames({
-        alt: changeNames?.alt,
-        eng: changeNames?.eng,
-        ukr: changeNames?.ukr,
+    function parseArray(label: string, array: any[], type?: 'string' | 'number'): any[] {
+      if (!Array.isArray(array)) throw new ERR_TYPE_INVALID(`${label} is not an array`);
+
+      if (type) {
+        array.forEach(el => {
+          if (typeof el !== type) throw new ERR_TYPE_INVALID(`${label} array element ${el} is not required type (${typeof el} != ${type})`);
+        });
+      }
+
+      return array;
+    }
+
+
+
+    async function parseEditEpMeta() {
+      const { action, names } = editEpMeta!;
+      let { dateOut, order } = editEpMeta!;
+
+      if (action === undefined || dateOut === undefined || names === undefined || order === undefined) throw new ERR_TYPE_INVALID(`Some field in editEpMeta are missing at editEpMeta`);
+
+      dateOut = parseNaN('DateOUT', dateOut);
+      order = parseNaN('Order', order);
+
+      if (names.eng === undefined || names.ukr === undefined) throw new ERR_TYPE_INVALID(`Some field in editEpMeta are missing at editEpMeta`);
+
+      await Patcher.patchEpisodeMeta({
+        action,
+        dateOut,
+        names,
+        order
       });
     }
 
-    function changeRatingHandler() {
-      if (isNaN(+setRating!)) throw new ERR_TYPE_INVALID('Rating can not be NaN');
+    async function parseDeleteEpisode() {
+      const { dubberID } = deleteEpisode!;
+      let { order } = deleteEpisode!;
 
-      Patcher.changeRating(+setRating!, 'IMDB');
-    }
+      if (dubberID === undefined || order === undefined) throw new ERR_TYPE_INVALID(`Some fields are missing at deleteEpisode`);
 
-    function changeStudiosHandler() {
-      if (!Array.isArray(setStudios)) throw new ERR_TYPE_INVALID('Studios must be an array');
+      const dubber = await Dubber.findOne({ id: dubberID });
+      if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
-      Patcher.changeStudios(setStudios);
-    }
+      order = parseNaN('Order', order);
 
-    function changeEpisodesCountHandler() {
-      if (isNaN(+setEps!)) throw new ERR_TYPE_INVALID('Episodes count can not be NaN');
-
-      Patcher.changeEpisodesCount(+setEps!);
-    }
-
-    function changeYearHandler() {
-      if (isNaN(+setYear!)) throw new ERR_TYPE_INVALID('Year can not be NaN');
-
-      Patcher.changeYear(+setYear!);
-    }
-
-    function changeEpisodeMeta() {
-      if (isNaN(+editEpMeta!.dateOut!)) throw new ERR_TYPE_INVALID('DateOut in episode meta can not be NaN');
-      if (isNaN(+editEpMeta!.order!)) throw new ERR_TYPE_INVALID('Order in episode meta can not be NaN');
-
-      Patcher.changeEpisodeMeta({
-        action: editEpMeta!.action!,
-        dateOut: +editEpMeta!.dateOut!,
-        order: +editEpMeta!.order!,
-        names: editEpMeta!.names!,
-      });
-    }
-
-    async function deleteEpisodeHandler() {
-      if (isNaN(+deleteEpisode!.episodeOrder!)) throw new ERR_TYPE_INVALID('Order in episode meta can not be NaN');
-
-      await Patcher.deleteEpisode(userID!, {
-        dubID: deleteEpisode!.dubID!,
-        order: +deleteEpisode!.episodeOrder!
+      await Patcher.deleteEpisode({
+        dubber,
+        order,
+        user
       });
     }
   });
@@ -448,127 +331,104 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
     const { id } = req.params as { id: string };
     const { key } = req.query as { key?: string };
-    const UserData = req.animee;
+    const { id: userID, username } = req.animee.user!;
 
     if (!key) {
-      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${UserData.userID}\nKey: ${singCSRFToken()}\n----------------`);
-      Logger.trace(`[TitleController/Delete]: Title ${id} delete request by ${UserData.userID} detected. Delete token issued in server console`);
+      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${singCSRFToken()}\n----------------`);
+      Logger.info(`[TitleController]: Title ${id} delete request by ${userID}/${username} detected. Delete token issued in server console`);
 
-      throw new ERR_MISSING_AUTHORIZATION(`DELETE KEY IS NOT PROVIDED. NEW ONE ISSUED`);
+      throw new ERR_MISSING_AUTHORIZATION();
     }
 
     const title = await Title.findOne({ id });
-
     if (!title) throw new E404(`Title ${id} is not found`);
-    let isVerified = false;
-    let origin = '';
 
-    if (testMode) {
-      isVerified = true;
-      origin = 'api.animee.club';
-    } else {
-      const { data } = await $http.post<IFK_AuthorityVerify>(`${config.URL.fullkekw_authority}/verify`, {
+    const CSRF_DATA: IM_FkAuthorityVerify = {
+      origin: '',
+      verified: false
+    };
+
+    if (!testMode) {
+      const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
         token: key
       });
 
-      isVerified = data.verified;
-      origin = data.origin;
+      CSRF_DATA.verified = data.verified;
+      CSRF_DATA.origin = data.origin;
+    } else {
+      const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
+
+      CSRF_DATA.verified = data.verified;
+      CSRF_DATA.origin = data.origin;
     }
 
-    if (!isVerified || origin !== 'api.animee.club') throw new ERR_ACCESS_REJECTED('KEY INVALID');
+    const { origin, verified } = CSRF_DATA;
 
-    await title.deleteOne();
+    if (!verified || origin !== 'api.animee.club') throw new ERR_ACCESS_REJECTED();
+
+    await TitleService.delete(id, `Title deleted by ${userID}/${username}`, 'one');
 
     updateSearch('title');
-    Logger.debug(`[TitleController/Delete]: Title ${id} deleted by ${UserData.userID}`);
+
+    return res.status(200).json({ message: 'Title deleted' });
   });
 }
 
-export async function getPopular(req: express.Request, res: express.Response) {
+export async function getHomeWrapped(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!TITLES_POPULAR.headliner) throw new ERR_NOT_READY();
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    return res.status(200).json({ msg: 'ok', ...TITLES_POPULAR });
-  });
-}
+    if (!Cache.HomeWrapped.featured.length) throw new ERR_NOT_READY();
 
-
-
-
-export async function UpdatePopularTitles() {
-  try {
-    const headlinerSrc = await Title.findOne({ id: 'dev-headliner' });
-    const titles = await Title.find();
-
-    if (!headlinerSrc) {
-      throw new E503('HEADLINER SRC TITLE IS NOT FOUND');
-    }
-
-    // TODO Make normal logic
-    const headlinerID = prodMode ? '1db09f56-4ca8-4f11-9f6d-ca27ab682165' : '0bedcdb2-c666-4f90-9645-ad98f8bb53b7'; // DanDaDan | Classroom of the Elite 2
-    const headlinerVideo = headlinerSrc.episodes.find(el => el.order === 1 && el.dubberID === '319ec974-3116-43e9-8966-51237f0479ae')!.qualities.q1080;
-    const headlinerPoster = headlinerSrc.poster;
-    const popularIDs = prodMode ? [
-      '10132d3e-366a-484b-8caa-be4d97e51f6b',
-      '33f283ac-0c22-4266-8ced-96292fe7ce7e',
-      '18be952e-40ae-4527-9266-042e3d813012',
-      '72d081e4-7783-4e2e-8dc8-b6fcd8926964',
-      'b4229fae-5908-4488-874d-57dce31d2ad7',
-      '0b342f7c-515a-4f58-b309-2de334f79dc8',
-    ] : [
-      'that-time-i-got-reincarnated-as-a-slime-season-3',
-      'wind-breaker',
-      'spice-and-wolf-merchant-meets-the-wise-wolf',
-      'mushoku-tensei-jobless-reincarnation-season-2-part-2',
-      'kaiju-no-8',
-      'delicious-in-dungeon'
-    ];
-
-    TITLES_POPULAR.headlinerVideo = headlinerVideo;
-    TITLES_POPULAR.headlinerPoster = headlinerPoster;
-
-    // Fetch headliner
-    const headliner = await Title.findOne({ id: headlinerID });
-
-    if (!headliner) throw new E404(`Headliner ${headlinerID} is not found`);
-    TITLES_POPULAR.headliner = dto.title(headliner?.toObject());
-
-    // Fetch popular
-    const popular: ITitle[] = [];
-
-    for (const key in popularIDs) {
-      const query = popularIDs[key];
-
-      const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
-      if (!title) throw new E404(`Popular title ${query} is not found`);
-
-      popular.push(dto.title(title?.toObject()));
-    }
-
-    // Fetch recently updated
-    const updatedRecentlyRaw = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20);
-    const updatedRecently = updatedRecentlyRaw.map(el => dto.title(el.toObject()));
-
-    // Fetch hight rating
-    const hightRatingRaw = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20);
-    const hightRating = hightRatingRaw.map(el => dto.title(el.toObject()));
-
-    TITLES_POPULAR.categories = {
-      popular,
-      updatedRecently,
-      hightRating
+    const sessionToken = req.cookies[config.vars.sessionCookie];
+    const session: IFK_UsapiAuthRefresh = {
+      id: '',
+      avatar: '',
+      username: ''
     };
 
+    let watchProgress: IUserWatchProgress[] | undefined = undefined;
 
+    // Parse user
+    if (sessionToken) {
+      if (!testMode) {
+        try {
+          const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
+            headers: {
+              Cookie: `session=${sessionToken}`
+            }
+          });
 
-    Logger.info(`[TitleController/PopularTitles]: Popular titles updated`);
-  } catch (e) {
-    if (e instanceof HTTPErrorConstructor) {
-      Logger.error(`[TitleController/PopularTitles/HTTP]: ${e.code} - ${e.msg}`);
-    } else {
-      Logger.error(`[TitleController/PopularTitles/Uncaught]: Uncaught error occured`, e);
+          session.id = sessionData.id;
+        } catch (e) {
+          // Ignore
+        }
+      } else {
+        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+
+        session.id = data.id;
+      }
     }
-  }
+
+    // Get user if session valid
+    if (session.id) {
+      const user = await User.findOne({ id: session.id });
+      if (!user) return;
+
+      watchProgress = [];
+
+      Cache.HomeWrapped.featured.forEach(el => {
+        const wp = user.watchProgress.find(wp => wp.titleID === el.id);
+
+        if (wp) watchProgress!.push(wp);
+      });
+    }
+
+    return res.status(200).json({ message: 'OK', ...Cache.HomeWrapped, watchProgress });
+  });
 }

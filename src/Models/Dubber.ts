@@ -1,12 +1,15 @@
-import mongoose, { Schema } from 'mongoose';
-import * as uuid from 'uuid';
+import mongoose, { HydratedDocument, Schema } from 'mongoose';
+import validator from 'validator';
+import { convert as createSlug } from 'url-slug';
 
 import { IDubber } from '../interfaces/Dubber';
-import { DeepPartial } from '../interfaces/Interfaces';
-import { getUTC } from '../handlers/handlers';
-import { Logger } from '..';
+import { createID, getUTC } from '../handlers/handler';
+import { config, prodMode, RULES } from '../config';
+import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
 
-export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
+/** To create/patch/delete Dubber instance use DubberService */
+export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,
@@ -14,8 +17,8 @@ export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
   socials: Object,
   support: Object,
   createdAt: Number,
-  description: String || null,
-  leader: String || null,
+  description: String,
+  leader: String,
   editors: Array,
   members: Array,
   rating: Number,
@@ -23,62 +26,101 @@ export const Dubber = mongoose.model<IDubber>('dubber', new Schema({
   membersInvitePending: Array
 }));
 
-interface ICreateDubber extends Partial<IDubber> {
-  code: string
+interface IDubberCreate {
   name: string
+  code: string
+
+  /** Id can be set only in dev mode */
+  id?: string
 }
 
-/** Create dubber instance */
-export async function createDubber({
-  code,
-  name,
-  createdAt,
-  description,
-  editors,
-  id,
-  leader,
-  members,
-  rating,
-  socials,
-  support,
-  avatar
-}: ICreateDubber) {
-  const ID = id || uuid.v4();
+/** Create/path/delete Dubber instance */
+export class DubberService {
+  /** Crete new Dubber instance */
+  static async create({ name, code, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
+    id = prodMode ? createID() : id || createID();
+    code = createSlug(code);
 
-  const payload: IDubber = {
-    id: ID,
-    code,
-    name,
-    createdAt: createdAt || getUTC().timestamp,
-    description: description === undefined ? '' : description,
-    editors: editors || [],
-    leader: leader || null,
-    members: members || [],
-    rating: rating || 0,
-    socials: socials || {
-      instagram: null,
-      telegram: null,
-      tiktok: null,
-      youtube: null
-    },
-    support: support || {
-      bymeacoffee: null,
-      diaka: null,
-      monobank: null,
-      patreon: null,
-      privatbank: null
-    },
-    thumbURL: avatar || '',
-    avatar: avatar || '',
-    membersInvitePending: []
-  };
+    if (!validator.isLength(name, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
 
-  const dubber = new Dubber(payload);
-  await dubber.save();
+    if (!validator.isLength(code, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
-  Logger.debug(`[Dubber]: New dubber @${code}/${id} created`);
+    const existDubber = await DubberModel.findOne({ code });
+    if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${code} already exist`);
 
-  return ID;
+    const payload: IDubber = {
+      id,
+      name,
+      code,
+      avatar: config.vars.defaultAvatar,
+      createdAt: getUTC().timestamp,
+      description: null,
+      editors: [],
+      members: [],
+      leader: null,
+      membersInvitePending: [],
+      rating: 9,
+      thumbURL: config.vars.defaultAvatar,
+      socials: {
+        instagram: null,
+        telegram: null,
+        tiktok: null,
+        youtube: null
+      },
+      support: {
+        bymeacoffee: null,
+        diaka: null,
+        monobank: null,
+        patreon: null,
+        privatbank: null
+      },
+    };
+
+    const instance = new DubberModel(payload);
+    await instance.save();
+
+    Logger.debug(`[DubberService]: New dubber ${name} created with id ${payload.id}`);
+
+    return instance;
+  }
+
+  static async delete(id: string, reason?: string, size?: 'one' | 'many') {
+    if (size === undefined || size === 'one') {
+      await DubberModel.deleteOne({ id });
+    } else if (size === 'many') {
+      await DubberModel.deleteMany({ id });
+    }
+
+    Logger.debug(`[DubberService]: Deleted dubber with id ${id}. Reason - ${reason || 'Not provided'}`);
+  }
+
+  /** Path exist Dubber instance  */
+  static async patch(id: string, body: Partial<IDubber>) {
+    const dubber = await DubberModel.findOne({ id });
+    if (!dubber) throw new E404(`Dubber ${id} is not found`);
+
+    const stack: string[] = [];
+
+    for (const key in body) {
+      const prop = key as keyof IDubber;
+      const value = body[key];
+
+      switch (prop) {
+        case 'avatar': {
+          if (!validator.isURL(value)) throw new ERR_INVALID_PAYLOAD(`Avatar URL is invalid`);
+
+          stack.push(`Avatar URL changed (${dubber.avatar} > ${value})`);
+
+          dubber.avatar = value;
+          dubber.thumbURL = value;
+        }
+      }
+    }
+
+    await dubber.save();
+
+    Logger.debug(`[DubberService]: Dubber ${id} patched. Changed - ${stack.length ? stack.join('; ') : 'Nothing patched...'}`);
+  }
 }
 
-export default Dubber; 
+export default DubberModel;

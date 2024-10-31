@@ -1,12 +1,13 @@
 import express from 'express';
 import { validationResult } from 'express-validator';
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handlers';
+import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
 import axios, { AxiosError } from 'axios';
 import ip from 'ip';
 
-import { Logger } from '..';
 import { devMode } from '../config';
 import chalk from 'chalk';
+import { Logger } from './LoggerService';
+import { TMiddlewareName } from './MiddlewareService';
 
 export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
@@ -114,7 +115,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       } catch (e) { null; }
     }
   } catch (e) {
-    const date = `${getUTC().dateReversed} UTC-0 ${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}`;
+    const date = `${getUTC().fulldate} UTC-0 ${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}`;
 
     if (e instanceof HTTPErrorConstructor) {
       const emsg = `[HTTP/${e.status}]: ${e.code} - ${e.message}`;
@@ -150,6 +151,8 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 
       return res.status(status).json({ message: emsg, msg: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
     } else {
+      console.error(e);
+
       const emsg = `[Uncaught]: Uncaught error occured. Behaivour reported`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
@@ -191,14 +194,20 @@ export class ERR_NOT_READY extends E418 {
   }
 }
 
-export class ERR_MISSING_AUTHORIZATION extends E400 {
+export class ERR_MISSING_AUTHORIZATION extends E404 {
   constructor(message?: string) {
     super(message || 'Authorization cookie/header is missing.', 'ERR_MISSING_AUTHORIZATION');
   }
 }
 
-export class ERR_ACCESS_REJECTED extends E400 {
+export class ERR_ACCESS_REJECTED extends E403 {
   constructor(message?: string) {
     super(message || 'You are not allowed to have access for that.', 'ERR_ACCESS_REJECTED');
+  }
+}
+
+export class ERR_MIDDLEWARE_REQUIRED extends E500 {
+  constructor(middleware: TMiddlewareName) {
+    super(`Request not passed throught ${middleware} middleware and being rejected`, 'ERR_MIDDLEWARE_REQUIRED');
   }
 }

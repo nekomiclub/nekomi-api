@@ -7,11 +7,9 @@
 ## GET /user/logout
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.2  | animee.club |  ---   |
+|  1.3.1  | animee.club |  ---   |
 
 Delete authorization cookie
-
-
 
 **RESPONSES**
 
@@ -20,7 +18,7 @@ Cookie deleted
 
 ```ts
 {
-  msg: 'OK'
+  message: 'OK'
 }
 ```
 
@@ -29,11 +27,9 @@ Cookie deleted
 ## GET /user/validate
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.2  | animee.club |  ---   |
+|  1.3.1  | animee.club |  ---   |
 
 Refresh current session & fetch actual data from ```fk-usapi```
-
-
 
 **PARAMETERS**
 
@@ -48,7 +44,7 @@ Session continued
 
 ```ts
 {
-  msg: 'OK'
+  message: 'OK'
 }
 ```
 
@@ -61,9 +57,9 @@ Session refresh errored. Deletes authorization cookie
 ------------------------------------------------------------------
 
 ## GET /user/:query
-| VERSION | CSRF  | ACCESS |
-| :-----: | :---: | :----: |
-|  1.2.2  |  ---  |  ---   |
+| VERSION |  CSRF   | ACCESS  |
+| :-----: | :-----: | :-----: |
+|  1.3.1  | partial | partial |
 
 Get user. Can parse lib or roles. Can return user by session with "*" as query
 
@@ -71,12 +67,13 @@ Get user. Can parse lib or roles. Can return user by session with "*" as query
 
 **PARAMETERS**
 
-| NAME                 | TYPE   | DESCRIPTION                 | NOTES                          |
-| -------------------- | ------ | --------------------------- | ------------------------------ |
-| (header) ?CSRF-Token | string | CSRF Token                  | ---                            |
-| (query) ?detailed    | string | Send detailed info          | Require valid animee.club CSRF |
-| (query) ?parseLib    | string | User lib ID                 | ---                            |
-| (query) query        | string | User query (id or username) | ---                            |
+| NAME                 | TYPE    | DESCRIPTION                 | NOTES                          |
+| -------------------- | ------- | --------------------------- | ------------------------------ |
+| (header) ?CSRF-Token | string  | CSRF Token                  | ---                            |
+| (query) ?detailed    | boolean | Return sensetive info       | Require valid animee.club CSRF |
+| (query) ?parseRoles  | boolean | Return capabilities         | ---                            |
+| (query) ?parseLib    | string  | User lib ID                 | ---                            |
+| (query) query        | string  | User query (id or username) | ---                            |
 
 **RESPONSES**
 
@@ -85,10 +82,8 @@ Return only public data
 
 ```ts
 {
-  msg: 'OK',
-  user: IUser,
-  parsedCapabilities: null,
-  parsedLib: null
+  message: 'OK',
+  user: IUser, // Sensetive data hidden
 }
 ```
 
@@ -97,10 +92,8 @@ Return rich data
 
 ```ts
 {
-  msg: 'OK',
-  user: IUser,
-  parsedCapabilities: TRoleCapability[],
-  parsedLib: null
+  message: 'OK',
+  user: IUser, // Sensetive data returned
 }
 ```
 
@@ -109,9 +102,20 @@ Parse user library
 
 ```ts
 {
-  msg: 'OK',
+  message: 'OK',
   user: IUser,
   parsedLib: ITitle[]
+}
+```
+
+**200 - Parse roles** <br>
+Parse user library (till 1.3.2 will be true by default)
+
+```ts
+{
+  message: 'OK',
+  user: IUser,
+  parsedRoles: TRoleCapability[]
 }
 ```
 
@@ -125,7 +129,7 @@ User not provide cookie to get by session
 ## POST /user/signin
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.2  | animee.club |  ---   |
+|  1.3.1  | animee.club |  ---   |
 
 Authorize user by session & fetch actual user data. Create new user if not found
 
@@ -143,7 +147,7 @@ Cookie assigned
 
 ```ts
 {
-  msg: 'OK',
+  message: 'OK',
   id: string,
   username: string,
   avatar: string
@@ -158,7 +162,7 @@ Some payload is not provided
 ## PATCH /user
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.2.3  | animee.club | basic  |
+|  1.3.1  | animee.club | basic  |
 
 Patch own user instance.
 
@@ -175,9 +179,11 @@ Patch own user instance.
 | ?episodeOrder | number           | ---                      | Method - patchWatchProgress                 |
 | ?viewtime     | number           | User session viewtime    | Method - patchWatchProgress                 |
 | ?progress     | number           | User video progress in s | Method - patchWatchProgress                 |
+| ?banner_file  | File             | Upload banner file       | Method - upload_banner                      |
 
 **editFolderItem** - Add/remove title from specified lib. Will add/remove **new_episode** subscribe on changes in **watching** lib
 **patchWatchProgress** - Add new/edit watchProgress record. Syncs player on different devices
+**upload_banner** - Upload profile banner
 
 **RESPONSES**
 
@@ -200,7 +206,7 @@ User patched
 ## POST /user/linkTelegram
 | VERSION |      CSRF       | ACCESS |
 | :-----: | :-------------: | :----: |
-|  1.2.3  | bot.animee.club |  ---   |
+|  1.3.1  | bot.animee.club |  ---   |
 
 Link telegram to animee account.
 

@@ -9,8 +9,11 @@ import Dubber from '../Models/Dubber';
 import User from '../Models/User';
 import { IDubber } from '../interfaces/Dubber';
 import { IUser } from '../interfaces/User';
-import { Logger } from '..';
-import { E400, E418, ERR_INVALID_PAYLOAD, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { E400, E418, E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { Logger } from '../services/LoggerService';
+import { AxiosError } from 'axios';
+import { $upload } from '../handlers/http';
+import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
 
 
 
@@ -176,5 +179,49 @@ export async function getSearch(req: express.Request, res: express.Response) {
     });
 
     return res.status(200).json({ msg: 'ok', results, totalResults });
+  });
+}
+
+export async function postUpload(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
+    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
+
+    const userID = req.animee.user?.id;
+
+    const file = req.file;
+    if (!file) throw new ERR_INVALID_PAYLOAD('File is not provided');
+
+    const { type } = req.body as { type: string };
+    const { buffer, originalname, filename, mimetype } = file;
+    const formData = new FormData();
+
+    const UPLOAD_DATA: { url: string } = {
+      url: ''
+    };
+
+    formData.append('file', new Blob([buffer], {
+      type: mimetype
+    }), originalname);
+    formData.set('uploadedBy', userID);
+    formData.set('qualities', JSON.stringify([1080]));
+    formData.set('type', type);
+
+    try {
+      const { data: postData } = await $upload.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
+      UPLOAD_DATA.url = postData.url;
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        if (e.code === 'ECONNREFUSED') {
+          throw new E503('Animee-uploads is not available. Try in a few minutes');
+        }
+
+        throw e;
+      } else {
+        throw e;
+      }
+    }
+
+    return res.status(201).json({ message: `File with type ${type} uploaded`, url: UPLOAD_DATA.url });
   });
 }

@@ -23,6 +23,9 @@ export interface IUser {
   /** Avatar URL */
   avatar: string
 
+  /** User banner URL */
+  banner: string
+
   /** Events subscribes
    * @see docs/features.md#user-subscribes
    * @access only API
@@ -37,25 +40,18 @@ export interface IUser {
   /** Telegram linked account data.
    * @access only API
    */
-  telegramData: null | {
-    id: number
-  }
+  telegramData: null | IUserTelegramData
 
-  /** Token for linking telegram to animee account
+  /** Token for linking telegram to nekomi account
    * @access CSRF required
    */
   telegramLinkToken: string | null
 }
 
-/** User animee statistics */
+/** User nekomi statistics */
 export interface IUserStatistics {
   /** UTC0 account creation timestamp */
   accountCreated: number
-
-  /** Watch time in minutes
-   * @deprecated refactored into viewtime.
-   */
-  timeSpent: number
 
   /** Viewtime in seconds */
   viewtime: number
@@ -74,6 +70,10 @@ export interface IUserWatchProgress {
 
   /** Last update UTC-0 timestamp */
   updatedAt: number
+}
+
+export interface IUserTelegramData {
+  id: number
 }
 
 /** User lib type */

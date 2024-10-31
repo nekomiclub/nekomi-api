@@ -4,22 +4,18 @@ import * as RouteValidation from './handlers/routeValidation';
 
 
 
-export const RootRouter = express.Router();
+const RootRouter = express.Router();
 
-export const UserRouter = express.Router();
-export const TitleRouter = express.Router();
-export const DubberRouter = express.Router();
+const UserRouter = express.Router();
+const TitleRouter = express.Router();
+const DubberRouter = express.Router();
 
-export const DevRouter = express.Router();
-
-
-
-//* ------------------ DEV ROUTER ------------------
-// Test-only routes
-import * as DevController from './controllers/dev';
-
-DevRouter.get('/AccessControl', RouteValidation.devGetAccessControl, DevController.getAccessControl);
-DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCSRFCheck);
+export default {
+  RootRouter,
+  UserRouter,
+  TitleRouter,
+  DubberRouter
+};
 
 
 
@@ -27,6 +23,7 @@ DevRouter.get('/CSRFCheck', RouteValidation.devGetCSRFCheck, DevController.getCS
 import * as RootController from './controllers/root';
 
 RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
+RootRouter.post('/upload', RouteValidation.postUpload, RootController.postUpload);
 
 
 
@@ -35,7 +32,7 @@ RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 import * as TitleController from './controllers/title';
 
 TitleRouter.get('/total', TitleController.getTotal);
-TitleRouter.get('/popular', RouteValidation.getTitlePopular, TitleController.getPopular);
+TitleRouter.get('/home_wrapped', RouteValidation.getHomeWrapped, TitleController.getHomeWrapped);
 TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 
 //! Must be below all endpoints

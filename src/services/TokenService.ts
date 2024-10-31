@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { config, devMode, prodMode } from '../config';
-import { getUTC } from '../handlers/handlers';
+import { config, CONSTS, devMode, prodMode } from '../config';
+import { createStringID, getUTC } from '../handlers/handler';
 
 /** Decoded token interface */
 interface ITokenPayload<T = any> {
@@ -20,7 +20,7 @@ interface ITokenPayload<T = any> {
 const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 
 /** Token methods */
-type TTokenMethod = 'CSRF';
+type TTokenMethod = 'CSRF' | 'TelegramLink';
 
 /** Decode JWT token.
  * @param method If specified, will also verify token with this method
@@ -82,9 +82,24 @@ export function verifyCSRFToken(token: string): boolean {
 /** Sign CSRF token */
 export function singCSRFToken(): string {
   return jwt.sign({
-    origin: config.vars.domain,
+    origin: CONSTS.Domains.animee_api,
     expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
   }, config.secrets.CSRF, {
     algorithm: 'RS256'
   });
+}
+
+export class TokenService {
+  static signToken(method: TTokenMethod, payload?: object): string {
+    let token = '';
+
+    switch (method) {
+      case 'TelegramLink': {
+        token = createStringID(24);
+        break;
+      }
+    }
+
+    return token;
+  }
 }

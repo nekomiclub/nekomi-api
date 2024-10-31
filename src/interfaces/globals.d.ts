@@ -1,20 +1,23 @@
 import { WebSocket } from 'ws';
 import { TRoleCapability } from './Roles';
+import { TMiddlewareName } from '../services/MiddlewareService';
 
 declare global {
   namespace Express {
     interface Request {
       /** Animee internal data */
       animee: {
-        /** User id
-         * @requires AccessControl middleware
+        /** Request user
+         * @requires FkUsapiAuthRefresh middleware
          */
-        userID?: string
+        user?: {
+          id: string
+          username: string
+          capabilities: TRoleCapability[]
+        }
 
-        /** User capabilities
-         * @requires AccessControl middleware
-         */
-        userCapabilities?: TRoleCapability[],
+        /** Request passed middlewares */
+        middlewaresPassed?: TMiddlewareName[]
       }
     }
   }
@@ -22,7 +25,7 @@ declare global {
 
 declare class WebSocketExtended extends WebSocket {
   /** Socket internal data */
-  _data: {
+  animee: {
     TBD?: void
   };
 }

@@ -7,9 +7,10 @@ import Dubber from '../Models/Dubber';
 import { IDubber } from '../interfaces/Dubber';
 import { $http } from '../handlers/http';
 import { config, devMode } from '../config';
-import { Logger } from '..';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/Notify';
+import { IEventPayload, INotifyAiringStarted, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
+import { Logger } from './LoggerService';
+import { ANIMEE_UPLOADS_BOT } from '../interfaces/http/Bot';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -21,6 +22,10 @@ const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
 
 
 export class NotifyService {
+  static createEvent({ event, key }: { event: TNotifyEvent, key: string }) {
+    return `${event}/${key}`;
+  }
+
   /** Broadcast notification */
   async broadcast(payload: IEventPayload) {
     const event = payload.event;
@@ -113,7 +118,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(`${config.URL.bot}/broadcast`, broadcastPayload);
+  await $http.post(ANIMEE_UPLOADS_BOT.broadcast, broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -133,7 +138,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(`${config.URL.bot}/broadcast`, broadcastPayload);
+  await $http.post(ANIMEE_UPLOADS_BOT.broadcast, broadcastPayload);
 
   users.forEach(async user => {
     user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
@@ -143,4 +148,4 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
   });
 }
 
-export default NotifyService;
+export const Notify = new NotifyService();
