@@ -228,8 +228,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
     const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating } = req.body as IPatchTitleBody;
 
-
-
     // titleEdit - Simple type
     if (description !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDescription(description));
     if (details !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDetails(details));

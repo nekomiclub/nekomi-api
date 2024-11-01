@@ -24,7 +24,7 @@ import { DubberService } from './Models/Dubber';
 import TitleModel, { TitleService } from './Models/Title';
 import Cache from './services/CacheService';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
-import { patchUserModel } from './handlers/modelPatchers';
+import { patchDubberModel, patchTitleModel, patchUserModel } from './handlers/modelPatchers';
 
 
 
@@ -144,6 +144,12 @@ wss.on('listening', () => {
       WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
+
+    if (prodMode) {
+      // await patchUserModel()
+      // await patchDubberModel()
+      // await patchTitleModel();
+    }
 
     // Cache updating
     setInterval(async () => {
