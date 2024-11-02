@@ -189,8 +189,10 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
         return res.status(200).json({ message: 'Poster uploaded', id, posterURL });
       } else if (type === 'upload_episode') {
-        const { dubberID, type } = req.body as IUploadEpisode;
-        let { order, qualities } = req.body as IUploadEpisode;
+        const { dubberID } = req.body as IUploadEpisode;
+        let qualities = JSON.parse(req.body.qualities) as TEpisodeQuality[];
+        let { order } = req.body as IUploadEpisode;
+
 
         const dubber = await Dubber.findOne({ id: dubberID });
         if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
@@ -198,7 +200,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         order = +order;
         if (isNaN(order)) throw new ERR_TYPE_INVALID(`Order can not be NaN`);
 
-        if (!Array.isArray(qualities)) throw new ERR_TYPE_INVALID(`Qualities is not an array`);
+        if (!Array.isArray(qualities)) throw new ERR_TYPE_INVALID(`Qualities are not an array`);
 
         qualities.forEach(el => {
           if (isNaN(+el)) throw new ERR_TYPE_INVALID(`Quality ${el} is not a number`);

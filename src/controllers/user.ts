@@ -87,7 +87,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       // Sync animee data with fullkekw user api
       const patch = new UserService({ user });
 
-      if (user.username !== DATA.username) await patch.patchUsername({ username: DATA.username });
+      if (user.username !== DATA.username) await patch.patchUsername({ username: DATA.username, bypassValidation: true });
       if (user.avatar !== DATA.avatar) await patch.patchAvatar({ url: DATA.avatar });
 
       await patch.save();
@@ -172,7 +172,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
 
     const patch = new UserService({ user });
 
-    if (user.username !== session.username) await patch.patchUsername({ username: session.username });
+    if (user.username !== session.username) await patch.patchUsername({ username: session.username, bypassValidation: true });
     if (user.avatar !== session.avatar) await patch.patchAvatar({ url: session.avatar });
 
     await patch.save();

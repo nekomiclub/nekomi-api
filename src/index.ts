@@ -79,9 +79,10 @@ const CORSOpt: CorsOptions = {
     `https://${CONSTS.Domains.animee}`,
     `https://${CONSTS.Domains.animee_auth}`,
     `https://${CONSTS.Domains.animee_api}`,
-    devMode ? 'http://192.168.0.106:3001' : '',
-    devMode ? 'http://192.168.0.106:3000' : '',
-  ],
+
+    devMode ? 'http://192.168.0.106:3001' : '_null',
+    devMode ? 'http://192.168.0.106:3000' : '_null',
+  ].filter(el => el !== '_null'),
   credentials: true,
 };
 
@@ -144,12 +145,6 @@ wss.on('listening', () => {
       WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
       ----------------------------
     `);
-
-    if (prodMode) {
-      // await patchUserModel()
-      // await patchDubberModel()
-      // await patchTitleModel();
-    }
 
     // Cache updating
     setInterval(async () => {

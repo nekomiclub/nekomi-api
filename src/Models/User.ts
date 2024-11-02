@@ -255,9 +255,9 @@ export class UserService {
   //* ------------ USERNAME
 
   /** Patch username */
-  async patchUsername({ username }: { username: string }) {
-    if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
-    if (!validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
+  async patchUsername({ username, bypassValidation }: { username: string, bypassValidation?: boolean }) {
+    if (!bypassValidation && !validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
+    if (!bypassValidation && !validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
 
     const existUser = await UserModel.findOne({ username, id: { $ne: this.user.id } });
     if (existUser) throw new ERR_ALREADY_EXIST(`User with username ${username} already exist`);
