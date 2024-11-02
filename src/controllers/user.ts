@@ -121,7 +121,10 @@ export async function getLogout(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
     if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    return res.status(200).clearCookie(config.vars.sessionCookie).json({ message: `Logged out` });
+    return res.status(200).clearCookie(config.vars.sessionCookie, {
+      httpOnly: true,
+      domain: prodMode ? `.${CONSTS.Domains.animee}` : undefined
+    }).json({ message: `Logged out` });
   });
 }
 
