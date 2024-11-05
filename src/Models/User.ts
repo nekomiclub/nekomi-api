@@ -296,8 +296,8 @@ export class UserService {
     if (viewtime !== undefined) {
       if (viewtime < 0 || viewtime > 120000) throw new ERR_INVALID_PAYLOAD(`Viewtime can not be increased by more than 2h or less than 0s`);
 
-      this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s > ${viewtime}s)`);
-      this.user.statistics.viewtime += viewtime;
+      this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s + ${viewtime}s)`);
+      this.user.statistics.viewtime + viewtime;
     }
 
     this.user.markModified('statistics');
