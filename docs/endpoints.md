@@ -1,4 +1,4 @@
-# ANIMEE ENDPOINTS
+# ENDPOINTS
 [HOME](../README.md)
 
 ---

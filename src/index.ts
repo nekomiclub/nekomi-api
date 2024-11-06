@@ -76,9 +76,9 @@ export const wss = devMode ? new WebSocketServer({
 
 const CORSOpt: CorsOptions = {
   origin: [
-    `https://${CONSTS.Domains.animee}`,
-    `https://${CONSTS.Domains.animee_auth}`,
-    `https://${CONSTS.Domains.animee_api}`,
+    `https://${CONSTS.Domains.nekomi}`,
+    `https://${CONSTS.Domains.nekomi_auth}`,
+    `https://${CONSTS.Domains.nekomi_core}`,
 
     devMode ? 'http://192.168.0.106:3001' : '_null',
     devMode ? 'http://192.168.0.106:3000' : '_null',

@@ -636,7 +636,7 @@ describe('Title Model', () => {
         id: posterID
       });
 
-      expect(Title.title.poster).toBe(`${config.URL.media}/${posterID}`);
+      expect(Title.title.poster).toBe(`${config.URL.nekomi_media}/${posterID}`);
     });
 
     test('Reject - access rejected', async () => {

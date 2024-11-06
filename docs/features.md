@@ -15,9 +15,9 @@ Inner data - stores at ```req.animee```. Contains some useful data from middlewa
 ------------------------------------------------------------------
 
 ### Testing and mocking data
-Animee-core contains a lot of axios requests to other services, like fk-usapi or fk-authority. Tests must be standalone, so in test mode axios requests will be
+Nekomi-core contains a lot of axios requests to other services, like fk-usapi or fk-authority. Tests must be standalone, so in test mode axios requests will be
 
-To test animee-core, you should run one process as ```npm run dev-test```, and second as ```npm run test```. In test mode, most routes will require X-Mock header, that contain mock data. You can see all mock 
+To test nekomi-core, you should run one process as ```npm run dev-test```, and second as ```npm run test```. In test mode, most routes will require X-Mock header, that contain mock data. You can see all mock 
 
 Mock example (may be changed in future, see one of tests to get real implementation of mock system)
 ```ts

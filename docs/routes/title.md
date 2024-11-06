@@ -18,8 +18,8 @@ Get title by query (id or code)
 | NAME                  | TYPE     | DESCRIPTION              | NOTES                     |
 | --------------------- | -------- | ------------------------ | ------------------------- |
 | (param) :query        | string   | Query (id or code)       | ---                       |
-| (query) detailed      | ?boolean | Get detailed information | animee.club CSRF required |
-| (query) parseDubbers  | ?boolean | Parse episodes dubbers   | animee.club CSRF required |
+| (query) detailed      | ?boolean | Get detailed information | nekomi.club CSRF required |
+| (query) parseDubbers  | ?boolean | Parse episodes dubbers   | nekomi.club CSRF required |
 | (header) X-CSRF-Token | ?string  | ---                      | ---                       |
 
 **RESPONSES**
@@ -64,7 +64,7 @@ Get total & renewed titles count
 ## POST /title
 | VERSION |    CSRF     |  ACCESS  |
 | :-----: | :---------: | :------: |
-|  1.3.1  | animee.club | titleAdd |
+|  1.3.1  | nekomi.club | titleAdd |
 
 Create new title instance
 
@@ -87,7 +87,7 @@ Create new title instance
 ## PATCH /title/:id
 | VERSION |    CSRF     |  ACCESS   |
 | :-----: | :---------: | :-------: |
-|  1.3.1  | animee.club | see notes |
+|  1.3.1  | nekomi.club | see notes |
 
 Patch title fields
 
@@ -140,7 +140,7 @@ Patch title fields
 ## DELETE /title/:id
 | VERSION |    CSRF     |   ACCESS    |
 | :-----: | :---------: | :---------: |
-|  1.3.1  | animee.club | titleDelete |
+|  1.3.1  | nekomi.club | titleDelete |
 
 Delete title
 
@@ -166,7 +166,7 @@ Deletion key not provided or invalid
 ## GET /title/home_wrapped
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.3.1  | animee.club |  ---   |
+|  1.3.1  | nekomi.club |  ---   |
 
 Get home wrapped titles. Return user watch progress on featured titles if session provided
 

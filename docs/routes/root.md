@@ -5,9 +5,9 @@
 ------------------------------------------------------------------
 
 ## GET /search
-| VERSION |               CSRF               | ACCESS |
-| :-----: | :------------------------------: | :----: |
-|  1.2.2  | updater.animee.club, animee.club |  ---   |
+| VERSION |        CSRF         | ACCESS |
+| :-----: | :-----------------: | :----: |
+|  1.2.2  | updater.nekomi.club |  ---   |
 
 Global search in Title, User, Dubber models.
 

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { config, RULES } from '../../../config';
+import { config, CONSTS, RULES } from '../../../config';
 import { TNotifyEvent } from '../../../interfaces/services/Notify';
 import { DubberService } from '../../../Models/Dubber';
 import Title, { TitleService } from '../../../Models/Title';
@@ -122,7 +122,7 @@ describe('User Model', () => {
 
   describe('patchAvatar', () => {
     test('Pass - Avatar changed', async () => {
-      const url = `http://media.animee.club/123`;
+      const url = `https://${CONSTS.Domains.nekomi_media}/123`;
       await User.patchAvatar({ url });
 
       expect(User.user.avatar).toBe(url);

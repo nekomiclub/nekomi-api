@@ -119,7 +119,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === CONSTS.Domains.animee) {
+      if (DATA.verified && DATA.origin === CONSTS.Domains.nekomi) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed title information due to token error`);
@@ -369,7 +369,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
     const { origin, verified } = CSRF_DATA;
 
-    if (!verified || origin !== 'api.animee.club') throw new ERR_ACCESS_REJECTED();
+    if (!verified || origin !== CONSTS.Domains.nekomi_core) throw new ERR_ACCESS_REJECTED();
 
     await TitleService.delete(id, `Title deleted by ${userID}/${username}`, 'one');
 

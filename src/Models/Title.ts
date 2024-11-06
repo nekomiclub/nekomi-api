@@ -603,7 +603,7 @@ export class TitleService {
 
       // Upload
       if (!this.testMode) {
-        const { data } = await $upload.post<{ id: string, frames: number }>(`${config.URL.uploads}/upload`, formData);
+        const { data } = await $upload.post<{ id: string, frames: number }>(`${config.URL.nekomi_uploads}/upload`, formData);
 
         UPLOAD_DATA.id = data.id;
         UPLOAD_DATA.frames = data.frames;
@@ -617,17 +617,17 @@ export class TitleService {
       const { id, frames } = UPLOAD_DATA;
 
       // Set sources
-      ep.qualities.q4k = qualities.includes(2160) ? `${config.URL.media}/${id}_q_2160` : null;
-      ep.qualities.q1080 = `${config.URL.media}/${id}`;
-      ep.qualities.q720 = qualities.includes(720) ? `${config.URL.media}/${id}_q_720` : null;
-      ep.qualities.q480 = qualities.includes(480) ? `${config.URL.media}/${id}_q_480` : null;
-      ep.qualities.q240 = qualities.includes(240) ? `${config.URL.media}/${id}_q_240` : null;
+      ep.qualities.q4k = qualities.includes(2160) ? `${config.URL.nekomi_media}/${id}_q_2160` : null;
+      ep.qualities.q1080 = `${config.URL.nekomi_media}/${id}`;
+      ep.qualities.q720 = qualities.includes(720) ? `${config.URL.nekomi_media}/${id}_q_720` : null;
+      ep.qualities.q480 = qualities.includes(480) ? `${config.URL.nekomi_media}/${id}_q_480` : null;
+      ep.qualities.q240 = qualities.includes(240) ? `${config.URL.nekomi_media}/${id}_q_240` : null;
 
       // Set frames URLs
       let i = 0;
 
       while (i < frames) {
-        ep.frames.push(`${config.URL.media}/${id}_f_${i}`);
+        ep.frames.push(`${config.URL.nekomi_media}/${id}_f_${i}`);
         i++;
       }
 
@@ -758,7 +758,7 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match(cfg.CONSTS.Domains.animee) || this.title.poster.match(config.URL.baseURL)) {
+        if (this.title.poster.match(cfg.CONSTS.Domains.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.testMode) {
@@ -779,7 +779,7 @@ export class TitleService {
 
       Logger.debug(`[TitleService]: New poster for ${this.title.id} uploaded by ${user.id}`);
 
-      const posterURL = `${config.URL.media}/${UPLOAD_DATA.id}`;
+      const posterURL = `${config.URL.nekomi_media}/${UPLOAD_DATA.id}`;
 
       this.title.poster = posterURL;
       this.title.markModified('poster');

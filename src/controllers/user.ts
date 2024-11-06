@@ -84,13 +84,11 @@ export async function postSignin(req: express.Request, res: express.Response) {
     let isUserNew = false;
 
     if (user) {
-      // Sync animee data with fullkekw user api
+      // Sync nekomi data with fullkekw user api
       const patch = new UserService({ user });
 
-      if (user.username !== DATA.username) await patch.patchUsername({ username: DATA.username, bypassValidation: true });
-      if (user.avatar !== DATA.avatar) await patch.patchAvatar({ url: DATA.avatar });
-
-      await patch.save();
+      if (user.username !== DATA.username) { await patch.patchUsername({ username: DATA.username, bypassValidation: true }); await patch.save(); }
+      if (user.avatar !== DATA.avatar) { await patch.patchAvatar({ url: DATA.avatar }); await patch.save(); }
 
       isUserNew = false;
     } else {
@@ -106,7 +104,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
-      domain: prodMode ? `.${CONSTS.Domains.animee}` : undefined
+      domain: prodMode ? `.${CONSTS.Domains.nekomi}` : undefined
     }).json({
       message: 'User signed in',
       id: DATA.id,
@@ -123,7 +121,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 
     return res.status(200).clearCookie(config.vars.sessionCookie, {
       httpOnly: true,
-      domain: prodMode ? `.${CONSTS.Domains.animee}` : undefined
+      domain: prodMode ? `.${CONSTS.Domains.nekomi}` : undefined
     }).json({ message: `Logged out` });
   });
 }
@@ -171,7 +169,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
     }
 
     const user = await User.findOne({ id: session.id });
-    if (!user) throw new E404(`User ${session.id} is not found. Create new animee account`);
+    if (!user) throw new E404(`User ${session.id} is not found. Create new nekomi account`);
 
     const patch = new UserService({ user });
 
@@ -262,7 +260,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === CONSTS.Domains.animee) {
+      if (DATA.verified && DATA.origin === CONSTS.Domains.nekomi) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed user information due to token error`);

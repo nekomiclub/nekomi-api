@@ -5,7 +5,7 @@ import { TMiddlewareName } from '../services/MiddlewareService';
 declare global {
   namespace Express {
     interface Request {
-      /** Animee internal data */
+      /** Nekomi internal data */
       animee: {
         /** Request user
          * @requires FkUsapiAuthRefresh middleware

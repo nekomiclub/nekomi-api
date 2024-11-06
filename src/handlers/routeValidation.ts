@@ -22,7 +22,7 @@ const upload = multer();
 //* ------------------ USER MIDDLEWARES ------------------
 
 export const userPatch = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['basic']),
   upload.single('file'),
   body('method')
@@ -30,66 +30,66 @@ export const userPatch = [
 ];
 
 export const userLinkTelegram = [
-  FkAuthorityVerify([CONSTS.Domains.animee_bot]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi_bot]),
   body(['animeeID', 'telegramID'])
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
 export const userLinkTelegramToken = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['basic'])
 ];
 
 export const userLinkTelegramTokenVerify = [
-  FkAuthorityVerify([CONSTS.Domains.animee_bot]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi_bot]),
   body('token')
     .notEmpty().withMessage('Token can not be empty')
 ];
 
 export const userSignin = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   body('session')
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
 export const userLogout = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
 ];
 
 export const userValidate = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const getHomeWrapped = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
 ];
 
 export const postTitle = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['titleDelete']),
 ];
 
 //* ------------------ ROOT MIDDLEWARES ------------------
 
 export const getSearch = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
 ];
 
 export const postUpload = [
-  FkAuthorityVerify([CONSTS.Domains.animee]),
+  FkAuthorityVerify([CONSTS.Domains.nekomi]),
   FkUsapiAuthRefresh(['root']),
   upload.single('file'),
   body('type')

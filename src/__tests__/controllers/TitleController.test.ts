@@ -22,7 +22,7 @@ afterAll(() => {
   mongoose.disconnect();
 });
 
-const { baseURL } = config.URL;
+const baseURL = config.URL.nekomi_core;
 
 
 
@@ -73,7 +73,7 @@ describe('Title Controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: CONSTS.Domains.animee,
+      origin: CONSTS.Domains.nekomi,
       verified: true
     }
   };

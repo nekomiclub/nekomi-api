@@ -1,6 +1,6 @@
 import { config } from '../../config';
 
-const baseURL = config.URL.uploads;
+const baseURL = config.URL.nekomi_uploads;
 
 /** Episode processing qualities */
 export const EpisodeQualities = [240, 480, 720, 1080, 2160] as const;

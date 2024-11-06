@@ -8,17 +8,16 @@ import { IConfigData } from './interfaces/Interfaces';
 
 
 
-const ANIMEE_DOMAIN = 'nekomi.club';
+const NEKOMI_DOMAIN = 'nekomi.club';
 const FULLKEKW_DOMAIN = 'nekomi.club';
 
 export const CONSTS = {
   Domains: {
-    animee: ANIMEE_DOMAIN,
-    animee_auth: `auth.${ANIMEE_DOMAIN}`,
-    animee_client: ANIMEE_DOMAIN,
-    animee_api: `api.${ANIMEE_DOMAIN}`,
-    animee_media: `media.${ANIMEE_DOMAIN}`,
-    animee_bot: `bot.${ANIMEE_DOMAIN}`,
+    nekomi: NEKOMI_DOMAIN,
+    nekomi_auth: `auth.${NEKOMI_DOMAIN}`,
+    nekomi_core: `api.${NEKOMI_DOMAIN}`,
+    nekomi_media: `media.${NEKOMI_DOMAIN}`,
+    nekomi_bot: `bot.${NEKOMI_DOMAIN}`,
 
     fullkekw: FULLKEKW_DOMAIN,
     fullkekw_authority: `authority.${FULLKEKW_DOMAIN}`,
@@ -85,28 +84,18 @@ export const config = {
 
   /** URLs */
   URL: {
-    /** Animee client */
-    client: prodMode ? `https://${CONSTS.Domains.animee_client}` : `http://${preserveIP('0.0.0.0')}:3001`,
+    nekomi_site: prodMode ? `https://${CONSTS.Domains.nekomi}` : `http://${preserveIP('0.0.0.0')}:3001`,
+    nekomi_media: prodMode ? `https://${CONSTS.Domains.nekomi_media}` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
+    nekomi_core: prodMode ? `https://${CONSTS.Domains.nekomi_core}` : `http://${preserveIP('0.0.0.0')}`,
 
-    /** Animee Media */
-    media: prodMode ? `https://${CONSTS.Domains.animee_media}` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
+    //* LOCAL
+    nekomi_bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
+    nekomi_uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
 
-    /** Anime API base url */
-    baseURL: prodMode ? `https://${CONSTS.Domains.animee_api}` : `http://${preserveIP('0.0.0.0')}`,
 
-    /** Fullkekw authority service */
+
     fullkekw_authority: prodMode ? `https://${CONSTS.Domains.fullkekw_authority}` : `http://${preserveIP('0.0.0.0')}:45010`,
-
-    /** Fullkekw user API */
     fullkekw_usapi: prodMode ? `https://${CONSTS.Domains.fullkekw_usapi}` : `http://${preserveIP('0.0.0.0')}:45660`,
-
-    //* Local services
-
-    /** Animee Bot */
-    bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
-
-    /** Animee uploads */
-    uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
   },
 
   /** Service variables */

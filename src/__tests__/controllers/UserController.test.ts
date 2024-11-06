@@ -25,7 +25,7 @@ afterAll(() => {
   mongoose.disconnect();
 });
 
-const { baseURL } = config.URL;
+const baseURL = config.URL.nekomi_core;
 
 describe('User controller', () => {
   const TestID1 = 'test-controllers_user--1'; // Title matching for airing_started event
@@ -81,7 +81,7 @@ describe('User controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: CONSTS.Domains.animee,
+      origin: CONSTS.Domains.nekomi,
       verified: true
     }
   };
@@ -200,7 +200,7 @@ describe('User controller', () => {
         id: 'FkAuthorityVerify',
         code: 200,
         data: {
-          origin: CONSTS.Domains.animee,
+          origin: CONSTS.Domains.nekomi,
           verified: false
         }
       };
@@ -305,7 +305,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: CONSTS.Domains.animee_bot,
+        origin: CONSTS.Domains.nekomi_bot,
         verified: true
       }
     };
@@ -352,7 +352,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: CONSTS.Domains.animee_bot,
+        origin: CONSTS.Domains.nekomi_bot,
         verified: true
       }
     };

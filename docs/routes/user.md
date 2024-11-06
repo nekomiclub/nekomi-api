@@ -7,7 +7,7 @@
 ## GET /user/logout
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.3.1  | animee.club |  ---   |
+|  1.3.1  | nekomi.club |  ---   |
 
 Delete authorization cookie
 
@@ -27,7 +27,7 @@ Cookie deleted
 ## GET /user/validate
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.3.1  | animee.club |  ---   |
+|  1.3.1  | nekomi.club |  ---   |
 
 Refresh current session & fetch actual data from ```fk-usapi```
 
@@ -70,7 +70,7 @@ Get user. Can parse lib or roles. Can return user by session with "*" as query
 | NAME                 | TYPE    | DESCRIPTION                 | NOTES                          |
 | -------------------- | ------- | --------------------------- | ------------------------------ |
 | (header) ?CSRF-Token | string  | CSRF Token                  | ---                            |
-| (query) ?detailed    | boolean | Return sensetive info       | Require valid animee.club CSRF |
+| (query) ?detailed    | boolean | Return sensetive info       | Require valid nekomi.club CSRF |
 | (query) ?parseRoles  | boolean | Return capabilities         | ---                            |
 | (query) ?parseLib    | string  | User lib ID                 | ---                            |
 | (query) query        | string  | User query (id or username) | ---                            |
@@ -129,7 +129,7 @@ User not provide cookie to get by session
 ## POST /user/signin
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.3.1  | animee.club |  ---   |
+|  1.3.1  | nekomi.club |  ---   |
 
 Authorize user by session & fetch actual user data. Create new user if not found
 
@@ -162,7 +162,7 @@ Some payload is not provided
 ## PATCH /user
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
-|  1.3.1  | animee.club | basic  |
+|  1.3.1  | nekomi.club | basic  |
 
 Patch own user instance.
 
@@ -206,9 +206,9 @@ User patched
 ## POST /user/linkTelegram
 | VERSION |      CSRF       | ACCESS |
 | :-----: | :-------------: | :----: |
-|  1.3.1  | bot.animee.club |  ---   |
+|  1.3.1  | bot.nekomi.club |  ---   |
 
-Link telegram to animee account.
+Link telegram to nekomi account.
 
 
 
@@ -233,7 +233,7 @@ Linked
 ```
 
 **400 - Account already linked** <br>
-Animee account / this telegram account already linked
+Nekomi account / this telegram account already linked
 
 **404 - Not found** <br>
 

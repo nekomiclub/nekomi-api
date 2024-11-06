@@ -1,5 +1,5 @@
-# ANIMEE API
-Animee-core (API) is an animee.club backend. Provides title, dubber & user APIs.
+# NEKOMI API
+Nekomi-core (API) is an nekomi.club backend. Provides title, dubber & user APIs.
 **HTTP port in development mode will be changed from ANIMEE_CONFIG to 80**
 Any production runs will be rejected if IP does not match config ```vars.prodIP```
 
@@ -11,6 +11,6 @@ Any production runs will be rejected if IP does not match config ```vars.prodIP`
 - [Services](./docs/services.md)
 
 ## Dependencies
-- animee-uploads (PATCH /title)
+- nekomi-uploads (PATCH /title)
 - fk-usapi
 - fk-authority

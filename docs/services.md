@@ -44,7 +44,7 @@ If error is instance of ```AxiosError```, will return response data and reqURL w
 If error is unknown, will return it's message and write this error in logs
 
 ## Token Service
-Provides decoding JWT token & signing api.animee.club CSRF token. Will be refactored in class in next patches
+Provides decoding JWT token & signing api.nekomi.club CSRF token. Will be refactored in class in next patches
 
 ------------------------------------------------------------------
 

@@ -21,8 +21,7 @@ export async function patchUserModel() {
   for (const key in users) {
     const user = users[key];
 
-    user.avatar = user.avatar.replace('animee.club', 'nekomi.club');
-    user.banner = user.banner.replace('animee.club', 'nekomi.club');
+
 
     await user.save();
   }
@@ -41,8 +40,7 @@ export async function patchDubberModel() {
   for (const key in dubbers) {
     const dubber = dubbers[key];
 
-    dubber.avatar = dubber.avatar.replace('animee.club', 'nekomi.club');
-    dubber.thumbURL = dubber.thumbURL.replace('animee.club', 'nekomi.club');
+
 
     await dubber.save();
   }
@@ -75,7 +73,7 @@ export async function patchTitleModel() {
       let i = 0;
 
       while (i < framesCount) {
-        episode.frames.push(`${config.URL.media}/${id}_f_${i}`);
+        episode.frames.push(`${config.URL.nekomi_media}/${id}_f_${i}`);
         i++;
       }
     }
