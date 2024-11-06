@@ -73,7 +73,7 @@ describe('Title Controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: config.DOMAINS.nekomi,
+      origin: config.DOMAIN.nekomi,
       verified: true
     }
   };

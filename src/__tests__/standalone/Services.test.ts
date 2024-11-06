@@ -109,14 +109,14 @@ describe('Middleware Service', () => {
   describe('checkCSRF', () => {
     test('Pass - No required origin', async () => {
       expect(await instance.checkCSRF('_MOCKED', [], {
-        origin: config.DOMAINS.nekomi_core,
+        origin: config.DOMAIN.nekomi_core,
         verified: true
       })).toBeTruthy();
     });
 
     test('Pass - Required origin specified', async () => {
-      expect(await instance.checkCSRF('_MOCKED', [config.DOMAINS.nekomi_core], {
-        origin: config.DOMAINS.nekomi_core,
+      expect(await instance.checkCSRF('_MOCKED', [config.DOMAIN.nekomi_core], {
+        origin: config.DOMAIN.nekomi_core,
         verified: true
       })).toBeTruthy();
     });
@@ -136,7 +136,7 @@ describe('Middleware Service', () => {
 
     test('Pass - Origin missmatch', async () => {
       try {
-        await instance.checkCSRF('_MOCKED', [config.DOMAINS.nekomi_core], {
+        await instance.checkCSRF('_MOCKED', [config.DOMAIN.nekomi_core], {
           origin: '_INVALID',
           verified: true
         });

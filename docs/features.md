@@ -10,7 +10,7 @@
 ------------------------------------------------------------------
 
 ## Inner data
-Inner data - stores at ```req.animee```. Contains some useful data from middlewares to other requests. You can view full interface at ```src/interfaces/globals.d.ts```
+Inner data - stores at ```req.nekomi```. Contains some useful data from middlewares to other requests. You can view full interface at ```src/interfaces/globals.d.ts```
 
 ------------------------------------------------------------------
 

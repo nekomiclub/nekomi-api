@@ -82,7 +82,7 @@ export function verifyCSRFToken(token: string): boolean {
 /** Sign CSRF token */
 export function singCSRFToken(): string {
   return jwt.sign({
-    origin: config.DOMAINS.nekomi_core,
+    origin: config.DOMAIN.nekomi_core,
     expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
   }, INTERNALS.secrets.CSRF, {
     algorithm: 'RS256'

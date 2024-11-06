@@ -15,7 +15,7 @@ export const testMode = process.argv.includes('testMode');
 
 const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;
 
-const DOMAINS = {
+const DOMAIN = {
   nekomi: SERVICE_CONFIG.DOMAINS.nekomi_site,
   nekomi_auth: SERVICE_CONFIG.DOMAINS.nekomi_auth,
   nekomi_core: SERVICE_CONFIG.DOMAINS.nekomi_api,
@@ -81,13 +81,12 @@ export const INTERNALS = {
 
 
 export const config = {
-  /** URLs */
   URL: {
-    nekomi_site: prodMode ? `https://${DOMAINS.nekomi}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_site.host)}:${SERVICE_CONFIG.SERVICES.nekomi_site.port}`,
-    nekomi_media: prodMode ? `https://${DOMAINS.nekomi_media}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_media.host)}:${SERVICE_CONFIG.SERVICES.nekomi_media.port}`,
+    nekomi_site: prodMode ? `https://${DOMAIN.nekomi}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_site.host)}:${SERVICE_CONFIG.SERVICES.nekomi_site.port}`,
+    nekomi_media: prodMode ? `https://${DOMAIN.nekomi_media}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_media.host)}:${SERVICE_CONFIG.SERVICES.nekomi_media.port}`,
 
     /** In development mode port was changed into 80 */
-    nekomi_core: prodMode ? `https://${DOMAINS.nekomi_core}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host)}`,
+    nekomi_core: prodMode ? `https://${DOMAIN.nekomi_core}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host)}`,
 
     //* LOCAL
     nekomi_bot: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_bot.host)}:${SERVICE_CONFIG.SERVICES.nekomi_bot.port}`,
@@ -95,14 +94,14 @@ export const config = {
 
 
 
-    fullkekw_authority: prodMode ? `https://${DOMAINS.fullkekw_authority}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_authority.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_authority.port}`,
-    fullkekw_usapi: prodMode ? `https://${DOMAINS.fullkekw_usapi}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.port}`,
+    fullkekw_authority: prodMode ? `https://${DOMAIN.fullkekw_authority}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_authority.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_authority.port}`,
+    fullkekw_usapi: prodMode ? `https://${DOMAIN.fullkekw_usapi}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.port}`,
   },
 
   /** Service variables */
   vars: {
     /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
-    INTERNAL_ROOT_USER_ID: 'animeeclub',
+    INTERNAL_ROOT_USER_ID: 'nekomiclub',
 
     /** Nekomi cookie with fullkekw usapi session */
     sessionCookie: 'SEC_31N',
@@ -156,7 +155,7 @@ export const config = {
     }
   },
 
-  DOMAINS,
+  DOMAIN,
   STATIC,
   prodMode,
   devMode,

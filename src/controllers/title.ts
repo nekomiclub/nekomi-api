@@ -119,7 +119,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === config.DOMAINS.nekomi) {
+      if (DATA.verified && DATA.origin === config.DOMAIN.nekomi) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed title information due to token error`);
@@ -151,8 +151,8 @@ export async function getTotal(req: express.Request, res: express.Response) {
 
 export async function postTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const title = await TitleService.create({});
 
@@ -164,11 +164,11 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
 export async function patchTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const { id } = req.params as { id: string };
-    const { capabilities, id: userID, username } = req.animee.user!;
+    const { capabilities, id: userID, username } = req.nekomi.user!;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
 
     const title = await Title.findOne({ id });
@@ -331,12 +331,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 export async function deleteTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const { id } = req.params as { id: string };
     const { key } = req.query as { key?: string };
-    const { id: userID, username } = req.animee.user!;
+    const { id: userID, username } = req.nekomi.user!;
 
     if (!key) {
       console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${singCSRFToken()}\n----------------`);
@@ -369,7 +369,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
     const { origin, verified } = CSRF_DATA;
 
-    if (!verified || origin !== config.DOMAINS.nekomi_core) throw new ERR_ACCESS_REJECTED();
+    if (!verified || origin !== config.DOMAIN.nekomi_core) throw new ERR_ACCESS_REJECTED();
 
     await TitleService.delete(id, `Title deleted by ${userID}/${username}`, 'one');
 
@@ -381,7 +381,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
 
 export async function getHomeWrapped(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     if (!Cache.HomeWrapped.featured.length) throw new ERR_NOT_READY();
 

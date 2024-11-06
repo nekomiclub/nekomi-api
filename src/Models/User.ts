@@ -13,7 +13,7 @@ import { TNotifyEvent } from '../interfaces/services/Notify';
 import DubberModel from './Dubber';
 import { AxiosError } from 'axios';
 import { $http } from '../handlers/http';
-import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
+import { NEKOMI_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
 
 
 
@@ -219,14 +219,14 @@ export class UserService {
 
     try {
       // Upload banner
-      const { data: postData } = await $http.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
+      const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
       UPLOAD_DATA.url = postData.url;
 
       // Remove previous banner if it not default
       if (this.user.banner !== config.vars.defaultUserBanner) {
         const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
 
-        await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
+        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
           params: {
             by: this.user.id
           }

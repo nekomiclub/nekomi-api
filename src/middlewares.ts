@@ -12,7 +12,7 @@ const Middleware = new MiddlewareService();
 
 
 /** Routes access-control middleware
- * Will write user object in request animee data
+ * Will write user object in request nekomi data
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
 export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
@@ -21,21 +21,21 @@ export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
       if (!token) throw new ERR_MISSING_AUTHORIZATION();
 
-      req.animee.middlewaresPassed = req.animee.middlewaresPassed || [];
-      req.animee.middlewaresPassed.push('checkAccess');
+      req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];
+      req.nekomi.middlewaresPassed.push('checkAccess');
 
       try {
         const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'FkUsapiAuthRefresh').data : undefined);
 
-        req.animee.user = req.animee.user || {
+        req.nekomi.user = req.nekomi.user || {
           id: 'NULL',
           username: 'NULL',
           capabilities: [],
         };
 
-        req.animee.user.id = user.id;
-        req.animee.user.username = user.username;
-        req.animee.user.capabilities = userCaps;
+        req.nekomi.user.id = user.id;
+        req.nekomi.user.username = user.username;
+        req.nekomi.user.capabilities = userCaps;
       } catch (e) {
         if (e instanceof AxiosError && (e.response?.status === 403 || e.response?.status === 400 || e.response?.status === 404)) {
           const message = 'Your session has expired. Re-login in fullkekw';
@@ -57,8 +57,8 @@ export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
 export function FkAuthorityVerify(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
-      req.animee.middlewaresPassed = req.animee.middlewaresPassed || [];
-      req.animee.middlewaresPassed.push('checkCSRF');
+      req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];
+      req.nekomi.middlewaresPassed.push('checkCSRF');
 
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');

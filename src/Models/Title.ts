@@ -17,7 +17,7 @@ import { IDubber } from '../interfaces/Dubber';
 import { TEpisodeQuality } from '../interfaces/http/Uploads';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/services/Notify';
 import { Notify } from '../services/NotifyService';
-import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
+import { NEKOMI_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
 import { parseRoles } from './Role';
 
 
@@ -696,7 +696,7 @@ export class TitleService {
       if (!this.testMode) {
         const uploadID = `${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`;
 
-        await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
+        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
           params: {
             withChildren: true,
             by: user.id
@@ -748,7 +748,7 @@ export class TitleService {
 
       // Upload poster
       if (!this.testMode) {
-        const { data: postData } = await $http.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
+        const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
         UPLOAD_DATA.id = postData.id;
       } else {
         if (!mockData) throw new E500(`Mock data is not provided`);
@@ -758,11 +758,11 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match(cfg.config.DOMAINS.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
+        if (this.title.poster.match(cfg.config.DOMAIN.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.testMode) {
-            await $http.delete(ANIMEE_UPLOADS.delete_upload(uploadID), {
+            await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
               params: {
                 by: user.id
               }

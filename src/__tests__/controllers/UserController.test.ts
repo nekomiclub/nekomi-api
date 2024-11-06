@@ -81,7 +81,7 @@ describe('User controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: config.DOMAINS.nekomi,
+      origin: config.DOMAIN.nekomi,
       verified: true
     }
   };
@@ -200,7 +200,7 @@ describe('User controller', () => {
         id: 'FkAuthorityVerify',
         code: 200,
         data: {
-          origin: config.DOMAINS.nekomi,
+          origin: config.DOMAIN.nekomi,
           verified: false
         }
       };
@@ -305,7 +305,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: config.DOMAINS.nekomi_bot,
+        origin: config.DOMAIN.nekomi_bot,
         verified: true
       }
     };
@@ -352,7 +352,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: config.DOMAINS.nekomi_bot,
+        origin: config.DOMAIN.nekomi_bot,
         verified: true
       }
     };

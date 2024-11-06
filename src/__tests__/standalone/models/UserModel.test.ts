@@ -122,7 +122,7 @@ describe('User Model', () => {
 
   describe('patchAvatar', () => {
     test('Pass - Avatar changed', async () => {
-      const url = `https://${config.DOMAINS.nekomi_media}/123`;
+      const url = `https://${config.DOMAIN.nekomi_media}/123`;
       await User.patchAvatar({ url });
 
       expect(User.user.avatar).toBe(url);

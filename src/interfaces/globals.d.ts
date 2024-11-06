@@ -6,7 +6,7 @@ declare global {
   namespace Express {
     interface Request {
       /** Nekomi internal data */
-      animee: {
+      nekomi: {
         /** Request user
          * @requires FkUsapiAuthRefresh middleware
          */
@@ -25,7 +25,7 @@ declare global {
 
 declare class WebSocketExtended extends WebSocket {
   /** Socket internal data */
-  animee: {
+  nekomi: {
     TBD?: void
   };
 }

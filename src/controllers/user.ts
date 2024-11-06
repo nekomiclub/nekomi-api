@@ -52,7 +52,7 @@ interface IPatchUserBody {
 
 export async function postSignin(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const { session } = req.body as { session: string };
 
@@ -104,7 +104,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
-      domain: prodMode ? `.${config.DOMAINS.nekomi}` : undefined
+      domain: prodMode ? `.${config.DOMAIN.nekomi}` : undefined
     }).json({
       message: 'User signed in',
       id: DATA.id,
@@ -117,11 +117,11 @@ export async function postSignin(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function getLogout(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     return res.status(200).clearCookie(config.vars.sessionCookie, {
       httpOnly: true,
-      domain: prodMode ? `.${config.DOMAINS.nekomi}` : undefined
+      domain: prodMode ? `.${config.DOMAIN.nekomi}` : undefined
     }).json({ message: `Logged out` });
   });
 }
@@ -131,7 +131,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function getValidate(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const token = req.cookies[config.vars.sessionCookie];
     if (!token) return res.status(202).json({ message: 'Session not provided' });
@@ -141,7 +141,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
 
     try {
       if (!testMode) {
-        // Sync animee data with fullkekw user api
+        // Sync nekomi data with fullkekw user api
         const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
           headers: {
             Cookie: `session=${token}`
@@ -260,7 +260,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === config.DOMAINS.nekomi) {
+      if (DATA.verified && DATA.origin === config.DOMAIN.nekomi) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed user information due to token error`);
@@ -297,10 +297,10 @@ export async function getQuery(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function patchUser(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    const { id } = req.animee.user!;
+    const { id } = req.nekomi.user!;
     const { method } = req.body as IPatchUserBody;
 
 
@@ -381,7 +381,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
 /** @see /docs/routes/user.md */
 export async function postLinkTelegram(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
 
@@ -406,10 +406,10 @@ export async function postLinkTelegram(req: express.Request, res: express.Respon
 // TODO: Write in docs. Issue new telegram link token for user
 export async function getLinkTelegramToken(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    const user = (await User.findOne({ id: req.animee.user?.id }))!;
+    const user = (await User.findOne({ id: req.nekomi.user?.id }))!;
     if (user.statistics.isTelegramLinked) throw new ERR_ALREADY_EXIST('Account already linked');
 
     const patch = new UserService({ user });
@@ -425,7 +425,7 @@ export async function getLinkTelegramToken(req: express.Request, res: express.Re
 // TODO: Write in docs. Verifies telegram link token
 export async function postLinkTelegramTokenVerify(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
     const { token } = req.body as { token: string };
 

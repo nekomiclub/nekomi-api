@@ -13,7 +13,7 @@ import { E400, E418, E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT
 import { Logger } from '../services/LoggerService';
 import { AxiosError } from 'axios';
 import { $upload } from '../handlers/http';
-import { ANIMEE_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
+import { NEKOMI_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
 
 
 
@@ -184,10 +184,10 @@ export async function getSearch(req: express.Request, res: express.Response) {
 
 export async function postUpload(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    if (!req.animee.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
-    if (!req.animee.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
 
-    const userID = req.animee.user?.id;
+    const userID = req.nekomi.user?.id;
 
     const file = req.file;
     if (!file) throw new ERR_INVALID_PAYLOAD('File is not provided');
@@ -208,7 +208,7 @@ export async function postUpload(req: express.Request, res: express.Response) {
     formData.set('type', type);
 
     try {
-      const { data: postData } = await $upload.post<IA_UploadsUpload>(ANIMEE_UPLOADS.upload, formData);
+      const { data: postData } = await $upload.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
       UPLOAD_DATA.url = postData.url;
     } catch (e) {
       if (e instanceof AxiosError) {

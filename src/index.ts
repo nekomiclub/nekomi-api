@@ -76,9 +76,9 @@ export const wss = devMode ? new WebSocketServer({
 
 const CORSOpt: CorsOptions = {
   origin: [
-    `https://${config.DOMAINS.nekomi}`,
-    `https://${config.DOMAINS.nekomi_auth}`,
-    `https://${config.DOMAINS.nekomi_core}`,
+    `https://${config.DOMAIN.nekomi}`,
+    `https://${config.DOMAIN.nekomi_auth}`,
+    `https://${config.DOMAIN.nekomi_core}`,
 
     devMode ? 'http://192.168.0.106:3001' : '_null',
     devMode ? 'http://192.168.0.106:3000' : '_null',
@@ -98,7 +98,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
 
   Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
-  req.animee = req.animee !== undefined ? req.animee : {};
+  req.nekomi = req.nekomi !== undefined ? req.nekomi : {};
 
   next();
 });

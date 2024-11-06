@@ -9,7 +9,7 @@ export const EpisodeQualities = [240, 480, 720, 1080, 2160] as const;
 export type TEpisodeQuality = typeof EpisodeQualities[number];
 
 /** Base URL (http://example.com) included */
-export const ANIMEE_UPLOADS = {
+export const NEKOMI_UPLOADS = {
   /** @method DELETE @param id */
   delete_upload: (id: string) => `${baseURL}/upload/${id}`,
 
@@ -17,7 +17,7 @@ export const ANIMEE_UPLOADS = {
   upload: `${baseURL}/upload`,
 };
 
-/** @prop ANIMEE_UPLOADS.upload */
+/** @prop NEKOMI_UPLOADS.upload */
 export interface IA_UploadsUpload {
   /** Upload ID */
   id: string

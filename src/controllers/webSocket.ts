@@ -29,7 +29,7 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || 'IP_UNDEFINED';
 
       // Ensure inner data is not undefined
-      ws.animee = ws.animee !== undefined ? ws.animee : {};
+      ws.nekomi = ws.nekomi !== undefined ? ws.nekomi : {};
 
       if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload) throw new ERR_INVALID_PAYLOAD('Websocket type or payload is invalid');
 

@@ -10,7 +10,7 @@ import { config, devMode } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from './LoggerService';
-import { ANIMEE_BOT } from '../interfaces/http/Bot';
+import { NEKOMI_BOT } from '../interfaces/http/Bot';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -118,7 +118,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(ANIMEE_BOT.broadcast, broadcastPayload);
+  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -138,7 +138,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(ANIMEE_BOT.broadcast, broadcastPayload);
+  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
 
   users.forEach(async user => {
     user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
