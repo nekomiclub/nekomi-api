@@ -146,10 +146,6 @@ wss.on('listening', () => {
       ----------------------------
     `);
 
-    if (prodMode) {
-      await patchTitleModel();
-    }
-
     // Cache updating
     setInterval(async () => {
       Logger.info(`[Startup]: Cache updated`);

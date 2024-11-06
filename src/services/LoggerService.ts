@@ -12,10 +12,12 @@ class LoggerService {
   private ROOT_DIR = path.resolve();
 
   private LOG_FOLDER = `${this.ROOT_DIR}/logs`;
-  private LOG_FILE = `${this.LOG_FOLDER}/.log`;
+  private LOG_DUMP_FOLDER = `${this.ROOT_DIR}/logs/.dump`;
+
+  private LOG_FILE = `${this.LOG_FOLDER}/latest.log`;
   private LOG_ERROR_FILE = `${this.LOG_FOLDER}/error.log`;
   private LOG_SUSPICIOUS_FILE = `${this.LOG_FOLDER}/suspicious.log`;
-  private LOG_FILE_MAX_ROWS = 5000;
+  private LOG_FILE_MAX_ROWS = 30000;
 
   constructor() {
     this.checkFilesystem();
@@ -130,7 +132,7 @@ class LoggerService {
 
   /** Check existing logs files */
   private checkFilesystem() {
-    const requiredFolders = [this.LOG_FOLDER];
+    const requiredFolders = [this.LOG_FOLDER, this.LOG_DUMP_FOLDER];
 
     const requiredFiles = [this.LOG_FILE, this.LOG_ERROR_FILE, this.LOG_SUSPICIOUS_FILE];
 
@@ -153,8 +155,14 @@ class LoggerService {
   private prepend(data: string, path: string) {
     let rows = fs.readFileSync(path).toString().split('\n');
 
+    // Make logs dump and clear
     if (rows.length > this.LOG_FILE_MAX_ROWS) {
-      rows = rows.slice(0, this.LOG_FILE_MAX_ROWS);
+      const dumpFile = `${this.LOG_DUMP_FOLDER}/${getUTC().fulldate}-${getUTC().timeAccurate.replaceAll(':', '.')}.log`;
+
+      fs.writeFileSync(dumpFile, rows.join('\n'));
+      rows = [];
+
+      console.info(`[LoggerService]: Latest logs saved as ${dumpFile} and purged`);
     }
 
     rows.unshift(data);
