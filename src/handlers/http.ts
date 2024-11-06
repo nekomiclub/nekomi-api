@@ -18,7 +18,7 @@ $http.interceptors.request.use(async cfg => {
 
 /** Axios upload instance with extended timeout */
 export const $upload = axios.create({
-  timeout: 180000,
+  timeout: 420000,
   httpAgent: new http.Agent({ keepAlive: true }),
   httpsAgent: new https.Agent({ keepAlive: true }),
 });
