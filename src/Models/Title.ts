@@ -501,16 +501,16 @@ export class TitleService {
       // Parse
       const data = await page.$$eval('.ipc-page-section', el => {
         const cfg = {
-          titleClass: '.ipc-title__text',
+          /** Thu, Oct */
           dateoutClass: '.sc-ccd6e31b-10',
-          cardClass: '.sc-ccd6e31b-4'
+          cardClass: '.sc-ccd6e31b-1'
         };
 
         const cards = el[2].querySelectorAll(cfg.cardClass);
         let tmp: ITitleEpisodeMeta[] = [];
 
         cards.forEach((card: any, i: number) => {
-          const title = card.querySelector(cfg.titleClass).innerText.split('∙ ')[1] as string;
+          const title = card.querySelector('.ipc-title__text').innerText.split('∙ ')[1] as string;
           i++;
 
           tmp.push({

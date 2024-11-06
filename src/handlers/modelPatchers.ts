@@ -8,6 +8,7 @@ import { getUTC } from './handler';
 import { config, CONSTS } from '../config';
 import TitleModel from '../Models/Title';
 import DubberModel from '../Models/Dubber';
+import { getVideoDurationInSeconds } from 'get-video-duration';
 
 export async function patchUserModel() {
   const startStamp = getUTC().timestamp;
@@ -51,7 +52,7 @@ export async function patchDubberModel() {
 
 export async function patchTitleModel() {
   const startStamp = getUTC().timestamp;
-  const titles = await TitleModel.find();
+  const titles = await TitleModel.find({ updatedAt: { $gt: 1730369100000 } });
 
   Logger.info(`[ModelPatcher]: Patching title model started...`);
 
@@ -60,20 +61,25 @@ export async function patchTitleModel() {
   for (const key in titles) {
     const title = titles[key];
 
-    title.poster = title.poster.replace('animee.club', 'nekomi.club');
+    const framelessEpisodes = title.episodes.filter(el => el.frames.length === 0);
 
-    title.episodes = title.episodes.map(ep => {
-      ep.frames = ep.frames.map(frame => frame.replace('animee.club', 'nekomi.club'));
-      ep.qualities.q4k ? ep.qualities.q4k = ep.qualities.q4k.replace('animee.club', 'nekomi.club') : null;
-      ep.qualities.q1080 ? ep.qualities.q1080 = ep.qualities.q1080.replace('animee.club', 'nekomi.club') : null;
-      ep.qualities.q720 ? ep.qualities.q720 = ep.qualities.q720.replace('animee.club', 'nekomi.club') : null;
-      ep.qualities.q480 ? ep.qualities.q480 = ep.qualities.q480.replace('animee.club', 'nekomi.club') : null;
-      ep.qualities.q240 ? ep.qualities.q240 = ep.qualities.q240.replace('animee.club', 'nekomi.club') : null;
+    for (const fi in framelessEpisodes) {
+      const episode = framelessEpisodes[fi];
 
-      return ep;
-    });
+      const id = new URL(episode.qualities.q1080).pathname.replace('/', '');
+      const duration = await getVideoDurationInSeconds(episode.qualities.q1080);
+      const previewsCount = Math.ceil(duration / 5);
+      const framesCount = Math.ceil(previewsCount / 25);
 
-    title.markModified('poster');
+      // Set frames URLs
+      let i = 0;
+
+      while (i < framesCount) {
+        episode.frames.push(`${config.URL.media}/${id}_f_${i}`);
+        i++;
+      }
+    }
+
     title.markModified('episodes');
     await title.save();
   }
