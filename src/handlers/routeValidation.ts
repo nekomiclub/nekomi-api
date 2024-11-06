@@ -3,7 +3,7 @@ import cors from 'cors';
 import multer from 'multer';
 
 import { FkUsapiAuthRefresh, FkAuthorityVerify } from '../middlewares';
-import { config, CONSTS } from '../config';
+import { config } from '../config';
 
 
 
@@ -22,7 +22,7 @@ const upload = multer();
 //* ------------------ USER MIDDLEWARES ------------------
 
 export const userPatch = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['basic']),
   upload.single('file'),
   body('method')
@@ -30,66 +30,66 @@ export const userPatch = [
 ];
 
 export const userLinkTelegram = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi_bot]),
+  FkAuthorityVerify([config.DOMAINS.nekomi_bot]),
   body(['animeeID', 'telegramID'])
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
 export const userLinkTelegramToken = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['basic'])
 ];
 
 export const userLinkTelegramTokenVerify = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi_bot]),
+  FkAuthorityVerify([config.DOMAINS.nekomi_bot]),
   body('token')
     .notEmpty().withMessage('Token can not be empty')
 ];
 
 export const userSignin = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   body('session')
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
 export const userLogout = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
 ];
 
 export const userValidate = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
 ];
 
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const getHomeWrapped = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
 ];
 
 export const postTitle = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['titleAdd']),
 ];
 
 export const patchTitleId = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['basic']),
   upload.single('file'),
 ];
 
 export const deleteTitleId = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['titleDelete']),
 ];
 
 //* ------------------ ROOT MIDDLEWARES ------------------
 
 export const getSearch = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
 ];
 
 export const postUpload = [
-  FkAuthorityVerify([CONSTS.Domains.nekomi]),
+  FkAuthorityVerify([config.DOMAINS.nekomi]),
   FkUsapiAuthRefresh(['root']),
   upload.single('file'),
   body('type')

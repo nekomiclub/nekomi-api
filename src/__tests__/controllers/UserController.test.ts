@@ -1,7 +1,7 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import { config, CONSTS } from '../../config';
+import { config, INTERNALS } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify, IMock } from '../../interfaces/Mocks';
 import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
@@ -13,7 +13,7 @@ import { NotifyService } from '../../services/NotifyService';
 import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
   mongoose.set('strictQuery', false);
   mongoose.connect(MONGO_URI, {
@@ -81,7 +81,7 @@ describe('User controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: CONSTS.Domains.nekomi,
+      origin: config.DOMAINS.nekomi,
       verified: true
     }
   };
@@ -200,7 +200,7 @@ describe('User controller', () => {
         id: 'FkAuthorityVerify',
         code: 200,
         data: {
-          origin: CONSTS.Domains.nekomi,
+          origin: config.DOMAINS.nekomi,
           verified: false
         }
       };
@@ -305,7 +305,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: CONSTS.Domains.nekomi_bot,
+        origin: config.DOMAINS.nekomi_bot,
         verified: true
       }
     };
@@ -352,7 +352,7 @@ describe('User controller', () => {
       id: 'FkAuthorityVerify',
       code: 200,
       data: {
-        origin: CONSTS.Domains.nekomi_bot,
+        origin: config.DOMAINS.nekomi_bot,
         verified: true
       }
     };

@@ -4,7 +4,7 @@ import { convert as urlSlugConvert } from 'url-slug';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { IChangeEpMeta } from '../controllers/title';
 import { AxiosError } from 'axios';
-import { config, RULES } from '../config';
+import { config } from '../config';
 import * as cfg from '../config';
 import { $http, $upload } from '../handlers/http';
 import puppeteer from 'puppeteer';
@@ -208,7 +208,7 @@ export class TitleService {
 
     if (ukr !== undefined) {
       const trimmed = ukr.trim().replace(/\s+/g, ' ');
-      if (!validator.isLength(trimmed, { min: RULES.PatchTitle.minNameLength, max: RULES.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${RULES.PatchTitle.minNameLength} and ${RULES.PatchTitle.maxNameLength} symbols length`);
+      if (!validator.isLength(trimmed, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${config.VALIDATION.PatchTitle.minNameLength} and ${config.VALIDATION.PatchTitle.maxNameLength} symbols length`);
 
       this.stack.push(`Changed Ukranian name (${this.title.names.ukr} > ${trimmed})`);
       this.title.names.ukr = trimmed;
@@ -216,7 +216,7 @@ export class TitleService {
 
     if (eng !== undefined) {
       const trimmed = eng.trim().replace(/\s+/g, ' ');
-      if (!validator.isLength(trimmed, { min: RULES.PatchTitle.minNameLength, max: RULES.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${RULES.PatchTitle.minNameLength} and ${RULES.PatchTitle.maxNameLength} symbols length`);
+      if (!validator.isLength(trimmed, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${config.VALIDATION.PatchTitle.minNameLength} and ${config.VALIDATION.PatchTitle.maxNameLength} symbols length`);
 
       const code = urlSlugConvert(trimmed, {
         camelCase: true,
@@ -242,12 +242,12 @@ export class TitleService {
 
       alt.forEach(name => {
         const trimmed = name.trim().replace(/\s+/g, ' ');
-        if (!validator.isLength(trimmed, { min: RULES.PatchTitle.minNameLength, max: RULES.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${RULES.PatchTitle.minNameLength} and ${RULES.PatchTitle.maxNameLength} symbols length`);
+        if (!validator.isLength(trimmed, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Name must be between ${config.VALIDATION.PatchTitle.minNameLength} and ${config.VALIDATION.PatchTitle.maxNameLength} symbols length`);
 
         newAlt.push(trimmed);
       });
 
-      if (newAlt.length > RULES.PatchTitle.maxAltNamesCount) throw new ERR_LENGTH_INVALID(`Alt names can not be more than ${RULES.PatchTitle.maxAltNamesCount}`);
+      if (newAlt.length > config.VALIDATION.PatchTitle.maxAltNamesCount) throw new ERR_LENGTH_INVALID(`Alt names can not be more than ${config.VALIDATION.PatchTitle.maxAltNamesCount}`);
 
       this.stack.push(`Changed alternative names (${this.title.names.alt.join(', ')} > ${newAlt.join(', ')})`);
       this.title.names.alt = newAlt;
@@ -256,7 +256,7 @@ export class TitleService {
 
   async patchDescription(description: string) {
     const trimmed = description.trim().replace(/\s+/g, ' ');
-    if (!validator.isLength(trimmed, { max: RULES.PatchTitle.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description must be shorter than ${RULES.PatchTitle.maxDescriptionLength} symbols length`);
+    if (!validator.isLength(trimmed, { max: config.VALIDATION.PatchTitle.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`);
 
     this.stack.push(`Changed description (${this.title.description.length} symbols > ${trimmed.length} symbols)`);
     this.title.markModified('description');
@@ -278,7 +278,7 @@ export class TitleService {
     }
 
     const trimmed = details.trim().replace(/\s+/g, ' ');
-    if (!validator.isLength(trimmed, { max: RULES.PatchTitle.maxDetailsLength })) throw new ERR_LENGTH_INVALID(`Details must be shorter than ${RULES.PatchTitle.maxDetailsLength} symbols length`);
+    if (!validator.isLength(trimmed, { max: config.VALIDATION.PatchTitle.maxDetailsLength })) throw new ERR_LENGTH_INVALID(`Details must be shorter than ${config.VALIDATION.PatchTitle.maxDetailsLength} symbols length`);
 
     this.stack.push(`Changed details (${Number(this.title.details?.length)} symbols > ${trimmed.length} symbols)`);
 
@@ -298,7 +298,7 @@ export class TitleService {
       return;
     }
 
-    if (count > RULES.PatchTitle.maxEpisode || count < RULES.PatchTitle.minEpisode) throw new ERR_LENGTH_INVALID(`Episodes count must be between ${RULES.PatchTitle.minEpisode} and ${RULES.PatchTitle.maxEpisode}`);
+    if (count > config.VALIDATION.PatchTitle.maxEpisode || count < config.VALIDATION.PatchTitle.minEpisode) throw new ERR_LENGTH_INVALID(`Episodes count must be between ${config.VALIDATION.PatchTitle.minEpisode} and ${config.VALIDATION.PatchTitle.maxEpisode}`);
 
     this.title.markModified('episodesCount');
 
@@ -307,7 +307,7 @@ export class TitleService {
   }
 
   async patchGenres(genres: TAnimeGenre[]) {
-    if (genres.length > RULES.PatchTitle.maxGenresCount) throw new ERR_LENGTH_INVALID(`Genres can not be more than ${RULES.PatchTitle.maxGenresCount}`);
+    if (genres.length > config.VALIDATION.PatchTitle.maxGenresCount) throw new ERR_LENGTH_INVALID(`Genres can not be more than ${config.VALIDATION.PatchTitle.maxGenresCount}`);
 
     genres.forEach(genre => {
       if (!AnimeGenres.includes(genre)) throw new ERR_TYPE_INVALID(`Genre ${genre} is invalid`);
@@ -328,7 +328,7 @@ export class TitleService {
 
       this.title.rating[type] = null;
     } else {
-      if (rating < RULES.PatchTitle.minRating || rating > RULES.PatchTitle.maxRating) throw new ERR_LENGTH_INVALID(`${type} rating must be between ${RULES.PatchTitle.minRating} and ${RULES.PatchTitle.maxRating}`);
+      if (rating < config.VALIDATION.PatchTitle.minRating || rating > config.VALIDATION.PatchTitle.maxRating) throw new ERR_LENGTH_INVALID(`${type} rating must be between ${config.VALIDATION.PatchTitle.minRating} and ${config.VALIDATION.PatchTitle.maxRating}`);
 
       this.stack.push(`Changed ${type} rating (${this.title.rating[type]} > ${rating})`);
 
@@ -339,7 +339,7 @@ export class TitleService {
   }
 
   async patchYear(year: number) {
-    if (year < RULES.PatchTitle.minYear || year > RULES.PatchTitle.maxYear) throw new ERR_LENGTH_INVALID(`Year must be between ${RULES.PatchTitle.minYear} and ${RULES.PatchTitle.maxYear}`);
+    if (year < config.VALIDATION.PatchTitle.minYear || year > config.VALIDATION.PatchTitle.maxYear) throw new ERR_LENGTH_INVALID(`Year must be between ${config.VALIDATION.PatchTitle.minYear} and ${config.VALIDATION.PatchTitle.maxYear}`);
 
     this.stack.push(`Changed year - ${this.title.year} > ${year}`);
     this.title.markModified('year');
@@ -350,12 +350,12 @@ export class TitleService {
   async patchStudios(studios: string[]) {
     const trimmedArr: string[] = [];
 
-    if (studios.length > RULES.PatchTitle.maxStudiosCount) throw new ERR_LENGTH_INVALID(`Studios can not be more than ${RULES.PatchTitle.maxStudiosCount}`);
+    if (studios.length > config.VALIDATION.PatchTitle.maxStudiosCount) throw new ERR_LENGTH_INVALID(`Studios can not be more than ${config.VALIDATION.PatchTitle.maxStudiosCount}`);
 
     studios.forEach(studio => {
       const trimmed = studio.trim().replace(/\s+/g, ' ');
 
-      if (!validator.isLength(trimmed, { min: RULES.PatchTitle.minStudioLength, max: RULES.PatchTitle.maxStudioLength })) throw new ERR_LENGTH_INVALID(`Studio name must be between ${RULES.PatchTitle.minStudioLength} and ${RULES.PatchTitle.maxStudioLength} symbols length`);
+      if (!validator.isLength(trimmed, { min: config.VALIDATION.PatchTitle.minStudioLength, max: config.VALIDATION.PatchTitle.maxStudioLength })) throw new ERR_LENGTH_INVALID(`Studio name must be between ${config.VALIDATION.PatchTitle.minStudioLength} and ${config.VALIDATION.PatchTitle.maxStudioLength} symbols length`);
 
       trimmedArr.push(trimmed);
     });
@@ -426,13 +426,13 @@ export class TitleService {
 
     if (action === 'edit') {
       if (dateOut < 0) throw new ERR_LENGTH_INVALID(`DateOut can not be less than 0`);
-      if (order < RULES.PatchTitle.minEpisode || order > RULES.PatchTitle.maxEpisode) throw new ERR_LENGTH_INVALID(`Order must be between ${RULES.PatchTitle.minEpisode} and ${RULES.PatchTitle.maxEpisode}`);
+      if (order < config.VALIDATION.PatchTitle.minEpisode || order > config.VALIDATION.PatchTitle.maxEpisode) throw new ERR_LENGTH_INVALID(`Order must be between ${config.VALIDATION.PatchTitle.minEpisode} and ${config.VALIDATION.PatchTitle.maxEpisode}`);
 
       const ukrTrimmed = names.ukr.trim().replace(/\s+/g, ' ');
       const engTrimmed = names.eng.trim().replace(/\s+/g, ' ');
 
-      if (!validator.isLength(ukrTrimmed, { min: RULES.PatchTitle.minNameLength, max: RULES.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Ukranian name must be between ${RULES.PatchTitle.minNameLength} and ${RULES.PatchTitle.maxNameLength} symbols length`);
-      if (!validator.isLength(engTrimmed, { min: RULES.PatchTitle.minNameLength, max: RULES.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`English name must be between ${RULES.PatchTitle.minNameLength} and ${RULES.PatchTitle.maxNameLength} symbols length`);
+      if (!validator.isLength(ukrTrimmed, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`Ukranian name must be between ${config.VALIDATION.PatchTitle.minNameLength} and ${config.VALIDATION.PatchTitle.maxNameLength} symbols length`);
+      if (!validator.isLength(engTrimmed, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw new ERR_LENGTH_INVALID(`English name must be between ${config.VALIDATION.PatchTitle.minNameLength} and ${config.VALIDATION.PatchTitle.maxNameLength} symbols length`);
 
       // Meta not found, create new
       if (!ep) {
@@ -570,7 +570,7 @@ export class TitleService {
     const formData = new FormData();
 
     if (!caps.includes('root') && !caps.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
-    if (episodeOrder > RULES.PatchTitle.maxEpisode || episodeOrder < RULES.PatchTitle.minEpisode) throw new ERR_LENGTH_INVALID(`Episode order must be between ${RULES.PatchTitle.minEpisode} and ${RULES.PatchTitle.maxEpisode}`);
+    if (episodeOrder > config.VALIDATION.PatchTitle.maxEpisode || episodeOrder < config.VALIDATION.PatchTitle.minEpisode) throw new ERR_LENGTH_INVALID(`Episode order must be between ${config.VALIDATION.PatchTitle.minEpisode} and ${config.VALIDATION.PatchTitle.maxEpisode}`);
 
     // Reject if episode exist
     if (this.title.episodes.find(el => (el.dubberID === dubber.id && el.order === episodeOrder))) throw new ERR_ALREADY_EXIST(`Episode ${episodeOrder}/${dubber.id} already exist`);
@@ -758,7 +758,7 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match(cfg.CONSTS.Domains.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
+        if (this.title.poster.match(cfg.config.DOMAINS.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.testMode) {

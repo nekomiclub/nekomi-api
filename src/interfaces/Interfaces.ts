@@ -10,7 +10,7 @@ export type Partial<T> = {
   [P in keyof T]?: T[P];
 };
 
-export interface IConfigData {
+export interface IConfigStatic {
   HomeWrapped: {
     featured: {
       /** Title ID */

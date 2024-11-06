@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { config, CONSTS } from '../../config';
+import { config, INTERNALS } from '../../config';
 import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../../services/ErrorService';
 import { MiddlewareService } from '../../services/MiddlewareService';
 import { singCSRFToken } from '../../services/TokenService';
@@ -9,7 +9,7 @@ describe('Middleware Service', () => {
   const instance = new MiddlewareService({ testMode: true });
 
   beforeAll(() => {
-    const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+    const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
     mongoose.set('strictQuery', false);
     mongoose.connect(MONGO_URI, {
@@ -109,14 +109,14 @@ describe('Middleware Service', () => {
   describe('checkCSRF', () => {
     test('Pass - No required origin', async () => {
       expect(await instance.checkCSRF('_MOCKED', [], {
-        origin: CONSTS.Domains.nekomi_core,
+        origin: config.DOMAINS.nekomi_core,
         verified: true
       })).toBeTruthy();
     });
 
     test('Pass - Required origin specified', async () => {
-      expect(await instance.checkCSRF('_MOCKED', [CONSTS.Domains.nekomi_core], {
-        origin: CONSTS.Domains.nekomi_core,
+      expect(await instance.checkCSRF('_MOCKED', [config.DOMAINS.nekomi_core], {
+        origin: config.DOMAINS.nekomi_core,
         verified: true
       })).toBeTruthy();
     });
@@ -136,7 +136,7 @@ describe('Middleware Service', () => {
 
     test('Pass - Origin missmatch', async () => {
       try {
-        await instance.checkCSRF('_MOCKED', [CONSTS.Domains.nekomi_core], {
+        await instance.checkCSRF('_MOCKED', [config.DOMAINS.nekomi_core], {
           origin: '_INVALID',
           verified: true
         });

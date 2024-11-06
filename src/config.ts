@@ -1,41 +1,35 @@
 import fs from 'fs';
 import path from 'path';
 
-import { IANIMEE_CONFIG } from '../interfaces';
 import CSRF from './secrets/CSRF';
 import { preserveIP } from './handlers/handler';
-import { IConfigData } from './interfaces/Interfaces';
+import { IConfigStatic } from './interfaces/Interfaces';
+import { FULLKEKW_CONFIG, ISERVICE_CONFIG } from '../SERVICE_CONFIG';
 
 
-
-const NEKOMI_DOMAIN = 'nekomi.club';
-const FULLKEKW_DOMAIN = 'nekomi.club';
-
-export const CONSTS = {
-  Domains: {
-    nekomi: NEKOMI_DOMAIN,
-    nekomi_auth: `auth.${NEKOMI_DOMAIN}`,
-    nekomi_core: `api.${NEKOMI_DOMAIN}`,
-    nekomi_media: `media.${NEKOMI_DOMAIN}`,
-    nekomi_bot: `bot.${NEKOMI_DOMAIN}`,
-
-    fullkekw: FULLKEKW_DOMAIN,
-    fullkekw_authority: `authority.${FULLKEKW_DOMAIN}`,
-    fullkekw_usapi: `usapi.${FULLKEKW_DOMAIN}`,
-  }
-};
-
-
-
-const ANIMEE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../CONFIG.json`).toString()) as IANIMEE_CONFIG;
 
 export const devMode = process.argv.includes('devMode');
 export const prodMode = process.argv.includes('prodMode');
 export const testMode = process.argv.includes('testMode');
 
 
+const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;
 
-const DATA: IConfigData = {
+const DOMAINS = {
+  nekomi: SERVICE_CONFIG.DOMAINS.nekomi_site,
+  nekomi_auth: SERVICE_CONFIG.DOMAINS.nekomi_auth,
+  nekomi_core: SERVICE_CONFIG.DOMAINS.nekomi_api,
+  nekomi_media: SERVICE_CONFIG.DOMAINS.nekomi_media,
+  nekomi_bot: SERVICE_CONFIG.DOMAINS.nekomi_bot,
+
+  fullkekw: FULLKEKW_CONFIG.DOMAINS.fullkekw,
+  fullkekw_authority: FULLKEKW_CONFIG.DOMAINS.fullkekw_authority,
+  fullkekw_usapi: FULLKEKW_CONFIG.DOMAINS.fullkekw_usapi,
+};
+
+
+
+export const STATIC: IConfigStatic = {
   HomeWrapped: {
     featured: prodMode ? [{
       id: '1db09f56-4ca8-4f11-9f6d-ca27ab682165',
@@ -65,37 +59,44 @@ const DATA: IConfigData = {
   }
 };
 
-/** Head config */
-export const config = {
-  /** DB object from global config */
-  db: ANIMEE_CONFIG.SERVICES.DB,
-
-  /** Current service object in global config */
-  service: ANIMEE_CONFIG.SERVICES.ANIMEE_CORE,
-
-  /** All service objects in global config */
-  services: ANIMEE_CONFIG.SERVICES,
-
-  /** Secrets */
-  secrets: {
-    /* CSRF Token */
-    CSRF
+export const INTERNALS = {
+  database: {
+    host: SERVICE_CONFIG.DATABASE!.host,
+    port: SERVICE_CONFIG.DATABASE!.port,
+    creds: prodMode ? SERVICE_CONFIG.SERVICES.nekomi_api.DATABASE!.production : SERVICE_CONFIG.SERVICES.nekomi_api.DATABASE!.development
   },
+  http_server: {
+    host: preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host),
+    port: SERVICE_CONFIG.SERVICES.nekomi_api.port
+  },
+  ws_server: {
+    host: preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host),
+    port: SERVICE_CONFIG.SERVICES.nekomi_api.port_ws!
+  },
+  secrets: {
+    CSRF
+  }
+};
 
+
+
+export const config = {
   /** URLs */
   URL: {
-    nekomi_site: prodMode ? `https://${CONSTS.Domains.nekomi}` : `http://${preserveIP('0.0.0.0')}:3001`,
-    nekomi_media: prodMode ? `https://${CONSTS.Domains.nekomi_media}` : `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_MEDIA.PORTS.HTTP}`,
-    nekomi_core: prodMode ? `https://${CONSTS.Domains.nekomi_core}` : `http://${preserveIP('0.0.0.0')}`,
+    nekomi_site: prodMode ? `https://${DOMAINS.nekomi}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_site.host)}:${SERVICE_CONFIG.SERVICES.nekomi_site.port}`,
+    nekomi_media: prodMode ? `https://${DOMAINS.nekomi_media}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_media.host)}:${SERVICE_CONFIG.SERVICES.nekomi_media.port}`,
+
+    /** In development mode port was changed into 80 */
+    nekomi_core: prodMode ? `https://${DOMAINS.nekomi_core}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host)}`,
 
     //* LOCAL
-    nekomi_bot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_BOT.PORTS.HTTP}`,
-    nekomi_uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
+    nekomi_bot: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_bot.host)}:${SERVICE_CONFIG.SERVICES.nekomi_bot.port}`,
+    nekomi_uploads: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_uploads.host)}:${SERVICE_CONFIG.SERVICES.nekomi_uploads.host}`,
 
 
 
-    fullkekw_authority: prodMode ? `https://${CONSTS.Domains.fullkekw_authority}` : `http://${preserveIP('0.0.0.0')}:45010`,
-    fullkekw_usapi: prodMode ? `https://${CONSTS.Domains.fullkekw_usapi}` : `http://${preserveIP('0.0.0.0')}:45660`,
+    fullkekw_authority: prodMode ? `https://${DOMAINS.fullkekw_authority}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_authority.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_authority.port}`,
+    fullkekw_usapi: prodMode ? `https://${DOMAINS.fullkekw_usapi}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.port}`,
   },
 
   /** Service variables */
@@ -131,36 +132,40 @@ export const config = {
     defaultPoster: 'https://media.nekomi.club/f55b8f18-6c59-4b1d-ae5e-ed22a918eb91',
   },
 
-  DATA
-};
-
-export const RULES = {
-  CreateUser: {
-    minNameLength: 6,
-    maxNameLength: 32
+  VALIDATION: {
+    CreateUser: {
+      minNameLength: 6,
+      maxNameLength: 32
+    },
+    PatchTitle: {
+      minNameLength: 1,
+      maxNameLength: 320,
+      maxAltNamesCount: 7,
+      maxDescriptionLength: 2200,
+      maxDetailsLength: 500,
+      minEpisode: 1,
+      maxEpisode: 9999,
+      maxGenresCount: 10,
+      minRating: 1,
+      maxRating: 10,
+      minYear: 2000,
+      maxYear: 2050,
+      maxStudiosCount: 5,
+      minStudioLength: 3,
+      maxStudioLength: 32,
+    }
   },
-  PatchTitle: {
-    minNameLength: 1,
-    maxNameLength: 320,
-    maxAltNamesCount: 7,
-    maxDescriptionLength: 2200,
-    maxDetailsLength: 500,
-    minEpisode: 1,
-    maxEpisode: 9999,
-    maxGenresCount: 10,
-    minRating: 1,
-    maxRating: 10,
-    minYear: 2000,
-    maxYear: 2050,
-    maxStudiosCount: 5,
-    minStudioLength: 3,
-    maxStudioLength: 32,
-  }
+
+  DOMAINS,
+  STATIC,
+  prodMode,
+  devMode,
+  testMode,
 };
 
 
 
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (devMode) {
-  config.service.PORTS.HTTP = 80;
+  INTERNALS.http_server.port = 80;
 }

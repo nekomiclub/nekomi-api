@@ -5,7 +5,7 @@ import * as dto from '../handlers/dtos';
 import * as TokenService from '../services/TokenService';
 
 import User, { UserService } from '../Models/User';
-import { config, CONSTS, devMode, prodMode, testMode } from '../config';
+import { config, devMode, prodMode, testMode } from '../config';
 import Title from '../Models/Title';
 import { $http } from '../handlers/http';
 import { ITitle } from '../interfaces/Title';
@@ -104,7 +104,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
-      domain: prodMode ? `.${CONSTS.Domains.nekomi}` : undefined
+      domain: prodMode ? `.${config.DOMAINS.nekomi}` : undefined
     }).json({
       message: 'User signed in',
       id: DATA.id,
@@ -121,7 +121,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 
     return res.status(200).clearCookie(config.vars.sessionCookie, {
       httpOnly: true,
-      domain: prodMode ? `.${CONSTS.Domains.nekomi}` : undefined
+      domain: prodMode ? `.${config.DOMAINS.nekomi}` : undefined
     }).json({ message: `Logged out` });
   });
 }
@@ -260,7 +260,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
         DATA.verified = data.verified;
       }
 
-      if (DATA.verified && DATA.origin === CONSTS.Domains.nekomi) {
+      if (DATA.verified && DATA.origin === config.DOMAINS.nekomi) {
         privateMode = !DATA.verified;
       } else {
         throw new ERR_ACCESS_REJECTED(`Can not get detailed user information due to token error`);

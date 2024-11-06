@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { config, CONSTS, devMode, prodMode } from '../config';
+import { config, devMode, INTERNALS, prodMode } from '../config';
 import { createStringID, getUTC } from '../handlers/handler';
 
 /** Decoded token interface */
@@ -73,7 +73,7 @@ export function decodeToken<T = any>(token: string, method?: TTokenMethod): ITok
 /** Verify CSRF token */
 export function verifyCSRFToken(token: string): boolean {
   try {
-    return Boolean(jwt.verify(token, config.secrets.CSRF));
+    return Boolean(jwt.verify(token, INTERNALS.secrets.CSRF));
   } catch (e) {
     return false;
   }
@@ -82,9 +82,9 @@ export function verifyCSRFToken(token: string): boolean {
 /** Sign CSRF token */
 export function singCSRFToken(): string {
   return jwt.sign({
-    origin: CONSTS.Domains.nekomi_core,
+    origin: config.DOMAINS.nekomi_core,
     expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
-  }, config.secrets.CSRF, {
+  }, INTERNALS.secrets.CSRF, {
     algorithm: 'RS256'
   });
 }

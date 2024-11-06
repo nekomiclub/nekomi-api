@@ -81,7 +81,7 @@ export class UserService {
 
   static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
     if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
-    if (!validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
+    if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
     const existUser = await UserModel.findOne({ $or: [{ id }, { username }] });
@@ -257,7 +257,7 @@ export class UserService {
   /** Patch username */
   async patchUsername({ username, bypassValidation }: { username: string, bypassValidation?: boolean }) {
     if (!bypassValidation && !validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
-    if (!bypassValidation && !validator.isLength(username, { min: cfg.RULES.CreateUser.minNameLength, max: cfg.RULES.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
+    if (!bypassValidation && !validator.isLength(username, { min: cfg.config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
 
     const existUser = await UserModel.findOne({ username, id: { $ne: this.user.id } });
     if (existUser) throw new ERR_ALREADY_EXIST(`User with username ${username} already exist`);
@@ -297,7 +297,7 @@ export class UserService {
       if (viewtime < 0 || viewtime > 120000) throw new ERR_INVALID_PAYLOAD(`Viewtime can not be increased by more than 2h or less than 0s`);
 
       this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s + ${viewtime}s)`);
-      this.user.statistics.viewtime + viewtime;
+      this.user.statistics.viewtime += viewtime;
     }
 
     this.user.markModified('statistics');

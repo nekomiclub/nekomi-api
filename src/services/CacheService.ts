@@ -25,8 +25,8 @@ class CacheService {
     const titles = await TitleModel.find();
 
     // Parse featured
-    for (const key in config.DATA.HomeWrapped.featured) {
-      const { backgroundURL, id, videoURL } = config.DATA.HomeWrapped.featured[key];
+    for (const key in config.STATIC.HomeWrapped.featured) {
+      const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
 
       const title = await TitleModel.findOne({ id: id });
       if (!title) throw new E404(`Title ${id} is not found in featured data`);
@@ -39,7 +39,7 @@ class CacheService {
     }
 
     // Parse popular
-    this.HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.DATA.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
+    this.HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
 
     // Fetch recently updated
     this.HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => dto.title(el.toObject()));

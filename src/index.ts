@@ -12,7 +12,7 @@ import ip from 'ip';
 import process from 'process';
 import chalk from 'chalk';
 
-import { devMode, testMode, config, prodMode, CONSTS } from './config';
+import { devMode, testMode, config, prodMode, INTERNALS } from './config';
 
 import Router from './router';
 import { updateSearch } from './controllers/root';
@@ -52,33 +52,33 @@ const hskey = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/priv
 const hscert = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
 const hschain = prodMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
-const MONGO_URI = `mongodb://${prodMode ? `${config.service.DB!.PROD.USR}:${config.service.DB!.PROD.PWD}` : `${config.service.DB!.DEV.USR}:${config.service.DB!.DEV.PWD}`}@${config.db.HOST}:${config.db.PORT}/${prodMode ? config.service.DB!.PROD.DB_NAME : config.service.DB!.DEV.DB_NAME}` as const;
+const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
 mongoose.set('strictQuery', false);
 
 mongoose.connect(MONGO_URI, {
   retryWrites: true,
 }).catch(e => {
-  Logger.error('[Startup/MongoDB]: MongoDB connection errored', e);
+  Logger.fail('[Startup/MongoDB]: MongoDB connection errored', e);
 });
 
 export const app = express();
 export const wss = devMode ? new WebSocketServer({
-  host: config.service.HOST,
-  port: config.service.PORTS.WS!,
+  host: INTERNALS.ws_server.host,
+  port: INTERNALS.ws_server.port,
 }) : new WebSocketServer({
   server: https.createServer({
     key: hskey,
     cert: hscert,
     ca: [hschain],
-  }).listen(config.service.PORTS.WS!, config.service.HOST)
+  }).listen(INTERNALS.ws_server.port, INTERNALS.ws_server.host)
 });
 
 const CORSOpt: CorsOptions = {
   origin: [
-    `https://${CONSTS.Domains.nekomi}`,
-    `https://${CONSTS.Domains.nekomi_auth}`,
-    `https://${CONSTS.Domains.nekomi_core}`,
+    `https://${config.DOMAINS.nekomi}`,
+    `https://${config.DOMAINS.nekomi_auth}`,
+    `https://${config.DOMAINS.nekomi_core}`,
 
     devMode ? 'http://192.168.0.106:3001' : '_null',
     devMode ? 'http://192.168.0.106:3000' : '_null',
@@ -112,7 +112,7 @@ app.use('/', Router.RootRouter);
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
 wss.on('listening', () => {
   const mode = `${prodMode ? 'Production' : 'Development'}${testMode ? ' (Testing)' : ''}`;
-  Logger.info(`[Startup]: Websocket server started in ${mode} mode at ws://${config.service.HOST}:${config.service.PORTS.WS}`);
+  Logger.info(`[Startup]: Websocket server started in ${mode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server}`);
 });
 
 
@@ -125,8 +125,8 @@ wss.on('listening', () => {
     await removeUsersLinkTelegramToken(),
   ] as const;
 
-  app.listen(config.service.PORTS.HTTP, config.service.HOST, () => {
-    Logger.info(`[Startup]: HTTP server started in ${mode} mode at http://${config.service.HOST}:${config.service.PORTS.HTTP}`);
+  app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
+    Logger.info(`[Startup]: HTTP server started in ${mode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
   });
 
   wss.on('connection', WebsocketRouter);
@@ -141,8 +141,8 @@ wss.on('listening', () => {
     
       Date: ${getUTC().date} UTC-0 ${getUTC().time}
       Mode: ${mode}
-      HTTP: http://${preserveIP(config.service.HOST)}:${config.service.PORTS.HTTP} ${devMode ? '(port changed, see README.md)' : ''}
-      WS: ${preserveIP(config.service.HOST)}:${config.service.PORTS.WS}
+      HTTP: http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port} ${devMode ? '(port changed, see README.md)' : ''}
+      WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
       ----------------------------
     `);
 

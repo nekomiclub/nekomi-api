@@ -4,7 +4,7 @@ import { convert as createSlug } from 'url-slug';
 
 import { IDubber } from '../interfaces/Dubber';
 import { createID, getUTC } from '../handlers/handler';
-import { config, prodMode, RULES } from '../config';
+import { config, prodMode } from '../config';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { Logger } from '../services/LoggerService';
 
@@ -41,9 +41,9 @@ export class DubberService {
     id = prodMode ? createID() : id || createID();
     code = createSlug(code);
 
-    if (!validator.isLength(name, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
+    if (!validator.isLength(name, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
 
-    if (!validator.isLength(code, { max: RULES.CreateUser.maxNameLength, min: RULES.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
+    if (!validator.isLength(code, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
     const existDubber = await DubberModel.findOne({ code });
     if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${code} already exist`);

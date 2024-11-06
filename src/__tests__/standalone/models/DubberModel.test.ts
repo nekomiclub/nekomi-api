@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
-import { config, RULES } from '../../../config';
+import { config, INTERNALS } from '../../../config';
 import { DubberService } from '../../../Models/Dubber';
 import { ERR_ALREADY_EXIST, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
 
 
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
   mongoose.set('strictQuery', false);
   mongoose.connect(MONGO_URI, {
@@ -46,8 +46,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Above max)', async () => {
       try {
         await DubberService.create({
-          code: 'X'.repeat(RULES.CreateUser.maxNameLength + 1),
-          name: 'X'.repeat(RULES.CreateUser.maxNameLength + 1),
+          code: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
+          name: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();
@@ -59,8 +59,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Below min)', async () => {
       try {
         await DubberService.create({
-          code: 'X'.repeat(RULES.CreateUser.minNameLength - 1),
-          name: 'X'.repeat(RULES.CreateUser.minNameLength - 1),
+          code: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
+          name: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();

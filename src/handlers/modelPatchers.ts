@@ -5,7 +5,7 @@ import { HydratedDocument } from 'mongoose';
 import UserModel from '../Models/User';
 import { Logger } from '../services/LoggerService';
 import { getUTC } from './handler';
-import { config, CONSTS } from '../config';
+import { config } from '../config';
 import TitleModel from '../Models/Title';
 import DubberModel from '../Models/Dubber';
 import { getVideoDurationInSeconds } from 'get-video-duration';

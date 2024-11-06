@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { config, CONSTS, RULES } from '../../../config';
+import { config, INTERNALS } from '../../../config';
 import { TNotifyEvent } from '../../../interfaces/services/Notify';
 import { DubberService } from '../../../Models/Dubber';
 import Title, { TitleService } from '../../../Models/Title';
@@ -10,7 +10,7 @@ import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from
 
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
   mongoose.set('strictQuery', false);
   mongoose.connect(MONGO_URI, {
@@ -79,7 +79,7 @@ describe('User Model', () => {
       try {
         await UserService.create({
           id: TestID1,
-          username: 'X'.repeat(RULES.CreateUser.maxNameLength + 1),
+          username: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
         });
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -122,7 +122,7 @@ describe('User Model', () => {
 
   describe('patchAvatar', () => {
     test('Pass - Avatar changed', async () => {
-      const url = `https://${CONSTS.Domains.nekomi_media}/123`;
+      const url = `https://${config.DOMAINS.nekomi_media}/123`;
       await User.patchAvatar({ url });
 
       expect(User.user.avatar).toBe(url);
@@ -157,7 +157,7 @@ describe('User Model', () => {
       }
 
       try {
-        await User.patchUsername({ username: 'X'.repeat(RULES.CreateUser.maxNameLength + 1) });
+        await User.patchUsername({ username: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1) });
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {

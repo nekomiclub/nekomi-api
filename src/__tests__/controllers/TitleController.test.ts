@@ -1,7 +1,7 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import { config, CONSTS } from '../../config';
+import { config, INTERNALS } from '../../config';
 import UserModel, { UserService } from '../../Models/User';
 import DubberModel from '../../Models/Dubber';
 import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify, IMock } from '../../interfaces/Mocks';
@@ -10,7 +10,7 @@ import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
 
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
   mongoose.set('strictQuery', false);
   mongoose.connect(MONGO_URI, {
@@ -50,7 +50,7 @@ describe('Title Controller', () => {
 
     // Add watch progress for GET /title/home_wrapped
     await User.patchWatchProgress({
-      titleID: config.DATA.HomeWrapped.featured[0].id,
+      titleID: config.STATIC.HomeWrapped.featured[0].id,
       dubberID: dubber[0].id,
       episodeOrder: 1,
       progress: 1,
@@ -73,7 +73,7 @@ describe('Title Controller', () => {
     id: 'FkAuthorityVerify',
     code: 200,
     data: {
-      origin: CONSTS.Domains.nekomi,
+      origin: config.DOMAINS.nekomi,
       verified: true
     }
   };
@@ -152,7 +152,7 @@ describe('Title Controller', () => {
         .set(config.vars.mockHeader, JSON.stringify([CSRFMock, ACMock, UsapiRefreshMock]))
         .expect(200);
 
-      expect(body.watchProgress[0].titleID).toBe(config.DATA.HomeWrapped.featured[0].id);
+      expect(body.watchProgress[0].titleID).toBe(config.STATIC.HomeWrapped.featured[0].id);
     });
   });
 });

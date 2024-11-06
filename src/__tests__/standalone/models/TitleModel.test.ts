@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { config, RULES } from '../../../config';
+import { config, INTERNALS } from '../../../config';
 import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
 import { TitleService } from '../../../Models/Title';
 import { ITitleEpisodeMeta, TAnimeGenre } from '../../../interfaces/Title';
@@ -12,7 +12,7 @@ import DubberModel, { DubberService } from '../../../Models/Dubber';
 
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${config.service.DB?.DEV.USR}:${config.service.DB?.DEV.PWD}@${config.db.HOST}:${config.db.PORT}/${config.service.DB?.DEV.DB_NAME}`;
+  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
 
   mongoose.set('strictQuery', false);
   mongoose.connect(MONGO_URI, {
@@ -97,7 +97,7 @@ describe('Title Model', () => {
       // Greater than max
       try {
         await Title.patchNames({
-          eng: 'X'.repeat(RULES.PatchTitle.maxNameLength + 1)
+          eng: 'X'.repeat(config.VALIDATION.PatchTitle.maxNameLength + 1)
         });
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -110,7 +110,7 @@ describe('Title Model', () => {
       // Less than min
       try {
         await Title.patchNames({
-          eng: 'X'.repeat(RULES.PatchTitle.minNameLength - 1)
+          eng: 'X'.repeat(config.VALIDATION.PatchTitle.minNameLength - 1)
         });
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -124,7 +124,7 @@ describe('Title Model', () => {
     test('Reject - Alt names too large', async () => {
       try {
         await Title.patchNames({
-          alt: 'XXX '.repeat(RULES.PatchTitle.maxAltNamesCount).split(' ')
+          alt: 'XXX '.repeat(config.VALIDATION.PatchTitle.maxAltNamesCount).split(' ')
         });
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -148,7 +148,7 @@ describe('Title Model', () => {
 
     test('Reject - length missmatch', async () => {
       try {
-        await Title.patchDescription('X'.repeat(RULES.PatchTitle.maxDescriptionLength + 1));
+        await Title.patchDescription('X'.repeat(config.VALIDATION.PatchTitle.maxDescriptionLength + 1));
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -176,7 +176,7 @@ describe('Title Model', () => {
 
     test('Reject - length missmatch', async () => {
       try {
-        await Title.patchDetails('X'.repeat(RULES.PatchTitle.maxDetailsLength + 1));
+        await Title.patchDetails('X'.repeat(config.VALIDATION.PatchTitle.maxDetailsLength + 1));
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -202,7 +202,7 @@ describe('Title Model', () => {
     test('Reject - length missmatch', async () => {
       // Episodes count greater than maximum
       try {
-        await Title.patchEpisodesCount(RULES.PatchTitle.maxEpisode + 1);
+        await Title.patchEpisodesCount(config.VALIDATION.PatchTitle.maxEpisode + 1);
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -250,7 +250,7 @@ describe('Title Model', () => {
     test('Reject - length missmatch', async () => {
       // Rating greater than maximum
       try {
-        await Title.patchRating(RULES.PatchTitle.maxRating + 1, 'IMDB');
+        await Title.patchRating(config.VALIDATION.PatchTitle.maxRating + 1, 'IMDB');
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -270,7 +270,7 @@ describe('Title Model', () => {
     test('Reject - length missmatch', async () => {
       // Year lesser than minimum
       try {
-        await Title.patchYear(RULES.PatchTitle.minYear - 1);
+        await Title.patchYear(config.VALIDATION.PatchTitle.minYear - 1);
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -281,7 +281,7 @@ describe('Title Model', () => {
 
       // Year greater than maximum
       try {
-        await Title.patchYear(RULES.PatchTitle.maxYear + 1);
+        await Title.patchYear(config.VALIDATION.PatchTitle.maxYear + 1);
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -304,7 +304,7 @@ describe('Title Model', () => {
     test('Reject - studio length invalid', async () => {
       // Studios count greater than maximum
       try {
-        await Title.patchStudios('XXX '.repeat(RULES.PatchTitle.maxStudioLength).split(' '));
+        await Title.patchStudios('XXX '.repeat(config.VALIDATION.PatchTitle.maxStudioLength).split(' '));
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -315,7 +315,7 @@ describe('Title Model', () => {
 
       // Studio name greater than maximum
       try {
-        await Title.patchStudios(['X'.repeat(RULES.PatchTitle.maxStudioLength + 1), 'Helkl', 'fsdfsdfsd']);
+        await Title.patchStudios(['X'.repeat(config.VALIDATION.PatchTitle.maxStudioLength + 1), 'Helkl', 'fsdfsdfsd']);
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       } catch (e) {
@@ -434,7 +434,7 @@ describe('Title Model', () => {
           dateOut: getUTC().timestamp,
           order: 3,
           names: {
-            eng: 'X'.repeat(RULES.PatchTitle.maxNameLength + 1),
+            eng: 'X'.repeat(config.VALIDATION.PatchTitle.maxNameLength + 1),
             ukr: '123'
           }
         });
@@ -453,7 +453,7 @@ describe('Title Model', () => {
           dateOut: getUTC().timestamp,
           order: 3,
           names: {
-            eng: 'X'.repeat(RULES.PatchTitle.minNameLength - 1),
+            eng: 'X'.repeat(config.VALIDATION.PatchTitle.minNameLength - 1),
             ukr: '123'
           }
         });
