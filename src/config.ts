@@ -107,9 +107,6 @@ export const config = {
 
     /** Animee uploads */
     uploads: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS.PORTS.HTTP}`,
-
-    /** Animee uploads bot */
-    uploadsBot: `http://${preserveIP(ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.HOST)}:${ANIMEE_CONFIG.SERVICES.ANIMEE_UPLOADS_BOT.PORTS.HTTP}`,
   },
 
   /** Service variables */
