@@ -1,9 +1,8 @@
+import User, { UserService } from '../../Models/User';
 import mongoose from 'mongoose';
-import { config, INTERNALS } from '../../config';
-import { E404, ERR_ACCESS_REJECTED, HTTPErrorConstructor } from '../../services/ErrorService';
+import { E404, ERR_ACCESS_REJECTED } from '../../services/ErrorService';
+import { INTERNALS, config } from '../../config';
 import { MiddlewareService } from '../../services/MiddlewareService';
-import { singCSRFToken } from '../../services/TokenService';
-import User, { UserModel, UserService } from '../../Models/User';
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService({ testMode: true });

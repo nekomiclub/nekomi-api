@@ -1,8 +1,8 @@
-import { query, body, param } from 'express-validator';
 import cors from 'cors';
 import multer from 'multer';
+import { body } from 'express-validator';
 
-import { FkUsapiAuthRefresh, FkAuthorityVerify } from '../middlewares';
+import { FkAuthorityVerify, FkUsapiAuthRefresh } from '../middlewares';
 import { config } from '../config';
 
 

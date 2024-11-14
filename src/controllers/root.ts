@@ -1,19 +1,19 @@
-import express from 'express';
-import Fuse, { FuseResult } from 'fuse.js';
 import * as dto from '../handlers/dtos';
+import Fuse, { FuseResult } from 'fuse.js';
+import express from 'express';
 
-import { ITitle } from '../interfaces/Title';
-import Title from '../Models/Title';
-import { checkValue } from '../handlers/handlers';
 import Dubber from '../Models/Dubber';
+import Title from '../Models/Title';
 import User from '../Models/User';
-import { IDubber } from '../interfaces/Dubber';
-import { IUser } from '../interfaces/User';
-import { E400, E418, E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
-import { Logger } from '../services/LoggerService';
-import { AxiosError } from 'axios';
 import { $upload } from '../handlers/http';
-import { NEKOMI_UPLOADS, IA_UploadsUpload } from '../interfaces/http/Uploads';
+import { AxiosError } from 'axios';
+import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
+import { IDubber } from '../interfaces/Dubber';
+import { ITitle } from '../interfaces/Title';
+import { IUser } from '../interfaces/User';
+import { Logger } from '../services/LoggerService';
+import { checkValue } from '../handlers/handlers';
 
 
 

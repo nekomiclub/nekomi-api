@@ -1,7 +1,7 @@
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
-import path from 'path';
-import fs from 'fs';
 import chalk from 'chalk';
+import fs from 'fs';
+import path from 'path';
+import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
 
 export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace', 'suspicious'] as const;
 export type TLogType = typeof LOG_TYPES[number];

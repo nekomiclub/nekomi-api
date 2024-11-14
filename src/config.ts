@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 import CSRF from './secrets/CSRF';
-import { preserveIP } from './handlers/handler';
 import { IConfigStatic } from './interfaces/Interfaces';
-import { FULLKEKW_CONFIG, ISERVICE_CONFIG } from '../SERVICE_CONFIG';
+import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
+import { preserveIP } from './handlers/handler';
 
 
 
@@ -14,6 +14,23 @@ export const testMode = process.argv.includes('testMode');
 
 
 const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;
+const FULLKEKW_CONFIG = {
+  DOMAINS: {
+    fullkekw: 'nekomi.club',
+    fullkekw_authority: 'authority.nekomi.club',
+    fullkekw_usapi: 'usapi.nekomi.club',
+  },
+  SERVICES: {
+    fullkekw_authority: {
+      host: '0.0.0.0',
+      port: 45010
+    },
+    fullkekw_usapi: {
+      host: '0.0.0.0',
+      port: 45660
+    },
+  }
+};
 
 const DOMAIN = {
   nekomi: SERVICE_CONFIG.DOMAINS.nekomi_site,
@@ -90,7 +107,7 @@ export const config = {
 
     //* LOCAL
     nekomi_bot: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_bot.host)}:${SERVICE_CONFIG.SERVICES.nekomi_bot.port}`,
-    nekomi_uploads: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_uploads.host)}:${SERVICE_CONFIG.SERVICES.nekomi_uploads.host}`,
+    nekomi_uploads: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_uploads.host)}:${SERVICE_CONFIG.SERVICES.nekomi_uploads.port}`,
 
 
 

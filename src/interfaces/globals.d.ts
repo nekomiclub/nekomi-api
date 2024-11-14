@@ -1,6 +1,7 @@
 import { WebSocket } from 'ws';
-import { TRoleCapability } from './Roles';
+
 import { TMiddlewareName } from '../services/MiddlewareService';
+import { TRoleCapability } from './Roles';
 
 declare global {
   namespace Express {

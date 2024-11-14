@@ -1,7 +1,7 @@
 import express from 'express';
-import { IMock, TMockID } from '../interfaces/Mocks';
-import { E500 } from '../services/ErrorService';
 import { AxiosError } from 'axios';
+import { E500 } from '../services/ErrorService';
+import { IMock, TMockID } from '../interfaces/Mocks';
 import { config } from '../config';
 
 /** Get mock data */

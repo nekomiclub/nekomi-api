@@ -1,30 +1,23 @@
-import express from 'express';
-import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import { WebSocketServer } from 'ws';
-import https from 'https';
-import http from 'http';
-import cors, { CorsOptions } from 'cors';
-import fs from 'fs';
-import path, { resolve } from 'path';
-import ip from 'ip';
-import process from 'process';
 import chalk from 'chalk';
+import cookieParser from 'cookie-parser';
+import cors, { CorsOptions } from 'cors';
+import express from 'express';
+import fs from 'fs';
+import https from 'https';
+import ip from 'ip';
+import mongoose from 'mongoose';
+import { WebSocketServer } from 'ws';
 
-import { devMode, testMode, config, prodMode, INTERNALS } from './config';
+import { INTERNALS, config, devMode, prodMode, testMode } from './config';
 
-import Router from './router';
-import { updateSearch } from './controllers/root';
-import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
-import { MiddlewareService } from './services/MiddlewareService';
-import { Logger } from './services/LoggerService';
-import { getUTC, preserveIP } from './handlers/handler';
-import { DubberService } from './Models/Dubber';
-import TitleModel, { TitleService } from './Models/Title';
 import Cache from './services/CacheService';
+import Router from './router';
+import { Logger } from './services/LoggerService';
+import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
+import { getUTC } from './handlers/handler';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
-import { patchDubberModel, patchTitleModel, patchUserModel } from './handlers/modelPatchers';
+import { updateSearch } from './controllers/root';
 
 
 

@@ -1,4 +1,3 @@
-import { TRoleCapability } from './Roles';
 
 /** Deep copy interface and return it with optional keys */
 export type DeepPartial<T> = {

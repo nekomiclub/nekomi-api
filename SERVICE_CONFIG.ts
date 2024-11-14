@@ -1,37 +1,9 @@
 /** 
  * CONFIG FOR nekomi SERVICES
- * @version 1.3.1:06.11
+ * @version 1.3.2:14.11
 */
 
-type TFKSERVICE = 'fullkekw_authority'
-  | 'fullkekw_usapi'
-  | 'fullkekw'
 
-export const FULLKEKW_CONFIG: ISERVICE_CONFIG<TFKSERVICE> = {
-  DATABASE: null,
-  SERVICES: {
-    fullkekw_authority: {
-      DATABASE: null,
-      host: '0.0.0.0',
-      port: 45010
-    },
-    fullkekw_usapi: {
-      DATABASE: null,
-      host: '0.0.0.0',
-      port: 45660
-    },
-    fullkekw: {
-      DATABASE: null,
-      host: '0.0.0.0',
-      port: 0
-    }
-  },
-  DOMAINS: {
-    fullkekw: 'nekomi.club',
-    fullkekw_authority: 'authority.nekomi.club',
-    fullkekw_usapi: 'usapi.nekomi.club',
-  }
-};
 
 
 
@@ -47,15 +19,15 @@ export type TSERVICE = 'nekomi_site'
 
 
 /** SERVICE_CONFIG.json */
-export interface ISERVICE_CONFIG<TYPE extends string = TSERVICE> {
-  DATABASE: Database | null
+export interface ISERVICE_CONFIG {
+  DATABASE: Database
 
   DOMAINS: {
-    [key in TYPE]: string
+    [key in TSERVICE]: string
   }
 
   SERVICES: {
-    [key in TYPE]: Service
+    [key in TSERVICE]: Service
   }
 }
 
@@ -65,9 +37,11 @@ interface Service {
   DATABASE: {
     production: DatabaseCreds
     development?: DatabaseCreds
+  }
 
-    database?: Database
-  } | null
+  CREDS: {
+    [key: string]: string
+  }
 
   host: string
   port: number

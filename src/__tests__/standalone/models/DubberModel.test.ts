@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-import { config, INTERNALS } from '../../../config';
 import { DubberService } from '../../../Models/Dubber';
 import { ERR_ALREADY_EXIST, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
+import { INTERNALS, config } from '../../../config';
 
 
 

@@ -2,11 +2,11 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import validator from 'validator';
 import { convert as createSlug } from 'url-slug';
 
-import { IDubber } from '../interfaces/Dubber';
-import { createID, getUTC } from '../handlers/handler';
-import { config, prodMode } from '../config';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { IDubber } from '../interfaces/Dubber';
 import { Logger } from '../services/LoggerService';
+import { config, prodMode } from '../config';
+import { createID, getUTC } from '../handlers/handler';
 
 /** To create/patch/delete Dubber instance use DubberService */
 export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({

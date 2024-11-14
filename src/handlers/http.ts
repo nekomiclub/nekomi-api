@@ -2,8 +2,8 @@ import axios from 'axios';
 import http from 'http';
 import https from 'https';
 
-import { singCSRFToken } from '../services/TokenService';
 import { config } from '../config';
+import { singCSRFToken } from '../services/TokenService';
 
 /** Axios instance. By default set X-CSRF-Token */
 export const $http = axios.create({

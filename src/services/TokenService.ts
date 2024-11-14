@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
-import { config, devMode, INTERNALS, prodMode } from '../config';
+import { INTERNALS, config } from '../config';
 import { createStringID, getUTC } from '../handlers/handler';
 
 /** Decoded token interface */

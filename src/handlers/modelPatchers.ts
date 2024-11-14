@@ -1,13 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
-import { HydratedDocument } from 'mongoose';
-import UserModel from '../Models/User';
-import { Logger } from '../services/LoggerService';
-import { getUTC } from './handler';
-import { config } from '../config';
-import TitleModel from '../Models/Title';
 import DubberModel from '../Models/Dubber';
+import TitleModel from '../Models/Title';
+import UserModel from '../Models/User';
+import { HydratedDocument } from 'mongoose';
+import { Logger } from '../services/LoggerService';
+import { config } from '../config';
+import { getUTC } from './handler';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 
 export async function patchUserModel() {

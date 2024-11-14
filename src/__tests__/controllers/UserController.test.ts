@@ -1,16 +1,14 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import { config, INTERNALS } from '../../config';
-import UserModel, { UserService } from '../../Models/User';
-import { IM_FkUsapiAuthRefresh, IM_FkAuthorityVerify, IMock } from '../../interfaces/Mocks';
-import { ERR_MISSING_AUTHORIZATION } from '../../services/ErrorService';
-import exp from 'constants';
-import { createID, getUTC } from '../../handlers/handler';
 import Title, { TitleService } from '../../Models/Title';
+import UserModel, { UserService } from '../../Models/User';
+import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../interfaces/Mocks';
+import { INTERNALS, config } from '../../config';
 import { IUser } from '../../interfaces/User';
 import { NotifyService } from '../../services/NotifyService';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
+import { createID, getUTC } from '../../handlers/handler';
 
 beforeAll(() => {
   const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;

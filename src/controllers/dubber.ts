@@ -1,9 +1,6 @@
-import express from 'express';
-import fs from 'fs';
 import * as dto from '../handlers/dtos';
 import Dubber from '../Models/Dubber';
-import { devMode } from '../config';
-import { IDubber } from '../interfaces/Dubber';
+import express from 'express';
 import { E404, HandleRequest } from '../services/ErrorService';
 
 export async function getOne(req: express.Request, res: express.Response) {

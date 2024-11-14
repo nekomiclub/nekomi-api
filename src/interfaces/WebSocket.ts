@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws';
 import { WebSocketExtended } from './globals';
 
 export const WS_REQUEST_TYPES = [

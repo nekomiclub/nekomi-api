@@ -1,10 +1,10 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import { config, devMode, prodMode, testMode } from './config';
-import { TRoleCapability } from './interfaces/Roles';
-import { E404, ERR_ACCESS_REJECTED, ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
+import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
 import { MiddlewareService } from './services/MiddlewareService';
+import { TRoleCapability } from './interfaces/Roles';
+import { config, testMode } from './config';
 import { getMockData } from './handlers/mocks';
 
 
