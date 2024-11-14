@@ -24,4 +24,9 @@ export interface IA_UploadsUpload {
 
   /** Upload URL */
   url: string
+
+  /** SRT id */
+  srt_id?: string
+
+  frames?: number
 }

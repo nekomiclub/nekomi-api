@@ -24,6 +24,7 @@ import * as RootController from './controllers/root';
 
 RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 RootRouter.post('/upload', RouteValidation.postUpload, RootController.postUpload);
+RootRouter.delete('/upload/:id', RouteValidation.deleteUpload, RootController.deleteUpload);
 
 
 

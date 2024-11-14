@@ -90,8 +90,13 @@ export const getSearch = [
 
 export const postUpload = [
   FkAuthorityVerify([config.DOMAIN.nekomi]),
-  FkUsapiAuthRefresh(['root']),
+  FkUsapiAuthRefresh(['admin']),
   upload.single('file'),
   body('type')
     .notEmpty().withMessage('Type must be provided')
+];
+
+export const deleteUpload = [
+  FkAuthorityVerify([config.DOMAIN.nekomi]),
+  FkUsapiAuthRefresh(['admin']),
 ];

@@ -196,8 +196,9 @@ export async function postUpload(req: express.Request, res: express.Response) {
     const { buffer, originalname, filename, mimetype } = file;
     const formData = new FormData();
 
-    const UPLOAD_DATA: { url: string } = {
-      url: ''
+    const UPLOAD_DATA: { url: string, id: string, srt_id?: string, frames?: number } = {
+      url: '',
+      id: '',
     };
 
     formData.append('file', new Blob([buffer], {
@@ -210,6 +211,9 @@ export async function postUpload(req: express.Request, res: express.Response) {
     try {
       const { data: postData } = await $upload.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
       UPLOAD_DATA.url = postData.url;
+      UPLOAD_DATA.id = postData.id;
+      UPLOAD_DATA.frames = postData.frames;
+      UPLOAD_DATA.srt_id = postData.srt_id;
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {
@@ -222,6 +226,37 @@ export async function postUpload(req: express.Request, res: express.Response) {
       }
     }
 
-    return res.status(201).json({ message: `File with type ${type} uploaded`, url: UPLOAD_DATA.url });
+    return res.status(201).json({ message: `File with type ${type} uploaded`, ...UPLOAD_DATA });
+  });
+}
+
+export async function deleteUpload(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
+
+    const { id } = req.params as { id: string };
+    const userID = req.nekomi.user?.id;
+
+    try {
+      await $upload.delete(NEKOMI_UPLOADS.delete_upload(id), {
+        params: {
+          by: userID,
+          withChildren: true
+        }
+      });
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        if (e.code === 'ECONNREFUSED') {
+          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
+        }
+
+        throw e;
+      } else {
+        throw e;
+      }
+    }
+
+    return res.status(201).json({ message: `Upload removed`, });
   });
 }
