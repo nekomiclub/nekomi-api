@@ -44,6 +44,8 @@ interface IPatchTitleBody {
   episodesCount?: number
   IMDBRating?: number
   AnimeeRating?: number
+  malRating?: number
+  malPoll?: number
 
   editEpMeta?: IChangeEpMeta
   parseIMDBEpisodesMeta?: string
@@ -92,7 +94,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     const { query } = req.params as { query: string };
     const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
 
-    const title = await Title.findOne({ $or: [{ id: query }, { code: query }] });
+    const title = await Title.findOne({ $or: [{ id: query }, { code: query }, { mal_id: query }] });
     if (!title) throw new E404(`Title ${query} is not found`);
 
     let parsedDubbers: IDubber[] | undefined = undefined;
@@ -133,6 +135,25 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
       parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => dto.dubber(dubber.toObject(), privateMode));
     }
+
+    // TODO add sync with hikka.io
+    // // Sync with hikka.io if mal id is present
+    // if (title.mal_id && (
+    //   // Title is ongoing and must be synced every 3 days
+    //   (title.status === 'ongoing' && title.hikkaSyncedAt + (60000 * 24 * 3) < getUTC().timestamp) ||
+    //   // Title is not ongoing and must be synced every 21 days
+    //   (title.status !== 'ongoing' && title.hikkaSyncedAt + (60000 * 24 * 21) < getUTC().timestamp)
+    // )) {
+    //   //* Get slug
+    //   // https://api.hikka.io/integrations/mal/anime/{mal_id} 
+
+    //   //* Get full anime data
+    //   // https://api.hikka.io/anime/{slug}
+
+
+
+    //   Logger.info(`Title ${title.id} synced with hikka.io`);
+    // }
 
     return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: dto.title(title.toObject(), privateMode), parsedDubbers });
   });
@@ -228,7 +249,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
 
-    const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating } = req.body as IPatchTitleBody;
+    const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating, malPoll, malRating } = req.body as IPatchTitleBody;
 
     // titleEdit - Simple type
     if (description !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDescription(description));
@@ -245,6 +266,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (episodesCount !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchEpisodesCount(parseNaN('Episodes count', episodesCount)));
     if (AnimeeRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', AnimeeRating), 'Animee'));
     if (IMDBRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', IMDBRating), 'IMDB'));
+    if (malRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('Mal Rating', malRating), 'mal', malPoll ? parseNaN('Mal Poll', malPoll) : undefined));
     if (year !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchYear(parseNaN('Year', year)));
 
     // titleEdit - Is array

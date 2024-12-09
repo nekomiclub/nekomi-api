@@ -4,6 +4,34 @@
 
 ------------------------------------------------------------------
 
+## GET /ping (/)
+| VERSION | CSRF  | ACCESS |
+| :-----: | :---: | :----: |
+|  1.3.2  |  ---  |  ---   |
+
+Ping
+
+**RESPONSES**
+
+**200 - Success** <br>
+Data searched
+
+```ts
+{
+  message: 'pong!',
+  commit: string,
+  startedAt: string
+}
+```
+
+**400 - Payload error** <br>
+JSON parse error / Query or engines are undefined
+
+**400 - Search is not ready** <br>
+Search is not ready
+
+------------------------------------------------------------------
+
 ## GET /search
 | VERSION |        CSRF         | ACCESS |
 | :-----: | :-----------------: | :----: |

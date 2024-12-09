@@ -45,7 +45,7 @@ export interface ITitle {
   }
 
   /** @since 1.3.2 */
-  hikkiSyncedAt: number
+  hikkaSyncedAt: number
   updatedAt: number
 }
 

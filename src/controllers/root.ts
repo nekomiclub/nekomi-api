@@ -14,6 +14,7 @@ import { ITitle } from '../interfaces/Title';
 import { IUser } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { checkValue } from '../handlers/handlers';
+import { config } from '../config';
 
 
 
@@ -24,7 +25,6 @@ let UserSeacrh: Fuse<IUser>;
 
 /** Global search engines */
 export type TSearchEngine = 'dubber' | 'user' | 'title';
-
 /** Update Fuse instance */
 export async function updateSearch(specify?: TSearchEngine) {
   const titles = await Title.find();
@@ -89,6 +89,17 @@ export interface ISearchExtended<T = any> {
   type: TSearchEngine
   item: T
 }
+
+export async function getPing(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    return res.status(200).json({
+      message: 'pong!',
+      commit: config.commit,
+      startedAt: config.startedAt
+    });
+  });
+}
+
 
 /** @see /docs/routes/root.md */
 export async function getSearch(req: express.Request, res: express.Response) {

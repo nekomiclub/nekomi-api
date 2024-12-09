@@ -8,14 +8,13 @@ import { $http, $upload } from '../handlers/http';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { AxiosError } from 'axios';
 import { E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
+import { IA_UploadsUpload, NEKOMI_UPLOADS, TEpisodeQuality } from '../interfaces/http/Uploads';
 import { IChangeEpMeta } from '../controllers/title';
 import { IDubber } from '../interfaces/Dubber';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/services/Notify';
 import { IUser } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { Notify } from '../services/NotifyService';
-import { TEpisodeQuality } from '../interfaces/http/Uploads';
 import { config } from '../config';
 import { createID, getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
@@ -47,6 +46,8 @@ interface ITitleCreate {
   type?: TTitleType
   year?: number
   episodesCount?: number
+  mal_id?: string
+  poster?: string
 }
 
 interface IPatchNames {
@@ -111,7 +112,7 @@ export const TitleModel = mongoose.model<ITitle>('title', new Schema({
   updatedAt: Number,
   details: String,
   mal_id: String,
-  hikkiSyncedAt: Number,
+  hikkaSyncedAt: Number,
 }));
 
 
@@ -128,7 +129,7 @@ export class TitleService {
     if (testMode) this.testMode = testMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id }: ITitleCreate, testMode?: boolean): Promise<HydratedDocument<ITitle>> {
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, testMode?: boolean): Promise<HydratedDocument<ITitle>> {
     const ID = testMode ? id || createID() : createID();
     let code = urlSlugConvert(names?.eng || `Untitled ${id}`, {
       camelCase: true,
@@ -160,15 +161,15 @@ export class TitleService {
       episodesCount: episodesCount || null,
       episodesMeta: [],
       genres: genres || [],
-      poster: config.vars.defaultPoster,
+      poster: poster ?? config.vars.defaultPoster,
       rating: {
         Animee: null,
         IMDB: null,
         mal: null,
         mal_poll: null
       },
-      hikkiSyncedAt: 0,
-      mal_id: null,
+      hikkaSyncedAt: 0,
+      mal_id: mal_id ?? null,
       season: season || 'winter',
       status: status || 'announcement',
       studios: studios || ['Fullkekw'],

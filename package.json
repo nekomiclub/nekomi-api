@@ -11,7 +11,7 @@
     "test": "npx jest --silent",
     "test-standalone": "npx jest --silent standalone",
     "build": "npx eslint . --fix && git add . && npx tsc",
-    "find_circular": "npx madge --circular --extensions ts ."
+    "find-circular": "npx madge --circular --extensions ts ."
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

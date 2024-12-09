@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 import CSRF from './secrets/CSRF';
 import { IConfigStatic } from './interfaces/Interfaces';
 import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
-import { preserveIP } from './handlers/handler';
+import { getUTC, preserveIP } from './handlers/handler';
 
 
 
@@ -92,7 +93,8 @@ export const INTERNALS = {
   },
   secrets: {
     CSRF
-  }
+  },
+  SERVICE_CONFIG
 };
 
 
@@ -171,6 +173,9 @@ export const config = {
       maxStudioLength: 32,
     }
   },
+
+  commit: execSync(`git rev-parse --short HEAD`).toString().replace('\n', ''),
+  startedAt: `${getUTC().fulldate} ${getUTC().timeAccurate}`,
 
   DOMAIN,
   STATIC,

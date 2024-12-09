@@ -1,3 +1,5 @@
+import { INTERNALS, config, devMode, prodMode, testMode } from './config';
+
 import bodyParser from 'body-parser';
 import chalk from 'chalk';
 import cookieParser from 'cookie-parser';
@@ -9,13 +11,11 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import { INTERNALS, config, devMode, prodMode, testMode } from './config';
-
 import Cache from './services/CacheService';
 import Router from './router';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
-import { getUTC } from './handlers/handler';
+import { decodeToken } from './services/TokenService';
 import { patchTitleModel } from './handlers/modelPatchers';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
 import { updateSearch } from './controllers/root';
@@ -90,8 +90,9 @@ app.options('*', cors(CORSOpt));
 // Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const session = decodeToken(req.cookies[config.vars.sessionCookie] ?? '');
 
-  Logger.trace(`[Request/${IP}]: ${req.method} - ${req.url}`);
+  Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
   req.nekomi = req.nekomi !== undefined ? req.nekomi : {};
 
   next();
@@ -133,15 +134,18 @@ wss.on('listening', () => {
       ----------------------------
       NEKOMI-CORE STARTED UP
     
-      Date: ${getUTC().date} UTC-0 ${getUTC().time}
+      Date: ${config.startedAt} UTC0
+      Commit: ${config.commit}
       Mode: ${mode}
       HTTP: http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port} ${devMode ? '(port changed, see README.md)' : ''}
       WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
       ----------------------------
     `);
 
+
     if (prodMode) {
       await patchTitleModel();
+      // await loadTitles();
     }
 
     // Cache updating

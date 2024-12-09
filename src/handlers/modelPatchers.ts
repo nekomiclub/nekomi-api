@@ -5,8 +5,12 @@ import DubberModel from '../Models/Dubber';
 import TitleModel from '../Models/Title';
 import UserModel from '../Models/User';
 import { HydratedDocument } from 'mongoose';
+import { ITitle } from '../interfaces/Title';
 import { Logger } from '../services/LoggerService';
+import { TitleService } from '../Models/Title';
 import { getUTC } from './handler';
+
+
 
 export async function patchUserModel() {
   const startStamp = getUTC().timestamp;
@@ -57,20 +61,57 @@ export async function patchTitleModel() {
   for (const key in titles) {
     const title = titles[key];
 
+    title.set(`hikkiSyncedAt`, undefined, { strict: false });
+
     title.mal_id = null;
     title.rating.mal = null;
 
-    title.hikkiSyncedAt = 0;
+    title.hikkaSyncedAt = 0;
     title.rating.mal_poll = 0;
 
     title.markModified('mal_id');
-    title.markModified('hikkiSyncedAt');
+    title.markModified('hikkaSyncedAt');
     title.markModified('rating');
 
     await title.save();
   }
 
   Logger.info(`[ModelPatcher]: Patching title model ended within ${((getUTC().timestamp - startStamp) / 1000).toFixed(2)}s`);
+}
+
+
+
+export async function loadTitles() {
+  const startedAt = getUTC().timestamp;
+  const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/load-titles.json`).toString()).titles as ITitle[];
+
+  stampDB('LoadTitles', titles);
+  Logger.info('Start loading titles from the file...');
+
+  for (const key in titles) {
+    const title = titles[key];
+    const { ageRate, country, description, genres, id, names, poster, season, status, studios, type, year } = title;
+
+    await TitleService.create({
+      ageRate,
+      country,
+      description,
+      details: title.details ?? undefined,
+      episodesCount: title.episodesCount ?? undefined,
+      genres,
+      id,
+      names,
+      season,
+      status,
+      studios,
+      type,
+      year,
+      mal_id: title.mal_id ?? undefined,
+      poster,
+    });
+  }
+
+  Logger.info(`Ended loading titles from file within ${((getUTC().timestamp - startedAt) / 1000).toFixed(2)} with pushed ${titles.length} titles`);
 }
 
 
