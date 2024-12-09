@@ -6,9 +6,7 @@ import TitleModel from '../Models/Title';
 import UserModel from '../Models/User';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '../services/LoggerService';
-import { config } from '../config';
 import { getUTC } from './handler';
-import { getVideoDurationInSeconds } from 'get-video-duration';
 
 export async function patchUserModel() {
   const startStamp = getUTC().timestamp;
@@ -50,7 +48,7 @@ export async function patchDubberModel() {
 
 export async function patchTitleModel() {
   const startStamp = getUTC().timestamp;
-  const titles = await TitleModel.find({ updatedAt: { $gt: 1730369100000 } });
+  const titles = await TitleModel.find();
 
   Logger.info(`[ModelPatcher]: Patching title model started...`);
 
@@ -59,26 +57,16 @@ export async function patchTitleModel() {
   for (const key in titles) {
     const title = titles[key];
 
-    const framelessEpisodes = title.episodes.filter(el => el.frames.length === 0);
+    title.mal_id = null;
+    title.rating.mal = null;
 
-    for (const fi in framelessEpisodes) {
-      const episode = framelessEpisodes[fi];
+    title.hikkiSyncedAt = 0;
+    title.rating.mal_poll = 0;
 
-      const id = new URL(episode.qualities.q1080).pathname.replace('/', '');
-      const duration = await getVideoDurationInSeconds(episode.qualities.q1080);
-      const previewsCount = Math.ceil(duration / 5);
-      const framesCount = Math.ceil(previewsCount / 25);
+    title.markModified('mal_id');
+    title.markModified('hikkiSyncedAt');
+    title.markModified('rating');
 
-      // Set frames URLs
-      let i = 0;
-
-      while (i < framesCount) {
-        episode.frames.push(`${config.URL.nekomi_media}/${id}_f_${i}`);
-        i++;
-      }
-    }
-
-    title.markModified('episodes');
     await title.save();
   }
 

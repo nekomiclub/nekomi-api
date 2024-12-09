@@ -1,3 +1,88 @@
+/** Title object */
+export interface ITitle {
+  /** Code (url encoded eng name) */
+  code: string
+
+  /** @since 1.3.2 */
+  mal_id: string | null
+
+  id: string
+  poster: string
+  description: string
+  status: TAnimeStatus
+  episodesCount: number | null
+  genres: TAnimeGenre[]
+  ageRate: TAnimeAgeRate
+  season: TAnimeSeason
+  type: TTitleType
+  year: number
+  studios: string[]
+  country: TTitleCountry
+  details: string | null
+
+  /** @private */
+  episodes: ITitleEpisode[]
+
+  /** @private */
+  episodesMeta: ITitleEpisodeMeta[]
+
+  names: {
+    eng: string
+    ukr: string
+    alt: string[]
+  },
+
+  rating: {
+    IMDB: number | null
+    /** @since 1.3.2 */
+    mal: number | null
+    /** MAL rated by
+     * @since 1.3.2
+     */
+    mal_poll: number | null
+    /** @deprecated 1.3.2 */
+    Animee: number | null
+  }
+
+  /** @since 1.3.2 */
+  hikkiSyncedAt: number
+  updatedAt: number
+}
+
+/** Episode dubbed */
+export interface ITitleEpisode {
+  dubberID: string
+  order: number
+  qualities: {
+    /** Primary quality */
+    q1080: string
+
+    q4k: string | null
+    q720: string | null
+    q480: string | null
+    q240: string | null
+  }
+
+  /** Frames URLs in order from 0 array */
+  frames: string[]
+}
+
+/** Title episode meta */
+export interface ITitleEpisodeMeta {
+  order: number
+  names: {
+    ukr: string
+    eng: string
+  }
+
+  dateOut: number
+}
+
+
+
+
+
+
 /** Array of anime genres provided on nekomi.club */
 export const AnimeGenres = ['chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy', 'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons', 'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music', 'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural', 'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller', 'erotica', 'gourmet'] as const;
 
@@ -40,121 +125,3 @@ export const TitleCountries = ['Japan', 'South Corea', 'China', 'Other'] as cons
 
 /** Type that implements TitleCountries */
 export type TTitleCountry = typeof TitleCountries[number]
-
-
-
-
-
-
-/** Title object */
-export interface ITitle {
-  /** ID */
-  id: string
-
-  /** Object of names */
-  names: {
-    /** Name on English */
-    eng: string
-
-    /** Name on Ukranian */
-    ukr: string
-
-    /** Alt names (Japan, russian) */
-    alt: string[]
-  },
-
-  /** Code (transformed eng name) */
-  code: string
-
-  /** Poster */
-  poster: string
-
-  /** Rating */
-  rating: {
-    IMDB: number | null,
-    Animee: number | null
-  }
-
-  /** Description */
-  description: string
-
-  /** Status */
-  status: TAnimeStatus
-
-  /** Episodes count */
-  episodesCount: number | null
-
-  /** Genres */
-  genres: TAnimeGenre[]
-
-  /** Age rating */
-  ageRate: TAnimeAgeRate
-
-  /** Streaming season */
-  season: TAnimeSeason
-
-  /** Type */
-  type: TTitleType
-
-  /** Aired year */
-  year: number
-
-  /** Studios created */
-  studios: string[]
-
-  /** Country produced */
-  country: TTitleCountry
-
-  /** Episodes dubbed */
-  episodes: ITitleEpisode[]
-
-  /** Episodes meta */
-  episodesMeta: ITitleEpisodeMeta[]
-
-  /** Updated at timestamp */
-  updatedAt: number
-
-  /** Some text details */
-  details: string | null
-}
-
-/** Episode dubbed */
-export interface ITitleEpisode {
-  /** Dubber ID */
-  dubberID: string
-
-  /** Episode order */
-  order: number
-
-  /** Episode qualities */
-  qualities: {
-    /** Primary quality */
-    q1080: string
-
-    q4k: string | null
-    q720: string | null
-    q480: string | null
-    q240: string | null
-  }
-
-  /** Frames in order array */
-  frames: string[]
-}
-
-/** Title episode meta */
-export interface ITitleEpisodeMeta {
-  /** Episode order */
-  order: number
-
-  /** Episode translations */
-  names: {
-    /** Translated episode name on Ukranian */
-    ukr: string
-
-    /** Episode name on English (default) */
-    eng: string
-  }
-
-  /** Espide aired timestamp */
-  dateOut: number
-}

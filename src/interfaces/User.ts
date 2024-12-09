@@ -1,51 +1,32 @@
 export interface IUser {
-  /** ID */
   id: string
+  username: string
+  avatar: string
+  banner: string
 
-  /** Statistics
-   * @access CSRF required
-   */
+  /** @private */
   statistics: IUserStatistics
 
-  /** Titles libs
-   * @access CSRF required
-   */
+  /** @private */
   libs: IUserLib[]
 
-  /** Roles
-   * @access CSRF required
-   */
+  /** @private */
   roles: string[]
 
-  /** Username */
-  username: string
+  /** @private */
+  watchProgress: IUserWatchProgress[]
 
-  /** Avatar URL */
-  avatar: string
+  /** @private */
+  telegramData: null | IUserTelegramData
 
-  /** User banner URL */
-  banner: string
+  /** @private */
+  telegramLinkToken: string | null
 
   /** Events subscribes
    * @see docs/features.md#user-subscribes
-   * @access only API
+   * @private
    */
   subscribes: string[]
-
-  /** Synced watch progress
-   * @access CSRF required
-   */
-  watchProgress: IUserWatchProgress[]
-
-  /** Telegram linked account data.
-   * @access only API
-   */
-  telegramData: null | IUserTelegramData
-
-  /** Token for linking telegram to nekomi account
-   * @access CSRF required
-   */
-  telegramLinkToken: string | null
 }
 
 /** User nekomi statistics */
@@ -55,7 +36,6 @@ export interface IUserStatistics {
 
   /** Viewtime in seconds */
   viewtime: number
-
   isTelegramLinked: boolean
 }
 
@@ -68,7 +48,7 @@ export interface IUserWatchProgress {
   /** Watch progress in seconds */
   progress: number
 
-  /** Last update UTC-0 timestamp */
+  /** Last update UT-0 timestamp */
   updatedAt: number
 }
 
@@ -81,8 +61,8 @@ type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 
 
 /** User titles lib */
 export interface IUserLib {
-  /** ID */
   id: string
+  type: TUserLibType
 
   /** UTC0 creation timestamp */
   createdAt: number
@@ -90,12 +70,7 @@ export interface IUserLib {
   /** Titles IDs */
   titles: string[]
 
-  /** Type */
-  type: TUserLibType
-
-  /** Settings */
   settings: {
-    /** Name */
     name: string
 
     /** Visibility to others */

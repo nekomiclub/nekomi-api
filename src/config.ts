@@ -54,8 +54,8 @@ export const STATIC: IConfigStatic = {
       videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
     }] : [{
       id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-      backgroundURL: 'http://192.168.0.106:43120/devid-be3034c1-2a2f-465f-9e4c-e39219af4e47',
-      videoURL: 'http://192.168.0.106:43120/devid-59cfe164-c5b4-4304-ba65-7d8cf8de493a'
+      backgroundURL: 'https://media.nekomi.club/21df5d21-c78f-4e5b-a101-65ead751310e',
+      videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
     }],
 
 

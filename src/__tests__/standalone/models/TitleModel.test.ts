@@ -245,6 +245,9 @@ describe('Title Model', () => {
 
       await Title.patchRating(null, 'IMDB');
       expect(Title.title.rating.IMDB).toBe(null);
+
+      await Title.patchRating(8.1234, 'mal');
+      expect(Title.title.rating.mal).toBe(8.12);
     });
 
     test('Reject - length missmatch', async () => {
@@ -258,6 +261,18 @@ describe('Title Model', () => {
 
         expect(false).toBeTruthy(); // Invalid error type or error does not thrown
       }
+    });
+  });
+
+  describe('patchMalID', () => {
+    test('Pass - mal id changed', async () => {
+      const mal_id = '121212';
+
+      await Title.patchMalID({ mal_id });
+      expect(Title.title.mal_id).toBe(mal_id);
+
+      await Title.patchMalID({ mal_id: '' });
+      expect(Title.title.mal_id).toBe(null);
     });
   });
 

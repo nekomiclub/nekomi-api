@@ -109,7 +109,9 @@ export const TitleModel = mongoose.model<ITitle>('title', new Schema({
   episodes: Array,
   episodesMeta: Array,
   updatedAt: Number,
-  details: String
+  details: String,
+  mal_id: String,
+  hikkiSyncedAt: Number,
 }));
 
 
@@ -161,8 +163,12 @@ export class TitleService {
       poster: config.vars.defaultPoster,
       rating: {
         Animee: null,
-        IMDB: null
+        IMDB: null,
+        mal: null,
+        mal_poll: null
       },
+      hikkiSyncedAt: 0,
+      mal_id: null,
       season: season || 'winter',
       status: status || 'announcement',
       studios: studios || ['Fullkekw'],
@@ -254,6 +260,20 @@ export class TitleService {
     }
   }
 
+  async patchMalID({ mal_id }: { mal_id: string }) {
+    this.title.markModified('mal_id');
+
+    if (mal_id.length) {
+      // Change mal id
+      this.stack.push(`Changed mal_id (${this.title.mal_id} > ${mal_id})`);
+      this.title.mal_id = mal_id;
+    } else {
+      // Delete mal id
+      this.stack.push(`Changed mal_id (${this.title.mal_id} > null)`);
+      this.title.mal_id = null;
+    }
+  }
+
   async patchDescription(description: string) {
     const trimmed = description.trim().replace(/\s+/g, ' ');
     if (!validator.isLength(trimmed, { max: config.VALIDATION.PatchTitle.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`);
@@ -319,11 +339,12 @@ export class TitleService {
     this.title.genres = genres;
   }
 
-  /** Patch IMDb or Animee rating
+  /** Patch IMDb, Animee or mal rating
    * If rating is 0 or null, will set null
    */
-  async patchRating(rating: number | null, type: 'IMDB' | 'Animee') {
+  async patchRating(rating: number | null, type: 'IMDB' | 'Animee' | 'mal', mal_poll?: number) {
     if (rating === null || rating === 0) {
+      // Set rating to null
       this.stack.push(`Changed ${type} rating( ${this.title.rating[type]} > null)`);
 
       this.title.rating[type] = null;
@@ -332,7 +353,11 @@ export class TitleService {
 
       this.stack.push(`Changed ${type} rating (${this.title.rating[type]} > ${rating})`);
 
-      this.title.rating[type] = rating;
+      this.title.rating[type] = +rating.toFixed(2);
+
+      if (type === 'mal' && mal_poll !== undefined) {
+        this.title.rating.mal_poll = mal_poll;
+      }
     }
 
     this.title.markModified('rating');
