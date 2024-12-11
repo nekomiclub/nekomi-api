@@ -46,6 +46,7 @@ interface IPatchTitleBody {
   AnimeeRating?: number
   malRating?: number
   malPoll?: number
+  mal_id?: string
 
   editEpMeta?: IChangeEpMeta
   parseIMDBEpisodesMeta?: string
@@ -249,7 +250,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
 
 
-    const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating, malPoll, malRating } = req.body as IPatchTitleBody;
+    const { ageRate, country, deleteEpisode, description, details, editEpMeta, episodesCount, genres, names, parseIMDBEpisodesMeta, season, status, studios, type, year, AnimeeRating, IMDBRating, malPoll, malRating, mal_id } = req.body as IPatchTitleBody;
 
     // titleEdit - Simple type
     if (description !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchDescription(description));
@@ -261,12 +262,12 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     if (status !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchStatus(status));
     if (type !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchType(type));
     if (names !== undefined) await execWithCap('titleEdit', async () => Patcher.patchNames(names));
+    if (mal_id !== undefined) await execWithCap('titleEdit', async () => Patcher.patchMalID({ mal_id }));
 
     // titleEdit - Not NaN
     if (episodesCount !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchEpisodesCount(parseNaN('Episodes count', episodesCount)));
     if (AnimeeRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', AnimeeRating), 'Animee'));
     if (IMDBRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('IMDB Rating', IMDBRating), 'IMDB'));
-    if (malRating !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchRating(parseNaN('Mal Rating', malRating), 'mal', malPoll ? parseNaN('Mal Poll', malPoll) : undefined));
     if (year !== undefined) await execWithCap('titleEdit', async () => await Patcher.patchYear(parseNaN('Year', year)));
 
     // titleEdit - Is array
