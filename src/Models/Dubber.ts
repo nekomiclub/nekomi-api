@@ -2,10 +2,12 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import validator from 'validator';
 import { convert as createSlug } from 'url-slug';
 
-import UserModel from './User';
+import UserModel, { UserService } from './User';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IDubber, TDubberMemberRole } from '../interfaces/Dubber';
+import { INotifyDubberInvite } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
+import { Notify } from '../services/NotifyService';
 import { config, prodMode } from '../config';
 import { createID, getUTC } from '../handlers/handler';
 
@@ -57,7 +59,10 @@ export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   members: Array,
   avatar: String,
   members_invited: Array,
-  statistics: Object
+  statistics: Object,
+  name_eng: String,
+  name_ukr: String,
+  slug: String,
 }));
 
 
@@ -207,7 +212,23 @@ export class DubberService {
       role: 'member',
     });
 
-    // TODO Send notification
+    // Send notification
+    const userService = new UserService({ user });
+    await userService.addSubscribe({ event: 'dubber_invite_accepted', key: this.dubber.id });
+    await userService.save();
+
+    await Notify.broadcast<INotifyDubberInvite>({
+      event: 'dubber_invite_accepted',
+      payload: {
+        user_id: id,
+        dubber_id: this.dubber.id
+      }
+    });
+
+    await userService.removeSubscribe({ event: 'dubber_invite_accepted', key: this.dubber.id });
+    await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
+    await userService.save();
+
     // TODO Add dubber team in user document
 
     this.stack.push(`User ${id} is now part of the team`);
@@ -245,11 +266,41 @@ export class DubberService {
     if (!this.dubber.members_invited.includes(id) && !this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited or not member of that team`);
 
 
+    const userService = new UserService({ user });
     if (decline_invite) {
-      // TODO Send notification about declined invite
+      // Send notification about declined invite
+      await userService.addSubscribe({ event: 'dubber_invite_declined', key: this.dubber.id });
+      await userService.save();
+
+      // Send notify
+      await Notify.broadcast<INotifyDubberInvite>({
+        event: 'dubber_invite_declined', payload: {
+          user_id: id,
+          dubber_id: this.dubber.id
+        }
+      });
+
+      await userService.removeSubscribe({ event: 'dubber_invite_declined', key: this.dubber.id });
+      await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
+      await userService.save();
     } else {
-      // TODO Send notification about excluding
+      // Send notification about excluding
+      await userService.addSubscribe({ event: 'dubber_member_excluded', key: this.dubber.id });
+      await userService.save();
+
+      // Send notify
+      await Notify.broadcast<INotifyDubberInvite>({
+        event: 'dubber_member_excluded', payload: {
+          user_id: id,
+          dubber_id: this.dubber.id
+        }
+      });
+
+      await userService.removeSubscribe({ event: 'dubber_member_excluded', key: this.dubber.id });
+      await userService.save();
     }
+
+
 
     // TODO Remove dubber team from user document
 
@@ -273,7 +324,18 @@ export class DubberService {
 
     if (this.dubber.members_invited.includes(id) || this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is already invited or member of that team`);
 
-    // TODO Send invite
+    // Send invite notify
+    const userService = new UserService({ user });
+    await userService.addSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
+    await userService.save();
+
+    await Notify.broadcast<INotifyDubberInvite>({
+      event: 'dubber_invite_pending',
+      payload: {
+        user_id: id,
+        dubber_id: this.dubber.id
+      }
+    });
 
     this.stack.push(`User ${id} invited`);
     Logger.info(`User ${id} invited in ${this.dubber.id} dubber team`);

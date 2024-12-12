@@ -52,6 +52,10 @@ export async function patchDubberModel() {
       created_at: dubber.createdAt
     };
 
+    dubber.slug = dubber.code;
+    dubber.name_ukr = dubber.name;
+    dubber.name_eng = dubber.code;
+
     dubber.members = [];
     dubber.members_invited = [];
 
