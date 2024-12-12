@@ -329,15 +329,20 @@ export class TitleService {
 
   async patchGenres(genres: TAnimeGenre[]) {
     if (genres.length > config.VALIDATION.PatchTitle.maxGenresCount) throw new ERR_LENGTH_INVALID(`Genres can not be more than ${config.VALIDATION.PatchTitle.maxGenresCount}`);
+    const trimmed_genres: TAnimeGenre[] = [];
 
     genres.forEach(genre => {
-      if (!AnimeGenres.includes(genre)) throw new ERR_TYPE_INVALID(`Genre ${genre} is invalid`);
+      const trimmed = genre.trim().replace(/\s+/g, ' ') as TAnimeGenre;
+
+      if (!AnimeGenres.includes(trimmed)) throw new ERR_TYPE_INVALID(`Genre ${trimmed} is invalid`);
+
+      trimmed_genres.push(trimmed);
     });
 
     this.title.markModified('genres');
 
-    this.stack.push(`Changed genres (${this.title.genres.join(', ')} > ${genres.join(', ')})`);
-    this.title.genres = genres;
+    this.stack.push(`Changed genres (${this.title.genres.join(', ')} > ${trimmed_genres.join(', ')})`);
+    this.title.genres = trimmed_genres;
   }
 
   /** Patch IMDb, Animee or mal rating
