@@ -23,7 +23,8 @@ export async function patchUserModel() {
   for (const key in users) {
     const user = users[key];
 
-
+    user.statistics.dubber_team_member = null;
+    user.markModified('statistics');
 
     await user.save();
   }

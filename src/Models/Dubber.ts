@@ -225,6 +225,7 @@ export class DubberService {
       }
     });
 
+    await userService.patchStatistics({ dubber_team_member: this.dubber.id });
     await userService.removeSubscribe({ event: 'dubber_invite_accepted', key: this.dubber.id });
     await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
     await userService.save();
@@ -296,6 +297,7 @@ export class DubberService {
         }
       });
 
+      await userService.patchStatistics({ dubber_team_member: null });
       await userService.removeSubscribe({ event: 'dubber_member_excluded', key: this.dubber.id });
       await userService.save();
     }

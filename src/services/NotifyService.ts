@@ -32,12 +32,12 @@ export class NotifyService {
   async broadcast<P = any>(payload: IEventPayload<P>) {
     const event = payload.event;
 
+    if (!NOTIFY_EVENTS.includes(event)) throw new ERR_INVALID_PAYLOAD(`Event ${event} is invalid`);
+
+    const handler = EVENTS[event];
+    if (!handler) throw new E501(`Event ${event} is found, but handler for it is not implemented yet`);
+
     try {
-      if (!NOTIFY_EVENTS.includes(event)) throw new ERR_INVALID_PAYLOAD(`Event ${event} is invalid`);
-
-      const handler = EVENTS[event];
-      if (!handler) throw new E501(`Event ${event} is found, but handler for it is not implemented yet`);
-
       await handler(payload);
     } catch (e) {
       if (e instanceof HTTPErrorConstructor) {

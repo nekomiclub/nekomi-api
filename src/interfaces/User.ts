@@ -31,12 +31,16 @@ export interface IUser {
 
 /** User nekomi statistics */
 export interface IUserStatistics {
+  isTelegramLinked: boolean
+
+  /** Dubber team ID in which user is member */
+  dubber_team_member: string | null
+
   /** UTC0 account creation timestamp */
   accountCreated: number
 
   /** Viewtime in seconds */
   viewtime: number
-  isTelegramLinked: boolean
 }
 
 /** User watch progress item */

@@ -151,7 +151,8 @@ export class UserService {
       statistics: {
         accountCreated: getUTC().timestamp,
         isTelegramLinked: false,
-        viewtime: 0
+        viewtime: 0,
+        dubber_team_member: null,
       },
       subscribes: [],
       telegramData: null,
@@ -287,7 +288,7 @@ export class UserService {
   /** Patch user statistics
    * @param viewtime will INCREASE CURRENT BY PROVIDED SECONDS
    */
-  async patchStatistics({ isTelegramLinked, viewtime }: Partial<IUserStatistics>) {
+  async patchStatistics({ isTelegramLinked, viewtime, dubber_team_member }: Partial<IUserStatistics>) {
     if (isTelegramLinked !== undefined) {
       this.stack.push(`Changed isTelegramLinked (${this.user.statistics.isTelegramLinked} > ${isTelegramLinked})`);
       this.user.statistics.isTelegramLinked = isTelegramLinked;
@@ -298,6 +299,14 @@ export class UserService {
 
       this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s + ${viewtime}s)`);
       this.user.statistics.viewtime += viewtime;
+    }
+
+    if (dubber_team_member) {
+      const dubber = await DubberModel.findOne({ id: dubber_team_member });
+      if (!dubber) throw new E404(`Dubber ${dubber_team_member} is not found`);
+
+      this.stack.push(`Changed dubber team id (${this.user.statistics.dubber_team_member} > ${dubber_team_member})`);
+      this.user.statistics.dubber_team_member = dubber_team_member;
     }
 
     this.user.markModified('statistics');
