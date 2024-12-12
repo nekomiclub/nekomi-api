@@ -159,7 +159,7 @@ Some payload is not provided
 
 ------------------------------------------------------------------
 
-## PATCH /user
+## PATCH /user/me (/user)
 | VERSION |    CSRF     | ACCESS |
 | :-----: | :---------: | :----: |
 |  1.3.1  | nekomi.club | basic  |
@@ -203,7 +203,7 @@ User patched
 
 ------------------------------------------------------------------
 
-## POST /user/linkTelegram
+## POST /user/link/telegram (/user/linkTelegram)
 | VERSION |      CSRF       | ACCESS |
 | :-----: | :-------------: | :----: |
 |  1.3.1  | bot.nekomi.club |  ---   |

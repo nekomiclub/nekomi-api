@@ -16,6 +16,7 @@ import Router from './router';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
+import { patchDubberModel } from './handlers/modelPatchers';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
 import { updateSearch } from './controllers/root';
 
@@ -140,6 +141,10 @@ wss.on('listening', () => {
       WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
       ----------------------------
     `);
+
+    if (prodMode) {
+      await patchDubberModel();
+    }
 
     // Cache updating
     setInterval(async () => {

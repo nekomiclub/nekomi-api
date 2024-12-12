@@ -42,7 +42,18 @@ export async function patchDubberModel() {
   for (const key in dubbers) {
     const dubber = dubbers[key];
 
+    dubber.set('thumbURL', undefined, { strict: false });
+    dubber.set('rating', undefined, { strict: false });
+    dubber.set('leader', undefined, { strict: false });
+    dubber.set('editors', undefined, { strict: false });
+    dubber.set('membersInvitePending', undefined, { strict: false });
 
+    dubber.statistics = {
+      created_at: dubber.createdAt
+    };
+
+    dubber.members = [];
+    dubber.members_invited = [];
 
     await dubber.save();
   }
@@ -61,17 +72,7 @@ export async function patchTitleModel() {
   for (const key in titles) {
     const title = titles[key];
 
-    title.set(`hikkiSyncedAt`, undefined, { strict: false });
 
-    title.mal_id = null;
-    title.rating.mal = null;
-
-    title.hikkaSyncedAt = 0;
-    title.rating.mal_poll = 0;
-
-    title.markModified('mal_id');
-    title.markModified('hikkaSyncedAt');
-    title.markModified('rating');
 
     await title.save();
   }

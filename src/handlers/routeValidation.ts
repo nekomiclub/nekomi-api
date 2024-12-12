@@ -18,6 +18,32 @@ const upload = multer();
 
 
 
+//* ------------------ DUBBER MIDDLEWARES ------------------
+export const dubberInviteSend = [
+  FkAuthorityVerify([config.DOMAIN.nekomi]),
+  FkUsapiAuthRefresh(['dubberEditMembers']),
+  body('user_id')
+    .notEmpty().withMessage('User id must be provided'),
+  body('dubber_id')
+    .notEmpty().withMessage('Dubber id must be provided')
+];
+
+export const dubberSettingsMemberRemove = [
+  FkAuthorityVerify([config.DOMAIN.nekomi]),
+  FkUsapiAuthRefresh(['dubberEditMembers']),
+  body('user_id')
+    .notEmpty().withMessage('User id must be provided'),
+  body('dubber_id')
+    .notEmpty().withMessage('Dubber id must be provided')
+];
+
+export const dubberInviteAcceptDecline = [
+  FkAuthorityVerify([config.DOMAIN.nekomi]),
+  FkUsapiAuthRefresh(['basic']),
+  body('dubber_id')
+    .notEmpty().withMessage('Dubber id must be provided')
+];
+
 
 //* ------------------ USER MIDDLEWARES ------------------
 

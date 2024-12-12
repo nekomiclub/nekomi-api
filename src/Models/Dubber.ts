@@ -2,65 +2,105 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import validator from 'validator';
 import { convert as createSlug } from 'url-slug';
 
+import UserModel from './User';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
-import { IDubber } from '../interfaces/Dubber';
+import { IDubber, TDubberMemberRole } from '../interfaces/Dubber';
 import { Logger } from '../services/LoggerService';
 import { config, prodMode } from '../config';
 import { createID, getUTC } from '../handlers/handler';
+
+
+
+interface IDubberCreate {
+  name_ukr: string
+  name_eng: string
+
+  /** Id can be set only in dev mode */
+  id?: string
+}
+
+interface IDubberServiceProps {
+  dubber: HydratedDocument<IDubber>;
+}
+
+interface IPatchName {
+  ukr?: string
+  eng?: string
+}
+
+type TPatchStatistics = IDubber['statistics']
+
+interface IPatchSocialLink {
+  key: keyof IDubber['socials'],
+  value: string | null
+}
+
+interface IPatchSupportlLink {
+  key: keyof IDubber['support'],
+  value: string | null
+}
+
+interface IMemberEdit {
+  id: string
+  role?: TDubberMemberRole
+}
 
 /** To create/patch/delete Dubber instance use DubberService */
 export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,
-  thumbURL: String,
   socials: Object,
   support: Object,
   createdAt: Number,
   description: String,
-  leader: String,
-  editors: Array,
   members: Array,
-  rating: Number,
   avatar: String,
-  membersInvitePending: Array
+  members_invited: Array,
+  statistics: Object
 }));
 
-interface IDubberCreate {
-  name: string
-  code: string
 
-  /** Id can be set only in dev mode */
-  id?: string
-}
 
 /** Create/path/delete Dubber instance */
 export class DubberService {
+  readonly dubber: HydratedDocument<IDubber>;
+  readonly stack: string[] = [];
+  readonly validation = config.VALIDATION;
+
+  constructor({ dubber }: IDubberServiceProps) {
+    this.dubber = dubber;
+  }
+
+
+
   /** Crete new Dubber instance */
-  static async create({ name, code, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
-    id = prodMode ? createID() : id || createID();
-    code = createSlug(code);
+  static async create({ name_ukr, name_eng, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
+    id = prodMode ? createID() : id ?? createID();
+    const slug = createSlug(name_eng);
 
-    if (!validator.isLength(name, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Name length is not valid`);
+    if (!validator.isLength(name_ukr, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is not valid`);
+    if (!validator.isLength(name_eng, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Eng name length is not valid`);
+    if (!validator.isLength(slug, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
-    if (!validator.isLength(code, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
-
-    const existDubber = await DubberModel.findOne({ code });
-    if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${code} already exist`);
+    const existDubber = await DubberModel.findOne({ code: slug, slug });
+    if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${slug} already exist`);
 
     const payload: IDubber = {
       id,
-      name,
-      code,
+      name: name_ukr,
+      name_ukr,
+      name_eng,
+      code: slug,
+      slug,
       avatar: config.vars.defaultAvatar,
       createdAt: getUTC().timestamp,
       description: null,
-      editors: [],
       members: [],
-      leader: null,
-      membersInvitePending: [],
-      rating: 9,
-      thumbURL: config.vars.defaultAvatar,
+      members_invited: [],
+      statistics: {
+        created_at: getUTC().timestamp
+      },
       socials: {
         instagram: null,
         telegram: null,
@@ -79,7 +119,7 @@ export class DubberService {
     const instance = new DubberModel(payload);
     await instance.save();
 
-    Logger.debug(`[DubberService]: New dubber ${name} created with id ${payload.id}`);
+    Logger.debug(`[DubberService]: New dubber ${name_ukr} created with id ${payload.id}`);
 
     return instance;
   }
@@ -94,32 +134,184 @@ export class DubberService {
     Logger.debug(`[DubberService]: Deleted dubber with id ${id}. Reason - ${reason || 'Not provided'}`);
   }
 
-  /** Path exist Dubber instance  */
-  static async patch(id: string, body: Partial<IDubber>) {
-    const dubber = await DubberModel.findOne({ id });
-    if (!dubber) throw new E404(`Dubber ${id} is not found`);
+  /** Save the document
+   * @returns current patch stack
+   */
+  async save(): Promise<string[]> {
+    await this.dubber.save();
 
-    const stack: string[] = [];
+    Logger.debug(`[DubberService]: Dubber ${this.dubber.id} patched! Stack - ${this.stack.length ? this.stack.join('; ') : 'Nothing patched...'}`);
 
-    for (const key in body) {
-      const prop = key as keyof IDubber;
-      const value = body[key];
+    return this.stack;
+  }
 
-      switch (prop) {
-        case 'avatar': {
-          if (!validator.isURL(value)) throw new ERR_INVALID_PAYLOAD(`Avatar URL is invalid`);
 
-          stack.push(`Avatar URL changed (${dubber.avatar} > ${value})`);
 
-          dubber.avatar = value;
-          dubber.thumbURL = value;
-        }
-      }
+  async patchDescription(description: string) {
+    const trimmed = description.trim().replace(/\s+/g, ' ');
+    if (!validator.isLength(trimmed, { max: config.VALIDATION.PatchTitle.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`);
+
+    this.stack.push(`Changed description (${this.dubber.description?.length} symbols > ${trimmed.length} symbols)`);
+
+    this.dubber.description = trimmed;
+    this.dubber.markModified('description');
+  }
+
+  /** Changing english name will also change slug */
+  async patchName({ eng, ukr }: IPatchName) {
+    if (ukr) {
+      const trimmed = ukr.trim().replace(/\s+/g, ' ');
+      if (!validator.isLength(trimmed, { min: this.validation.CreateUser.minNameLength, max: this.validation.CreateUser.maxNameLength })) throw new ERR_INVALID_PAYLOAD(`Dubber ukr name must be between ${this.validation.CreateUser.minNameLength} and ${this.validation.CreateUser.maxNameLength} symbols length`);
+
+      this.stack.push(`Ukr name changed (${this.dubber.name_ukr} > ${trimmed})`);
+
+      this.dubber.name_ukr = trimmed;
+      this.dubber.markModified('name_ukr');
     }
 
-    await dubber.save();
+    if (eng) {
+      const trimmed = eng.trim().replace(/\s+/g, ' ');
+      if (!validator.isLength(trimmed, { min: this.validation.CreateUser.minNameLength, max: this.validation.CreateUser.maxNameLength })) throw new ERR_INVALID_PAYLOAD(`Dubber eng name must be between ${this.validation.CreateUser.minNameLength} and ${this.validation.CreateUser.maxNameLength} symbols length`);
 
-    Logger.debug(`[DubberService]: Dubber ${id} patched. Changed - ${stack.length ? stack.join('; ') : 'Nothing patched...'}`);
+      const slug = createSlug(trimmed, {
+        camelCase: true,
+        separator: '-'
+      });
+
+      const exist = await DubberModel.find({ slug });
+      if (exist) throw new ERR_ALREADY_EXIST(`Dubber with this english name (${slug}) is already exist`);
+
+      this.stack.push(`Eng name changed (${this.dubber.name_eng} > ${trimmed})`);
+      this.stack.push(`Slug changed (${this.dubber.slug} > ${slug})`);
+
+      this.dubber.name_eng = trimmed;
+      this.dubber.slug = slug;
+      this.dubber.code = slug;
+
+      this.dubber.markModified('name_eng');
+      this.dubber.markModified('slug');
+    }
+  }
+
+  /** Add member to the team and remove the invitation. Will save the document */
+  async addMember(id: string) {
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found to add`);
+
+    if (!this.dubber.members_invited.includes(id) || this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited to that team or already it's member`);
+
+    this.dubber.members_invited = this.dubber.members_invited.filter(el => el !== id);
+    this.dubber.members.push({
+      id,
+      member_since: getUTC().timestamp,
+      role: 'member',
+    });
+
+    // TODO Send notification
+    // TODO Add dubber team in user document
+
+    this.stack.push(`User ${id} is now part of the team`);
+    Logger.info(`User ${id} is now part of the ${this.dubber.id} dubber team`);
+
+    this.dubber.markModified('members');
+    this.dubber.markModified('members_invited');
+
+    await this.save();
+  }
+
+  /** Change member data */
+  async editMember({ id, role }: IMemberEdit) {
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found to edit`);
+
+    const member = this.dubber.members.find(el => el.id === id);
+    if (!member) throw new E404(`Member ${id} is not found in this team`);
+
+    if (role) {
+      this.stack.push(`Member ${id} role changed (${member.role} > ${role})`);
+
+      member.role = role;
+    }
+
+    this.dubber.markModified('members');
+  }
+
+  /** Remove member from team and invite. Will save the document */
+  async removeMember(id: string, decline_invite?: boolean) {
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found to remove`);
+
+    if (decline_invite && !this.dubber.members_invited.includes(id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited in that team`);
+    if (!this.dubber.members_invited.includes(id) && !this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited or not member of that team`);
+
+
+    if (decline_invite) {
+      // TODO Send notification about declined invite
+    } else {
+      // TODO Send notification about excluding
+    }
+
+    // TODO Remove dubber team from user document
+
+    this.stack.push(`Member ${id} removed`);
+    Logger.info(`User ${id} excluded from the ${this.dubber.id} dubber team`);
+
+    this.dubber.members = this.dubber.members.filter(el => el.id !== id);
+    this.dubber.members_invited = this.dubber.members_invited.filter(el => el !== id);
+
+    this.dubber.markModified('members');
+    this.dubber.markModified('members_invited');
+
+    await this.save();
+  }
+
+  /** Invite member to the team. Will save the document */
+  async inviteMember(id: string) {
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found to invite`);
+    if (!user.statistics.isTelegramLinked) throw new ERR_INVALID_PAYLOAD(`User ${id} does not link telegram`);
+
+    if (this.dubber.members_invited.includes(id) || this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is already invited or member of that team`);
+
+    // TODO Send invite
+
+    this.stack.push(`User ${id} invited`);
+    Logger.info(`User ${id} invited in ${this.dubber.id} dubber team`);
+
+    this.dubber.members_invited.push(id);
+
+    this.dubber.markModified('members_invited');
+
+    await this.save();
+  }
+
+  async patchStatistics({ created_at }: TPatchStatistics) {
+    if (created_at) {
+      this.stack.push(`Changed created_at (${this.dubber.statistics.created_at} > ${created_at})`);
+
+      this.dubber.statistics.created_at = created_at;
+      this.dubber.createdAt = created_at;
+
+      this.dubber.markModified('statistics');
+    }
+  }
+
+  async patchSocialLink({ key, value }: IPatchSocialLink) {
+    this.stack.push(`Social url for ${key} changed (${this.dubber.socials[key]} > ${value})`);
+
+    this.dubber.socials[key] = value;
+    this.dubber.markModified('socials');
+  }
+
+  async patchSupportLink({ key, value }: IPatchSupportlLink) {
+    this.stack.push(`Support url for ${key} changed (${this.dubber.support[key]} > ${value})`);
+
+    this.dubber.support[key] = value;
+    this.dubber.markModified('support');
+  }
+
+  async patch_avatar() {
+
   }
 }
 
