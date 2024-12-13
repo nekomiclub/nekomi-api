@@ -34,6 +34,36 @@ Get specified dubber
 
 ------------------------------------------------------------------
 
+## GET /dubber/invite/:dubber_id
+| VERSION | CSRF  | ACCESS |
+| :-----: | :---: | :----: |
+|  1.3.2  |  ---  | basic  |
+
+Verify if request user has invitation
+
+
+
+**PARAMETERS**
+
+| NAME               | TYPE   | DESCRIPTION | NOTES |
+| ------------------ | ------ | ----------- | ----- |
+| (param) :dubber_id | string | Dubber ID   | ---   |
+
+**RESPONSES**
+
+**200 - Success** <br>
+
+```ts
+{
+  message: 'OK',
+  verified: boolean
+}
+```
+
+**404 - Not found** <br>
+
+------------------------------------------------------------------
+
 ## GET /dubber/all
 | VERSION | CSRF  | ACCESS |
 | :-----: | :---: | :----: |

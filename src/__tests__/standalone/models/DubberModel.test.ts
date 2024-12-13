@@ -23,11 +23,13 @@ afterAll(() => {
 
 describe('Dubber Service', () => {
   const TestID1 = `test-models_dubber--D1`;
+  const TestID2 = `test-models_dubber--D2`;
 
   beforeAll(async () => {
     await purge();
 
-    await DubberService.create({ name: TestID1, code: TestID1, id: TestID1 });
+    await DubberService.create({ name_eng: TestID1, id: TestID1, name_ukr: TestID1 });
+    await DubberService.create({ name_eng: TestID2, id: TestID2, name_ukr: TestID2 });
   });
 
   afterAll(async () => {
@@ -36,6 +38,7 @@ describe('Dubber Service', () => {
 
   async function purge() {
     await DubberService.delete(TestID1, 'Test purge');
+    await DubberService.delete(TestID2, 'Test purge');
   }
 
 
@@ -46,8 +49,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Above max)', async () => {
       try {
         await DubberService.create({
-          code: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
-          name: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
+          name_eng: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
+          name_ukr: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();
@@ -59,8 +62,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Below min)', async () => {
       try {
         await DubberService.create({
-          code: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
-          name: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
+          name_eng: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
+          name_ukr: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();
@@ -74,8 +77,8 @@ describe('Dubber Service', () => {
       try {
         await DubberService.create({
           id: TestID1,
-          code: TestID1,
-          name: TestID1,
+          name_eng: TestID1,
+          name_ukr: TestID1
         });
       } catch (e) {
         if (e instanceof ERR_ALREADY_EXIST) return expect(true).toBeTruthy();

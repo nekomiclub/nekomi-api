@@ -130,8 +130,8 @@ export class TitleService {
   }
 
   static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, testMode?: boolean): Promise<HydratedDocument<ITitle>> {
-    const ID = testMode ? id || createID() : createID();
-    let code = urlSlugConvert(names?.eng || `Untitled ${id}`, {
+    const ID = testMode ? id ?? createID() : createID();
+    let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
       separator: '-'
     });
@@ -149,8 +149,8 @@ export class TitleService {
       id: ID,
       code,
       names: {
-        ukr: names?.ukr || `Тайтл без назви ${id}`,
-        eng: names?.eng || `Untitled ${id}`,
+        ukr: names?.ukr || `Тайтл без назви ${ID}`,
+        eng: names?.eng || `Untitled ${ID}`,
         alt: names?.alt || []
       },
       ageRate: ageRate || 'PG-13',

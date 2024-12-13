@@ -15,6 +15,25 @@ export async function getOne(req: express.Request, res: express.Response) {
   });
 }
 
+export async function inviteVerify(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+
+    const { dubber_id } = req.params as { dubber_id: string };
+    const { id: user_id } = req.nekomi.user!;
+
+    const dubber = await DubberModel.findOne({ id: dubber_id });
+    if (!dubber) throw new E404(`Dubber ${dubber_id} is not found`);
+
+    const verified = dubber.members_invited.includes(user_id);
+
+    return res.status(200).json({
+      message: 'OK',
+      verified
+    });
+  });
+}
+
 export async function getAll(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
     const dubbers = await Dubber.find();

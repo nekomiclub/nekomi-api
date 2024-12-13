@@ -44,6 +44,9 @@ export const dubberInviteAcceptDecline = [
     .notEmpty().withMessage('Dubber id must be provided')
 ];
 
+export const dubberInviteVerify = [
+  CheckAccess(['basic']),
+];
 
 //* ------------------ USER MIDDLEWARES ------------------
 

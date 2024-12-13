@@ -61,10 +61,7 @@ DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemb
 
 //! Must be below all endpoints
 DubberRouter.get(`/:query`, DubberController.getOne);
-
-
-DubberRouter.patch(`/:id`, DubberController.getOne);
-DubberRouter.delete(`/:id`, DubberController.getOne);
+DubberRouter.get(`/invite/:dubber_id`, RouteValidation.dubberInviteVerify, DubberController.inviteVerify);
 
 
 

@@ -97,7 +97,7 @@ export class DubberService {
     if (!validator.isLength(name_eng, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Eng name length is not valid`);
     if (!validator.isLength(slug, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
-    const existDubber = await DubberModel.findOne({ code: slug, slug });
+    const existDubber = await DubberModel.findOne({ slug });
     if (existDubber) throw new ERR_ALREADY_EXIST(`Dubber ${slug} already exist`);
 
     const payload: IDubber = {
@@ -212,7 +212,7 @@ export class DubberService {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User is not found`);
 
-    if (user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
     if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
     if (!this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
 
@@ -274,7 +274,7 @@ export class DubberService {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
 
-    if (!this.dubber.members.some(el => el.id === id)) throw ERR_NOT_MEMBER;
+    if (!this.dubber.members.some(el => el.id === id) && !this.dubber.members_invited.includes(id)) throw ERR_NOT_MEMBER;
     if (decline_invite && !this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
 
 
@@ -335,7 +335,7 @@ export class DubberService {
     if (!user) throw new E404(`User ${id} is not found to invite`);
 
     if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_MISS;
-    if (user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
     if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
     if (this.dubber.members_invited.includes(id)) throw ERR_INVITED_ALREADY;
 
