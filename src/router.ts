@@ -57,7 +57,7 @@ DubberRouter.post(`/invite/accept`, RouteValidation.dubberInviteAcceptDecline, D
 DubberRouter.post(`/invite/decline`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteDecline);
 
 DubberRouter.post(`/settings/member/edit`, DubberController.getAll);
-DubberRouter.post(`/settings/member/remove`, RouteValidation.dubberSettingsMemberRemove, DubberController.settingsMemberRemove);
+DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemberExclude, DubberController.settingsMemberExclude);
 
 //! Must be below all endpoints
 DubberRouter.get(`/:query`, DubberController.getOne);

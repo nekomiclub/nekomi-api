@@ -301,9 +301,11 @@ export class UserService {
       this.user.statistics.viewtime += viewtime;
     }
 
-    if (dubber_team_member) {
-      const dubber = await DubberModel.findOne({ id: dubber_team_member });
-      if (!dubber) throw new E404(`Dubber ${dubber_team_member} is not found`);
+    if (dubber_team_member !== undefined) {
+      if (dubber_team_member !== null) {
+        const dubber = await DubberModel.findOne({ id: dubber_team_member });
+        if (!dubber) throw new E404(`Dubber ${dubber_team_member} is not found`);
+      }
 
       this.stack.push(`Changed dubber team id (${this.user.statistics.dubber_team_member} > ${dubber_team_member})`);
       this.user.statistics.dubber_team_member = dubber_team_member;

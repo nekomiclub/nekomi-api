@@ -93,7 +93,7 @@ export async function inviteDecline(req: express.Request, res: express.Response)
 
 
 
-export async function settingsMemberRemove(req: express.Request, res: express.Response) {
+export async function settingsMemberExclude(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
     if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
     if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);

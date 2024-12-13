@@ -14,14 +14,11 @@ export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
 
 export class HTTPErrorConstructor {
   message: string;
-  /** @deprecated back resolve purposes */
-  msg: string;
   status: THTTPErrorCode;
   code: string;
 
   constructor({ message, status, code }: { message: string, status: THTTPErrorCode, code?: string }) {
     this.message = message;
-    this.msg = this.message;
     this.status = status;
     this.code = code || 'HTTP_ERROR';
   }
@@ -102,9 +99,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     const validation = validationResult(req);
 
     // Check validation
-    if (!validation.isEmpty()) {
-      throw new ERR_INVALID_PAYLOAD();
-    }
+    if (!validation.isEmpty()) throw new ERR_INVALID_PAYLOAD();
 
     // Run callback
     await cb();
@@ -149,14 +144,14 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         }
       }
 
-      return res.status(status).json({ message: emsg, msg: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
+      return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
     } else {
       console.error(e);
 
       const emsg = `[Uncaught]: Uncaught error occured. Behaivour reported`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
-      return res.status(500).json({ msg: emsg, message: emsg, date });
+      return res.status(500).json({ message: emsg, date });
     }
   }
 }

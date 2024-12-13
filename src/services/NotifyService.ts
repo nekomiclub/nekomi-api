@@ -15,10 +15,10 @@ type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
   new_episode,
   airing_started,
-  dubber_invite_pending,
-  dubber_invite_accepted: dubber_invite_pending,
-  dubber_invite_declined: dubber_invite_pending,
-  dubber_member_excluded: dubber_invite_pending,
+  dubber_invite_pending: HANDLER_dubber_tell,
+  dubber_invite_accepted: HANDLER_dubber_tell,
+  dubber_invite_declined: HANDLER_dubber_tell,
+  dubber_member_excluded: HANDLER_dubber_tell,
 };
 
 
@@ -150,7 +150,8 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
   });
 }
 
-async function dubber_invite_pending({ event, payload }: IEventPayload<INotifyDubberInvite>) {
+/** Handle dubber_invite accept & decline & invite, dubber_member_exclude */
+async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberInvite>) {
   const { dubber_id, user_id } = payload;
 
   const dubber = await Dubber.findOne({ id: dubber_id });

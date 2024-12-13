@@ -3,7 +3,7 @@ import validator from 'validator';
 import { convert as createSlug } from 'url-slug';
 
 import UserModel, { UserService } from './User';
-import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { E400, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IDubber, TDubberMemberRole } from '../interfaces/Dubber';
 import { INotifyDubberInvite } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
@@ -64,6 +64,15 @@ export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   name_ukr: String,
   slug: String,
 }));
+
+//! ---------- ERRORS
+const ERR_NOT_INVITED = new E400('User not invited in that team', 'dubber_member:not_invited');
+const ERR_NOT_MEMBER = new E400('User not member in that team', 'dubber_member:not_member');
+const ERR_TELEGRAM_MISS = new E400('User does not link telegram', 'dubber_member:telegram_miss');
+
+const ERR_INVITED_ALREADY = new E400('User is already invited in that team', 'dubber_member:invited_already');
+const ERR_MEMBER_ALREADY = new E400('User is already member of that team', 'dubber_member:member_already');
+const ERR_OTHER_TEAM_MEMBER = new E400('User is already member of other team', 'dubber_member:other_team_member');
 
 
 
@@ -201,9 +210,11 @@ export class DubberService {
   /** Add member to the team and remove the invitation. Will save the document */
   async addMember(id: string) {
     const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found to add`);
+    if (!user) throw new E404(`User is not found`);
 
-    if (!this.dubber.members_invited.includes(id) || this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited to that team or already it's member`);
+    if (user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
+    if (!this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
 
     this.dubber.members_invited = this.dubber.members_invited.filter(el => el !== id);
     this.dubber.members.push({
@@ -261,10 +272,10 @@ export class DubberService {
   /** Remove member from team and invite. Will save the document */
   async removeMember(id: string, decline_invite?: boolean) {
     const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found to remove`);
+    if (!user) throw new E404(`User ${id} is not found`);
 
-    if (decline_invite && !this.dubber.members_invited.includes(id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited in that team`);
-    if (!this.dubber.members_invited.includes(id) && !this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is not invited or not member of that team`);
+    if (!this.dubber.members.some(el => el.id === id)) throw ERR_NOT_MEMBER;
+    if (decline_invite && !this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
 
 
     const userService = new UserService({ user });
@@ -322,9 +333,11 @@ export class DubberService {
   async inviteMember(id: string) {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found to invite`);
-    if (!user.statistics.isTelegramLinked) throw new ERR_INVALID_PAYLOAD(`User ${id} does not link telegram`);
 
-    if (this.dubber.members_invited.includes(id) || this.dubber.members.some(el => el.id === id)) throw new ERR_INVALID_PAYLOAD(`User ${id} is already invited or member of that team`);
+    if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_MISS;
+    if (user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
+    if (this.dubber.members_invited.includes(id)) throw ERR_INVITED_ALREADY;
 
     // Send invite notify
     const userService = new UserService({ user });
@@ -343,7 +356,6 @@ export class DubberService {
     Logger.info(`User ${id} invited in ${this.dubber.id} dubber team`);
 
     this.dubber.members_invited.push(id);
-
     this.dubber.markModified('members_invited');
 
     await this.save();
