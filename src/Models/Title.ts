@@ -7,7 +7,7 @@ import validator from 'validator';
 import { $http, $upload } from '../handlers/http';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { AxiosError } from 'axios';
-import { E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
+import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
 import { IA_UploadsUpload, NEKOMI_UPLOADS, TEpisodeQuality } from '../interfaces/http/Uploads';
 import { IChangeEpMeta } from '../controllers/title';
 import { IDubber } from '../interfaces/Dubber';
@@ -87,6 +87,10 @@ export interface IM_TitleServiceUploadPoster {
   /** Upload ID */
   id: string
 }
+
+
+
+const ERR_DUBBER_MISSMATCH = new E403('Dubber can not change episodes in other teams', 'title:dubber_missmatch');
 
 
 
@@ -586,6 +590,7 @@ export class TitleService {
 
   /** Upload new episode
    * Will check seriesAdd capability
+   * Will save the document
    */
   async uploadEpisode({ file, user, dubber, episodeOrder, qualities }: IUploadEpisode, mockData?: IM_TitleSerciveUploadEpisode): Promise<ITitleEpisode> {
     let requestTimestamp = getUTC().timestamp;
@@ -596,6 +601,8 @@ export class TitleService {
     const formData = new FormData();
 
     if (!caps.includes('root') && !caps.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+    if (!caps.includes('root') && caps.includes('dubber') && dubber.id !== user.statistics.dubber_team_member) throw ERR_DUBBER_MISSMATCH;
+
     if (episodeOrder > config.VALIDATION.PatchTitle.maxEpisode || episodeOrder < config.VALIDATION.PatchTitle.minEpisode) throw new ERR_LENGTH_INVALID(`Episode order must be between ${config.VALIDATION.PatchTitle.minEpisode} and ${config.VALIDATION.PatchTitle.maxEpisode}`);
 
     // Reject if episode exist
@@ -712,6 +719,7 @@ export class TitleService {
   async deleteEpisode({ order, dubber, user }: IDeleteEpisode) {
     const caps = await parseRoles(user.roles);
     if (!caps.includes('root') && !caps.includes('seriesDelete')) throw new ERR_ACCESS_REJECTED(`You are not permitted to delete episodes :(`);
+    if (!caps.includes('root') && caps.includes('dubber') && dubber.id !== user.statistics.dubber_team_member) throw ERR_DUBBER_MISSMATCH;
 
     const ep = this.title.episodes.find(el => el.order === order && el.dubberID === dubber.id);
     if (!ep) throw new E404(`Episode ${order}/${dubber.id} is not found`);

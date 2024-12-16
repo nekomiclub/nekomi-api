@@ -237,6 +237,7 @@ export class DubberService {
     });
 
     await userService.patchStatistics({ dubber_team_member: this.dubber.id });
+    await userService.addRole({ code: 'dubber_member' });
     await userService.removeSubscribe({ event: 'dubber_invite_accepted', key: this.dubber.id });
     await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
     await userService.save();
@@ -294,7 +295,6 @@ export class DubberService {
 
       await userService.removeSubscribe({ event: 'dubber_invite_declined', key: this.dubber.id });
       await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
-      await userService.save();
     } else {
       // Send notification about excluding
       await userService.addSubscribe({ event: 'dubber_member_excluded', key: this.dubber.id });
@@ -310,9 +310,12 @@ export class DubberService {
 
       await userService.patchStatistics({ dubber_team_member: null });
       await userService.removeSubscribe({ event: 'dubber_member_excluded', key: this.dubber.id });
-      await userService.save();
     }
 
+    await userService.removeRole({ code: 'dubber_member' });
+    await userService.removeRole({ code: 'dubber_editor' });
+    await userService.removeRole({ code: 'dubber_leader' });
+    await userService.save();
 
 
     // TODO Remove dubber team from user document
@@ -386,7 +389,13 @@ export class DubberService {
     this.dubber.markModified('support');
   }
 
-  async patch_avatar() {
+
+
+  async uploadAvatar() {
+
+  }
+
+  async uploadBanner() {
 
   }
 }
