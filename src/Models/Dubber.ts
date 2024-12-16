@@ -255,7 +255,9 @@ export class DubberService {
     await this.save();
   }
 
-  /** Change member data */
+  /** Change member data
+   * Will save the document
+   */
   async editMember({ id, role }: IMemberEdit) {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found to edit`);
@@ -263,13 +265,34 @@ export class DubberService {
     const member = this.dubber.members.find(el => el.id === id);
     if (!member) throw new E404(`Member ${id} is not found in this team`);
 
+    const userService = new UserService({ user });
+
     if (role) {
+      if (role !== 'editor' && role !== 'leader' && role !== 'member') throw new E400(`Role ${role} is invalid`);
+
       this.stack.push(`Member ${id} role changed (${member.role} > ${role})`);
+
+      if (role === 'member') {
+        await userService.addRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_editor` });
+        await userService.removeRole({ code: `dubber_leader` });
+      } else if (role === 'editor') {
+        await userService.addRole({ code: `dubber_editor` });
+        await userService.removeRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_leader` });
+      } else if (role === 'leader') {
+        await userService.addRole({ code: `dubber_leader` });
+        await userService.removeRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_editor` });
+      }
 
       member.role = role;
     }
 
     this.dubber.markModified('members');
+
+    await userService.save();
+    await this.dubber.save();
   }
 
   /** Remove member from team and invite. Will save the document */

@@ -56,7 +56,7 @@ DubberRouter.post(`/invite/send`, RouteValidation.dubberInviteSend, DubberContro
 DubberRouter.post(`/invite/accept`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteAccept);
 DubberRouter.post(`/invite/decline`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteDecline);
 
-DubberRouter.post(`/settings/member/edit`, DubberController.getAll);
+DubberRouter.patch(`/settings/member/edit`, RouteValidation.dubberSettingsMemberEdit, DubberController.settingsMemberEdit);
 DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemberExclude, DubberController.settingsMemberExclude);
 
 //! Must be below all endpoints

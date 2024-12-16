@@ -21,7 +21,7 @@ const upload = multer();
 //* ------------------ DUBBER MIDDLEWARES ------------------
 export const dubberInviteSend = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['dubberEditMembers']),
+  CheckAccess(['root']),
   body('user_id')
     .notEmpty().withMessage('User id must be provided'),
   body('dubber_id')
@@ -30,7 +30,7 @@ export const dubberInviteSend = [
 
 export const dubberSettingsMemberExclude = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['dubberEditMembers']),
+  CheckAccess(['root']),
   body('user_id')
     .notEmpty().withMessage('User id must be provided'),
   body('dubber_id')
@@ -46,6 +46,15 @@ export const dubberInviteAcceptDecline = [
 
 export const dubberInviteVerify = [
   CheckAccess(['basic']),
+];
+
+export const dubberSettingsMemberEdit = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['root']),
+  body('user_id')
+    .notEmpty().withMessage('User id must be provided'),
+  body('dubber_id')
+    .notEmpty().withMessage('Dubber id must be provided')
 ];
 
 //* ------------------ USER MIDDLEWARES ------------------

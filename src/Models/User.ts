@@ -424,7 +424,7 @@ export class UserService {
 
     if (!this.user.roles.includes(code)) {
       this.user.roles.push(code);
-      this.stack.push(`Added role ${role.id}`);
+      this.stack.push(`Added role ${role.code}`);
     }
 
     this.user.markModified('roles');
@@ -435,8 +435,10 @@ export class UserService {
     const role = await Role.findOne({ code });
     if (!role) throw new E404(`Role ${code} is not found`);
 
-    this.user.roles = this.user.roles.filter(el => el !== code);
-    this.stack.push(`Removed role ${role.id}`);
+    if (this.user.roles.includes(code)) {
+      this.user.roles = this.user.roles.filter(el => el !== code);
+      this.stack.push(`Removed role ${role.code}`);
+    }
 
     this.user.markModified('roles');
   }
