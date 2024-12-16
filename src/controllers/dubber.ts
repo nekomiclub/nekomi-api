@@ -25,7 +25,7 @@ export async function inviteVerify(req: express.Request, res: express.Response) 
     const dubber = await DubberModel.findOne({ id: dubber_id });
     if (!dubber) throw new E404(`Dubber ${dubber_id} is not found`);
 
-    const verified = dubber.members_invited.includes(user_id);
+    const verified = dubber.membersInvited.includes(user_id);
 
     return res.status(200).json({
       message: 'OK',

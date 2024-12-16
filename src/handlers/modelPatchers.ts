@@ -8,6 +8,7 @@ import { HydratedDocument } from 'mongoose';
 import { ITitle } from '../interfaces/Title';
 import { Logger } from '../services/LoggerService';
 import { TitleService } from '../Models/Title';
+import { config } from '../config';
 import { getUTC } from './handler';
 
 
@@ -50,15 +51,21 @@ export async function patchDubberModel() {
     dubber.set('membersInvitePending', undefined, { strict: false });
 
     dubber.statistics = {
-      created_at: dubber.createdAt
+      createdAt: dubber.createdAt
     };
 
     dubber.slug = dubber.code;
-    dubber.name_ukr = dubber.name;
-    dubber.name_eng = dubber.code;
+    dubber.nameUkr = dubber.name;
+    dubber.nameEng = dubber.code;
+    dubber.banner = config.vars.defaultUserBanner;
 
     dubber.members = [];
-    dubber.members_invited = [];
+    dubber.membersInvited = [];
+
+    dubber.set('statistics.created_at', undefined, { strict: false });
+    dubber.set('name_ukr', undefined, { strict: false });
+    dubber.set('name_eng', undefined, { strict: false });
+    dubber.set('members_invited', undefined, { strict: false });
 
     await dubber.save();
   }

@@ -14,8 +14,8 @@ import { createID, getUTC } from '../handlers/handler';
 
 
 interface IDubberCreate {
-  name_ukr: string
-  name_eng: string
+  nameUkr: string
+  nameEng: string
 
   /** Id can be set only in dev mode */
   id?: string
@@ -58,11 +58,12 @@ export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
   description: String,
   members: Array,
   avatar: String,
-  members_invited: Array,
+  membersInvited: Array,
   statistics: Object,
-  name_eng: String,
-  name_ukr: String,
+  nameEng: String,
+  nameUkr: String,
   slug: String,
+  banner: String
 }));
 
 //! ---------- ERRORS
@@ -89,12 +90,12 @@ export class DubberService {
 
 
   /** Crete new Dubber instance */
-  static async create({ name_ukr, name_eng, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
+  static async create({ nameUkr, nameEng, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
     id = prodMode ? createID() : id ?? createID();
-    const slug = createSlug(name_eng);
+    const slug = createSlug(nameEng);
 
-    if (!validator.isLength(name_ukr, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is not valid`);
-    if (!validator.isLength(name_eng, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Eng name length is not valid`);
+    if (!validator.isLength(nameUkr, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is not valid`);
+    if (!validator.isLength(nameEng, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Eng name length is not valid`);
     if (!validator.isLength(slug, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Code length is not valid`);
 
     const existDubber = await DubberModel.findOne({ slug });
@@ -102,18 +103,19 @@ export class DubberService {
 
     const payload: IDubber = {
       id,
-      name: name_ukr,
-      name_ukr,
-      name_eng,
+      name: nameUkr,
+      nameUkr,
+      nameEng,
       code: slug,
       slug,
       avatar: config.vars.defaultAvatar,
+      banner: config.vars.defaultUserBanner,
       createdAt: getUTC().timestamp,
       description: null,
       members: [],
-      members_invited: [],
+      membersInvited: [],
       statistics: {
-        created_at: getUTC().timestamp
+        createdAt: getUTC().timestamp
       },
       socials: {
         instagram: null,
@@ -133,7 +135,7 @@ export class DubberService {
     const instance = new DubberModel(payload);
     await instance.save();
 
-    Logger.debug(`[DubberService]: New dubber ${name_ukr} created with id ${payload.id}`);
+    Logger.debug(`[DubberService]: New dubber ${nameUkr} created with id ${payload.id}`);
 
     return instance;
   }
@@ -177,10 +179,10 @@ export class DubberService {
       const trimmed = ukr.trim().replace(/\s+/g, ' ');
       if (!validator.isLength(trimmed, { min: this.validation.CreateUser.minNameLength, max: this.validation.CreateUser.maxNameLength })) throw new ERR_INVALID_PAYLOAD(`Dubber ukr name must be between ${this.validation.CreateUser.minNameLength} and ${this.validation.CreateUser.maxNameLength} symbols length`);
 
-      this.stack.push(`Ukr name changed (${this.dubber.name_ukr} > ${trimmed})`);
+      this.stack.push(`Ukr name changed (${this.dubber.nameUkr} > ${trimmed})`);
 
-      this.dubber.name_ukr = trimmed;
-      this.dubber.markModified('name_ukr');
+      this.dubber.nameUkr = trimmed;
+      this.dubber.markModified('nameUkr');
     }
 
     if (eng) {
@@ -195,14 +197,14 @@ export class DubberService {
       const exist = await DubberModel.find({ slug });
       if (exist) throw new ERR_ALREADY_EXIST(`Dubber with this english name (${slug}) is already exist`);
 
-      this.stack.push(`Eng name changed (${this.dubber.name_eng} > ${trimmed})`);
+      this.stack.push(`Eng name changed (${this.dubber.nameEng} > ${trimmed})`);
       this.stack.push(`Slug changed (${this.dubber.slug} > ${slug})`);
 
-      this.dubber.name_eng = trimmed;
+      this.dubber.nameEng = trimmed;
       this.dubber.slug = slug;
       this.dubber.code = slug;
 
-      this.dubber.markModified('name_eng');
+      this.dubber.markModified('nameEng');
       this.dubber.markModified('slug');
     }
   }
@@ -214,12 +216,12 @@ export class DubberService {
 
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
     if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
-    if (!this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
+    if (!this.dubber.membersInvited.includes(id)) throw ERR_NOT_INVITED;
 
-    this.dubber.members_invited = this.dubber.members_invited.filter(el => el !== id);
+    this.dubber.membersInvited = this.dubber.membersInvited.filter(el => el !== id);
     this.dubber.members.push({
       id,
-      member_since: getUTC().timestamp,
+      memberSince: getUTC().timestamp,
       role: 'member',
     });
 
@@ -275,8 +277,8 @@ export class DubberService {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
 
-    if (!this.dubber.members.some(el => el.id === id) && !this.dubber.members_invited.includes(id)) throw ERR_NOT_MEMBER;
-    if (decline_invite && !this.dubber.members_invited.includes(id)) throw ERR_NOT_INVITED;
+    if (!this.dubber.members.some(el => el.id === id) && !this.dubber.membersInvited.includes(id)) throw ERR_NOT_MEMBER;
+    if (decline_invite && !this.dubber.membersInvited.includes(id)) throw ERR_NOT_INVITED;
 
 
     const userService = new UserService({ user });
@@ -324,10 +326,10 @@ export class DubberService {
     Logger.info(`User ${id} excluded from the ${this.dubber.id} dubber team`);
 
     this.dubber.members = this.dubber.members.filter(el => el.id !== id);
-    this.dubber.members_invited = this.dubber.members_invited.filter(el => el !== id);
+    this.dubber.membersInvited = this.dubber.membersInvited.filter(el => el !== id);
 
     this.dubber.markModified('members');
-    this.dubber.markModified('members_invited');
+    this.dubber.markModified('membersInvited');
 
     await this.save();
   }
@@ -340,7 +342,7 @@ export class DubberService {
     if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_MISS;
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.dubber.id) throw ERR_OTHER_TEAM_MEMBER;
     if (this.dubber.members.some(el => el.id === id)) throw ERR_MEMBER_ALREADY;
-    if (this.dubber.members_invited.includes(id)) throw ERR_INVITED_ALREADY;
+    if (this.dubber.membersInvited.includes(id)) throw ERR_INVITED_ALREADY;
 
     // Send invite notify
     const userService = new UserService({ user });
@@ -358,18 +360,18 @@ export class DubberService {
     this.stack.push(`User ${id} invited`);
     Logger.info(`User ${id} invited in ${this.dubber.id} dubber team`);
 
-    this.dubber.members_invited.push(id);
-    this.dubber.markModified('members_invited');
+    this.dubber.membersInvited.push(id);
+    this.dubber.markModified('membersInvited');
 
     await this.save();
   }
 
-  async patchStatistics({ created_at }: TPatchStatistics) {
-    if (created_at) {
-      this.stack.push(`Changed created_at (${this.dubber.statistics.created_at} > ${created_at})`);
+  async patchStatistics({ createdAt }: TPatchStatistics) {
+    if (createdAt) {
+      this.stack.push(`Changed created_at (${this.dubber.statistics.createdAt} > ${createdAt})`);
 
-      this.dubber.statistics.created_at = created_at;
-      this.dubber.createdAt = created_at;
+      this.dubber.statistics.createdAt = createdAt;
+      this.dubber.createdAt = createdAt;
 
       this.dubber.markModified('statistics');
     }

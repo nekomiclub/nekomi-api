@@ -28,8 +28,8 @@ describe('Dubber Service', () => {
   beforeAll(async () => {
     await purge();
 
-    await DubberService.create({ name_eng: TestID1, id: TestID1, name_ukr: TestID1 });
-    await DubberService.create({ name_eng: TestID2, id: TestID2, name_ukr: TestID2 });
+    await DubberService.create({ nameEng: TestID1, id: TestID1, nameUkr: TestID1 });
+    await DubberService.create({ nameEng: TestID2, id: TestID2, nameUkr: TestID2 });
   });
 
   afterAll(async () => {
@@ -49,8 +49,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Above max)', async () => {
       try {
         await DubberService.create({
-          name_eng: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
-          name_ukr: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
+          nameEng: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
+          nameUkr: 'X'.repeat(config.VALIDATION.CreateUser.maxNameLength + 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();
@@ -62,8 +62,8 @@ describe('Dubber Service', () => {
     test('Reject - Name or code length missmatch (Below min)', async () => {
       try {
         await DubberService.create({
-          name_eng: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
-          name_ukr: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
+          nameEng: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
+          nameUkr: 'X'.repeat(config.VALIDATION.CreateUser.minNameLength - 1),
         });
       } catch (e) {
         if (e instanceof ERR_LENGTH_INVALID) return expect(true).toBeTruthy();
@@ -77,8 +77,8 @@ describe('Dubber Service', () => {
       try {
         await DubberService.create({
           id: TestID1,
-          name_eng: TestID1,
-          name_ukr: TestID1
+          nameEng: TestID1,
+          nameUkr: TestID1
         });
       } catch (e) {
         if (e instanceof ERR_ALREADY_EXIST) return expect(true).toBeTruthy();

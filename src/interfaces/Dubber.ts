@@ -9,21 +9,23 @@ export interface IDubber {
   members: IDubberMember[]
 
   /** Invited members IDs */
-  members_invited: string[]
-
+  membersInvited: string[]
 
 
   /** @since 1.3.2 */
-  name_ukr: string
+  banner: string
 
   /** @since 1.3.2 */
-  name_eng: string
+  nameUkr: string
+
+  /** @since 1.3.2 */
+  nameEng: string
 
 
 
   statistics: {
     /** Creation UTC0 timestamp */
-    created_at: number
+    createdAt: number
   }
 
   socials: {
@@ -60,5 +62,5 @@ export interface IDubberMember {
   role: TDubberMemberRole
 
   /** Member since UTC0 timestamp */
-  member_since: number
+  memberSince: number
 }
