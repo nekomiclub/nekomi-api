@@ -98,6 +98,13 @@ export const userValidate = [
   CheckCSRF([config.DOMAIN.nekomi]),
 ];
 
+export const userPostTogether = [
+  body('titleId')
+    .notEmpty().withMessage('Title id can not be empty'),
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+];
+
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const getHomeWrapped = [

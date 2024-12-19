@@ -25,6 +25,7 @@ export async function patchUserModel() {
     const user = users[key];
 
     user.statistics.dubber_team_member = null;
+    user.togetherRooms = [];
     user.markModified('statistics');
 
     await user.save();

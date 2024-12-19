@@ -1,30 +1,23 @@
-export interface IUser {
+/** Public user object that dto return */
+export interface IUser_Public {
   id: string
   username: string
   avatar: string
   banner: string
+}
 
-  /** @private */
+export interface IUser extends IUser_Public {
   statistics: IUserStatistics
-
-  /** @private */
   libs: IUserLib[]
-
-  /** @private */
   roles: string[]
-
-  /** @private */
   watchProgress: IUserWatchProgress[]
+  telegramData: IUserTelegramData | null
+  togetherRooms: IUserTogetherRoom[]
 
-  /** @private */
-  telegramData: null | IUserTelegramData
-
-  /** @private */
   telegramLinkToken: string | null
 
   /** Events subscribes
    * @see docs/features.md#user-subscribes
-   * @private
    */
   subscribes: string[]
 }
@@ -60,10 +53,8 @@ export interface IUserTelegramData {
   id: number
 }
 
-/** User lib type */
-type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
+export type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
 
-/** User titles lib */
 export interface IUserLib {
   id: string
   type: TUserLibType
@@ -82,5 +73,17 @@ export interface IUserLib {
 
     /** Protection from settings changes */
     immortal: boolean
+  }
+}
+
+export interface IUserTogetherRoom {
+  id: string
+  titleId: string
+  settings: {
+    name: string
+    password: string | null
+
+    usersCanControl: boolean
+    accurateSync: boolean
   }
 }

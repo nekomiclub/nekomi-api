@@ -67,13 +67,14 @@ Get user. Can parse lib or roles. Can return user by session with "*" as query
 
 **PARAMETERS**
 
-| NAME                 | TYPE    | DESCRIPTION                 | NOTES                          |
-| -------------------- | ------- | --------------------------- | ------------------------------ |
-| (header) ?CSRF-Token | string  | CSRF Token                  | ---                            |
-| (query) ?detailed    | boolean | Return sensetive info       | Require valid nekomi.club CSRF |
-| (query) ?parseRoles  | boolean | Return capabilities         | ---                            |
-| (query) ?parseLib    | string  | User lib ID                 | ---                            |
-| (query) query        | string  | User query (id or username) | ---                            |
+| NAME                    | TYPE    | DESCRIPTION                 | NOTES                          |
+| ----------------------- | ------- | --------------------------- | ------------------------------ |
+| (header) ?X-CSRF-Token  | string  | CSRF Token                  | ---                            |
+| (query) ?detailed       | boolean | Return sensetive info       | Require valid nekomi.club CSRF |
+| (query) ?parseRoles     | boolean | Return capabilities         | Require detailed mode          |
+| (query) ?parseLib       | string  | User lib ID                 | Require detailed mode          |
+| (query) ?togetherRoomId | string  | Together room id            | Require detailed mode          |
+| (query) query           | string  | User query (id or username) | ---                            |
 
 **RESPONSES**
 
@@ -116,6 +117,16 @@ Parse user library (till 1.3.2 will be true by default)
   message: 'OK',
   user: IUser,
   parsedRoles: TRoleCapability[]
+}
+```
+
+**200 - Get together room** <br>
+
+```ts
+{
+  message: 'OK',
+  user: IUser,
+  togetherRoom: IUserTogetherRoom
 }
 ```
 

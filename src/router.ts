@@ -24,8 +24,7 @@ export default {
 
 
 //* ------------------ ROOT ROUTER ------------------
-RootRouter.get('/', RootController.getPing);
-RootRouter.get('/ping', RootController.getPing);
+RootRouter.get(['/', '/ping'], RootController.getPing);
 
 RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 RootRouter.post('/upload', RouteValidation.postUpload, RootController.postUpload);
@@ -75,6 +74,10 @@ UserRouter.post([`/link/telegram`, `/linkTelegram`], RouteValidation.userLinkTel
 UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], RouteValidation.userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
 
 UserRouter.patch([`/me`, `/`], RouteValidation.userPatch, UserController.patchUser); //* / is deprecated
+
+UserRouter.post('/together', RouteValidation.userPostTogether, UserController.createTogetherRoom);
+// UserRouter.patch('/together/:id', UserController.getQuery);
+// UserRouter.delete('/together/:id', UserController.getQuery);
 
 
 //! Must be below all endpoints

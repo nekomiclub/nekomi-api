@@ -3,17 +3,17 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import * as cfg from '../config';
 import DubberModel from './Dubber';
 import Role from './Role';
-import Title from './Title';
+import Title, { TitleModel } from './Title';
 import validator from 'validator';
 import { $http } from '../handlers/http';
 import { AxiosError } from 'axios';
-import { E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
 import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { TNotifyEvent } from '../interfaces/services/Notify';
 import { config } from '../config';
-import { createID, getUTC } from '../handlers/handler';
+import { createID, createStringID, getUTC } from '../handlers/handler';
 
 
 
@@ -49,6 +49,10 @@ interface IPatchTelegramData extends Partial<IUserTelegramData> {
   remove?: boolean
 }
 
+interface ICreateTogetherRoom {
+  titleId: string
+}
+
 
 
 /** To create/patch/delete User instance use UserService */
@@ -64,6 +68,7 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
   telegramData: Object,
   telegramLinkToken: String,
   banner: String,
+  togetherRooms: Array,
 }));
 
 
@@ -154,6 +159,7 @@ export class UserService {
         viewtime: 0,
         dubber_team_member: null,
       },
+      togetherRooms: [],
       subscribes: [],
       telegramData: null,
       telegramLinkToken: null,
@@ -465,6 +471,36 @@ export class UserService {
     this.stack.push(`Removed subscribe ${subscribe}`);
 
     this.user.markModified('subscribes');
+  }
+
+  //* ------------ WATCH TOGETHER
+  /** Create watch together room
+   * @returns room id
+   */
+  async createTogetherRoom({ titleId }: ICreateTogetherRoom): Promise<string> {
+    const rooms = this.user.togetherRooms;
+    if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
+
+    const title = await TitleModel.findOne({ id: titleId });
+    if (!title) throw new E404(`Title ${titleId} is not found`);
+
+    const id = createStringID(6);
+
+    rooms.push({
+      id,
+      titleId,
+      settings: {
+        name: id,
+        accurateSync: false,
+        password: null,
+        usersCanControl: false
+      },
+    });
+
+    this.user.markModified('togetherRooms');
+    this.stack.push(`New together room created with id ${id}`);
+
+    return id;
   }
 }
 
