@@ -490,7 +490,7 @@ export class UserService {
       id,
       titleId,
       settings: {
-        name: id,
+        name: title.names.ukr,
         accurateSync: false,
         password: null,
         usersCanControl: false

@@ -4,8 +4,9 @@ import http from 'http';
 import { E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
 import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, Message, Request, Response, TWS_Request, WS_TYPES } from '../interfaces/WebSocket';
 import { Logger } from '../services/LoggerService';
+import { MiddlewareService } from '../services/MiddlewareService';
 import { WebSocketExtended } from '../interfaces/globals';
-import { devMode } from '../config';
+import { config, devMode } from '../config';
 import { wss } from '../index';
 
 
@@ -31,12 +32,15 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       // Ensure inner data is not undefined
       ws.nekomi = ws.nekomi !== undefined ? ws.nekomi : {};
 
-      if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload) throw new ERR_INVALID_PAYLOAD('Websocket type or payload is invalid');
+      if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload || !parsed.CSRF) throw new ERR_INVALID_PAYLOAD();
+
+      const middlewareService = new MiddlewareService();
+      await middlewareService.checkCSRF(parsed.CSRF, [config.DOMAIN.nekomi]);
 
       const route = ROUTER[parsed.type] as TRouterFunction;
       if (!route) throw new E501(`Route ${parsed.type} is found but not implemented yet`);
 
-      Logger.trace(`[Request/${IP}]: WebSocket - ${JSON.stringify(parsed)}`);
+      Logger.trace(`[Request/${IP}]: WebSocket - ${parsed.type}`);
 
       await route({ ws, message: parsed }, IP);
     } catch (e) {
