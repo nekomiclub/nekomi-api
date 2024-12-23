@@ -1,21 +1,35 @@
 import chalk from 'chalk';
 import http from 'http';
 
-import { E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '../services/ErrorService';
-import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, Message, Request, Response, TWS_Request, WS_TYPES } from '../interfaces/WebSocket';
+import UserModel from '../Models/User';
+import validator from 'validator';
+import { E404, E501, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, HTTPErrorConstructor } from '../services/ErrorService';
+import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, IWS_WTConnect, IWS_WTMessage, Message, Request, Response, TWS_Group, TWS_Request, WS_TYPES } from '../interfaces/WebSocket';
 import { Logger } from '../services/LoggerService';
 import { MiddlewareService } from '../services/MiddlewareService';
 import { WebSocketExtended } from '../interfaces/globals';
 import { config, devMode } from '../config';
+import { getUTC } from '../handlers/handler';
 import { wss } from '../index';
 
+
+
+interface IBroadcastProps {
+  message: Message
+  audience: TWS_Group
+}
 
 type TRouterFunction = (message: IWS_Route, IP: string) => Promise<void>
 
 const ROUTER: { [TYPE in TWS_Request]?: TRouterFunction } = {
   ping,
+
   site_connected,
   site_disconnected,
+
+  wt_connect,
+  wt_disconnect,
+  wt_message,
 };
 
 let OnlineClients: string[] = [];
@@ -30,7 +44,10 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || 'IP_UNDEFINED';
 
       // Ensure inner data is not undefined
-      ws.nekomi = ws.nekomi !== undefined ? ws.nekomi : {};
+      ws.nekomi = ws.nekomi !== undefined ? ws.nekomi : {
+        participant: [],
+        togetherRoomID: null
+      };
 
       if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload || !parsed.CSRF) throw new ERR_INVALID_PAYLOAD();
 
@@ -85,7 +102,10 @@ export async function WebSocketOnlinePoll() {
   Logger.info(`[WebSocket]: Site online polling started, current online reseted`);
   OnlineClients.splice(0, OnlineClients.length - 1);
 
-  return await broadcast(request);
+  return await broadcast({
+    message: request,
+    audience: 'online_poll'
+  });
 }
 
 
@@ -100,7 +120,7 @@ async function ping({ ws, message }: IWS_Route) {
     }
   };
 
-  ws.send(JSON.stringify(response));
+  return ws.send(JSON.stringify(response));
 }
 
 async function site_connected({ ws, message }: IWS_Route, IP: string) {
@@ -133,7 +153,12 @@ async function site_connected({ ws, message }: IWS_Route, IP: string) {
     }
   };
 
-  return await broadcast(response);
+  ws.nekomi.participant.push('online_poll');
+
+  return await broadcast({
+    message: response,
+    audience: 'online_poll'
+  });
 }
 
 async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
@@ -166,7 +191,120 @@ async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
     }
   };
 
-  return await broadcast(response);
+  ws.nekomi.participant = ws.nekomi.participant.filter(el => el !== 'online_poll');
+
+  return await broadcast({
+    message: response,
+    audience: 'online_poll'
+  });
+}
+
+
+
+async function wt_connect({ ws, message }: IWS_Route) {
+  const { username, roomId } = message.payload as IWS_WTConnect;
+  if (!username || !roomId) throw new ERR_INVALID_PAYLOAD();
+  if (username.length > config.VALIDATION.CreateUser.maxNameLength) throw new ERR_LENGTH_INVALID();
+
+  const userId = roomId.split('__')[0];
+  const wtRoomId = roomId.split('__')[1];
+
+  const user = await UserModel.findOne({ id: userId });
+  if (!user) throw new E404(`User ${userId} is not found`);
+  if (!user.togetherRooms.some(el => el.id === wtRoomId)) throw new E404(`Room ${wtRoomId} is not found`);
+
+  ws.nekomi.togetherRoomID = roomId;
+  ws.nekomi.participant.push('watch_together');
+
+  if (devMode) {
+    const response: Response = {
+      payload: {
+        message: `User ${username} connected`
+      },
+      type: 'ok',
+    };
+
+    ws.send(JSON.stringify(response));
+  }
+
+  const response: Response<IWS_WTMessage> = {
+    payload: {
+      avatar: config.vars.defaultAvatar,
+      date: getUTC().timestamp,
+      roomId,
+      text: `${username} доєднався до кімнати`,
+      type: 'system',
+      username: 'SYSTEM'
+    },
+    type: 'wt_message'
+  };
+
+  return await broadcast({
+    message: response,
+    audience: 'watch_together'
+  });
+}
+
+async function wt_disconnect({ ws, message }: IWS_Route) {
+  const { username, roomId } = message.payload as IWS_WTConnect;
+  if (!username || !roomId) throw new ERR_INVALID_PAYLOAD();
+
+  ws.nekomi.togetherRoomID = null;
+  ws.nekomi.participant = ws.nekomi.participant.filter(el => el !== 'watch_together');
+
+  if (devMode) {
+    const response: Response = {
+      payload: {
+        message: `User ${username} disconnected`
+      },
+      type: 'ok',
+    };
+
+    ws.send(JSON.stringify(response));
+  }
+
+  const response: Response<IWS_WTMessage> = {
+    payload: {
+      avatar: config.vars.defaultAvatar,
+      date: getUTC().timestamp,
+      roomId,
+      text: `${username} вийшов з кімнати`,
+      type: 'system',
+      username: 'SYSTEM'
+    },
+    type: 'wt_message'
+  };
+
+  return await broadcast({
+    message: response,
+    audience: 'watch_together'
+  });
+}
+
+async function wt_message({ ws, message }: IWS_Route) {
+  const { username, roomId, avatar, date, text, type } = message.payload as IWS_WTMessage;
+
+  let xssAttemp = false;
+
+  if (!validator.isLength(text, { min: 1, max: config.VALIDATION.WatchTogether.textMessageLength })) throw new ERR_LENGTH_INVALID();
+  if (text.includes('<script')) xssAttemp = true;
+
+  const response: Response<IWS_WTMessage> = {
+    payload: {
+      avatar,
+      date: getUTC().timestamp,
+      roomId,
+      text: xssAttemp ? `${username}, ти справді думаєш, що вставивши script в повідомлення зробиш XSS атаку? :)` : text,
+      type: xssAttemp ? 'system' : 'income',
+      username: xssAttemp ? 'SYSTEM' : username
+    },
+    type: 'wt_message'
+  };
+
+  return await broadcast({
+    message: response,
+    audience: 'watch_together'
+  });
 }
 
 
@@ -174,10 +312,21 @@ async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
 //* ----------- HANDLERS
 
 /** Broadcast message to all websocket clients */
-async function broadcast(message: Message) {
-  Logger.debug(`[WebSocket]: Broadcasted - ${JSON.stringify(message)}`);
+async function broadcast({ message, audience }: IBroadcastProps) {
+  const clients = wss.clients as Set<WebSocketExtended>;
 
-  wss.clients.forEach(ws => {
-    return ws.send(JSON.stringify(message));
+  Logger.debug(`[WebSocket]: Broadcasted type ${message.type} to ${audience} audience`);
+
+  clients.forEach(client => {
+    if (!client.nekomi || !client.nekomi.participant.includes(audience)) return;
+
+    if (audience === 'watch_together') {
+      const { payload } = message as Response<IWS_WTMessage>;
+      if (client.nekomi.togetherRoomID !== payload.roomId) return;
+
+      return client.send(JSON.stringify(message));
+    }
+
+    return client.send(JSON.stringify(message));
   });
 }

@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 
 import { TMiddlewareName } from '../services/MiddlewareService';
 import { TRoleCapability } from './Roles';
+import { TWS_Group } from './WebSocket';
 
 declare global {
   namespace Express {
@@ -27,6 +28,9 @@ declare global {
 declare class WebSocketExtended extends WebSocket {
   /** Socket internal data */
   nekomi: {
-    TBD?: void
+    /** Watch together room id */
+    togetherRoomID: string | null
+    /** Group participant */
+    participant: TWS_Group[]
   };
 }

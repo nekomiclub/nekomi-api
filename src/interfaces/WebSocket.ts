@@ -2,9 +2,14 @@ import { WebSocketExtended } from './globals';
 
 export const WS_REQUEST_TYPES = [
   'ping',
+  'online_poll',
+
   'site_connected',
   'site_disconnected',
-  'online_poll',
+
+  'wt_connect',
+  'wt_disconnect',
+  'wt_message',
 ] as const;
 
 export const WS_RESPONSE_TYPES = [
@@ -12,6 +17,12 @@ export const WS_RESPONSE_TYPES = [
   'ok',
   'error',
   'online_changed',
+  'wt_message'
+] as const;
+
+export const WS_GROUP = [
+  'online_poll',
+  'watch_together',
 ] as const;
 
 export const WS_TYPES = [...WS_REQUEST_TYPES, ...WS_RESPONSE_TYPES] as const;
@@ -19,6 +30,7 @@ export const WS_TYPES = [...WS_REQUEST_TYPES, ...WS_RESPONSE_TYPES] as const;
 export type TWS_Type = typeof WS_TYPES[number];
 export type TWS_Request = typeof WS_REQUEST_TYPES[number];
 export type TWS_Response = typeof WS_RESPONSE_TYPES[number];
+export type TWS_Group = typeof WS_GROUP[number];
 
 /** Websocket default message */
 export interface Message<T = TWS_Type, P = object> {
@@ -54,4 +66,24 @@ export interface IWS_SiteConnection {
  */
 export interface IWS_OnlineChanged {
   online: number
+}
+
+/** 
+ * Watch together dis/connect
+ */
+export interface IWS_WTConnect {
+  username: string
+  roomId: string
+}
+
+/** 
+ * Watch together message
+ */
+export interface IWS_WTMessage {
+  roomId: string
+  username: string
+  avatar: string
+  text: string
+  date: number
+  type: 'income' | 'system'
 }
