@@ -1,5 +1,6 @@
 import { WebSocket } from 'ws';
 
+import { IUserTogetherRoom } from './User';
 import { TMiddlewareName } from '../services/MiddlewareService';
 import { TRoleCapability } from './Roles';
 import { TWS_Group } from './WebSocket';
@@ -28,9 +29,17 @@ declare global {
 declare class WebSocketExtended extends WebSocket {
   /** Socket internal data */
   nekomi: {
-    /** Watch together room id */
-    togetherRoomID: string | null
-    /** Group participant */
-    participant: TWS_Group[]
+    user?: {
+      id: string
+    }
+
+    /** Watch together room */
+    wt?: {
+      roomId: string
+      ownerId: string
+      settings: IUserTogetherRoom['settings']
+    }
+    /** Event listener */
+    listener: TWS_Group[]
   };
 }

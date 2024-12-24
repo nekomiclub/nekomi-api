@@ -10,6 +10,7 @@ export const WS_REQUEST_TYPES = [
   'wt_connect',
   'wt_disconnect',
   'wt_message',
+  'wt_sync',
 ] as const;
 
 export const WS_RESPONSE_TYPES = [
@@ -17,7 +18,8 @@ export const WS_RESPONSE_TYPES = [
   'ok',
   'error',
   'online_changed',
-  'wt_message'
+  'wt_message',
+  'wt_sync',
 ] as const;
 
 export const WS_GROUP = [
@@ -86,4 +88,17 @@ export interface IWS_WTMessage {
   text: string
   date: number
   type: 'income' | 'system'
+}
+
+/** 
+ * Watch together sync
+ */
+export interface IWS_WTSync {
+  roomId: string
+  dubberId: string
+  order: number
+  moment: number
+  isPlaying: boolean
+  isBuffering: boolean
+  syncedWithId
 }
