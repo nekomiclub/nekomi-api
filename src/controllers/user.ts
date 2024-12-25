@@ -474,3 +474,23 @@ export async function createTogetherRoom(req: express.Request, res: express.Resp
     return res.status(200).json({ message: 'New together room created', id: togetherRoomId });
   });
 }
+
+export async function deleteTogetherRoom(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+    const userId = req.nekomi.user?.id;
+    const { id } = req.params as { id: string };
+
+    const user = await UserModel.findOne({ id: userId });
+    if (!user) throw new E404(`User ${userId} is not found`);
+
+    const userService = new UserService({ user });
+
+    await userService.removeTogetherRoom({ id });
+    await userService.save();
+
+    return res.status(200).json({ message: 'Together room deleted' });
+  });
+}

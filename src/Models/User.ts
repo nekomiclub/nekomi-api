@@ -85,7 +85,6 @@ export class UserService {
 
 
   static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
-    if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
@@ -501,6 +500,13 @@ export class UserService {
     this.stack.push(`New together room created with id ${id}`);
 
     return id;
+  }
+
+  async removeTogetherRoom({ id }: { id: string }) {
+    if (!this.user.togetherRooms.some(el => el.id === id)) throw new E404(`Room ${id} not found`);
+
+    this.user.togetherRooms = this.user.togetherRooms.filter(el => el.id !== id);
+    this.stack.push(`Removed together room with id ${id}`);
   }
 }
 

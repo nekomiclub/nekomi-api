@@ -77,7 +77,7 @@ UserRouter.patch([`/me`, `/`], RouteValidation.userPatch, UserController.patchUs
 
 UserRouter.post('/together', RouteValidation.userPostTogether, UserController.createTogetherRoom);
 // UserRouter.patch('/together/:id', UserController.getQuery);
-// UserRouter.delete('/together/:id', UserController.getQuery);
+UserRouter.delete('/together/:id', RouteValidation.userDeleteTogether, UserController.deleteTogetherRoom);
 
 
 //! Must be below all endpoints

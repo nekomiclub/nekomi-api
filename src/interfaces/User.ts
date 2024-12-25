@@ -4,6 +4,7 @@ export interface IUser_Public {
   username: string
   avatar: string
   banner: string
+  togetherRooms: IUserTogetherRoom[]
 }
 
 export interface IUser extends IUser_Public {
@@ -12,7 +13,6 @@ export interface IUser extends IUser_Public {
   roles: string[]
   watchProgress: IUserWatchProgress[]
   telegramData: IUserTelegramData | null
-  togetherRooms: IUserTogetherRoom[]
 
   telegramLinkToken: string | null
 

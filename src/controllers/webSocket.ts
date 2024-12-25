@@ -318,7 +318,7 @@ async function wt_message({ ws, message }: IWS_Route) {
 
 async function wt_sync({ ws, message }: IWS_Route) {
   const { dubberId, isBuffering, isPlaying, moment, order, roomId, syncedWithId } = message.payload as IWS_WTSync;
-  if (!dubberId || !moment || !roomId || !syncedWithId || isBuffering === undefined || isPlaying === undefined || order === undefined) throw new ERR_INVALID_PAYLOAD();
+  if (!dubberId || !roomId || !syncedWithId || isBuffering === undefined || isPlaying === undefined || order === undefined || moment === undefined) throw new ERR_INVALID_PAYLOAD();
 
   Logger.debug(`[Websocket/WT-${roomId}]: Progress synced`);
 

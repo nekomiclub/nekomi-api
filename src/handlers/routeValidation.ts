@@ -105,6 +105,11 @@ export const userPostTogether = [
   CheckAccess(['basic']),
 ];
 
+export const userDeleteTogether = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+];
+
 //* ------------------ TITLE MIDDLEWARES ------------------
 
 export const getHomeWrapped = [
