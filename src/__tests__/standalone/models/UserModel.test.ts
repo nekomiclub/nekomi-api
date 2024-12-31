@@ -43,7 +43,7 @@ describe('User Model', () => {
     User = new UserService({ user });
 
     await UserService.create({ id: TestID2, username: TestUS2 });
-    await DubberService.create({ name: TestDubberID1, id: TestDubberID1, code: TestDubberID1 });
+    await DubberService.create({ nameEng: TestDubberID1, id: TestDubberID1, nameUkr: TestDubberID1 });
     await TitleService.create({
       id: TestTitleID1
     }, true);

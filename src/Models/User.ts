@@ -3,17 +3,17 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import * as cfg from '../config';
 import DubberModel from './Dubber';
 import Role from './Role';
-import Title from './Title';
+import Title, { TitleModel } from './Title';
 import validator from 'validator';
 import { $http } from '../handlers/http';
 import { AxiosError } from 'axios';
-import { E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
 import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { TNotifyEvent } from '../interfaces/services/Notify';
 import { config } from '../config';
-import { createID, getUTC } from '../handlers/handler';
+import { createID, createStringID, getUTC } from '../handlers/handler';
 
 
 
@@ -49,6 +49,10 @@ interface IPatchTelegramData extends Partial<IUserTelegramData> {
   remove?: boolean
 }
 
+interface ICreateTogetherRoom {
+  titleId: string
+}
+
 
 
 /** To create/patch/delete User instance use UserService */
@@ -64,6 +68,7 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
   telegramData: Object,
   telegramLinkToken: String,
   banner: String,
+  togetherRooms: Array,
 }));
 
 
@@ -80,7 +85,6 @@ export class UserService {
 
 
   static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
-    if (!validator.isAlpha(username, 'en-US') && !validator.isAlphanumeric(username, 'en-US')) throw new ERR_INVALID_PAYLOAD(`Username must be Alpha or Alphanumeric`);
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
@@ -151,8 +155,10 @@ export class UserService {
       statistics: {
         accountCreated: getUTC().timestamp,
         isTelegramLinked: false,
-        viewtime: 0
+        viewtime: 0,
+        dubber_team_member: null,
       },
+      togetherRooms: [],
       subscribes: [],
       telegramData: null,
       telegramLinkToken: null,
@@ -287,7 +293,7 @@ export class UserService {
   /** Patch user statistics
    * @param viewtime will INCREASE CURRENT BY PROVIDED SECONDS
    */
-  async patchStatistics({ isTelegramLinked, viewtime }: Partial<IUserStatistics>) {
+  async patchStatistics({ isTelegramLinked, viewtime, dubber_team_member }: Partial<IUserStatistics>) {
     if (isTelegramLinked !== undefined) {
       this.stack.push(`Changed isTelegramLinked (${this.user.statistics.isTelegramLinked} > ${isTelegramLinked})`);
       this.user.statistics.isTelegramLinked = isTelegramLinked;
@@ -298,6 +304,16 @@ export class UserService {
 
       this.stack.push(`Viewtime increased (${this.user.statistics.viewtime}s + ${viewtime}s)`);
       this.user.statistics.viewtime += viewtime;
+    }
+
+    if (dubber_team_member !== undefined) {
+      if (dubber_team_member !== null) {
+        const dubber = await DubberModel.findOne({ id: dubber_team_member });
+        if (!dubber) throw new E404(`Dubber ${dubber_team_member} is not found`);
+      }
+
+      this.stack.push(`Changed dubber team id (${this.user.statistics.dubber_team_member} > ${dubber_team_member})`);
+      this.user.statistics.dubber_team_member = dubber_team_member;
     }
 
     this.user.markModified('statistics');
@@ -413,7 +429,7 @@ export class UserService {
 
     if (!this.user.roles.includes(code)) {
       this.user.roles.push(code);
-      this.stack.push(`Added role ${role.id}`);
+      this.stack.push(`Added role ${role.code}`);
     }
 
     this.user.markModified('roles');
@@ -424,8 +440,10 @@ export class UserService {
     const role = await Role.findOne({ code });
     if (!role) throw new E404(`Role ${code} is not found`);
 
-    this.user.roles = this.user.roles.filter(el => el !== code);
-    this.stack.push(`Removed role ${role.id}`);
+    if (this.user.roles.includes(code)) {
+      this.user.roles = this.user.roles.filter(el => el !== code);
+      this.stack.push(`Removed role ${role.code}`);
+    }
 
     this.user.markModified('roles');
   }
@@ -452,6 +470,43 @@ export class UserService {
     this.stack.push(`Removed subscribe ${subscribe}`);
 
     this.user.markModified('subscribes');
+  }
+
+  //* ------------ WATCH TOGETHER
+  /** Create watch together room
+   * @returns room id
+   */
+  async createTogetherRoom({ titleId }: ICreateTogetherRoom): Promise<string> {
+    const rooms = this.user.togetherRooms;
+    if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
+
+    const title = await TitleModel.findOne({ id: titleId });
+    if (!title) throw new E404(`Title ${titleId} is not found`);
+
+    const id = createStringID(6);
+
+    rooms.push({
+      id,
+      titleId,
+      settings: {
+        name: title.names.ukr,
+        accurateSync: false,
+        password: null,
+        usersCanControl: false
+      },
+    });
+
+    this.user.markModified('togetherRooms');
+    this.stack.push(`New together room created with id ${id}`);
+
+    return id;
+  }
+
+  async removeTogetherRoom({ id }: { id: string }) {
+    if (!this.user.togetherRooms.some(el => el.id === id)) throw new E404(`Room ${id} not found`);
+
+    this.user.togetherRooms = this.user.togetherRooms.filter(el => el.id !== id);
+    this.stack.push(`Removed together room with id ${id}`);
   }
 }
 

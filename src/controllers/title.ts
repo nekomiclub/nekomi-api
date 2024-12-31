@@ -215,7 +215,6 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         let qualities = JSON.parse(req.body.qualities) as TEpisodeQuality[];
         let { order } = req.body as IUploadEpisode;
 
-
         const dubber = await Dubber.findOne({ id: dubberID });
         if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 

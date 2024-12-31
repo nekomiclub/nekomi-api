@@ -46,8 +46,8 @@ describe('Title Model', () => {
 
     await DubberService.create({
       id: TestID1,
-      code: 'testmodelsdubber1',
-      name: 'test dubber 1',
+      nameEng: 'testmodelsdubber1',
+      nameUkr: 'test dubber 1',
     });
 
     Title = new TitleService({ title, testMode: true });

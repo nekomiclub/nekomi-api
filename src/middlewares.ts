@@ -15,7 +15,7 @@ const Middleware = new MiddlewareService();
  * Will write user object in request nekomi data
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
-export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
+export function CheckAccess(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
@@ -54,7 +54,7 @@ export function FkUsapiAuthRefresh(capabilities: TRoleCapability[]) {
 /** CSRF-check middleware
  * @param origins Define allowed origins. To check only token validity let this array empty
  */
-export function FkAuthorityVerify(origins?: string[]) {
+export function CheckCSRF(origins?: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];

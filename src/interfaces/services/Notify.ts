@@ -3,7 +3,11 @@ import { ITitle } from '../Title';
 
 export const NOTIFY_EVENTS = [
   'new_episode',
-  'airing_started'
+  'airing_started',
+  'dubber_invite_pending',
+  'dubber_invite_accepted',
+  'dubber_invite_declined',
+  'dubber_member_excluded',
 ] as const;
 
 export type TNotifyEvent = typeof NOTIFY_EVENTS[number];
@@ -43,4 +47,15 @@ export interface INotifyAiringStarted {
 /** airing_started event broadcasted */
 export type TNotifyBroadcastAiringStarted = INotifyBroadcast<number[], {
   title: ITitle
+}>
+
+/** dubber_invite_pending */
+export interface INotifyDubberInvite {
+  user_id: string
+  dubber_id: string
+}
+
+/** dubber_invite_pending event broadcasted */
+export type TNotifyBroadcastDubberInvite = INotifyBroadcast<number[], {
+  dubber: IDubber
 }>

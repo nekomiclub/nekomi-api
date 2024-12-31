@@ -2,10 +2,14 @@ import express from 'express';
 
 import * as RouteValidation from './handlers/routeValidation';
 
+import * as DubberController from './controllers/dubber';
+import * as RootController from './controllers/root';
+import * as TitleController from './controllers/title';
+import * as UserController from './controllers/user';
+
 
 
 const RootRouter = express.Router();
-
 const UserRouter = express.Router();
 const TitleRouter = express.Router();
 const DubberRouter = express.Router();
@@ -20,10 +24,7 @@ export default {
 
 
 //* ------------------ ROOT ROUTER ------------------
-import * as RootController from './controllers/root';
-
-RootRouter.get('/', RootController.getPing);
-RootRouter.get('/ping', RootController.getPing);
+RootRouter.get(['/', '/ping'], RootController.getPing);
 
 RootRouter.get('/search', RouteValidation.getSearch, RootController.getSearch);
 RootRouter.post('/upload', RouteValidation.postUpload, RootController.postUpload);
@@ -33,41 +34,51 @@ RootRouter.delete('/upload/:id', RouteValidation.deleteUpload, RootController.de
 
 
 //* ------------------ TITLE ROUTER ------------------
-import * as TitleController from './controllers/title';
+TitleRouter.get(['/all', '/total'], TitleController.getTotal); //* /total is deprecated
 
-TitleRouter.get('/total', TitleController.getTotal);
 TitleRouter.get('/home_wrapped', RouteValidation.getHomeWrapped, TitleController.getHomeWrapped);
 TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 
 //! Must be below all endpoints
+TitleRouter.get('/:query', TitleController.getTitleQuery);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
-TitleRouter.get('/:query', TitleController.getTitleQuery);
 
 
 
 //* ------------------ DUBBER ROUTER ------------------
-import * as DubberController from './controllers/dubber';
-
 DubberRouter.get(`/all`, DubberController.getAll);
+
+
+
+DubberRouter.post(`/invite/send`, RouteValidation.dubberInviteSend, DubberController.inviteSend);
+DubberRouter.post(`/invite/accept`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteAccept);
+DubberRouter.post(`/invite/decline`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteDecline);
+
+DubberRouter.patch(`/settings/member/edit`, RouteValidation.dubberSettingsMemberEdit, DubberController.settingsMemberEdit);
+DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemberExclude, DubberController.settingsMemberExclude);
 
 //! Must be below all endpoints
 DubberRouter.get(`/:query`, DubberController.getOne);
+DubberRouter.get(`/invite/:dubber_id`, RouteValidation.dubberInviteVerify, DubberController.inviteVerify);
 
 
 
 //* ------------------ USER ROUTER ------------------
-import * as UserController from './controllers/user';
-
 UserRouter.get(`/logout`, RouteValidation.userLogout, UserController.getLogout);
 UserRouter.get(`/validate`, RouteValidation.userValidate, UserController.getValidate);
-UserRouter.get(`/linkTelegram/token`, RouteValidation.userLinkTelegramToken, UserController.getLinkTelegramToken);
-
 UserRouter.post(`/signin`, RouteValidation.userSignin, UserController.postSignin);
-UserRouter.post(`/linkTelegram`, RouteValidation.userLinkTelegram, UserController.postLinkTelegram);
-UserRouter.post(`/linkTelegram/verify`, RouteValidation.userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify);
 
-UserRouter.patch(`/`, RouteValidation.userPatch, UserController.patchUser);
+UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], RouteValidation.userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
+UserRouter.post([`/link/telegram`, `/linkTelegram`], RouteValidation.userLinkTelegram, UserController.postLinkTelegram); //* /linkTelegram is deprecated
+UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], RouteValidation.userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
+
+UserRouter.patch([`/me`, `/`], RouteValidation.userPatch, UserController.patchUser); //* / is deprecated
+
+UserRouter.post('/together', RouteValidation.userPostTogether, UserController.createTogetherRoom);
+// UserRouter.patch('/together/:id', UserController.getQuery);
+UserRouter.delete('/together/:id', RouteValidation.userDeleteTogether, UserController.deleteTogetherRoom);
+
 
 //! Must be below all endpoints
 UserRouter.get(`/:query`, UserController.getQuery);

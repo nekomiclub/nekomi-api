@@ -171,6 +171,9 @@ export const config = {
       maxStudiosCount: 5,
       minStudioLength: 3,
       maxStudioLength: 32,
+    },
+    WatchTogether: {
+      textMessageLength: 256
     }
   },
 

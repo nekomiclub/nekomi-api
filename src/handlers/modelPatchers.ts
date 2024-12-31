@@ -8,6 +8,7 @@ import { HydratedDocument } from 'mongoose';
 import { ITitle } from '../interfaces/Title';
 import { Logger } from '../services/LoggerService';
 import { TitleService } from '../Models/Title';
+import { config } from '../config';
 import { getUTC } from './handler';
 
 
@@ -23,7 +24,9 @@ export async function patchUserModel() {
   for (const key in users) {
     const user = users[key];
 
-
+    user.statistics.dubber_team_member = null;
+    user.togetherRooms = [];
+    user.markModified('statistics');
 
     await user.save();
   }
@@ -42,7 +45,28 @@ export async function patchDubberModel() {
   for (const key in dubbers) {
     const dubber = dubbers[key];
 
+    dubber.set('thumbURL', undefined, { strict: false });
+    dubber.set('rating', undefined, { strict: false });
+    dubber.set('leader', undefined, { strict: false });
+    dubber.set('editors', undefined, { strict: false });
+    dubber.set('membersInvitePending', undefined, { strict: false });
 
+    dubber.statistics = {
+      createdAt: dubber.createdAt
+    };
+
+    dubber.slug = dubber.code;
+    dubber.nameUkr = dubber.name;
+    dubber.nameEng = dubber.code;
+    dubber.banner = config.vars.defaultUserBanner;
+
+    dubber.members = [];
+    dubber.membersInvited = [];
+
+    dubber.set('statistics.created_at', undefined, { strict: false });
+    dubber.set('name_ukr', undefined, { strict: false });
+    dubber.set('name_eng', undefined, { strict: false });
+    dubber.set('members_invited', undefined, { strict: false });
 
     await dubber.save();
   }
@@ -61,17 +85,7 @@ export async function patchTitleModel() {
   for (const key in titles) {
     const title = titles[key];
 
-    title.set(`hikkiSyncedAt`, undefined, { strict: false });
 
-    title.mal_id = null;
-    title.rating.mal = null;
-
-    title.hikkaSyncedAt = 0;
-    title.rating.mal_poll = 0;
-
-    title.markModified('mal_id');
-    title.markModified('hikkaSyncedAt');
-    title.markModified('rating');
 
     await title.save();
   }

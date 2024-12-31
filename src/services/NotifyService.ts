@@ -5,7 +5,7 @@ import User from '../Models/User';
 import { $http } from '../handlers/http';
 import { AxiosError } from 'axios';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from './LoggerService';
 import { NEKOMI_BOT } from '../interfaces/http/Bot';
 import { devMode } from '../config';
@@ -15,6 +15,10 @@ type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
   new_episode,
   airing_started,
+  dubber_invite_pending: HANDLER_dubber_tell,
+  dubber_invite_accepted: HANDLER_dubber_tell,
+  dubber_invite_declined: HANDLER_dubber_tell,
+  dubber_member_excluded: HANDLER_dubber_tell,
 };
 
 
@@ -25,15 +29,15 @@ export class NotifyService {
   }
 
   /** Broadcast notification */
-  async broadcast(payload: IEventPayload) {
+  async broadcast<P = any>(payload: IEventPayload<P>) {
     const event = payload.event;
 
+    if (!NOTIFY_EVENTS.includes(event)) throw new ERR_INVALID_PAYLOAD(`Event ${event} is invalid`);
+
+    const handler = EVENTS[event];
+    if (!handler) throw new E501(`Event ${event} is found, but handler for it is not implemented yet`);
+
     try {
-      if (!NOTIFY_EVENTS.includes(event)) throw new ERR_INVALID_PAYLOAD(`Event ${event} is invalid`);
-
-      const handler = EVENTS[event];
-      if (!handler) throw new E501(`Event ${event} is found, but handler for it is not implemented yet`);
-
       await handler(payload);
     } catch (e) {
       if (e instanceof HTTPErrorConstructor) {
@@ -144,6 +148,29 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 
     Logger.debug(`[Notify]: User ${event} subscibe removed due to firs fire`);
   });
+}
+
+/** Handle dubber_invite accept & decline & invite, dubber_member_exclude */
+async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberInvite>) {
+  const { dubber_id, user_id } = payload;
+
+  const dubber = await Dubber.findOne({ id: dubber_id });
+  if (!dubber) throw new E404(`Dubber ${dubber_id} is not found`);
+
+  const user = await User.findOne({ id: user_id });
+  if (!user) throw new E404(`User ${user_id} is not found`);
+
+  const broadcastPayload: TNotifyBroadcastDubberInvite = {
+    event,
+    participants: [user.telegramData!.id!],
+    data: {
+      dubber: dto.dubber(dubber.toObject())
+    }
+  };
+
+  Logger.debug(`[Notify]: Broadcasted ${event} event`);
+
+  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
 }
 
 export const Notify = new NotifyService();

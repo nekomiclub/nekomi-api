@@ -6,17 +6,19 @@ import * as dto from '../handlers/dtos';
 
 import * as Role from '../Models/Role';
 import Title from '../Models/Title';
-import User, { UserService } from '../Models/User';
+import User, { UserModel, UserService } from '../Models/User';
 import { $http } from '../handlers/http';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
 import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { ITitle } from '../interfaces/Title';
+import { IUserTogetherRoom } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { TRoleCapability } from '../interfaces/Roles';
 import { config, prodMode, testMode } from '../config';
 import { getMockData } from '../handlers/mocks';
+import { updateSearch } from './root';
 
 
 
@@ -94,6 +96,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
       user = await UserService.create(DATA);
       isUserNew = true;
+      updateSearch('user');
     }
 
 
@@ -186,12 +189,13 @@ export async function getQuery(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
     const CSRFToken = req.header(config.vars.csrfHeader);
 
-    const { detailed, parseLib, parseRoles } = req.query as { detailed?: boolean, parseLib?: string, parseRoles?: boolean };
+    const { detailed, parseLib, parseRoles, togetherRoomId } = req.query as { detailed?: boolean, parseLib?: string, parseRoles?: boolean, togetherRoomId?: string };
     let { query } = req.params as { query: string };
 
     let privateMode = true; // If private mode is true, client can not get some private information
     let parsedRoles: TRoleCapability[] | undefined = undefined;
     let parsedLib: ITitle[] | undefined = undefined;
+    let togetherRoom: IUserTogetherRoom | undefined = undefined;
 
 
 
@@ -278,13 +282,22 @@ export async function getQuery(req: express.Request, res: express.Response) {
       parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => dto.title(title.toObject(), privateMode));
     }
 
+    // Fetch together room
+    if (!privateMode && togetherRoomId !== undefined) {
+      const room = user.togetherRooms.find(el => el.id === togetherRoomId);
+      if (!room) throw new E404(`Room ${togetherRoomId} is not found`);
+
+      togetherRoom = room;
+    }
+
 
 
     return res.status(200).json({
       message: `OK. ${privateMode ? 'Sensetive information hidden.' : 'Sensetive information returned.'}`,
       user: dto.user(user.toObject(), privateMode),
       parsedLib,
-      parsedRoles
+      parsedRoles,
+      togetherRoom,
     });
   });
 }
@@ -437,5 +450,47 @@ export async function postLinkTelegramTokenVerify(req: express.Request, res: exp
     Logger.info(`[UserController]: Telegram link token verified and revoked for ${user.id}`);
 
     return res.status(200).json({ message: 'Token verified', verified: true, id: user.id });
+  });
+}
+
+
+
+export async function createTogetherRoom(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+    const userId = req.nekomi.user?.id;
+    const { titleId } = req.body as { titleId: string };
+
+    const user = await UserModel.findOne({ id: userId });
+    if (!user) throw new E404(`User ${userId} is not found`);
+
+    const userService = new UserService({ user });
+
+    const togetherRoomId = await userService.createTogetherRoom({ titleId });
+    await userService.save();
+
+    return res.status(200).json({ message: 'New together room created', id: togetherRoomId });
+  });
+}
+
+export async function deleteTogetherRoom(req: express.Request, res: express.Response) {
+  await HandleRequest(req, res, async () => {
+    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+    const userId = req.nekomi.user?.id;
+    const { id } = req.params as { id: string };
+
+    const user = await UserModel.findOne({ id: userId });
+    if (!user) throw new E404(`User ${userId} is not found`);
+
+    const userService = new UserService({ user });
+
+    await userService.removeTogetherRoom({ id });
+    await userService.save();
+
+    return res.status(200).json({ message: 'Together room deleted' });
   });
 }
