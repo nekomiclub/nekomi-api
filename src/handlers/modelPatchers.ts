@@ -58,7 +58,7 @@ export async function patchDubberModel() {
     dubber.slug = dubber.code;
     dubber.nameUkr = dubber.name;
     dubber.nameEng = dubber.code;
-    dubber.banner = config.vars.defaultUserBanner;
+    dubber.banner = config.vars.defaultBanner;
 
     dubber.members = [];
     dubber.membersInvited = [];

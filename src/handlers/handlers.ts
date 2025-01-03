@@ -14,6 +14,7 @@ interface ICheckValueRules {
 
 /** Check value with rules
  * @returns boolean
+ * @deprecated
  */
 export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckValueRules): boolean {
   if (notNaN !== undefined && isNaN(+value)) return false;
@@ -29,7 +30,9 @@ export function checkValue(value: any, { notNaN, maxLength, minLength }: ICheckV
   return true;
 }
 
-/** Remove users telegramLinkToken */
+/** Remove users telegramLinkToken
+ * @deprecated must be refactored out of that file
+ */
 export async function removeUsersLinkTelegramToken() {
   const users = await User.find({ telegramLinkToken: { $ne: null } });
 

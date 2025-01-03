@@ -109,7 +109,7 @@ export class DubberService {
       code: slug,
       slug,
       avatar: config.vars.defaultAvatar,
-      banner: config.vars.defaultUserBanner,
+      banner: config.vars.defaultBanner,
       createdAt: getUTC().timestamp,
       description: null,
       members: [],

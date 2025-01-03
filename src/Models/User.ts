@@ -149,7 +149,7 @@ export class UserService {
       id,
       username,
       avatar: avatar || config.vars.defaultAvatar,
-      banner: config.vars.defaultUserBanner,
+      banner: config.vars.defaultBanner,
       libs,
       roles: ['user'],
       statistics: {
@@ -229,7 +229,7 @@ export class UserService {
       UPLOAD_DATA.url = postData.url;
 
       // Remove previous banner if it not default
-      if (this.user.banner !== config.vars.defaultUserBanner) {
+      if (this.user.banner !== config.vars.defaultBanner) {
         const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
 
         await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
