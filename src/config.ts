@@ -1,8 +1,11 @@
+import { config as dotenvCfg } from 'dotenv';
+
+dotenvCfg();
+
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-import CSRF from './secrets/CSRF';
 import { IConfigStatic } from './interfaces/Interfaces';
 import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
 import { getUTC, preserveIP } from './handlers/handler';
@@ -91,15 +94,16 @@ export const INTERNALS = {
     host: preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host),
     port: SERVICE_CONFIG.SERVICES.nekomi_api.port_ws!
   },
-  secrets: {
-    CSRF
-  },
   SERVICE_CONFIG
 };
 
 
 
 export const config = {
+  env: {
+    CSRF: process.env['CSRF-Token']!
+  },
+
   URL: {
     nekomi_site: prodMode ? `https://${DOMAIN.nekomi}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_site.host)}:${SERVICE_CONFIG.SERVICES.nekomi_site.port}`,
     nekomi_media: prodMode ? `https://${DOMAIN.nekomi_media}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_media.host)}:${SERVICE_CONFIG.SERVICES.nekomi_media.port}`,
