@@ -36,7 +36,7 @@ export function preserveIP(raw: string): string {
   }
 }
 
-export function getUUID(): string {
+export function createUUID(): string {
   return uuid.v4();
 }
 
@@ -52,7 +52,7 @@ export function trimString(input: string) {
 }
 
 /** Get ID with specified length */
-export function getLengthId(length: number) {
+export function createStringID(length: number) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
 
@@ -133,21 +133,6 @@ export function addZeroIfNumberSingle(num: number): string {
  */
 export function createID(): string {
   return uuid.v4();
-}
-
-/** Get ID with specified length
- * @deprecated use getLengthId instead
- */
-export function createStringID(length: number) {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  return result;
 }
 
 /** Get random number in range

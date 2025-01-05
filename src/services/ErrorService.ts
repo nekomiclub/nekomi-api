@@ -206,3 +206,5 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
     super(`Request not passed throught ${middleware} middleware and being rejected`, 'ERR_MIDDLEWARE_REQUIRED');
   }
 }
+
+export const ERR_NO_DOCUMENT = new E500(`NO DOCUMENT PASSED INTO CONSTRUCTOR`, ':no_document');
