@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
 import Cache from './services/CacheService';
+import DubberService from './_core/services/DubberService';
 import Router from './router';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
@@ -143,6 +144,10 @@ wss.on('listening', () => {
   WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
   ----------------------------
     `);
+
+      const serv = new DubberService();
+      await serv.init('fd203550-19cc-4fd0-af4c-10050104a4d6');
+      await serv.changeName();
 
       // Cache updating
       setInterval(async () => {

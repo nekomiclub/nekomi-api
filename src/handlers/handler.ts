@@ -1,5 +1,6 @@
 import * as uuid from 'uuid';
 import ip from 'ip';
+import { convert as convertSlug } from 'url-slug';
 
 interface IGetNewUTC {
   year: number
@@ -37,6 +38,17 @@ export function preserveIP(raw: string): string {
 
 export function getUUID(): string {
   return uuid.v4();
+}
+
+export function createSlug(input: string) {
+  return convertSlug(input, {
+    camelCase: true,
+    separator: '-'
+  });
+}
+
+export function trimString(input: string) {
+  return input.trim().replace(/\s+/g, ' ');
 }
 
 /** Get ID with specified length */

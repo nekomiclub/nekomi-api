@@ -1,7 +1,8 @@
-import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import validator from 'validator';
+import { HydratedDocument } from 'mongoose';
 import { convert as createSlug } from 'url-slug';
 
+import NewDubberModel from '../_core/models/DubberModel';
 import UserModel, { UserService } from './User';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IDubber, TDubberMemberRole } from '../interfaces/Dubber';
@@ -48,23 +49,7 @@ interface IMemberEdit {
 }
 
 /** To create/patch/delete Dubber instance use DubberService */
-export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
-  id: String,
-  code: String,
-  name: String,
-  socials: Object,
-  support: Object,
-  createdAt: Number,
-  description: String,
-  members: Array,
-  avatar: String,
-  membersInvited: Array,
-  statistics: Object,
-  nameEng: String,
-  nameUkr: String,
-  slug: String,
-  banner: String
-}));
+export const DubberModel = NewDubberModel;
 
 //! ---------- ERRORS
 const ERR_NOT_INVITED = new E400('User not invited in that team', 'dubber_member:not_invited');
