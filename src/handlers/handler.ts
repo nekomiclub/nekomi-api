@@ -141,3 +141,8 @@ export function createID(): string {
 export function randomNumber(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
 }
+
+/** Return part of elements by it's page and limit */
+export function arrayPagination({ elements, limit, page }: { elements: any[], page: number, limit: number }) {
+  return elements.slice(page * limit, (page + 1) * limit);
+}

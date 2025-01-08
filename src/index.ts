@@ -89,7 +89,6 @@ app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 
-
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';

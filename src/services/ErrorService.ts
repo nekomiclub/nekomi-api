@@ -94,7 +94,7 @@ export class E503 extends HTTPErrorConstructor {
  * 
  * @param preventFullfilled prevent default fullfilled response
  */
-export async function HandleRequest(req: express.Request, res: express.Response, cb: () => any | Promise<any>, preventFullfilled?: boolean) {
+export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>, preventFullfilled?: boolean) {
   try {
     const validation = validationResult(req);
 
@@ -102,7 +102,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     if (!validation.isEmpty()) throw new ERR_INVALID_PAYLOAD();
 
     // Run callback
-    await cb();
+    await cb(req, res);
 
     if (!preventFullfilled) {
       try {

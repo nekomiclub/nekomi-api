@@ -179,7 +179,10 @@ class DubberModelControls implements TDubberModelControls {
   }
 }
 
-/** This service must be initialized by calling @method init() */
+/** 
+ * Brand-new implementation of database services
+ * This service must be initialized by calling @method init()
+*/
 export class DubberService extends DubberModelControls {
   private document: HydratedDocument<IDubber> | null = null;
   private stack: string[] = [];

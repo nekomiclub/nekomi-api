@@ -62,7 +62,9 @@ const ERR_OTHER_TEAM_MEMBER = new E400('User is already member of other team', '
 
 
 
-/** Create/path/delete Dubber instance */
+/** Create/path/delete Dubber instance
+ * @deprecated Use DubberService from core
+ */
 export class DubberService {
   readonly dubber: HydratedDocument<IDubber>;
   readonly stack: string[] = [];

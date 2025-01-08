@@ -6,6 +6,7 @@ import * as DubberController from './controllers/dubber';
 import * as RootController from './controllers/root';
 import * as TitleController from './controllers/title';
 import * as UserController from './controllers/user';
+import HTTPDubberRoutes from './controllers/DubberController';
 
 
 
@@ -47,8 +48,7 @@ TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.delete
 
 
 //* ------------------ DUBBER ROUTER ------------------
-DubberRouter.get(`/all`, DubberController.getAll);
-
+DubberRouter.get(`/all`, HTTPDubberRoutes.GetAll);
 
 
 DubberRouter.post(`/invite/send`, RouteValidation.dubberInviteSend, DubberController.inviteSend);
