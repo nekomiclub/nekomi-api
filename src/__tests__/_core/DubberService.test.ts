@@ -1,7 +1,8 @@
-import DubberModel from '../../_core/models/DubberModel';
 import DubberService from '../../_core/services/DubberService';
+import UserModel, { UserService } from '../../Models/User';
 import mongoose from 'mongoose';
 import { HTTPErrorConstructor } from '../../services/ErrorService';
+import { NotifyService } from '../../services/NotifyService';
 import { config } from '../../config';
 
 
@@ -20,23 +21,43 @@ afterAll(() => {
 
 
 describe('DubberService', () => {
-  const TestId1 = 'dubber-testid--1';
-  const TestSlugA = 'dubber-testslug-a';
+  // CRUD
+  const CrudId1 = `dubber-testcrud--1`;
+  const CrudSlug1 = `dubber-testslug-a`;
 
-  const TestId2 = 'dubber-testid--2';
+  // Patching
+  const PatchId1 = `dubber-testpatch--1`;
+
+  // Members
+  const MemberId1 = `dubber-testmember--1`;
+
+
 
   const dubberService = new DubberService({
     testMode: true
   });
 
   beforeAll(async () => {
+    await purge();
+
     await dubberService.create({
       nameEng: 'fsdfsdsfddsf',
       nameUkr: 'r2r2fsdds',
-      DEV_ID: TestId2
+      DEV_ID: PatchId1
     });
 
-    await purge();
+    await dubberService.create({
+      nameEng: 'sdfssergfsd',
+      nameUkr: 'fsdfsdf2343',
+      DEV_ID: MemberId1
+    });
+
+    await UserService.create({
+      id: MemberId1,
+      username: 'fsdsdfsdfsdfsdf',
+      TestMode: true,
+      TEST_IS_TELEGRAM_LINKED: true
+    });
   });
 
   afterAll(async () => {
@@ -44,7 +65,10 @@ describe('DubberService', () => {
   });
 
   async function purge() {
-    DubberModel.deleteMany({ id: TestId1 });
+    await dubberService.deleteMany(CrudId1);
+    await dubberService.deleteMany(PatchId1);
+    await dubberService.deleteMany(MemberId1);
+    await UserService.delete(MemberId1);
   }
 
 
@@ -55,11 +79,11 @@ describe('DubberService', () => {
       const createdDubber = await dubberService.create({
         nameEng: '  dubber    testslug a  ',
         nameUkr: 'hello1233',
-        DEV_ID: TestId1
+        DEV_ID: CrudId1
       });
 
-      expect(createdDubber.nameEng).toBe(TestSlugA.replaceAll('-', ' '));
-      expect(createdDubber.slug).toBe(TestSlugA);
+      expect(createdDubber.nameEng).toBe(CrudSlug1.replaceAll('-', ' '));
+      expect(createdDubber.slug).toBe(CrudSlug1);
       // @ts-expect-error Property provided by mongodb must be excluded by DTO
       expect(createdDubber._id).toBeUndefined();
 
@@ -94,10 +118,10 @@ describe('DubberService', () => {
 
     test('Read', async () => {
       //* Get exist dubber
-      const getDubberById = await dubberService.getById(TestId1);
+      const getDubberById = await dubberService.getById(CrudId1);
       expect(getDubberById).toBeTruthy();
 
-      const getDubberByQuery = await dubberService.getByQuery(TestSlugA);
+      const getDubberByQuery = await dubberService.getByQuery(CrudSlug1);
       expect(getDubberByQuery).toBeTruthy();
 
       const getAll = await dubberService.getAll();
@@ -115,11 +139,11 @@ describe('DubberService', () => {
 
     test('Delete', async () => {
       //* Delete dubber
-      await dubberService.deleteOne(TestId1);
+      await dubberService.deleteOne(CrudId1);
 
       //* Ensure that dubber deleted
       try {
-        await dubberService.getById(TestId1);
+        await dubberService.getById(CrudId1);
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
           expect(e.status).toBe(404);
@@ -134,8 +158,10 @@ describe('DubberService', () => {
     });
 
     beforeAll(async () => {
-      await patchService.init(TestId2);
+      await patchService.init(PatchId1);
     });
+
+
 
     test('patchNames', async () => {
       await patchService.changeName({
@@ -224,6 +250,110 @@ describe('DubberService', () => {
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
           expect(e.code).toBe('dubber:link_domain_missmatch');
+        }
+      }
+    });
+  });
+
+  describe('Members', () => {
+    const dubberService = new DubberService({
+      testMode: true
+    });
+
+    beforeAll(async () => {
+      await dubberService.init(MemberId1);
+    });
+
+    test('Invite', async () => {
+      await dubberService.memberInvite({ id: MemberId1 });
+
+      const user = await UserModel.findOne({ id: MemberId1 });
+
+      // Check if user added to members invited
+      expect(dubberService.dubber.membersInvited.includes(MemberId1)).toBeTruthy();
+
+      // Check if subscribe added
+      expect(user?.subscribes.includes(NotifyService.createEvent({ event: 'dubber_invite_pending', key: MemberId1 })));
+    });
+
+    test('Accept invite (memberAdd)', async () => {
+      await dubberService.memberAdd({ id: MemberId1 });
+
+      const user = await UserModel.findOne({ id: MemberId1 });
+
+      // Dubber team member must be saved in stats
+      expect(user?.statistics.dubber_team_member).toBe(MemberId1);
+
+      // Role must be added
+      expect(user?.roles.includes('dubber_member')).toBeTruthy();
+
+      // Invite must be removed
+      expect(dubberService.dubber.membersInvited.includes(MemberId1)).toBeFalsy();
+
+      // User must be added as member
+      expect(dubberService.dubber.members.some(el => el.id === MemberId1)).toBeTruthy();
+    });
+
+    test('Edit', async () => {
+      await dubberService.memberEdit({ id: MemberId1, role: 'leader' });
+
+      const user = await UserModel.findOne({ id: MemberId1 });
+
+      // Role must be appended to user
+      expect(user?.roles.includes('dubber_leader')).toBeTruthy();
+
+      // Role must be appended in members list
+      expect(dubberService.dubber.members.find(el => el.id === MemberId1)?.role).toBe('leader');
+
+
+
+      //* ERR_NAME_LENGTH_INVALID
+      try {
+
+
+        expect(true).toBeFalsy();
+      } catch (e) {
+        if (e instanceof HTTPErrorConstructor) {
+          expect(e.code).toBe('dubber:name_length_invalid');
+        }
+      }
+    });
+
+    test('Exclude member', async () => {
+      await dubberService.memberDelete({ id: MemberId1, declineInvite: false });
+
+      const user = await UserModel.findOne({ id: MemberId1 });
+
+      // Dubber team member must be null
+      expect(user?.statistics.dubber_team_member).toBeNull();
+
+      // Role must be removed
+      expect(user?.roles.includes('dubber_leader')).toBeFalsy();
+
+      // User must be excluded from members list
+      expect(dubberService.dubber.members.some(el => el.id === MemberId1)).toBeFalsy();
+
+
+
+      //* ERR_NAME_LENGTH_INVALID
+      try {
+
+
+        expect(true).toBeFalsy();
+      } catch (e) {
+        if (e instanceof HTTPErrorConstructor) {
+          expect(e.code).toBe('dubber:name_length_invalid');
+        }
+      }
+
+      //* ERR_NAME_LENGTH_INVALID
+      try {
+
+
+        expect(true).toBeFalsy();
+      } catch (e) {
+        if (e instanceof HTTPErrorConstructor) {
+          expect(e.code).toBe('dubber:name_length_invalid');
         }
       }
     });

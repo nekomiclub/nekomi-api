@@ -12,7 +12,6 @@ import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
 import Cache from './services/CacheService';
-import DubberService from './_core/services/DubberService';
 import Router from './router';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
@@ -112,7 +111,7 @@ app.use('/', Router.RootRouter);
 
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
 wss.on('listening', () => {
-  Logger.info(`[Startup]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server}`);
+  Logger.info(`[Startup]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
 });
 
 
@@ -144,10 +143,6 @@ wss.on('listening', () => {
   WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
   ----------------------------
     `);
-
-      const serv = new DubberService();
-      await serv.init('fd203550-19cc-4fd0-af4c-10050104a4d6');
-      await serv.changeName();
 
       // Cache updating
       setInterval(async () => {

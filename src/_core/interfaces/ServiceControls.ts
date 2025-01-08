@@ -1,4 +1,4 @@
-interface ServiceCRUD<CREATE, OUT_DOC> {
+interface ServiceControls<CREATE, OUT_DOC> {
   /** Create the document */
   create(props: CREATE): Promise<OUT_DOC>
   /** Delete the document */
@@ -13,4 +13,4 @@ interface ServiceCRUD<CREATE, OUT_DOC> {
   getAll(details?: boolean): Promise<OUT_DOC[]>
 }
 
-export default ServiceCRUD;
+export default ServiceControls;

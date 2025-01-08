@@ -1,11 +1,14 @@
 import DubberModel from '../models/DubberModel';
-import ServiceCRUD from '../interfaces/ServiceCRUD';
+import ServiceControls from '../interfaces/ServiceControls';
+import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
 import { E400, E404, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '../../services/ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '../interfaces/IDubber';
+import { IDubber, TDubberMemberRole } from '../interfaces/IDubber';
+import { INotifyDubberInvite } from '../../interfaces/services/Notify';
 import { Logger } from '../../services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
+import { Notify } from '../../services/NotifyService';
 import { TestMode, config } from '../../config';
 import { createSlug, createStringID, createUUID, getUTC, trimString } from '../../handlers/handler';
 
@@ -28,19 +31,34 @@ interface IChangeName {
   nameUkr?: string
 }
 
-interface IPatchSocialLink {
-  key: keyof IDubber['socials'],
+interface IPatchLinks<K> {
+  key: K,
   value: string | null
 }
 
-interface IPatchSupportlLink {
-  key: keyof IDubber['support'],
-  value: string | null
+interface IMemberAdd {
+  id: string
+  /** Check if user is invited in the team. @default true */
+  checkInvitation?: boolean
 }
 
+interface IMemberInvite {
+  id: string
+}
 
+interface IMemberDelete {
+  id: string
+  /** Check if user is invited in the team. @default true */
+  declineInvite?: boolean
+}
 
-type TDubberCRUD = ServiceCRUD<IDubberCreateProps, IDubber>
+interface IMemberEdit {
+  id: string
+
+  role?: TDubberMemberRole
+}
+
+type TDubberModelControls = ServiceControls<IDubberCreateProps, IDubber>
 
 
 
@@ -49,9 +67,15 @@ const ERR_NAME_NOT_LATIN = new E400(`Dubber english name must contain only latin
 const ERR_DESCRIPTION_LENGTH_INVALUD = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`, 'dubber:description_length_invalid');
 const ERR_LINK_DOMAIN_MISSMATCH = new E400(`Some links points to invalid domains or link parsed with error`, 'dubber:link_domain_missmatch');
 
+const ERR_OTHER_TEAM_MEMBER = new E400(`User is already take part in another dubber team`, 'dubber:other_team_member');
+const ERR_MEMBER_ALREADY = new E400(`User is already member of this team`, 'dubber:member_already');
+const ERR_NOT_INVITED = new E400(`User is not invited in this team`, 'dubber:not_invited');
+const ERR_NOT_MEMBER = new E400(`User is not member in this team`, 'dubber:not_member');
+const ERR_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'dubber:telegram_not_linked');
 
 
-class DubberCRUD implements TDubberCRUD {
+
+class DubberModelControls implements TDubberModelControls {
   readonly TestMode: boolean;
 
   constructor(props?: IDubberCRUDProps) {
@@ -111,8 +135,8 @@ class DubberCRUD implements TDubberCRUD {
       code: slug
     };
 
-    const dubber = new DubberModel(instance);
-    await dubber.save();
+    const document = new DubberModel(instance);
+    await document.save();
 
     Logger.info(`[DubberService]: New document has been created. [id: ${id}]`);
 
@@ -156,12 +180,15 @@ class DubberCRUD implements TDubberCRUD {
 }
 
 /** This service must be initialized by calling @method init() */
-export class DubberService extends DubberCRUD {
+export class DubberService extends DubberModelControls {
   private document: HydratedDocument<IDubber> | null = null;
   private stack: string[] = [];
 
   async init(id: string) {
-    this.document = await DubberModel.findOne({ id });
+    const document = await DubberModel.findOne({ id });
+    if (!document) throw new E404(`Document ${id} is not found`);
+
+    this.document = document;
   }
 
   /** Save the document
@@ -177,14 +204,14 @@ export class DubberService extends DubberCRUD {
     return this.stack;
   }
 
-  get dubber() {
+  get dubber(): IDubber {
     if (!this.document) throw ERR_NO_DOCUMENT;
     return new MongoDocumentDTO().dubber({ document: this.document, details: true });
   }
 
 
 
-  /** Changing nameEng will also change slug */
+  /** Changing nameEng will also change the slug */
   async changeName({ nameEng, nameUkr }: IChangeName) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
@@ -239,7 +266,7 @@ export class DubberService extends DubberCRUD {
     this.document.markModified('description');
   }
 
-  async changeSocials({ key, value }: IPatchSocialLink) {
+  async changeSocials({ key, value }: IPatchLinks<keyof IDubber['socials']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
@@ -263,7 +290,7 @@ export class DubberService extends DubberCRUD {
     this.document.markModified('socials');
   }
 
-  async changeSupport({ key, value }: IPatchSupportlLink) {
+  async changeSupport({ key, value }: IPatchLinks<keyof IDubber['support']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
@@ -290,20 +317,228 @@ export class DubberService extends DubberCRUD {
 
 
 
-  async addMember() {
+  /** Add member into the team. Will save the document and remove the invitation */
+  async memberAdd({ id, checkInvitation }: IMemberAdd) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+
+    checkInvitation = checkInvitation ?? true;
+
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found`);
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (checkInvitation && !this.document.membersInvited.includes(id)) throw ERR_NOT_INVITED;
+
+    Logger.info(`[DubberService]: Adding user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    //* Send notification
+    const userService = new UserService({ user });
+    await userService.addSubscribe({ event: 'dubber_invite_accepted', key: this.document.id });
+    await userService.save();
+
+    if (!this.TestMode) {
+      try {
+        await Notify.broadcast<INotifyDubberInvite>({
+          event: 'dubber_invite_accepted',
+          payload: {
+            user_id: id,
+            dubber_id: this.document.id
+          }
+        });
+      } catch (e) {
+        Logger.fail(`[DubberService]: Can not send dubber_invite_accepted notification`, e);
+      }
+    } else {
+      Logger.debug(`[DubberService]: Notify dubber_invite_accepted has been silenced due to Testing mode`);
+    }
+
+    await userService.patchStatistics({ dubber_team_member: this.document.id });
+    await userService.addRole({ code: 'dubber_member' });
+    await userService.removeSubscribe({ event: 'dubber_invite_accepted', key: this.document.id });
+    await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.document.id });
+    await userService.save();
+
+    //* Remove the invite and add user as a member
+    this.document.membersInvited = this.document.membersInvited.filter(el => el !== id);
+    this.document.members.push({
+      id,
+      memberSince: getUTC().timestamp,
+      role: 'member',
+    });
+
+    this.document.markModified('members');
+    this.document.markModified('membersInvited');
+
+    await this.save();
+
+    //* Write logs
+    this.stack.push(`user ${id} added to the team`);
+    Logger.info(`[DubberService]: User has been added to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
   }
 
-  async editMember() {
+  /** Edit team member */
+  async memberEdit({ id, role }: IMemberEdit) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found`);
+
+    const member = this.document.members.find(el => el.id === id);
+    if (!member) throw ERR_NOT_MEMBER;
+
+    const userService = new UserService({ user });
+
+    //* Edit role
+    if (role !== undefined) {
+      const prevRole = member.role;
+
+      if (role === 'member') {
+        await userService.addRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_editor` });
+        await userService.removeRole({ code: `dubber_leader` });
+      } else if (role === 'editor') {
+        await userService.addRole({ code: `dubber_editor` });
+        await userService.removeRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_leader` });
+      } else if (role === 'leader') {
+        await userService.addRole({ code: `dubber_leader` });
+        await userService.removeRole({ code: `dubber_member` });
+        await userService.removeRole({ code: `dubber_editor` });
+      }
+
+      await userService.save();
+
+      member.role = role;
+      this.document.markModified('members');
+
+      //* Write logs
+      this.stack.push(`user ${id} role has been changed ${prevRole} > ${role}`);
+      Logger.debug(`[DubberService]: User role has been changed ${prevRole} > ${role}. [userId: ${id}; dubberId: ${this.document.id}]`);
+    }
   }
 
-  async deleteMember() {
+  /** Delete member / invitation. Will save the document */
+  async memberDelete({ id, declineInvite }: IMemberDelete) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+
+    declineInvite = declineInvite ?? true;
+
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found`);
+    if (declineInvite && !this.document.membersInvited.includes(id)) throw ERR_NOT_INVITED;
+    if (!this.document.members.some(el => el.id === id)) throw new E404(`User ${id} is not found in this team`);
+
+    Logger.info(`[DubberService]: Deleting user from the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    const userService = new UserService({ user });
+
+    if (declineInvite) {
+      //* Send notification about declined invite
+      await userService.addSubscribe({ event: 'dubber_invite_declined', key: this.document.id });
+      await userService.save();
+
+      if (!this.TestMode) {
+        try {
+          await Notify.broadcast<INotifyDubberInvite>({
+            event: 'dubber_invite_declined', payload: {
+              user_id: id,
+              dubber_id: this.document.id
+            }
+          });
+        } catch (e) {
+          Logger.fail(`[DubberService]: Can not send dubber_invite_declined notify`, e);
+        }
+      } else {
+        Logger.debug(`[DubberService]: Notify dubber_invite_declined has been silenced due to Testing mode`);
+      }
+
+      await userService.removeSubscribe({ event: 'dubber_invite_declined', key: this.document.id });
+      await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.document.id });
+    } else {
+      //* Send notification about excluding from the team
+      await userService.addSubscribe({ event: 'dubber_member_excluded', key: this.document.id });
+      await userService.save();
+
+      if (!this.TestMode) {
+        try {
+          await Notify.broadcast<INotifyDubberInvite>({
+            event: 'dubber_member_excluded', payload: {
+              user_id: id,
+              dubber_id: this.document.id
+            }
+          });
+        } catch (e) {
+          Logger.fail(`[DubberService]: Can not send dubber_invite_declined notify`, e);
+        }
+      } else {
+        Logger.debug(`[DubberService]: Notify dubber_member_excluded has been silenced due to Testing mode`);
+      }
+
+      await userService.patchStatistics({ dubber_team_member: null });
+      await userService.removeSubscribe({ event: 'dubber_member_excluded', key: this.document.id });
+      await userService.removeRole({ code: 'dubber_member' });
+      await userService.removeRole({ code: 'dubber_editor' });
+      await userService.removeRole({ code: 'dubber_leader' });
+    }
+
+    await userService.save();
+
+    //* Remove member
+    this.document.members = this.document.members.filter(el => el.id !== id);
+    this.document.membersInvited = this.document.membersInvited.filter(el => el !== id);
+
+    this.document.markModified('members');
+    this.document.markModified('membersInvited');
+
+    await this.save();
+
+    //* Write logs
+    this.stack.push(`user ${id} deleted from the team`);
+    Logger.info(`[DubberService]: User has been deleted from the team. [userId: ${id}; dubberId: ${this.document.id}]`);
   }
 
-  async inviteMember() {
+  /** Invite member into the team. Will save the document */
+  async memberInvite({ id }: IMemberInvite) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const user = await UserModel.findOne({ id });
+    if (!user) throw new E404(`User ${id} is not found`);
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_NOT_LINKED;
+
+    Logger.info(`[DubberService]: Inviting user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    //* Send invite notify
+    const userService = new UserService({ user });
+    await userService.addSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
+    await userService.save();
+
+    if (!this.TestMode) {
+      try {
+        await Notify.broadcast<INotifyDubberInvite>({
+          event: 'dubber_invite_pending',
+          payload: {
+            user_id: id,
+            dubber_id: this.dubber.id
+          }
+        });
+      } catch (e) {
+        Logger.fail(`[DubberService]: Can not send dubber_invite_pending notify`, e);
+      }
+    } else {
+      Logger.debug(`[DubberService]: Notify dubber_invite_pending has been silenced due to Testing mode`);
+    }
+
+    //* Add invite
+    this.document.membersInvited.push(id);
+    this.document.markModified('membersInvited');
+
+    await this.save();
+
+    //* Write logs
+    this.stack.push(`user ${id} invited to the team`);
+    Logger.info(`[DubberService]: User has been invited to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
   }
 
 

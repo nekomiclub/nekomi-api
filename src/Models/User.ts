@@ -19,6 +19,7 @@ import { createID, createStringID, getUTC } from '../handlers/handler';
 
 interface IUserServiceProps {
   user: HydratedDocument<IUser>
+  testMode?: boolean
 }
 
 interface IUserCreate {
@@ -26,6 +27,8 @@ interface IUserCreate {
   username: string
 
   avatar?: string
+  TestMode?: boolean
+  TEST_IS_TELEGRAM_LINKED?: boolean
 }
 
 interface IPatchLib {
@@ -77,14 +80,16 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
 export class UserService {
   readonly user: HydratedDocument<IUser>;
   readonly stack: string[] = [];
+  readonly TestMode: boolean = false;
 
-  constructor({ user }: IUserServiceProps) {
+  constructor({ user, testMode }: IUserServiceProps) {
     this.user = user;
+    this.TestMode = Boolean(testMode);
   }
 
 
 
-  static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
+  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode }: IUserCreate): Promise<HydratedDocument<IUser>> {
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
@@ -145,6 +150,8 @@ export class UserService {
       }
     ];
 
+    const isTelegramLinked = TestMode && TEST_IS_TELEGRAM_LINKED ? TEST_IS_TELEGRAM_LINKED : false;
+
     const payload: IUser = {
       id,
       username,
@@ -154,7 +161,7 @@ export class UserService {
       roles: ['user'],
       statistics: {
         accountCreated: getUTC().timestamp,
-        isTelegramLinked: false,
+        isTelegramLinked,
         viewtime: 0,
         dubber_team_member: null,
       },
