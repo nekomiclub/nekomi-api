@@ -3,41 +3,53 @@ import { IDubber } from '../interfaces/IDubber';
 
 
 
-interface IMongodbDocument {
-  __v: number,
-  _id: any,
-  [key: string]: any
+interface IMongoDTOProps<DOC> {
+  document: HydratedDocument<DOC>
+  details?: boolean
 }
 
-interface IDTOProps<DOC> {
-  document: HydratedDocument<DOC>
+interface IDocumentDTOProps<INT> {
+  object: INT
   details?: boolean
 }
 
 
 
-export class MongoDocumentDTO {
-  private DTO<DOC>(document: IMongodbDocument, exclude: string[]): DOC {
-    const instance = { ...document } as DOC;
+function excludeKeys<INT>(object: object, exclude: string[]): INT {
+  const instance = { ...object } as INT;
 
-    exclude.push('_id');
-    exclude.push('__v');
-
-    for (const key in document) {
-      if (exclude.includes(key)) {
-        instance[key] = undefined;
-      }
+  for (const key in object) {
+    if (exclude.includes(key)) {
+      instance[key] = undefined;
     }
-
-    return instance;
   }
 
-  dubber({ document, details }: IDTOProps<IDubber>): IDubber {
+  return instance;
+}
+
+
+
+export class MongoDocumentDTO {
+  private DTO<INT>(document: object): INT {
+    return excludeKeys(document, ['_id', '__v']);
+  }
+
+  dubber({ document, details }: IMongoDTOProps<IDubber>): IDubber {
+    return this.DTO<IDubber>(new DocumentDTO().dubber({ object: document.toObject(), details }));
+  }
+}
+
+export class DocumentDTO {
+  private DTO<INT>(object: object, exclude: string[]): INT {
+    return excludeKeys(object, exclude);
+  }
+
+  dubber({ object, details }: IDocumentDTOProps<IDubber>): IDubber {
     const keys: (keyof IDubber)[] = [
       'members',
       'membersInvited',
     ];
 
-    return this.DTO(document.toObject(), details ? [] : keys);
+    return this.DTO<IDubber>(object, details ? [] : keys);
   }
 }

@@ -48,13 +48,14 @@ TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.delete
 
 
 //* ------------------ DUBBER ROUTER ------------------
-DubberRouter.get(`/all`, HTTPDubberRoutes.GetAll);
+DubberRouter.get(`/all`, DubberController.getAll);
 
 
 DubberRouter.post(`/invite/send`, RouteValidation.dubberInviteSend, DubberController.inviteSend);
 DubberRouter.post(`/invite/accept`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteAccept);
 DubberRouter.post(`/invite/decline`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteDecline);
 
+DubberRouter.patch(`/settings`, HTTPDubberRoutes.PatchSettings);
 DubberRouter.patch(`/settings/member/edit`, RouteValidation.dubberSettingsMemberEdit, DubberController.settingsMemberEdit);
 DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemberExclude, DubberController.settingsMemberExclude);
 

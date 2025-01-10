@@ -1,34 +1,24 @@
-import DubberController from './controller';
+import DubberController, { IDubberPatchSettingsProps } from './controller';
 import { HTTPEndpoint } from '~/services/HTTPService';
-import { query } from 'express-validator';
+import { body } from 'express-validator';
 
 
 
-//* ===================================== GET ALL
-const getAll = HTTPEndpoint(async (req, res) => {
-  let { limit, page } = req.query as { limit?: number, page?: number };
+//* ===================================== PATCH SETTINGS
+const patchSettings = HTTPEndpoint(async (req, res) => {
+  const { status, message, dubber } = await DubberController.patchSettings(req.body);
 
-  page = page ?? 0;
-  limit = limit ?? 10;
-
-  const { dubbers, total } = await DubberController.getAll({ limit, page });
-
-  return res.status(200).json({
-    message: 'ok',
-    showed: dubbers.length,
-    dubbers,
-    total,
-  });
+  return res.status(status).json({ message, dubber });
 });
 
-const GetAll = [
-  query(['limit', 'page']).notEmpty().toInt(),
-  getAll,
+const PatchSettings = [
+  body(['id'] as (keyof IDubberPatchSettingsProps)[]).notEmpty(),
+  patchSettings,
 ];
 
 
 
 
 export default class HTTPDubberRoutes {
-  static GetAll = GetAll;
+  static PatchSettings = PatchSettings;
 } 

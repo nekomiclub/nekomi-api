@@ -2,7 +2,7 @@ import DubberModel from '../models/DubberModel';
 import ServiceControls from '../interfaces/ServiceControls';
 import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
-import { E400, E404, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '../../services/ErrorService';
+import { E400, E404, ERR_NO_DOCUMENT } from '../../services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IDubber, TDubberMemberRole } from '../interfaces/IDubber';
 import { INotifyDubberInvite } from '../../interfaces/services/Notify';
@@ -202,7 +202,7 @@ export class DubberService extends DubberModelControls {
 
     await this.document.save();
 
-    Logger.debug(`[DubberService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.join(', ')}]`);
+    Logger.debug(`[DubberService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
     return this.stack;
   }
@@ -220,17 +220,19 @@ export class DubberService extends DubberModelControls {
 
     if (nameUkr !== undefined) {
       nameUkr = trimString(nameUkr);
-      if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_LENGTH_INVALID;
+      if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
 
       this.stack.push(`nameUkr: ${this.document.nameUkr} > ${nameUkr}`);
 
       this.document.nameUkr = nameUkr;
+      this.document.name = nameUkr;
       this.document.markModified('nameUkr');
+      this.document.markModified('name');
     }
 
     if (nameEng !== undefined) {
       nameEng = trimString(nameEng);
-      if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_LENGTH_INVALID;
+      if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
       if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_NAME_NOT_LATIN;
 
       let slug = createSlug(nameEng);
