@@ -67,9 +67,10 @@ const ERR_NAME_NOT_LATIN = new E400(`Dubber english name must contain only latin
 const ERR_DESCRIPTION_LENGTH_INVALUD = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`, 'dubber:description_length_invalid');
 const ERR_LINK_DOMAIN_MISSMATCH = new E400(`Some links points to invalid domains or link parsed with error`, 'dubber:link_domain_missmatch');
 
-const ERR_OTHER_TEAM_MEMBER = new E400(`User is already take part in another dubber team`, 'dubber:other_team_member');
+export const ERR_DUBBER_OTHER_TEAM_MEMBER = new E400(`User is already take part in another dubber team`, 'dubber:other_team_member');
+export const ERR_DUBBER_NOT_INVITED = new E400(`User is not invited in this team`, 'dubber:not_invited');
+export const ERR_DUBBER_ALREADY_INVITED = new E400(`User is already invited in this team`, 'dubber:already_invited');
 const ERR_MEMBER_ALREADY = new E400(`User is already member of this team`, 'dubber:member_already');
-const ERR_NOT_INVITED = new E400(`User is not invited in this team`, 'dubber:not_invited');
 const ERR_NOT_MEMBER = new E400(`User is not member in this team`, 'dubber:not_member');
 const ERR_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'dubber:telegram_not_linked');
 
@@ -187,9 +188,9 @@ export class DubberService extends DubberModelControls {
   private document: HydratedDocument<IDubber> | null = null;
   private stack: string[] = [];
 
-  async init(id: string) {
-    const document = await DubberModel.findOne({ id });
-    if (!document) throw new E404(`Document ${id} is not found`);
+  async init(query: string) {
+    const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }, { code: query }] }); // Hydrated document required, find by built-in method is not possible
+    if (!document) throw new E404(`Document ${query} is not found`);
 
     this.document = document;
   }
@@ -331,8 +332,8 @@ export class DubberService extends DubberModelControls {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
-    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_OTHER_TEAM_MEMBER;
-    if (checkInvitation && !this.document.membersInvited.includes(id)) throw ERR_NOT_INVITED;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
+    if (checkInvitation && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
 
     Logger.info(`[DubberService]: Adding user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 
@@ -374,11 +375,11 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('members');
     this.document.markModified('membersInvited');
 
-    await this.save();
-
     //* Write logs
     this.stack.push(`user ${id} added to the team`);
     Logger.info(`[DubberService]: User has been added to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    await this.save();
   }
 
   /** Edit team member */
@@ -411,14 +412,14 @@ export class DubberService extends DubberModelControls {
         await userService.removeRole({ code: `dubber_editor` });
       }
 
-      await userService.save();
-
       member.role = role;
       this.document.markModified('members');
 
       //* Write logs
       this.stack.push(`user ${id} role has been changed ${prevRole} > ${role}`);
       Logger.debug(`[DubberService]: User role has been changed ${prevRole} > ${role}. [userId: ${id}; dubberId: ${this.document.id}]`);
+
+      await userService.save();
     }
   }
 
@@ -430,7 +431,7 @@ export class DubberService extends DubberModelControls {
 
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
-    if (declineInvite && !this.document.membersInvited.includes(id)) throw ERR_NOT_INVITED;
+    if (declineInvite && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
     if (!this.document.members.some(el => el.id === id)) throw new E404(`User ${id} is not found in this team`);
 
     Logger.info(`[DubberService]: Deleting user from the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
@@ -495,11 +496,11 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('members');
     this.document.markModified('membersInvited');
 
-    await this.save();
-
     //* Write logs
     this.stack.push(`user ${id} deleted from the team`);
     Logger.info(`[DubberService]: User has been deleted from the team. [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    await this.save();
   }
 
   /** Invite member into the team. Will save the document */
@@ -509,7 +510,8 @@ export class DubberService extends DubberModelControls {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
-    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_OTHER_TEAM_MEMBER;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
+    if (this.document.membersInvited.includes(id)) throw ERR_DUBBER_ALREADY_INVITED;
     if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_NOT_LINKED;
 
     Logger.info(`[DubberService]: Inviting user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
@@ -539,11 +541,11 @@ export class DubberService extends DubberModelControls {
     this.document.membersInvited.push(id);
     this.document.markModified('membersInvited');
 
-    await this.save();
-
     //* Write logs
     this.stack.push(`user ${id} invited to the team`);
     Logger.info(`[DubberService]: User has been invited to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
+
+    await this.save();
   }
 
 

@@ -1,7 +1,32 @@
-import DubberService from '~/core/services/DubberService';
+import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import { DocumentDTO } from '~/core/services/DTO';
 import { ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IDubber } from '~/interfaces/Dubber';
+
+
+
+//* ===================================== GET ONE
+export interface IDubberGetOneProps {
+  query: string
+  detailed?: boolean
+}
+
+async function GetOne({ query, detailed }: IDubberGetOneProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(query);
+
+  let dubber = new DocumentDTO().dubber({ object: dubberService.dubber });
+
+  if (detailed) {
+    dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
+  }
+
+  return {
+    status: 200,
+    message: `ok${detailed ? ' + private details' : ''}`,
+    dubber,
+  };
+}
 
 
 
@@ -15,7 +40,7 @@ export interface IDubberPatchSettingsProps {
   socialLinks?: Partial<IDubber['socials']>
 }
 
-export async function PatchSettings({ id, description, nameEng, nameUkr, socialLinks, supportLinks }: IDubberPatchSettingsProps) {
+async function PatchSettings({ id, description, nameEng, nameUkr, socialLinks, supportLinks }: IDubberPatchSettingsProps) {
   const dubberService = new DubberService();
   await dubberService.init(id);
 
@@ -51,7 +76,84 @@ export async function PatchSettings({ id, description, nameEng, nameUkr, socialL
 
 
 
+//* ===================================== GET INVITE BY ID
+export interface IDubberGetInviteByIdProps {
+  dubberId: string
+  userId: string
+}
+
+async function GetInviteById({ dubberId, userId }: IDubberGetInviteByIdProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  // Throw error if user is not invited
+  if (!dubberService.dubber.membersInvited.includes(userId)) throw ERR_DUBBER_NOT_INVITED;
+
+  return {
+    status: 200,
+    message: `Invite in dubber team id:${dubberId} for user id:${userId} is valid`
+  };
+}
+
+
+
+//* ===================================== POST INVITE SEND
+/** SAD - not sad really, it's send accept decline */
+export interface IDubberPostInviteSADProps {
+  userId: string
+  dubberId: string
+}
+
+async function PostInviteSend({ dubberId, userId }: IDubberPostInviteSADProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  await dubberService.memberInvite({ id: userId });
+
+  return {
+    status: 200,
+    message: `User id:${userId} has been invited to the dubber team id:${dubberId}`
+  };
+}
+
+
+
+//* ===================================== POST INVITE ACCEPT
+async function PostInviteAccept({ dubberId, userId }: IDubberPostInviteSADProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  await dubberService.memberAdd({ id: userId, checkInvitation: true });
+
+  return {
+    status: 200,
+    message: `Invite to dubber team id:${dubberId} was accepted`
+  };
+}
+
+
+
+
+//* ===================================== POST INVITE DECLINE
+async function PostInviteDecline({ dubberId, userId }: IDubberPostInviteSADProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  await dubberService.memberDelete({ id: userId, declineInvite: true });
+
+  return {
+    status: 200,
+    message: `Invite to dubber team id:${dubberId} was declined`
+  };
+}
+
+
 
 export default class DubberController {
+  static GetOne = GetOne;
   static PatchSettings = PatchSettings;
+  static GetInviteById = GetInviteById;
+  static PostInviteSend = PostInviteSend;
+  static PostInviteDecline = PostInviteDecline;
+  static PostInviteAccept = PostInviteAccept;
 }

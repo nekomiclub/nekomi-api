@@ -11,7 +11,7 @@ declare global {
       /** Nekomi internal data */
       nekomi: {
         /** Request user
-         * @requires FkUsapiAuthRefresh middleware
+         * @requires CheckAccess middleware
          */
         user?: {
           id: string
