@@ -1,38 +1,19 @@
-import * as DubberControllerOld from '../dubber';
-import * as RouteValidation from '../../handlers/routeValidation';
-
-import DubberController, { IDubberPatchSettingsProps } from './controller';
+import * as DubberControllerOld from '../controllers/dubber';
+import * as RouteValidation from '../handlers/routeValidation';
+import DubberRoutes from '~/controllers/DubberController';
 import express from 'express';
-import { HTTPEndpoint } from '~/services/HTTPService';
+import { IDubberPatchSettingsProps } from '~/controllers/DubberController/controller';
 import { body } from 'express-validator';
 
 
 
-//* ===================================== PATCH SETTINGS
-const PatchSettings = HTTPEndpoint(async (req, res) => {
-  const { status, message, dubber } = await DubberController.PatchSettings(req.body);
-
-  return res.status(status).json({ message, dubber });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-//* ===================================== ROUTER
 const DubberRouter = express.Router();
+
+
 
 DubberRouter.patch('/settings', [
   body(['id'] as (keyof IDubberPatchSettingsProps)[]).notEmpty(),
-  PatchSettings
+  DubberRoutes.PatchSettings,
 ]);
 
 

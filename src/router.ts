@@ -5,7 +5,7 @@ import * as RouteValidation from './handlers/routeValidation';
 import * as RootController from './controllers/root';
 import * as TitleController from './controllers/title';
 import * as UserController from './controllers/user';
-import DubberRouter from './controllers/DubberController/router';
+import DubberRouter from './routes/dubber';
 
 
 

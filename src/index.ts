@@ -51,6 +51,19 @@ mongoose.connect(config.mongodbUrl, {
 
 
 
+//* Setup swagger
+// const swaggerSpecs = swaggerJSDoc({
+//   definition: {
+//     info: {
+//       title: 'NekomiAPI',
+//       version: '2.0.0'
+//     }
+//   },
+//   apis: [`${path.resolve()}/controllers/**/route.ts`]
+// })
+
+
+
 //* Setup websocket server
 const hskey = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/privkey.pem', 'utf8') : '';
 const hscert = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
