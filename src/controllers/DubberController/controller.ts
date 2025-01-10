@@ -15,7 +15,7 @@ export interface IDubberPatchSettingsProps {
   socialLinks?: Partial<IDubber['socials']>
 }
 
-export async function patchSettings({ id, description, nameEng, nameUkr, socialLinks, supportLinks }: IDubberPatchSettingsProps) {
+export async function PatchSettings({ id, description, nameEng, nameUkr, socialLinks, supportLinks }: IDubberPatchSettingsProps) {
   const dubberService = new DubberService();
   await dubberService.init(id);
 
@@ -53,5 +53,5 @@ export async function patchSettings({ id, description, nameEng, nameUkr, socialL
 
 
 export default class DubberController {
-  static patchSettings = patchSettings;
+  static PatchSettings = PatchSettings;
 }

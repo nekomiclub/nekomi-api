@@ -2,18 +2,17 @@ import express from 'express';
 
 import * as RouteValidation from './handlers/routeValidation';
 
-import * as DubberController from './controllers/dubber';
 import * as RootController from './controllers/root';
 import * as TitleController from './controllers/title';
 import * as UserController from './controllers/user';
-import HTTPDubberRoutes from './controllers/DubberController';
+import DubberRouter from './controllers/DubberController/router';
+
 
 
 
 const RootRouter = express.Router();
 const UserRouter = express.Router();
 const TitleRouter = express.Router();
-const DubberRouter = express.Router();
 
 export default {
   RootRouter,
@@ -44,24 +43,6 @@ TitleRouter.post('/', RouteValidation.postTitle, TitleController.postTitle);
 TitleRouter.get('/:query', TitleController.getTitleQuery);
 TitleRouter.patch('/:id', RouteValidation.patchTitleId, TitleController.patchTitle);
 TitleRouter.delete('/:id', RouteValidation.deleteTitleId, TitleController.deleteTitle);
-
-
-
-//* ------------------ DUBBER ROUTER ------------------
-DubberRouter.get(`/all`, DubberController.getAll);
-
-
-DubberRouter.post(`/invite/send`, RouteValidation.dubberInviteSend, DubberController.inviteSend);
-DubberRouter.post(`/invite/accept`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteAccept);
-DubberRouter.post(`/invite/decline`, RouteValidation.dubberInviteAcceptDecline, DubberController.inviteDecline);
-
-DubberRouter.patch(`/settings`, HTTPDubberRoutes.PatchSettings);
-DubberRouter.patch(`/settings/member/edit`, RouteValidation.dubberSettingsMemberEdit, DubberController.settingsMemberEdit);
-DubberRouter.post(`/settings/member/exclude`, RouteValidation.dubberSettingsMemberExclude, DubberController.settingsMemberExclude);
-
-//! Must be below all endpoints
-DubberRouter.get(`/:query`, DubberController.getOne);
-DubberRouter.get(`/invite/:dubber_id`, RouteValidation.dubberInviteVerify, DubberController.inviteVerify);
 
 
 
