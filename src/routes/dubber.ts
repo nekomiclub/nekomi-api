@@ -21,12 +21,16 @@ DubberRouter.post(`/invite/accept`, DubberRoutes.PostInviteAccept);
 DubberRouter.post(`/invite/decline`, DubberRoutes.PostInviteDecline);
 
 //* Member
-/** Path /settings/member/edit is deprecated */
-DubberRouter.patch([`/settings/member/edit`, `/member/edit`], RouteValidation.dubberSettingsMemberEdit, DubberControllerOld.settingsMemberEdit);
-/** Path /settings/member/exclude is deprecated */
-DubberRouter.post([`/settings/member/exclude`, `/member/kick`], RouteValidation.dubberSettingsMemberExclude, DubberControllerOld.settingsMemberExclude);
+DubberRouter.patch(`/member`, DubberRoutes.PatchMemberById);
+DubberRouter.delete(`/member`, DubberRoutes.DeleteMemberById);
 
-/** @deprecated */
+
+//! DEPRECATED
+/** @deprecated use PATCH /dubber/member instead */
+DubberRouter.patch([`/settings/member/edit`], RouteValidation.dubberSettingsMemberEdit, DubberControllerOld.settingsMemberEdit);
+/** @deprecated use DELETE /dubber/member instead */
+DubberRouter.post([`/settings/member/exclude`], RouteValidation.dubberSettingsMemberExclude, DubberControllerOld.settingsMemberExclude);
+/** @deprecated use search?q=~all instead */
 DubberRouter.get(`/all`, DubberControllerOld.getAll);
 
 

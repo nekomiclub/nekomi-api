@@ -1,4 +1,4 @@
-import DubberController, { IDubberGetOneProps, IDubberPostInviteSADProps } from './controller';
+import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberPatchMemberByIdProps, IDubberPostInviteSADProps } from './controller';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -10,8 +10,8 @@ import { config } from '~/config';
 
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
-  const { query } = req.params as Partial<IDubberGetOneProps>;
-  let { detailed } = req.query as Partial<IDubberGetOneProps>;
+  const { query } = req.params as Partial<IDubberGetOneByQueryProps>;
+  let { detailed } = req.query as Partial<IDubberGetOneByQueryProps>;
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   if (typeof query !== 'string') throw new ERR_TYPE_INVALID();
@@ -24,7 +24,7 @@ const getOne = HTTPEndpoint(async (req, res) => {
     detailed = true;
   }
 
-  const { dubber, message, status } = await DubberController.GetOne({ query, detailed });
+  const { dubber, message, status } = await DubberController.GetOneByQuery({ query, detailed });
 
   return res.status(status).json({ message, dubber });
 });
@@ -46,7 +46,7 @@ const patchSettings = HTTPEndpoint(async (req, res) => {
 
 const PatchSettings = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['dubberEditProfile', 'admin']),
+  CheckAccess(['dubberEditProfile']),
   body('id').notEmpty(),
   patchSettings
 ];
@@ -92,7 +92,7 @@ const postInviteSend = HTTPEndpoint(async (req, res) => {
 
 const PostInviteSend = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['dubberEditMembers', 'admin']),
+  CheckAccess(['dubberEditMembers']),
   body(['userId', 'dubberId']).notEmpty(),
   postInviteSend,
 ];
@@ -144,11 +144,58 @@ const PostInviteDecline = [
 
 
 
+//* ===================================== PATCH MEMBER BY ID
+const patchMemberById = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
+
+  const { dubberId, role, userId } = req.body as IDubberPatchMemberByIdProps;
+
+  const { message, status } = await DubberController.PatchMemberById({ dubberId, userId, role });
+
+  return res.status(status).json({ message });
+});
+
+const PatchMemberById = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['dubberEditEditors']),
+  body(['dubberId', 'userId']).notEmpty(),
+  patchMemberById,
+];
+
+
+
+//* ===================================== DELETE MEMBER BY ID
+const deleteMemberById = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED('checkCSRF');
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
+
+  const { dubberId, userId } = req.body as IDubberDeleteMemberByIdProps;
+
+  const { message, status } = await DubberController.DeleteMemberById({ dubberId, userId });
+
+  return res.status(status).json({ message });
+});
+
+const DeleteMemberById = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['dubberEditEditors']),
+  body(['dubberId', 'userId']).notEmpty(),
+  deleteMemberById,
+];
+
+
+
 export default class DubberRoutes {
   static GetOne = GetOne;
+
   static PatchSettings = PatchSettings;
+
   static GetInviteById = GetInviteById;
   static PostInviteSend = PostInviteSend;
   static PostInviteDecline = PostInviteDecline;
   static PostInviteAccept = PostInviteAccept;
+
+  static PatchMemberById = PatchMemberById;
+  static DeleteMemberById = DeleteMemberById;
 }

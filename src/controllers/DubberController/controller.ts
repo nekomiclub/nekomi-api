@@ -1,17 +1,17 @@
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import { DocumentDTO } from '~/core/services/DTO';
 import { ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { IDubber } from '~/interfaces/Dubber';
+import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
 
 
 
 //* ===================================== GET ONE
-export interface IDubberGetOneProps {
+export interface IDubberGetOneByQueryProps {
   query: string
   detailed?: boolean
 }
 
-async function GetOne({ query, detailed }: IDubberGetOneProps) {
+async function GetOneByQuery({ query, detailed }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
@@ -149,11 +149,57 @@ async function PostInviteDecline({ dubberId, userId }: IDubberPostInviteSADProps
 
 
 
+//* ===================================== POST MEMBER EDIT
+export interface IDubberPatchMemberByIdProps {
+  dubberId: string
+  userId: string
+  role?: TDubberMemberRole
+}
+
+async function PatchMemberById({ dubberId, userId, role }: IDubberPatchMemberByIdProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  if (typeof role === 'string') await dubberService.memberEdit({ id: userId, role });
+
+  await dubberService.save();
+
+  return {
+    status: 200,
+    message: `Member ${userId} patched`
+  };
+}
+
+
+//* ===================================== POST MEMBER KICK
+export interface IDubberDeleteMemberByIdProps {
+  dubberId: string
+  userId: string
+}
+
+async function DeleteMemberById({ dubberId, userId }: IDubberDeleteMemberByIdProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  await dubberService.memberDelete({ id: userId, declineInvite: false });
+
+  return {
+    status: 200,
+    message: `Member ${userId} has beed deleted from the team`
+  };
+}
+
+
 export default class DubberController {
-  static GetOne = GetOne;
+  static GetOneByQuery = GetOneByQuery;
+
   static PatchSettings = PatchSettings;
+
   static GetInviteById = GetInviteById;
   static PostInviteSend = PostInviteSend;
   static PostInviteDecline = PostInviteDecline;
   static PostInviteAccept = PostInviteAccept;
+
+  static PatchMemberById = PatchMemberById;
+  static DeleteMemberById = DeleteMemberById;
 }

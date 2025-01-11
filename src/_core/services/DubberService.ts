@@ -2,7 +2,7 @@ import DubberModel from '../models/DubberModel';
 import ServiceControls from '../interfaces/ServiceControls';
 import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
-import { E400, E404, ERR_NO_DOCUMENT } from '../../services/ErrorService';
+import { E400, E404, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IDubber, TDubberMemberRole } from '../interfaces/IDubber';
 import { INotifyDubberInvite } from '../../interfaces/services/Notify';
@@ -239,7 +239,7 @@ export class DubberService extends DubberModelControls {
       let slug = createSlug(nameEng);
 
       const exist = await DubberModel.findOne({ slug });
-      if (exist) slug = slug + `-${createStringID(3)}`;
+      if (exist && exist.id !== this.document.id) slug = slug + `-${createStringID(3)}`;
 
       this.stack.push(`nameEng: ${this.document.nameEng} > ${nameEng}`);
       this.stack.push(`slug: ${this.document.slug} > ${slug}`);
@@ -410,6 +410,8 @@ export class DubberService extends DubberModelControls {
         await userService.addRole({ code: `dubber_leader` });
         await userService.removeRole({ code: `dubber_member` });
         await userService.removeRole({ code: `dubber_editor` });
+      } else {
+        throw new ERR_INVALID_PAYLOAD(`Role ${role} is invalid to patch`);
       }
 
       member.role = role;
