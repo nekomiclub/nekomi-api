@@ -5,6 +5,15 @@ import { TMiddlewareName } from '../services/MiddlewareService';
 import { TRoleCapability } from './Roles';
 import { TWS_Group } from './WebSocket';
 
+
+export interface IEXPRESS_REQ_NEKOMI_USER {
+  id: string
+  username: string
+  capabilities: TRoleCapability[]
+}
+
+
+
 declare global {
   namespace Express {
     interface Request {
@@ -13,11 +22,7 @@ declare global {
         /** Request user
          * @requires CheckAccess middleware
          */
-        user?: {
-          id: string
-          username: string
-          capabilities: TRoleCapability[]
-        }
+        user?: IEXPRESS_REQ_NEKOMI_USER
 
         /** Request passed middlewares */
         middlewaresPassed?: TMiddlewareName[]

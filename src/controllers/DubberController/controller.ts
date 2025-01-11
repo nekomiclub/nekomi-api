@@ -1,7 +1,8 @@
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import { DocumentDTO } from '~/core/services/DTO';
-import { ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
+import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 
 
 
@@ -32,7 +33,9 @@ async function GetOneByQuery({ query, detailed }: IDubberGetOneByQueryProps) {
 
 //* ===================================== PATCH SETTINGS
 export interface IDubberPatchSettingsProps {
-  id: string
+  dubberId: string
+  userId: string
+  currentUser: IEXPRESS_REQ_NEKOMI_USER
   nameUkr?: string
   nameEng?: string
   description?: string
@@ -40,9 +43,23 @@ export interface IDubberPatchSettingsProps {
   socialLinks?: Partial<IDubber['socials']>
 }
 
-async function PatchSettings({ id, description, nameEng, nameUkr, socialLinks, supportLinks }: IDubberPatchSettingsProps) {
+async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLinks, supportLinks, currentUser }: IDubberPatchSettingsProps) {
   const dubberService = new DubberService();
-  await dubberService.init(id);
+  await dubberService.init(dubberId);
+
+
+  //* Ensure access
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+
+  // Pass root or admin
+  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
+    // Only team member can edit settings
+    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not edit settings of the team what you don't belong to`);
+    // Only leader can edit settings
+    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can edit settings`);
+  }
+
+
 
   if (typeof nameUkr === 'string') await dubberService.changeName({ nameUkr });
   if (typeof nameEng === 'string') await dubberService.changeName({ nameEng });
@@ -66,7 +83,6 @@ async function PatchSettings({ id, description, nameEng, nameUkr, socialLinks, s
 
 
 
-  // TODO: Process dubber throught public DTO
   return {
     status: 200,
     message: 'Dubber settings changed',
@@ -102,11 +118,28 @@ async function GetInviteById({ dubberId, userId }: IDubberGetInviteByIdProps) {
 export interface IDubberPostInviteSADProps {
   userId: string
   dubberId: string
+  /** Only for PostInviteSend method */
+  currentUser?: IEXPRESS_REQ_NEKOMI_USER
 }
 
-async function PostInviteSend({ dubberId, userId }: IDubberPostInviteSADProps) {
+async function PostInviteSend({ dubberId, userId, currentUser }: IDubberPostInviteSADProps) {
   const dubberService = new DubberService();
   await dubberService.init(dubberId);
+
+
+  //* Ensure access
+  if (!currentUser) throw new E500(`Current user is not specified`);
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+
+  // Pass root or admin
+  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
+    // Only team member can invite
+    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not invite members in the team what you don't belong to`);
+    // Only leader can invite
+    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can send the invitation`);
+  }
+
+
 
   await dubberService.memberInvite({ id: userId });
 
@@ -154,11 +187,27 @@ export interface IDubberPatchMemberByIdProps {
   dubberId: string
   userId: string
   role?: TDubberMemberRole
+  currentUser: IEXPRESS_REQ_NEKOMI_USER
 }
 
-async function PatchMemberById({ dubberId, userId, role }: IDubberPatchMemberByIdProps) {
+async function PatchMemberById({ dubberId, userId, role, currentUser }: IDubberPatchMemberByIdProps) {
   const dubberService = new DubberService();
   await dubberService.init(dubberId);
+
+
+
+  //* Ensure access
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+
+  // Pass root or admin
+  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
+    // Only team member can edit members
+    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not edit members of the team what you don't belong to`);
+    // Only leader can edit members
+    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can edit members`);
+  }
+
+
 
   if (typeof role === 'string') await dubberService.memberEdit({ id: userId, role });
 
@@ -175,11 +224,26 @@ async function PatchMemberById({ dubberId, userId, role }: IDubberPatchMemberByI
 export interface IDubberDeleteMemberByIdProps {
   dubberId: string
   userId: string
+  currentUser: IEXPRESS_REQ_NEKOMI_USER
 }
 
-async function DeleteMemberById({ dubberId, userId }: IDubberDeleteMemberByIdProps) {
+async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDeleteMemberByIdProps) {
   const dubberService = new DubberService();
   await dubberService.init(dubberId);
+
+
+  //* Ensure access
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+
+  // Pass root or admin
+  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
+    // Only team member can kick members
+    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not delete members of the team what you don't belong to`);
+    // Only leader can kick members
+    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can kick members`);
+  }
+
+
 
   await dubberService.memberDelete({ id: userId, declineInvite: false });
 
@@ -188,6 +252,7 @@ async function DeleteMemberById({ dubberId, userId }: IDubberDeleteMemberByIdPro
     message: `Member ${userId} has beed deleted from the team`
   };
 }
+
 
 
 export default class DubberController {
