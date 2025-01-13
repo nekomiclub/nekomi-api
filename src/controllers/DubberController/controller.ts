@@ -1,8 +1,12 @@
+import * as dto from '~/handlers/dtos';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
+import TitleModel from '~/Models/Title';
 import { DocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
+import { ITitle } from '~/interfaces/Title';
+import { getUTC } from '~/handlers/handler';
 
 
 
@@ -10,22 +14,47 @@ import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 export interface IDubberGetOneByQueryProps {
   query: string
   detailed?: boolean
+  fetchDubbedAnime?: boolean
 }
 
-async function GetOneByQuery({ query, detailed }: IDubberGetOneByQueryProps) {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
   let dubber = new DocumentDTO().dubber({ object: dubberService.dubber });
+  let dubbedAnime: ITitle[] | undefined = undefined;
 
   if (detailed) {
     dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
+  }
+
+  if (fetchDubbedAnime) {
+    const started = getUTC().timestamp;
+
+    const titles = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
+    const withDubbing = titles.filter(title => {
+      return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
+    });
+
+    console.log(titles.length);
+    console.log(withDubbing.length);
+
+    dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => dto.title({
+      __v: 0,
+      _id: '',
+      ...el
+    }));
+
+    console.log(dubbedAnime.length);
+
+    console.log(`ended within ${getUTC().timestamp - started}ms`);
   }
 
   return {
     status: 200,
     message: `ok${detailed ? ' + private details' : ''}`,
     dubber,
+    dubbedAnime
   };
 }
 

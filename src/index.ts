@@ -13,6 +13,7 @@ import { WebSocketServer } from 'ws';
 
 import Cache from './services/CacheService';
 import Router from './router';
+import Search from './services/SearchService';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
@@ -142,8 +143,6 @@ wss.on('listening', () => {
 
     // Post-init callback
     try {
-      await Promise.all(REPETATIVE_HANDLERS);
-
       console.log(`
   ----------------------------
   NEKOMI-CORE STARTED UP
@@ -155,6 +154,9 @@ wss.on('listening', () => {
   WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
   ----------------------------
     `);
+
+      await Promise.all(REPETATIVE_HANDLERS);
+      await Search.init();
 
       // Cache updating
       setInterval(async () => {
