@@ -1,3 +1,5 @@
+import { DevelopmentMode } from '~/config';
+import { ICacheDubbedAnime, ICacheHomeWrapped } from '~/interfaces/services/Cache';
 import { ITitle } from '~/interfaces/Title';
 import { Logger } from './LoggerService';
 import { createUUID, getUTC } from '~/handlers/handler';
@@ -8,11 +10,6 @@ interface ICacheRecord {
   createdAt: number
   id: string
   data: any
-}
-
-export interface ICacheDubbedAnime {
-  dubberId: string
-  titles: ITitle[]
 }
 
 
@@ -47,6 +44,8 @@ class CacheService {
   }
 
   push<T>(el: T) {
+    if (DevelopmentMode) Logger.debug(`[CacheService (DEV)]: Pushed new record to cache`);
+
     this.Cached.push({
       id: createUUID(),
       createdAt: getUTC().timestamp,
@@ -62,6 +61,13 @@ class CacheService {
     return res.titles;
   }
 
+  getHomeWrapped() {
+    const existed = this.Cached.find(el => el.data?.DEFINE_KEY === 'HomeWrapped');
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheHomeWrapped;
+    return res;
+  }
 }
 
 

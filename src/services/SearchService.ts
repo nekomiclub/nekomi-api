@@ -79,6 +79,8 @@ class SearchService {
         ignoreLocation: true
       });
     } else throw new E500(`[SearchService]: Can not update not exist engine - ${type}`);
+
+    Logger.debug(`[SearchService]: Engine updated. [engine: ${type}]`);
   }
 
   search({ limit, query, engine }: ISearchProps) {

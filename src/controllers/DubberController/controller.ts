@@ -1,9 +1,10 @@
 import * as dto from '~/handlers/dtos';
-import Cache, { ICacheDubbedAnime } from '~/services/CacheService';
+import Cache from '~/services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import TitleModel from '~/Models/Title';
 import { DocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { ICacheDubbedAnime } from '~/interfaces/services/Cache';
 import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/Title';

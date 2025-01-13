@@ -6,10 +6,18 @@ interface ITitleWithMediaMeta extends ITitle {
 }
 
 export interface ICacheHomeWrapped {
+  /** MUST BE PRESENT WHEN PUSHING IN CACHE */
+  DEFINE_KEY?: string
+
   /** Home featured titles */
   featured: ITitleWithMediaMeta[]
 
   popular: ITitle[]
   updatedRecently: ITitle[]
   hightRated: ITitle[]
+}
+
+export interface ICacheDubbedAnime {
+  dubberId: string
+  titles: ITitle[]
 }

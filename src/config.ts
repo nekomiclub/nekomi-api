@@ -78,8 +78,6 @@ export const STATIC = {
       'b4229fae-5908-4488-874d-57dce31d2ad7',
       '0b342f7c-515a-4f58-b309-2de334f79dc8',
     ] : [
-      'testid-eb17fb44-5ecf-4309-8f95-5afed48accb2',
-      'testid-ec179adf-742c-4b21-9784-eb57b90e0a10',
       '627690b0-f0c1-490d-b50e-c5ace32cd563',
       '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
       'fc6868df-bd76-494e-840f-f7ff3dd67e2d'

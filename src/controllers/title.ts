@@ -2,20 +2,22 @@ import express from 'express';
 
 import * as dto from '../handlers/dtos';
 
-import Cache from '../services/OldCacheService';
+import Cache from '~/services/CacheService';
 import Dubber from '../Models/Dubber';
-import Title, { TitleService } from '../Models/Title';
+import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
 import { $http } from '../handlers/http';
-import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
+import { ICacheHomeWrapped } from '~/interfaces/services/Cache';
 import { IDubber } from '../interfaces/Dubber';
+import { IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../interfaces/Title';
 import { IUserWatchProgress } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
+import { MiddlewareService } from '~/services/MiddlewareService';
 import { TRoleCapability } from '../interfaces/Roles';
 import { config, testMode } from '../config';
 import { getMockData } from '../handlers/mocks';
@@ -405,7 +407,48 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
   await HandleRequest(req, res, async () => {
     if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    if (!Cache.HomeWrapped.featured.length) throw new ERR_NOT_READY();
+    let HomeWrapped: ICacheHomeWrapped = {
+      featured: [],
+      hightRated: [],
+      popular: [],
+      updatedRecently: []
+    };
+
+    const cache = Cache.getHomeWrapped();
+
+    if (cache) {
+      HomeWrapped = cache;
+    } else {
+      const titles = await TitleModel.find();
+
+      // Parse featured
+      for (const key in config.STATIC.HomeWrapped.featured) {
+        const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
+
+        const title = await TitleModel.findOne({ id: id });
+        if (!title) throw new E404(`Title ${id} is not found in featured data`);
+
+        HomeWrapped.featured.push({
+          ...dto.title(title.toObject()),
+          backgroundURL,
+          videoURL
+        });
+      }
+
+      // Parse popular
+      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
+
+      // Fetch recently updated
+      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => dto.title(el.toObject()));
+
+      // Fetch hight rated
+      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => dto.title(el.toObject()));
+
+      Cache.push<Required<ICacheHomeWrapped>>({
+        DEFINE_KEY: 'HomeWrapped',
+        ...HomeWrapped,
+      });
+    }
 
     const sessionToken = req.cookies[config.vars.sessionCookie];
     const session: IFK_UsapiAuthRefresh = {
@@ -419,14 +462,12 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
     // Parse user
     if (sessionToken) {
       if (!testMode) {
-        try {
-          const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-            headers: {
-              Cookie: `session=${sessionToken}`
-            }
-          });
+        const middleware = new MiddlewareService();
 
-          session.id = sessionData.id;
+        try {
+          const { user } = await middleware.checkAccess(sessionToken);
+
+          session.id = user.id;
         } catch (e) {
           // Ignore
         }
@@ -444,13 +485,13 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
 
       watchProgress = [];
 
-      Cache.HomeWrapped.featured.forEach(el => {
+      HomeWrapped.featured.forEach(el => {
         const wp = user.watchProgress.find(wp => wp.titleID === el.id);
 
         if (wp) watchProgress!.push(wp);
       });
     }
 
-    return res.status(200).json({ message: 'OK', ...Cache.HomeWrapped, watchProgress });
+    return res.status(200).json({ message: 'OK', ...HomeWrapped, watchProgress });
   });
 }

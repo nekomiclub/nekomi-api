@@ -11,9 +11,7 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import Cache from './services/OldCacheService';
 import Router from './router';
-import Search from './services/SearchService';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
@@ -49,19 +47,6 @@ mongoose.connect(config.mongodbUrl, {
 }).catch(e => {
   Logger.fail('[Startup/MongoDB]: MongoDB connection errored', e);
 });
-
-
-
-//* Setup swagger
-// const swaggerSpecs = swaggerJSDoc({
-//   definition: {
-//     info: {
-//       title: 'NekomiAPI',
-//       version: '2.0.0'
-//     }
-//   },
-//   apis: [`${path.resolve()}/controllers/**/route.ts`]
-// })
 
 
 
@@ -103,6 +88,7 @@ app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 
 
+
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
@@ -141,7 +127,6 @@ wss.on('listening', () => {
   app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, async () => {
     Logger.info(`[Startup]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
 
-    // Post-init callback
     try {
       console.log(`
   ----------------------------
@@ -156,17 +141,13 @@ wss.on('listening', () => {
     `);
 
       await Promise.all(REPETATIVE_HANDLERS);
-      await Search.init();
 
       // Cache updating
       setInterval(async () => {
-        Logger.info(`[Startup]: Cache updated`);
-
         // Update cache
         await Promise.all([
           updateSearch(),
           removeUsersLinkTelegramToken(),
-          Cache.updateHomeWrapped()
         ]);
       }, 43200000); // 43200000 // 12h
 
@@ -175,7 +156,7 @@ wss.on('listening', () => {
         await WebSocketOnlinePoll();
       }, 600000); // 600000 // 10m
     } catch (e) {
-      Logger.error('[Startup/Post-init Callback]: An error occured in one of post-init handlers', e);
+      Logger.error('[Startup]: An error occured in one of post-init handlers', e);
     }
   });
 
@@ -191,5 +172,5 @@ app.all('*', (req: express.Request, res: express.Response) => {
     Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
   }
 
-  return res.status(404).json({ message: 'Not Found', msg: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
+  return res.status(404).json({ message: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
 });
