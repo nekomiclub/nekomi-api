@@ -1,4 +1,5 @@
 import * as dto from '~/handlers/dtos';
+import Cache, { ICacheDubbedAnime } from '~/services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import TitleModel from '~/Models/Title';
 import { DocumentDTO } from '~/core/services/DTO';
@@ -6,7 +7,6 @@ import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorSer
 import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/Title';
-import { getUTC } from '~/handlers/handler';
 
 
 
@@ -29,25 +29,27 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime }: IDubberGetOn
   }
 
   if (fetchDubbedAnime) {
-    const started = getUTC().timestamp;
+    const cached = Cache.getDubbedAnime(dubberService.dubber.id);
 
-    const titles = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
-    const withDubbing = titles.filter(title => {
-      return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
-    });
+    if (cached) {
+      dubbedAnime = cached;
+    } else {
+      const titles = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
+      const withDubbing = titles.filter(title => {
+        return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
+      });
 
-    console.log(titles.length);
-    console.log(withDubbing.length);
+      dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => dto.title({
+        __v: 0,
+        _id: '',
+        ...el
+      }, true));
 
-    dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => dto.title({
-      __v: 0,
-      _id: '',
-      ...el
-    }));
-
-    console.log(dubbedAnime.length);
-
-    console.log(`ended within ${getUTC().timestamp - started}ms`);
+      Cache.push<ICacheDubbedAnime>({
+        dubberId: dubberService.dubber.id,
+        titles: dubbedAnime
+      });
+    }
   }
 
   return {

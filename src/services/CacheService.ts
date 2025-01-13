@@ -1,57 +1,70 @@
-import * as dto from '../handlers/dtos';
-import TitleModel from '../Models/Title';
-import { E404 } from './ErrorService';
-import { ICacheHomeWrapped } from '../interfaces/services/Cache';
+import { ITitle } from '~/interfaces/Title';
 import { Logger } from './LoggerService';
-import { config } from '../config';
+import { createUUID, getUTC } from '~/handlers/handler';
 
-class CacheService {
-  readonly HomeWrapped: ICacheHomeWrapped = {
-    featured: [],
-    hightRated: [],
-    popular: [],
-    updatedRecently: []
-  };
 
-  constructor() {
-    // Fill initial cache
 
-    Promise.all([
-      this.updateHomeWrapped()
-    ]);
-  }
-
-  async updateHomeWrapped(): Promise<ICacheHomeWrapped> {
-    const titles = await TitleModel.find();
-
-    // Parse featured
-    for (const key in config.STATIC.HomeWrapped.featured) {
-      const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
-
-      const title = await TitleModel.findOne({ id: id });
-      if (!title) throw new E404(`Title ${id} is not found in featured data`);
-
-      this.HomeWrapped.featured.push({
-        ...dto.title(title.toObject()),
-        backgroundURL,
-        videoURL
-      });
-    }
-
-    // Parse popular
-    this.HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
-
-    // Fetch recently updated
-    this.HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => dto.title(el.toObject()));
-
-    // Fetch hight rated
-    this.HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => dto.title(el.toObject()));
-
-    Logger.info(`[Cache]: Cache for Home Wrapped updated`);
-
-    return this.HomeWrapped;
-  }
+interface ICacheRecord {
+  createdAt: number
+  id: string
+  data: any
 }
 
-export const Cache = new CacheService();
+export interface ICacheDubbedAnime {
+  dubberId: string
+  titles: ITitle[]
+}
+
+
+
+class CacheService {
+  Cached: ICacheRecord[] = [];
+
+
+
+  private checkCacheValidity(el: ICacheRecord): boolean {
+    return el.createdAt + (60000 * 60) > getUTC().timestamp;
+  }
+
+  private getById<T>(id: string): T | undefined {
+    const el = this.Cached.find(el => el.id === id);
+
+    // Return cached
+    if (el && this.checkCacheValidity(el)) return el.data;
+
+    // Purge
+    this.Cached = this.Cached.filter(record => record.id !== el?.id);
+    return undefined;
+  }
+
+  /** Forced cache puge */
+  forcePurge() {
+    this.Cached.forEach(el => {
+      if (!this.checkCacheValidity(el)) this.Cached = this.Cached.filter(record => record.id !== el?.id);
+    });
+
+    Logger.debug(`[CacheService]: Forced cache purge completed`);
+  }
+
+  push<T>(el: T) {
+    this.Cached.push({
+      id: createUUID(),
+      createdAt: getUTC().timestamp,
+      data: el,
+    });
+  }
+
+  getDubbedAnime(id: string): ITitle[] | undefined {
+    const existed = this.Cached.find(el => el.data?.dubberId === id);
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheDubbedAnime;
+    return res.titles;
+  }
+
+}
+
+
+
+const Cache = new CacheService();
 export default Cache;

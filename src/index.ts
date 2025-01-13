@@ -11,7 +11,7 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import Cache from './services/CacheService';
+import Cache from './services/OldCacheService';
 import Router from './router';
 import Search from './services/SearchService';
 import { Logger } from './services/LoggerService';

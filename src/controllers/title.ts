@@ -2,7 +2,7 @@ import express from 'express';
 
 import * as dto from '../handlers/dtos';
 
-import Cache from '../services/CacheService';
+import Cache from '../services/OldCacheService';
 import Dubber from '../Models/Dubber';
 import Title, { TitleService } from '../Models/Title';
 import User from '../Models/User';
