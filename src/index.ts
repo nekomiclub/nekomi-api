@@ -159,7 +159,6 @@ wss.on('listening', () => {
       Logger.error('[Startup]: An error occured in one of post-init handlers', e);
     }
   });
-
 })();
 
 

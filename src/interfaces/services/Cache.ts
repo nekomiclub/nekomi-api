@@ -1,4 +1,5 @@
 import { ITitle } from '../Title';
+import { IUser } from '../User';
 
 interface ITitleWithMediaMeta extends ITitle {
   videoURL: string
@@ -18,6 +19,17 @@ export interface ICacheHomeWrapped {
 }
 
 export interface ICacheDubbedAnime {
+  /** Cache only. Must equal dubber:dubbed_anime */
+  DEFINE_KEY?: string
+
   dubberId: string
   titles: ITitle[]
+}
+
+export interface ICacheParsedMembers {
+  /** Cache only. Must equal dubber:parsed_members */
+  DEFINE_KEY?: string
+
+  dubberId: string
+  members: IUser[]
 }

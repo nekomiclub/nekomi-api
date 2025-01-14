@@ -1,6 +1,7 @@
 import { DevelopmentMode } from '~/config';
-import { ICacheDubbedAnime, ICacheHomeWrapped } from '~/interfaces/services/Cache';
+import { ICacheDubbedAnime, ICacheHomeWrapped, ICacheParsedMembers } from '~/interfaces/services/Cache';
 import { ITitle } from '~/interfaces/Title';
+import { IUser } from '~/interfaces/User';
 import { Logger } from './LoggerService';
 import { createUUID, getUTC } from '~/handlers/handler';
 
@@ -54,11 +55,19 @@ class CacheService {
   }
 
   getDubbedAnime(id: string): ITitle[] | undefined {
-    const existed = this.Cached.find(el => el.data?.dubberId === id);
+    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:dubbed_anime');
     if (!existed) return undefined;
 
     const res = this.getById(existed.id) as ICacheDubbedAnime;
     return res.titles;
+  }
+
+  getDubberMembers(id: string): IUser[] | undefined {
+    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:parsed_members');
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheParsedMembers;
+    return res.members;
   }
 
   getHomeWrapped() {

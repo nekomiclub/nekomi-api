@@ -11,7 +11,7 @@ import { config } from '~/config';
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
   const { query } = req.params as Partial<IDubberGetOneByQueryProps>;
-  let { detailed, fetchDubbedAnime } = req.query as Partial<IDubberGetOneByQueryProps>;
+  let { detailed, fetchDubbedAnime, parseMembers } = req.query as Partial<IDubberGetOneByQueryProps>;
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   if (typeof query !== 'string') throw new ERR_TYPE_INVALID();
@@ -24,9 +24,9 @@ const getOne = HTTPEndpoint(async (req, res) => {
     detailed = true;
   }
 
-  const { dubber, message, status, dubbedAnime } = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime });
+  const { dubber, message, status, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers });
 
-  return res.status(status).json({ message, dubber, dubbedAnime });
+  return res.status(status).json({ message, dubber, dubbedAnime, parsedMembers });
 });
 
 const GetOne = [

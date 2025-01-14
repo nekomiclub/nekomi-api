@@ -2,12 +2,14 @@ import * as dto from '~/handlers/dtos';
 import Cache from '~/services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import TitleModel from '~/Models/Title';
+import UserModel from '~/Models/User';
 import { DocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { ICacheDubbedAnime } from '~/interfaces/services/Cache';
+import { ICacheDubbedAnime, ICacheParsedMembers } from '~/interfaces/services/Cache';
 import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/Title';
+import { IUser } from '~/interfaces/User';
 
 
 
@@ -16,20 +18,22 @@ export interface IDubberGetOneByQueryProps {
   query: string
   detailed?: boolean
   fetchDubbedAnime?: boolean
+  parseMembers?: boolean
 }
 
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime }: IDubberGetOneByQueryProps) {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
   let dubber = new DocumentDTO().dubber({ object: dubberService.dubber });
   let dubbedAnime: ITitle[] | undefined = undefined;
+  let parsedMembers: IUser[] | undefined = undefined;
 
   if (detailed) {
     dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
   }
 
-  if (fetchDubbedAnime) {
+  if (detailed && fetchDubbedAnime) {
     const cached = Cache.getDubbedAnime(dubberService.dubber.id);
 
     if (cached) {
@@ -48,7 +52,26 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime }: IDubberGetOn
 
       Cache.push<ICacheDubbedAnime>({
         dubberId: dubberService.dubber.id,
+        DEFINE_KEY: 'dubber:dubbed_anime',
         titles: dubbedAnime
+      });
+    }
+  }
+
+  if (detailed && parseMembers) {
+    const cached = Cache.getDubberMembers(dubberService.dubber.id);
+
+    if (cached) {
+      parsedMembers = cached;
+    } else {
+      const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(el => dto.user(el.toObject(), true));
+
+      parsedMembers = users;
+
+      Cache.push<ICacheParsedMembers>({
+        dubberId: dubberService.dubber.id,
+        members: users,
+        DEFINE_KEY: 'dubber:parsed_members'
       });
     }
   }
@@ -57,7 +80,8 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime }: IDubberGetOn
     status: 200,
     message: `ok${detailed ? ' + private details' : ''}`,
     dubber,
-    dubbedAnime
+    dubbedAnime,
+    parsedMembers
   };
 }
 
