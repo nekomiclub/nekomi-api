@@ -8,6 +8,7 @@ import { DevelopmentMode } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from './LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 import { NEKOMI_BOT } from '../interfaces/http/Bot';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
@@ -113,7 +114,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
     participants: users.map(el => el.telegramData!.id!),
     data: {
       title: dto.title(title.toObject()),
-      dubber: dto.dubber(dubber.toObject()),
+      dubber: new MongoDocumentDTO().dubber({ document: dubber }),
       episodeOrder,
     }
   };
@@ -164,7 +165,7 @@ async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubb
     event,
     participants: [user.telegramData!.id!],
     data: {
-      dubber: dto.dubber(dubber.toObject())
+      dubber: new MongoDocumentDTO().dubber({ document: dubber })
     }
   };
 

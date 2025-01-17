@@ -13,6 +13,7 @@ import { IDubber } from '~/core/interfaces/IDubber';
 import { ITitle } from '../interfaces/Title';
 import { IUser } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 import { checkValue } from '../handlers/handlers';
 import { config } from '../config';
 
@@ -50,7 +51,7 @@ export async function updateSearch(specify?: TSearchEngine) {
   }
 
   if (specify === undefined || specify === 'dubber') {
-    DubberSearch = new Fuse(dubbers.map(el => dto.dubber(el.toObject())), {
+    DubberSearch = new Fuse(dubbers.map(el => new MongoDocumentDTO().dubber({ document: el })), {
       keys: ['code', 'id', 'name'],
       includeScore: true
     });

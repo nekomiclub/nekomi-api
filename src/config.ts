@@ -11,9 +11,9 @@ import { getUTC, preserveIP } from './handlers/handler';
 
 
 
-export const DevelopmentMode = process.argv.includes('DevelopmentMode');
-export const ProductionMode = process.argv.includes('ProductionMode');
-export const TestMode = process.argv.includes('TestMode');
+export const DevelopmentMode = process.argv.includes('devMode');
+export const ProductionMode = process.argv.includes('prodMode');
+export const TestMode = process.argv.includes('testMode');
 
 
 const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;

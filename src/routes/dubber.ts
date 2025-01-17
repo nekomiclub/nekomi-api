@@ -1,6 +1,5 @@
 import * as DubberControllerOld from '../controllers/dubber';
-import * as RouteValidation from '../handlers/routeValidation';
-import DubberRoutes from '~/controllers/DubberController';
+import DubberRoutes from '~/controllers/Dubber/DubberRoutes';
 import express from 'express';
 
 
@@ -9,6 +8,7 @@ const DubberRouter = express.Router();
 
 
 //* Generic
+DubberRouter.get(`/search`, DubberRoutes.GetSearch);
 DubberRouter.get(`/:query`, DubberRoutes.GetOne);
 DubberRouter.put(`/avatar`, DubberRoutes.PutAvatar);
 DubberRouter.put(`/banner`, DubberRoutes.PutBanner);
@@ -28,11 +28,7 @@ DubberRouter.delete(`/member`, DubberRoutes.DeleteMemberById);
 
 
 //! DEPRECATED
-/** @deprecated use PATCH /dubber/member instead */
-DubberRouter.patch([`/settings/member/edit`], RouteValidation.dubberSettingsMemberEdit, DubberControllerOld.settingsMemberEdit);
-/** @deprecated use DELETE /dubber/member instead */
-DubberRouter.post([`/settings/member/exclude`], RouteValidation.dubberSettingsMemberExclude, DubberControllerOld.settingsMemberExclude);
-/** @deprecated use search?q=~all instead */
+/** @deprecated use dubber/search?q=~all instead */
 DubberRouter.get(`/all`, DubberControllerOld.getAll);
 
 

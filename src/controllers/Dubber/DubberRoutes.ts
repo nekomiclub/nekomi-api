@@ -1,10 +1,10 @@
-import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './controller';
+import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps, IGetSearch } from './DubberController';
 import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { config } from '~/config';
 import { parseObjectTypes } from '~/handlers/handler';
 
@@ -36,6 +36,25 @@ const getOne = HTTPEndpoint(async (req, res) => {
 
 const GetOne = [
   getOne,
+];
+
+
+
+//* ===================================== GET SEARCH
+const getSearch = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const { q } = parseObjectTypes<IGetSearch>(req.query);
+
+  const { message, status, results } = await DubberController.GetSearch({ q });
+
+  return res.status(status).json({ message, results });
+});
+
+const GetSearch = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  query(['q']).notEmpty().isString(),
+  getSearch,
 ];
 
 
@@ -246,6 +265,7 @@ const DeleteMemberById = [
 
 export default class DubberRoutes {
   static GetOne = GetOne;
+  static GetSearch = GetSearch;
   static PutAvatar = PutAvatar;
   static PutBanner = PutBanner;
 

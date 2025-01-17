@@ -18,6 +18,7 @@ import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStat
 import { IUserWatchProgress } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TRoleCapability } from '../interfaces/Roles';
 import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
@@ -136,7 +137,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
       title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
 
-      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => dto.dubber(dubber.toObject(), privateMode));
+      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => new MongoDocumentDTO().dubber({ document: dubber, details: !privateMode }));
     }
 
     // TODO add sync with hikka.io

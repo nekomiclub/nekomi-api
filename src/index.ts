@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
 import Router from './router';
+import Search from './services/SearchService';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
@@ -141,6 +142,7 @@ wss.on('listening', () => {
     `);
 
       await Promise.all(REPETATIVE_HANDLERS);
+      await Search.init();
 
       // Cache updating
       setInterval(async () => {

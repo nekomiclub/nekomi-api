@@ -1,4 +1,3 @@
-import { IDubber } from '~/core/interfaces/IDubber';
 import { ITitle } from '../interfaces/Title';
 import { IUser } from '../interfaces/User';
 
@@ -43,26 +42,6 @@ export function title(raw: IMongodbDocument, privateMode?: boolean): ITitle {
   hideKeys(excludeKeys, title);
 
   return title;
-}
-
-/** Dubber DTO. Raw must be passed as Model.toObject()
- * @param privateMode In private mode sensitive information will be hidden. Default - true
- */
-export function dubber(raw: IMongodbDocument, privateMode?: boolean): IDubber {
-  const { __v, _id, ...payload } = raw;
-  const dubber = payload as IDubber;
-
-  privateMode = privateMode === undefined ? true : privateMode;
-
-  const excludeKeys: (keyof IDubber)[] = privateMode ? [
-
-  ] : [];
-
-  const alwaysExcludedKeys: (keyof IDubber)[] = [];
-
-  hideKeys([...excludeKeys, ...alwaysExcludedKeys], user);
-
-  return dubber;
 }
 
 /** User DTO. Raw must be passed as Model.toObject()

@@ -1,6 +1,7 @@
 import * as dto from '~/handlers/dtos';
 import Cache from '~/services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
+import Search from '~/services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { DocumentDTO } from '~/core/services/DTO';
@@ -89,6 +90,35 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     dubber,
     dubbedAnime,
     parsedMembers
+  };
+}
+
+
+
+//* ===================================== GET SEARCH
+export interface IGetSearch {
+  /** Query ~all will return all dubbers */
+  q: string
+}
+
+async function GetSearch({ q }: IGetSearch) {
+  const limit = 15;
+
+  let dubberResults: IDubber[] = [];
+
+  if (q === '~all') {
+    // Get all
+    dubberResults = (await new DubberService().getAll()).slice(0, limit);
+  } else {
+    dubberResults = Search.search({ query: q, engine: 'dubber', limit });
+  }
+
+  const results = dubberResults.map(el => new DocumentDTO().dubber({ object: el, details: false }));
+
+  return {
+    status: 200,
+    message: 'ok',
+    results
   };
 }
 
@@ -356,6 +386,7 @@ function ensureAccess({ role, user, member }: { role: TDubberMemberRole, user: I
 
 export default class DubberController {
   static GetOneByQuery = GetOneByQuery;
+  static GetSearch = GetSearch;
   static PutAvatar = PutAvatar;
   static PutBanner = PutBanner;
 
