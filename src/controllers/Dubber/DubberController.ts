@@ -96,12 +96,16 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
 
 //* ===================================== GET SEARCH
-export interface IGetSearch {
+export interface IDubberGetSearch {
   /** Query ~all will return all dubbers */
   q: string
 }
 
-async function GetSearch({ q }: IGetSearch) {
+export interface IDubberGetSearchResult {
+  dubber: IDubber
+}
+
+async function GetSearch({ q }: IDubberGetSearch) {
   const limit = 15;
 
   let dubberResults: IDubber[] = [];
@@ -113,7 +117,13 @@ async function GetSearch({ q }: IGetSearch) {
     dubberResults = Search.search({ query: q, engine: 'dubber', limit });
   }
 
-  const results = dubberResults.map(el => new DocumentDTO().dubber({ object: el, details: false }));
+  const results: IDubberGetSearchResult[] = [];
+
+  dubberResults.forEach(dubber => {
+    results.push({
+      dubber: new DocumentDTO().dubber({ object: dubber, details: false })
+    });
+  });
 
   return {
     status: 200,

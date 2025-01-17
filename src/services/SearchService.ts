@@ -8,6 +8,7 @@ import { IDubber } from '~/core/interfaces/IDubber';
 import { ITitle } from '~/interfaces/Title';
 import { IUser } from '~/interfaces/User';
 import { Logger } from './LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 
 
 
@@ -43,7 +44,7 @@ class SearchService {
   /** Update search engine */
   async update(type: TSearchEngine) {
     if (type === 'user') {
-      const list = (await UserModel.find()).map(el => dto.user(el.toObject(), false));
+      const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
 
       const keys: (keyof IUser)[] = [
         'id',
@@ -71,7 +72,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
+      const list = (await TitleModel.find()).map(el => dto.title(el.toObject()));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
