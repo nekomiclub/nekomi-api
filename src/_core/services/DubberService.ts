@@ -2,12 +2,13 @@ import DubberModel from '../models/DubberModel';
 import ServiceControls from '../interfaces/ServiceControls';
 import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
-import { E400, E404, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../services/ErrorService';
+import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IDubber, TDubberMemberRole } from '../interfaces/IDubber';
 import { INotifyDubberInvite } from '../../interfaces/services/Notify';
 import { Logger } from '../../services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
+import { NekomiUploadsApi } from './Api/NekomiUploads';
 import { Notify } from '../../services/NotifyService';
 import { TestMode, config } from '../../config';
 import { createSlug, createStringID, createUUID, getUTC, trimString } from '../../handlers/handler';
@@ -56,6 +57,11 @@ interface IMemberEdit {
   id: string
 
   role?: TDubberMemberRole
+}
+
+interface IChangeAvatarBanner {
+  file: Express.Multer.File
+  userId: string
 }
 
 type TDubberModelControls = ServiceControls<IDubberCreateProps, IDubber>
@@ -259,7 +265,7 @@ export class DubberService extends DubberModelControls {
 
     if (description?.length) {
       description = trimString(description);
-      if (!validator.isLength(description, { max: config.VALIDATION.PatchTitle.maxDescriptionLength })) ERR_DESCRIPTION_LENGTH_INVALUD;
+      if (!validator.isLength(description, { max: config.VALIDATION.PatchTitle.maxDetailsLength })) ERR_DESCRIPTION_LENGTH_INVALUD;
 
       this.stack.push(`description: ${this.document.description?.length} symbols > ${description.length} symbols`);
     } else {
@@ -276,6 +282,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
+    if (value?.length ?? 0 > 256) throw new E400(`This link is too large (above 256 chars)`);
 
     try {
       if (value !== null) {
@@ -300,8 +307,10 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
+    if (value?.length ?? 0 > 256) throw new E400(`This link is too large (above 256 chars)`);
 
     try {
+
       if (value !== null) {
         const { host } = new URL(value);
 
@@ -552,12 +561,56 @@ export class DubberService extends DubberModelControls {
 
 
 
-  async changeAvatar() {
+  /** Change dubber avatar. Will save the document */
+  async changeAvatar({ file, userId }: IChangeAvatarBanner) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+    if (file.size > config.VALIDATION.User.MaximumAvatarSize) throw ERR_FILE_TOO_LARGE;
+
+    const prevAvatarId = NekomiUploadsApi.getUploadIdFromURL(this.document.avatar);
+
+    const { id, url } = await NekomiUploadsApi.postUpload({ file, type: 'photo/user/avatar', uploadedById: userId });
+
+    this.document.avatar = url;
+    this.document.markModified('avatar');
+
+    this.document.save();
+
+    Logger.debug(`[DubberService]: New avatar has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
+
+    // Delete old avatar if it is not default
+    if (this.document.avatar !== config.vars.defaultAvatar) {
+      await NekomiUploadsApi.deleteUpload({ id: prevAvatarId, deletedById: userId });
+
+      Logger.debug(`[DubberService]: Old avatar deleted due to it's change. [uploadId: ${prevAvatarId}; dubberId: ${this.document.id}]`);
+    }
+
+    return { url };
   }
 
-  async changeBanner() {
+  /** Change dubber banner. Will save the document */
+  async changeBanner({ file, userId }: IChangeAvatarBanner) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+    if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
+
+    const prevBannerId = NekomiUploadsApi.getUploadIdFromURL(this.document.avatar);
+
+    const { id, url } = await NekomiUploadsApi.postUpload({ file, type: 'photo/user/banner', uploadedById: userId });
+
+    this.document.banner = url;
+    this.document.markModified('banner');
+
+    this.document.save();
+
+    Logger.debug(`[DubberService]: New banner has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
+
+    // Delete old banner if it is not default
+    if (this.document.banner !== config.vars.defaultBanner) {
+      await NekomiUploadsApi.deleteUpload({ id: prevBannerId, deletedById: userId });
+
+      Logger.debug(`[DubberService]: Old banner deleted due to it's change. [uploadId: ${prevBannerId}; dubberId: ${this.document.id}]`);
+    }
+
+    return { url };
   }
 }
 

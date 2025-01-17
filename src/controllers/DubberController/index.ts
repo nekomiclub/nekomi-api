@@ -1,20 +1,25 @@
-import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps } from './controller';
+import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './controller';
+import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { body, param } from 'express-validator';
 import { config } from '~/config';
+import { parseObjectTypes } from '~/handlers/handler';
+
+
+
+/** Proxy file uploading */
+const upload = multer();
 
 
 
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
-  const { query } = req.params as Partial<IDubberGetOneByQueryProps>;
-  let { detailed, fetchDubbedAnime, parseMembers } = req.query as Partial<IDubberGetOneByQueryProps>;
+  const { query } = parseObjectTypes<IDubberGetOneByQueryProps>(req.params);
+  let { detailed, fetchDubbedAnime, parseMembers, useCache } = parseObjectTypes<IDubberGetOneByQueryProps>(req.query);
   const CSRFToken = req.header(config.vars.csrfHeader);
-
-  if (typeof query !== 'string') throw new ERR_TYPE_INVALID();
 
   // Ensure that only client get detailed document
   if (detailed !== undefined && CSRFToken !== undefined) {
@@ -24,13 +29,65 @@ const getOne = HTTPEndpoint(async (req, res) => {
     detailed = true;
   }
 
-  const { dubber, message, status, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers });
+  const { dubber, message, status, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache });
 
   return res.status(status).json({ message, dubber, dubbedAnime, parsedMembers });
 });
 
 const GetOne = [
   getOne,
+];
+
+
+
+//* ===================================== PUT AVATAR
+const putAvatar = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not provided`);
+
+  const { dubberId } = req.body as IDubberPutAvatarProps;
+  const currentUser = req.nekomi.user!;
+
+  const { message, status, url } = await DubberController.PutAvatar({ file, dubberId, currentUser });
+
+  return res.status(status).json({ message, url });
+});
+
+const PutAvatar = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['dubberEditProfile']),
+  upload.single('file'),
+  body(['dubberId']).notEmpty().isString(),
+  putAvatar,
+];
+
+
+
+//* ===================================== PUT BANNER
+const putBanner = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not provided`);
+
+  const { dubberId } = req.body as IDubberPutBannerProps;
+  const currentUser = req.nekomi.user!;
+
+  const { message, status, url } = await DubberController.PutBanner({ file, dubberId, currentUser });
+
+  return res.status(status).json({ message, url });
+});
+
+const PutBanner = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['dubberEditProfile']),
+  upload.single('file'),
+  body(['dubberId']).notEmpty().isString(),
+  putBanner,
 ];
 
 
@@ -189,6 +246,8 @@ const DeleteMemberById = [
 
 export default class DubberRoutes {
   static GetOne = GetOne;
+  static PutAvatar = PutAvatar;
+  static PutBanner = PutBanner;
 
   static PatchSettings = PatchSettings;
 

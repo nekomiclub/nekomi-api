@@ -126,6 +126,14 @@ const VALIDATION = {
   },
   WatchTogether: {
     textMessageLength: 256
+  },
+
+
+  User: {
+    /** In bytes */
+    MaximumAvatarSize: 1048576,
+    /** In bytes */
+    MaximumBannerSize: 2097152,
   }
 };
 

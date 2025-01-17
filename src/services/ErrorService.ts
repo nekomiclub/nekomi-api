@@ -207,4 +207,5 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
   }
 }
 
-export const ERR_NO_DOCUMENT = new E500(`NO DOCUMENT PASSED INTO CONSTRUCTOR`, ':no_document');
+export const ERR_NO_DOCUMENT = new E500(`NO DOCUMENT PASSED INTO CONSTRUCTOR`, 'generic:no_document');
+export const ERR_FILE_TOO_LARGE = new E400(`Uploaded file size is too large`, 'generic:file_too_large');

@@ -6,7 +6,7 @@ import UserModel from '~/Models/User';
 import { DocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { ICacheDubbedAnime, ICacheParsedMembers } from '~/interfaces/services/Cache';
-import { IDubber, TDubberMemberRole } from '~/interfaces/Dubber';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/interfaces/Dubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/Title';
 import { IUser } from '~/interfaces/User';
@@ -19,11 +19,18 @@ export interface IDubberGetOneByQueryProps {
   detailed?: boolean
   fetchDubbedAnime?: boolean
   parseMembers?: boolean
+
+  /** Use cache
+   * @default true
+   */
+  useCache?: boolean
 }
 
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers }: IDubberGetOneByQueryProps) {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
+
+  useCache = useCache ?? true;
 
   let dubber = new DocumentDTO().dubber({ object: dubberService.dubber });
   let dubbedAnime: ITitle[] | undefined = undefined;
@@ -36,7 +43,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers }
   if (detailed && fetchDubbedAnime) {
     const cached = Cache.getDubbedAnime(dubberService.dubber.id);
 
-    if (cached) {
+    if (cached && useCache) {
       dubbedAnime = cached;
     } else {
       const titles = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
@@ -61,7 +68,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers }
   if (detailed && parseMembers) {
     const cached = Cache.getDubberMembers(dubberService.dubber.id);
 
-    if (cached) {
+    if (cached && useCache) {
       parsedMembers = cached;
     } else {
       const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(el => dto.user(el.toObject(), true));
@@ -87,6 +94,58 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers }
 
 
 
+//* ===================================== PUT AVATAR
+export interface IDubberPutAvatarProps {
+  file: Express.Multer.File
+  dubberId: string
+  currentUser: IEXPRESS_REQ_NEKOMI_USER
+}
+
+async function PutAvatar({ currentUser, dubberId, file }: IDubberPutAvatarProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  //* Ensure access
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
+
+  const { url } = await dubberService.changeAvatar({ file, userId: currentUser.id });
+
+  return {
+    status: 201,
+    message: 'Dubber avatar uploaded',
+    url
+  };
+}
+
+
+
+//* ===================================== PUT BANNER
+export interface IDubberPutBannerProps {
+  file: Express.Multer.File
+  dubberId: string
+  currentUser: IEXPRESS_REQ_NEKOMI_USER
+}
+
+async function PutBanner({ currentUser, dubberId, file }: IDubberPutBannerProps) {
+  const dubberService = new DubberService();
+  await dubberService.init(dubberId);
+
+  //* Ensure access
+  const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
+
+  const { url } = await dubberService.changeBanner({ file, userId: currentUser.id });
+
+  return {
+    status: 201,
+    message: 'Dubber banner uploaded',
+    url
+  };
+}
+
+
+
 //* ===================================== PATCH SETTINGS
 export interface IDubberPatchSettingsProps {
   dubberId: string
@@ -106,14 +165,7 @@ async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLi
 
   //* Ensure access
   const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
-
-  // Pass root or admin
-  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
-    // Only team member can edit settings
-    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not edit settings of the team what you don't belong to`);
-    // Only leader can edit settings
-    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can edit settings`);
-  }
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
 
 
 
@@ -186,14 +238,7 @@ async function PostInviteSend({ dubberId, userId, currentUser }: IDubberPostInvi
   //* Ensure access
   if (!currentUser) throw new E500(`Current user is not specified`);
   const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
-
-  // Pass root or admin
-  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
-    // Only team member can invite
-    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not invite members in the team what you don't belong to`);
-    // Only leader can invite
-    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can send the invitation`);
-  }
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
 
 
 
@@ -254,14 +299,7 @@ async function PatchMemberById({ dubberId, userId, role, currentUser }: IDubberP
 
   //* Ensure access
   const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
-
-  // Pass root or admin
-  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
-    // Only team member can edit members
-    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not edit members of the team what you don't belong to`);
-    // Only leader can edit members
-    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can edit members`);
-  }
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
 
 
 
@@ -290,14 +328,7 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
   //* Ensure access
   const currentMember = dubberService.dubber.members.find(el => el.id === currentUser.id);
-
-  // Pass root or admin
-  if (!currentUser.capabilities.includes('root') && !currentUser.capabilities.includes('admin')) {
-    // Only team member can kick members
-    if (!currentMember) throw new ERR_ACCESS_REJECTED(`Can not delete members of the team what you don't belong to`);
-    // Only leader can kick members
-    if (currentMember.role !== 'leader') throw new ERR_ACCESS_REJECTED(`Only team leader can kick members`);
-  }
+  ensureAccess({ role: 'leader', user: currentUser, member: currentMember });
 
 
 
@@ -311,8 +342,22 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
 
 
+function ensureAccess({ role, user, member }: { role: TDubberMemberRole, user: IEXPRESS_REQ_NEKOMI_USER, member?: IDubberMember }) {
+  // Pass root or admin
+  if (!user.capabilities.includes('root') && !user.capabilities.includes('admin')) {
+    // Only team member can edit settings
+    if (!member) throw new ERR_ACCESS_REJECTED(`Can not edit settings of the team what you don't belong to`);
+    // Only leader can edit settings
+    if (member.role !== role) throw new ERR_ACCESS_REJECTED();
+  }
+}
+
+
+
 export default class DubberController {
   static GetOneByQuery = GetOneByQuery;
+  static PutAvatar = PutAvatar;
+  static PutBanner = PutBanner;
 
   static PatchSettings = PatchSettings;
 

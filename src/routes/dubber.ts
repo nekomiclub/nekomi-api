@@ -10,6 +10,8 @@ const DubberRouter = express.Router();
 
 //* Generic
 DubberRouter.get(`/:query`, DubberRoutes.GetOne);
+DubberRouter.put(`/avatar`, DubberRoutes.PutAvatar);
+DubberRouter.put(`/banner`, DubberRoutes.PutBanner);
 
 //* Settings
 DubberRouter.patch('/settings', DubberRoutes.PatchSettings);

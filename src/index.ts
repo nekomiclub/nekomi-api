@@ -130,7 +130,7 @@ wss.on('listening', () => {
     try {
       console.log(`
   ----------------------------
-  NEKOMI-CORE STARTED UP
+  NEKOMI-API STARTED UP
 
   Date: ${config.startedAt} UTC-0
   Commit: ${config.commit}

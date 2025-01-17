@@ -45,7 +45,7 @@ class CacheService {
   }
 
   push<T>(el: T) {
-    if (DevelopmentMode) Logger.debug(`[CacheService (DEV)]: Pushed new record to cache`);
+    if (DevelopmentMode) return Logger.debug(`[CacheService (DEV)]: Cache push passed due to development mode`);
 
     this.Cached.push({
       id: createUUID(),
