@@ -34,7 +34,7 @@ describe('DubberService', () => {
 
 
   const dubberService = new DubberService({
-    testMode: true
+    TestMode: true
   });
 
   beforeAll(async () => {
@@ -154,7 +154,7 @@ describe('DubberService', () => {
 
   describe('Patching', () => {
     const patchService = new DubberService({
-      testMode: true
+      TestMode: true
     });
 
     beforeAll(async () => {
@@ -257,7 +257,7 @@ describe('DubberService', () => {
 
   describe('Members', () => {
     const dubberService = new DubberService({
-      testMode: true
+      TestMode: true
     });
 
     beforeAll(async () => {

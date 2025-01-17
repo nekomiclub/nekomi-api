@@ -2,13 +2,13 @@ import * as dto from '../handlers/dtos';
 import Dubber from '../Models/Dubber';
 import Title from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '../handlers/http';
+import { $http } from './HTTPService';
 import { AxiosError } from 'axios';
+import { DevelopmentMode } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
 import { Logger } from './LoggerService';
 import { NEKOMI_BOT } from '../interfaces/http/Bot';
-import { devMode } from '../config';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -44,7 +44,7 @@ export class NotifyService {
         Logger.error(`[Notify/HTTP]: An error occured while processing ${event}: ${e.code} - ${e.message}`);
       } else if (e instanceof AxiosError) {
         Logger.error(`[Notify/Axios]: An error occured while processing ${event}: ${e.code}`, e);
-        if (devMode) console.error(e.response?.data);
+        if (DevelopmentMode) console.error(e.response?.data);
       } else {
         Logger.error(`[Notify]: An uncaught error occured while processing ${event}`, e);
       }

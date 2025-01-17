@@ -6,7 +6,7 @@ import UserModel from '~/Models/User';
 import { DocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { ICacheDubbedAnime, ICacheParsedMembers } from '~/interfaces/services/Cache';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/interfaces/Dubber';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/IDubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/Title';
 import { IUser } from '~/interfaces/User';

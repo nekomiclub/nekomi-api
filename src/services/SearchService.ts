@@ -4,7 +4,7 @@ import Fuse from 'fuse.js';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/interfaces/Dubber';
+import { IDubber } from '~/core/interfaces/IDubber';
 import { ITitle } from '~/interfaces/Title';
 import { IUser } from '~/interfaces/User';
 import { Logger } from './LoggerService';

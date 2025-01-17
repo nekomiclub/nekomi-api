@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
 import { MiddlewareService } from './services/MiddlewareService';
 import { TRoleCapability } from './interfaces/Roles';
-import { config, testMode } from './config';
+import { TestMode, config } from './config';
 import { getMockData } from './handlers/mocks';
 
 
@@ -25,7 +25,7 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
       req.nekomi.middlewaresPassed.push('checkAccess');
 
       try {
-        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, testMode ? getMockData(req, 'FkUsapiAuthRefresh').data : undefined);
+        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, TestMode ? getMockData(req, 'FkUsapiAuthRefresh').data : undefined);
 
         req.nekomi.user = req.nekomi.user || {
           id: 'NULL',
@@ -63,7 +63,7 @@ export function CheckCSRF(origins?: string[]) {
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
-      const origin = await Middleware.checkCSRF(token, origins, testMode ? getMockData(req, 'FkAuthorityVerify').data : undefined);
+      const origin = await Middleware.checkCSRF(token, origins, TestMode ? getMockData(req, 'FkAuthorityVerify').data : undefined);
 
       return next();
     }, true);

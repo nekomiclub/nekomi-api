@@ -24,7 +24,7 @@ interface IDubberCreateProps {
 }
 
 interface IDubberCRUDProps {
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 interface IChangeName {
@@ -86,7 +86,7 @@ class DubberModelControls implements TDubberModelControls {
   readonly TestMode: boolean;
 
   constructor(props?: IDubberCRUDProps) {
-    this.TestMode = props?.testMode ?? TestMode;
+    this.TestMode = props?.TestMode ?? TestMode;
   }
 
 

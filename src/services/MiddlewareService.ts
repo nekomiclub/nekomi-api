@@ -1,7 +1,7 @@
 import * as cfg from '../config';
 
 import User from '../Models/User';
-import { $http } from '../handlers/http';
+import { $http } from './HTTPService';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
 import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
@@ -12,20 +12,20 @@ import { TRoleCapability } from '../interfaces/Roles';
 import { parseRoles } from '../Models/Role';
 
 interface Props {
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
 export class MiddlewareService {
-  private testMode = cfg.testMode;
+  private TestMode = cfg.TestMode;
 
   constructor(props?: Props) {
     if (props) {
-      const { testMode } = props;
+      const { TestMode } = props;
 
-      this.testMode = testMode !== undefined ? testMode : cfg.testMode;
+      this.TestMode = TestMode !== undefined ? TestMode : cfg.TestMode;
     }
   }
 
@@ -47,7 +47,7 @@ export class MiddlewareService {
       capabilities: []
     };
 
-    if (!this.testMode) {
+    if (!this.TestMode) {
       const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
         headers: {
           Cookie: `session=${token}`
@@ -74,7 +74,7 @@ export class MiddlewareService {
     //* Pass if no capabilities required
     if (!capabilities.length) return { user, capabilities: [] };
 
-    const caps = this.testMode ? DATA.capabilities : await parseRoles(user.roles);
+    const caps = this.TestMode ? DATA.capabilities : await parseRoles(user.roles);
 
     //* Pass if user is root
     if (caps.includes('root')) return { user, capabilities: caps };
@@ -101,7 +101,7 @@ export class MiddlewareService {
       verified: false
     };
 
-    if (!this.testMode) {
+    if (!this.TestMode) {
       const response = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
         token
       });

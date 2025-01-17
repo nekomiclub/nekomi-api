@@ -5,7 +5,7 @@ import { INTERNALS, config } from '../../config';
 import { MiddlewareService } from '../../services/MiddlewareService';
 
 describe('Middleware Service', () => {
-  const instance = new MiddlewareService({ testMode: true });
+  const instance = new MiddlewareService({ TestMode: true });
 
   beforeAll(() => {
     const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;

@@ -121,7 +121,7 @@
   "include": [
     "**/*.*",
     "src/index.ts"
-  ],
+, ".conf/.puppeteerrc.cjs"  ],
   "exclude": [
     "node_modules",
     "dist/**/*"

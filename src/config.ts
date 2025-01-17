@@ -10,17 +10,10 @@ import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
 import { getUTC, preserveIP } from './handlers/handler';
 
 
-/** @deprecated use DevelopmentMode instead */
-export const devMode = process.argv.includes('devMode');
-/** @deprecated use ProductionMode instead */
-export const prodMode = process.argv.includes('prodMode');
-/** @deprecated use TestMode instead */
-export const testMode = process.argv.includes('testMode');
 
-
-export const ProductionMode = prodMode;
-export const DevelopmentMode = devMode;
-export const TestMode = testMode;
+export const DevelopmentMode = process.argv.includes('DevelopmentMode');
+export const ProductionMode = process.argv.includes('ProductionMode');
+export const TestMode = process.argv.includes('TestMode');
 
 
 const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;

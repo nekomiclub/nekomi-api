@@ -4,13 +4,13 @@ import { convert as urlSlugConvert } from 'url-slug';
 import * as cfg from '../config';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
-import { $http, $upload } from '../handlers/http';
+import { $http, $upload } from '~/services/HTTPService';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
 import { AxiosError } from 'axios';
 import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
 import { IA_UploadsUpload, NEKOMI_UPLOADS, TEpisodeQuality } from '../interfaces/http/Uploads';
 import { IChangeEpMeta } from '../controllers/title';
-import { IDubber } from '../interfaces/Dubber';
+import { IDubber } from '~/core/interfaces/IDubber';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/services/Notify';
 import { IUser } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
@@ -23,7 +23,7 @@ import { parseRoles } from './Role';
 
 interface ITitleServiceProps {
   title: HydratedDocument<ITitle>
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 interface ITitleCreate {
@@ -125,16 +125,16 @@ export const TitleModel = mongoose.model<ITitle>('title', new Schema({
 export class TitleService {
   readonly title: HydratedDocument<ITitle>;
   readonly stack: string[] = [];
-  readonly testMode = cfg.testMode;
+  readonly TestMode = cfg.TestMode;
 
-  constructor({ title, testMode }: ITitleServiceProps) {
+  constructor({ title, TestMode }: ITitleServiceProps) {
     this.title = title;
 
-    if (testMode) this.testMode = testMode;
+    if (TestMode) this.TestMode = TestMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, testMode?: boolean): Promise<HydratedDocument<ITitle>> {
-    const ID = testMode ? id ?? createID() : createID();
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
+    const ID = TestMode ? id ?? createID() : createID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
       separator: '-'
@@ -518,7 +518,7 @@ export class TitleService {
 
     // End function if in test mode
     // TODO: Make integration test covering it 
-    if (this.testMode) return;
+    if (this.TestMode) return;
 
     const href = `${url.origin}${url.pathname}`;
     const results: ITitleEpisodeMeta[] = [];
@@ -640,7 +640,7 @@ export class TitleService {
       };
 
       // Upload
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const { data } = await $upload.post<{ id: string, frames: number }>(`${config.URL.nekomi_uploads}/upload`, formData);
 
         UPLOAD_DATA.id = data.id;
@@ -677,7 +677,7 @@ export class TitleService {
 
       await this.save();
 
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const notifyNewEpisodePayload: INotifyNewEpisode = {
           dubberID: dubber.id,
           episodeOrder,
@@ -732,7 +732,7 @@ export class TitleService {
 
 
     try {
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const uploadID = `${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`;
 
         await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
@@ -786,7 +786,7 @@ export class TitleService {
       };
 
       // Upload poster
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
         UPLOAD_DATA.id = postData.id;
       } else {
@@ -800,7 +800,7 @@ export class TitleService {
         if (this.title.poster.match(cfg.config.DOMAIN.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
-          if (!this.testMode) {
+          if (!this.TestMode) {
             await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
               params: {
                 by: user.id

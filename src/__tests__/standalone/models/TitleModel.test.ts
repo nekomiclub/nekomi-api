@@ -50,7 +50,7 @@ describe('Title Model', () => {
       nameUkr: 'test dubber 1',
     });
 
-    Title = new TitleService({ title, testMode: true });
+    Title = new TitleService({ title, TestMode: true });
   });
 
   afterAll(async () => {

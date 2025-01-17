@@ -5,9 +5,9 @@ import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';
+import { DevelopmentMode } from '../config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
-import { devMode } from '../config';
 
 export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
@@ -118,7 +118,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       if (e.status >= 500) {
         Logger.error(emsg);
       } else {
-        if (devMode) console.log(chalk.red(emsg));
+        if (DevelopmentMode) console.log(chalk.red(emsg));
       }
 
       return res.status(e.status).json({ ...e, date });
@@ -140,7 +140,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
         } else {
-          if (devMode) console.log(chalk.red(emsg));
+          if (DevelopmentMode) console.log(chalk.red(emsg));
         }
       }
 

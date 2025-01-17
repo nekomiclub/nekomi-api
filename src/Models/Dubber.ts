@@ -5,11 +5,11 @@ import { convert as createSlug } from 'url-slug';
 import NewDubberModel from '../_core/models/DubberModel';
 import UserModel, { UserService } from './User';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
-import { IDubber, TDubberMemberRole } from '../interfaces/Dubber';
+import { IDubber, TDubberMemberRole } from '~/core/interfaces/IDubber';
 import { INotifyDubberInvite } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
 import { Notify } from '../services/NotifyService';
-import { config, prodMode } from '../config';
+import { ProductionMode, config } from '../config';
 import { createID, getUTC } from '../handlers/handler';
 
 
@@ -78,7 +78,7 @@ export class DubberService {
 
   /** Crete new Dubber instance */
   static async create({ nameUkr, nameEng, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
-    id = prodMode ? createID() : id ?? createID();
+    id = ProductionMode ? createID() : id ?? createID();
     const slug = createSlug(nameEng);
 
     if (!validator.isLength(nameUkr, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is not valid`);

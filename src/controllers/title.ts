@@ -6,12 +6,12 @@ import Cache from '~/services/CacheService';
 import Dubber from '../Models/Dubber';
 import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '../handlers/http';
+import { $http } from '~/services/HTTPService';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
 import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
 import { ICacheHomeWrapped } from '~/interfaces/services/Cache';
-import { IDubber } from '../interfaces/Dubber';
+import { IDubber } from '~/core/interfaces/IDubber';
 import { IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../interfaces/Title';
@@ -19,7 +19,7 @@ import { IUserWatchProgress } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { TRoleCapability } from '../interfaces/Roles';
-import { config, testMode } from '../config';
+import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
 import { singCSRFToken } from '../services/TokenService';
 import { updateSearch } from './root';
@@ -110,7 +110,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
         verified: false
       };
 
-      if (!testMode) {
+      if (!TestMode) {
         const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
           token: CSRFToken
         });
@@ -377,7 +377,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       verified: false
     };
 
-    if (!testMode) {
+    if (!TestMode) {
       const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
         token: key
       });
@@ -461,7 +461,7 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
 
     // Parse user
     if (sessionToken) {
-      if (!testMode) {
+      if (!TestMode) {
         const middleware = new MiddlewareService();
 
         try {

@@ -5,7 +5,7 @@ import DubberModel from './Dubber';
 import Role from './Role';
 import Title, { TitleModel } from './Title';
 import validator from 'validator';
-import { $http } from '../handlers/http';
+import { $http } from '~/services/HTTPService';
 import { AxiosError } from 'axios';
 import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
 import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
@@ -19,7 +19,7 @@ import { createID, createStringID, getUTC } from '../handlers/handler';
 
 interface IUserServiceProps {
   user: HydratedDocument<IUser>
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 interface IUserCreate {
@@ -82,9 +82,9 @@ export class UserService {
   readonly stack: string[] = [];
   readonly TestMode: boolean = false;
 
-  constructor({ user, testMode }: IUserServiceProps) {
+  constructor({ user, TestMode }: IUserServiceProps) {
     this.user = user;
-    this.TestMode = Boolean(testMode);
+    this.TestMode = Boolean(TestMode);
   }
 
 

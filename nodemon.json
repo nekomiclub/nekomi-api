@@ -2,10 +2,9 @@
   "watch": [
     "./"
   ],
-  "ext": ".ts,.js",
+  "ext": ".ts",
   "ignore": [
     "node_modules",
-    "src/tests",
     "dist",
     "src/__tests__"
   ],

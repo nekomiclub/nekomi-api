@@ -11,6 +11,6 @@ Any production runs will be rejected if IP does not match config ```vars.prodIP`
 - [Services](./docs/services.md)
 
 ## Dependencies
-- nekomi-uploads (PATCH /title)
+- nekomi-uploads
 - fk-usapi
 - fk-authority

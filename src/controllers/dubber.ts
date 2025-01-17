@@ -3,7 +3,7 @@ import Dubber, { DubberModel, DubberService } from '../Models/Dubber';
 import UserModel from '../Models/User';
 import express from 'express';
 import { E404, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '../services/ErrorService';
-import { TDubberMemberRole } from '../interfaces/Dubber';
+import { TDubberMemberRole } from '~/core/interfaces/IDubber';
 
 
 

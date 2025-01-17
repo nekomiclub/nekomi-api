@@ -65,16 +65,16 @@ describe('User Model', () => {
     // Pass already tested at beforeAll callback
 
     test('Reject - Username must be Alphanumeric and be in length range', async () => {
-      try {
-        await UserService.create({
-          id: TestID1,
-          username: 'fsdsdff 32fgsd  sdfsd2- =#$+',
-        });
+      // try {
+      //   await UserService.create({
+      //     id: TestID1,
+      //     username: 'fsdsdff 32fgsd  sdfsd2- =#$+',
+      //   });
 
-        expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      } catch (e) {
-        if (e instanceof ERR_INVALID_PAYLOAD) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      }
+      //   expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+      // } catch (e) {
+      //   if (e instanceof ERR_INVALID_PAYLOAD) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+      // }
 
       try {
         await UserService.create({

@@ -9,14 +9,6 @@ import { singCSRFToken } from '../services/TokenService';
 
 
 
-interface IHTTPResponsePayload {
-  status: number
-  code: string
-  message?: string | null
-  data: object
-}
-
-
 /** Express endpoint that accept callback as a prop */
 export const HTTPEndpoint = (callback: (req: express.Request, res: express.Response) => Promise<any>) => {
   return async (req: express.Request, res: express.Response) => await HandleRequest(req, res, callback);
