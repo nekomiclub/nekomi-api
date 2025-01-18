@@ -2,19 +2,20 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import * as cfg from '../config';
+import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
-import { $http, $upload } from '~/Services/HTTPService';
+import { $upload } from '~/Services/HTTPService';
 import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../Interfaces/Title';
 import { AxiosError } from 'axios';
 import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../Services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS, TEpisodeQuality } from '../Interfaces/http/Uploads';
 import { IChangeEpMeta } from '../Controllers/title';
 import { IDubber } from '~/core/Interfaces/IDubber';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../Interfaces/services/Notify';
 import { IUser } from '../Interfaces/User';
 import { Logger } from '../Services/LoggerService';
 import { Notify } from '../Services/NotifyService';
+import { TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '../config';
 import { createUUID, getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
@@ -735,12 +736,7 @@ export class TitleService {
       if (!this.TestMode) {
         const uploadID = `${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`;
 
-        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-          params: {
-            withChildren: true,
-            by: user.id
-          }
-        });
+        await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById: user.id, withChildren: true });
       }
 
       Logger.debug(`[TitleService]: Episode ${order}/${dubber.id} in ${this.title.id} deleted by ${user.id}`);
@@ -767,18 +763,9 @@ export class TitleService {
    * Will check titleEdit capability
    */
   async uploadPoster({ file, user }: IUploadPoster, mockData?: IM_TitleServiceUploadPoster): Promise<{ id: string, posterURL: string }> {
-    const { buffer, originalname, filename, mimetype } = file;
-
     const caps = await parseRoles(user.roles);
-    const formData = new FormData();
 
     if (!caps.includes('root') && !caps.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
-
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', user.id);
-    formData.set('type', 'photo/title/poster');
 
     try {
       const UPLOAD_DATA: IM_TitleServiceUploadPoster = {
@@ -787,7 +774,7 @@ export class TitleService {
 
       // Upload poster
       if (!this.TestMode) {
-        const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
+        const postData = await NekomiUploadsAPI.postUpload({ file, type: 'photo/title/poster', uploadedById: user.id });
         UPLOAD_DATA.id = postData.id;
       } else {
         if (!mockData) throw new E500(`Mock data is not provided`);
@@ -801,11 +788,7 @@ export class TitleService {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.TestMode) {
-            await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-              params: {
-                by: user.id
-              }
-            });
+            await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById: user.id });
           }
         }
       } catch (e) {

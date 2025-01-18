@@ -1,18 +1,20 @@
 import { $upload } from '~/Services/HTTPService';
 import { AxiosError } from 'axios';
 import { Logger } from '~/Services/LoggerService';
-import { TUploadType } from '~/core/Interfaces/API/NekomiUploads';
+import { TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '~/config';
 
 interface IPostUploadProps {
   file: Express.Multer.File
   uploadedById: string
   type: TUploadType
+  qualities?: TEpisodeQuality[]
 }
 
 interface IDeleteUploadProps {
   id: string
   deletedById: string
+  withChildren?: boolean
 }
 
 
@@ -20,12 +22,12 @@ interface IDeleteUploadProps {
 const baseURL = config.URL.nekomi_uploads;
 
 /** @version 1.3.2 */
-export class NekomiUploadsApi {
+export class NekomiUploadsAPI {
   static getUploadIdFromURL(url: string): string {
     return new URL(url).pathname.replace('/', '');
   }
 
-  static async postUpload({ file, uploadedById, type }: IPostUploadProps) {
+  static async postUpload({ file, uploadedById, type, qualities }: IPostUploadProps) {
     const { buffer, originalname, mimetype } = file;
 
     const formData = new FormData();
@@ -35,6 +37,8 @@ export class NekomiUploadsApi {
     }), originalname);
     formData.set('uploadedBy', uploadedById);
     formData.set('type', type);
+
+    if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
     const { data } = await $upload.post<{
       id: string
@@ -50,11 +54,12 @@ export class NekomiUploadsApi {
     return data;
   }
 
-  static async deleteUpload({ id, deletedById }: IDeleteUploadProps) {
+  static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
     try {
       await $upload.delete(`${baseURL}/upload/${id}`, {
         params: {
-          by: deletedById
+          by: deletedById,
+          withChildren
         }
       });
 
@@ -67,3 +72,7 @@ export class NekomiUploadsApi {
     }
   }
 }
+
+
+
+export default NekomiUploadsAPI;

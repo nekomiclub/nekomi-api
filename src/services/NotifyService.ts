@@ -1,14 +1,15 @@
 import Dubber from '../Models/Dubber';
+import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
 import Title from '../Models/Title';
 import User from '../Models/User';
-import { $http } from './HTTPService';
 import { AxiosError } from 'axios';
 import { DevelopmentMode } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/Notify';
 import { Logger } from './LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { NEKOMI_BOT } from '../Interfaces/http/Bot';
+
+
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -120,7 +121,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.postBroadcast(broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -140,7 +141,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.postBroadcast(broadcastPayload);
 
   users.forEach(async user => {
     user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
@@ -170,7 +171,7 @@ async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubb
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.postBroadcast(broadcastPayload);
 }
 
 export const Notify = new NotifyService();

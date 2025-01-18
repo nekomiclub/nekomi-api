@@ -8,7 +8,7 @@ import { IDubber, TDubberMemberRole } from '../Interfaces/IDubber';
 import { INotifyDubberInvite } from '../../Interfaces/services/Notify';
 import { Logger } from '../../Services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
-import { NekomiUploadsApi } from './API/NekomiUploads';
+import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
 import { Notify } from '../../Services/NotifyService';
 import { TestMode, config } from '../../config';
 import { createSlug, createStringID, createUUID, getUTC, trimString } from '../../handlers/handler';
@@ -566,9 +566,9 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumAvatarSize) throw ERR_FILE_TOO_LARGE;
 
-    const prevAvatarId = NekomiUploadsApi.getUploadIdFromURL(this.document.avatar);
+    const prevAvatarId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
 
-    const { id, url } = await NekomiUploadsApi.postUpload({ file, type: 'photo/user/avatar', uploadedById: userId });
+    const { id, url } = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/avatar', uploadedById: userId });
 
     this.document.avatar = url;
     this.document.markModified('avatar');
@@ -579,7 +579,7 @@ export class DubberService extends DubberModelControls {
 
     // Delete old avatar if it is not default
     if (this.document.avatar !== config.vars.defaultAvatar) {
-      await NekomiUploadsApi.deleteUpload({ id: prevAvatarId, deletedById: userId });
+      await NekomiUploadsAPI.deleteUpload({ id: prevAvatarId, deletedById: userId });
 
       Logger.debug(`[DubberService]: Old avatar deleted due to it's change. [uploadId: ${prevAvatarId}; dubberId: ${this.document.id}]`);
     }
@@ -592,9 +592,9 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
 
-    const prevBannerId = NekomiUploadsApi.getUploadIdFromURL(this.document.avatar);
+    const prevBannerId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
 
-    const { id, url } = await NekomiUploadsApi.postUpload({ file, type: 'photo/user/banner', uploadedById: userId });
+    const { id, url } = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/banner', uploadedById: userId });
 
     this.document.banner = url;
     this.document.markModified('banner');
@@ -605,7 +605,7 @@ export class DubberService extends DubberModelControls {
 
     // Delete old banner if it is not default
     if (this.document.banner !== config.vars.defaultBanner) {
-      await NekomiUploadsApi.deleteUpload({ id: prevBannerId, deletedById: userId });
+      await NekomiUploadsAPI.deleteUpload({ id: prevBannerId, deletedById: userId });
 
       Logger.debug(`[DubberService]: Old banner deleted due to it's change. [uploadId: ${prevBannerId}; dubberId: ${this.document.id}]`);
     }

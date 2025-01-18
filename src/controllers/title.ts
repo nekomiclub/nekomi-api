@@ -1,17 +1,16 @@
 import express from 'express';
 
-
 import Cache from '~/Services/CacheService';
 import Dubber from '../Models/Dubber';
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
 import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '~/Services/HTTPService';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '../Interfaces/http/Uploads';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
+import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { ICacheHomeWrapped } from '~/Interfaces/services/Cache';
 import { IDubber } from '~/core/Interfaces/IDubber';
-import { IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
+import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
 import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
 import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/Title';
 import { IUserWatchProgress } from '../Interfaces/User';
@@ -105,15 +104,13 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
     // Check if client can get detailed data
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFK_AuthorityVerify = {
+      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
 
       if (!TestMode) {
-        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-          token: CSRFToken
-        });
+        const data = await FullkekwAuthorityAPI.getVerify({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -378,9 +375,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     };
 
     if (!TestMode) {
-      const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-        token: key
-      });
+      const data = await FullkekwAuthorityAPI.getVerify({ token: key });
 
       CSRF_DATA.verified = data.verified;
       CSRF_DATA.origin = data.origin;
@@ -451,7 +446,7 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
     }
 
     const sessionToken = req.cookies[config.vars.sessionCookie];
-    const session: IFK_UsapiAuthRefresh = {
+    const session: IFullkekwUserAPI_TokenData = {
       id: '',
       avatar: '',
       username: ''
@@ -472,7 +467,7 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
           // Ignore
         }
       } else {
-        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         session.id = data.id;
       }

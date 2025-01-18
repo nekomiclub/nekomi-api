@@ -2,17 +2,17 @@ import Fuse, { FuseResult } from 'fuse.js';
 import express from 'express';
 
 import Dubber from '../Models/Dubber';
+import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import Title from '../Models/Title';
 import User from '../Models/User';
-import { $upload } from '~/Services/HTTPService';
 import { AxiosError } from 'axios';
 import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../Services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../Interfaces/http/Uploads';
 import { IDubber } from '~/core/Interfaces/IDubber';
 import { ITitle } from '../Interfaces/Title';
 import { IUser } from '../Interfaces/User';
 import { Logger } from '../Services/LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { checkValue } from '../handlers/handlers';
 import { config } from '../config';
 
@@ -203,24 +203,16 @@ export async function postUpload(req: express.Request, res: express.Response) {
     const file = req.file;
     if (!file) throw new ERR_INVALID_PAYLOAD('File is not provided');
 
-    const { type } = req.body as { type: string };
-    const { buffer, originalname, filename, mimetype } = file;
-    const formData = new FormData();
+    const { type } = req.body as { type: TUploadType };
 
     const UPLOAD_DATA: { url: string, id: string, srt_id?: string, frames?: number } = {
       url: '',
       id: '',
     };
 
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', userID);
-    formData.set('qualities', JSON.stringify([1080]));
-    formData.set('type', type);
-
     try {
-      const { data: postData } = await $upload.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
+      const postData = await NekomiUploadsAPI.postUpload({ file, type, uploadedById: userID! });
+
       UPLOAD_DATA.url = postData.url;
       UPLOAD_DATA.id = postData.id;
       UPLOAD_DATA.frames = postData.frames;
@@ -250,12 +242,7 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
     const userID = req.nekomi.user?.id;
 
     try {
-      await $upload.delete(NEKOMI_UPLOADS.delete_upload(id), {
-        params: {
-          by: userID,
-          withChildren: true
-        }
-      });
+      await NekomiUploadsAPI.deleteUpload({ id, deletedById: userID!, withChildren: true });
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.code === 'ECONNREFUSED') {

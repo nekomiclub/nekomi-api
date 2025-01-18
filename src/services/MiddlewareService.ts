@@ -1,21 +1,23 @@
 import * as cfg from '../config';
 
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import User from '../Models/User';
-import { $http } from './HTTPService';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
 import { HydratedDocument } from 'mongoose';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/Mocks';
 import { IUser } from '../Interfaces/User';
 import { TRoleCapability } from '../Interfaces/Roles';
 import { parseRoles } from '../Models/Role';
 
+
+
 interface Props {
   TestMode?: boolean
 }
 
 export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
+
 
 
 export class MiddlewareService {
@@ -48,11 +50,7 @@ export class MiddlewareService {
     };
 
     if (!this.TestMode) {
-      const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-        headers: {
-          Cookie: `session=${token}`
-        }
-      });
+      const sessionData = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
 
       DATA.id = sessionData.id;
       DATA.username = sessionData.username;
@@ -102,12 +100,10 @@ export class MiddlewareService {
     };
 
     if (!this.TestMode) {
-      const response = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-        token
-      });
+      const data = await FullkekwAuthorityAPI.getVerify({ token });
 
-      DATA.origin = response.data.origin;
-      DATA.verified = response.data.verified;
+      DATA.origin = data.origin;
+      DATA.verified = data.verified;
     } else {
       if (!mockData) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
 

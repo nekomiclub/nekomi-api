@@ -4,12 +4,13 @@ import { AxiosError } from 'axios';
 import * as TokenService from '../Services/TokenService';
 
 import * as Role from '../Models/Role';
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import Title from '../Models/Title';
 import User, { UserModel, UserService } from '../Models/User';
-import { $http } from '~/Services/HTTPService';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
+import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
 import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
 import { ITitle } from '../Interfaces/Title';
 import { IUserTogetherRoom } from '../Interfaces/User';
@@ -56,23 +57,19 @@ export async function postSignin(req: express.Request, res: express.Response) {
     const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
-    const DATA: IFK_UsapiAuthRefresh = {};
+    const DATA: IFullkekwUserAPI_TokenData = {};
 
 
 
     // Validate session
     if (!TestMode) {
-      const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-        headers: {
-          Cookie: `session=${session}`
-        }
-      });
+      const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: session });
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
       DATA.username = data.username;
     } else {
-      const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+      const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
@@ -136,17 +133,13 @@ export async function getValidate(req: express.Request, res: express.Response) {
     const token = req.cookies[config.vars.sessionCookie];
     if (!token) return res.status(202).json({ message: 'Session not provided' });
 
-    // @ts-expect-error Need an empty object
-    const session: IFK_UsapiAuthRefresh = {};
+    // @ts-expect-error Need empty object
+    const session: IFullkekwUserAPI_TokenData = {};
 
     try {
       if (!TestMode) {
         // Sync nekomi data with fullkekw user api
-        const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-          headers: {
-            Cookie: `session=${token}`
-          }
-        });
+        const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
 
         session.id = data.id;
         session.avatar = data.avatar;
@@ -201,7 +194,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Get user by session
     if (query === '*') {
-      const DATA: IFK_UsapiAuthRefresh = {
+      const DATA: IFullkekwUserAPI_TokenData = {
         avatar: '',
         id: '',
         username: ''
@@ -212,11 +205,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
       if (!TestMode) {
         try {
-          const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-            headers: {
-              Cookie: `session=${token}`
-            }
-          });
+          const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
 
           DATA.username = data.username;
         } catch (e) {
@@ -229,7 +218,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
           }
         }
       } else {
-        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         DATA.username = data.username;
       }
@@ -242,15 +231,13 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFK_AuthorityVerify = {
+      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
 
       if (!TestMode) {
-        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-          token: CSRFToken
-        });
+        const data = await FullkekwAuthorityAPI.getVerify({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;

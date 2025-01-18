@@ -3,7 +3,7 @@ import request from 'supertest';
 
 import Title, { TitleService } from '../../Models/Title';
 import UserModel, { UserService } from '../../Models/User';
-import { IFK_UsapiAuthRefresh } from '../../Interfaces/http/FkUsapi';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/Mocks';
 import { INTERNALS, config } from '../../config';
 import { IUser } from '../../Interfaces/User';
@@ -99,7 +99,7 @@ describe('User controller', () => {
 
   describe('GET /user/validate', () => {
     // Should refresh usapi session and sync usapi & nekomi user object
-    const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+    const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
       id: 'FkUsapiAuthRefresh',
       code: 200,
       data: {
@@ -165,7 +165,7 @@ describe('User controller', () => {
     });
 
     test('200 - Get user data by session', async () => {
-      const UsapiRefreshMock: IMock<IFK_UsapiAuthRefresh> = {
+      const UsapiRefreshMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
@@ -254,7 +254,7 @@ describe('User controller', () => {
 
   describe('POST /user/signin', () => {
     test('200 - Login exist user', async () => {
-      const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+      const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
@@ -275,7 +275,7 @@ describe('User controller', () => {
     });
 
     test('201 - Create new account', async () => {
-      const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+      const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {

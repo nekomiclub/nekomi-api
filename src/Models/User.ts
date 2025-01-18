@@ -2,13 +2,12 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 
 import * as cfg from '../config';
 import DubberModel from './Dubber';
+import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import Role from './Role';
 import Title, { TitleModel } from './Title';
 import validator from 'validator';
-import { $http } from '~/Services/HTTPService';
 import { AxiosError } from 'axios';
 import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../Services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../Interfaces/http/Uploads';
 import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../Interfaces/User';
 import { Logger } from '../Services/LoggerService';
 import { TNotifyEvent } from '../Interfaces/services/Notify';
@@ -217,33 +216,22 @@ export class UserService {
 
   /** Upload profile banner. Will save the document */
   async uploadBanner({ file }: { file: Express.Multer.File }) {
-    const { buffer, originalname, filename, mimetype } = file;
-    const formData = new FormData();
-
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', this.user.id);
-    formData.set('type', 'photo/user/banner');
-
     const UPLOAD_DATA: { url: string } = {
       url: ''
     };
 
     try {
       // Upload banner
-      const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
+      const uploadedById = this.user.id;
+      const postData = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/banner', uploadedById });
       UPLOAD_DATA.url = postData.url;
 
       // Remove previous banner if it not default
       if (this.user.banner !== config.vars.defaultBanner) {
         const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
+        const deletedById = this.user.id;
 
-        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-          params: {
-            by: this.user.id
-          }
-        });
+        await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById });
       }
     } catch (e) {
       if (e instanceof AxiosError) {
