@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { IDubber } from '../interfaces/IDubber';
+import { ITitle } from '~/interfaces/Title';
 import { IUser } from '~/interfaces/User';
 
 
@@ -42,6 +43,10 @@ export class MongoDocumentDTO {
   user({ document, details }: IMongoDTOProps<IUser>): IUser {
     return this.DTO<IUser>(new DocumentDTO().user({ object: document.toObject(), details }));
   }
+
+  anime({ document, details }: IMongoDTOProps<ITitle>): ITitle {
+    return this.DTO<ITitle>(new DocumentDTO().anime({ object: document.toObject(), details }));
+  }
 }
 
 export class DocumentDTO {
@@ -71,5 +76,14 @@ export class DocumentDTO {
     ];
 
     return this.DTO<IUser>(object, details ? [] : keys);
+  }
+
+  anime({ object, details }: IDocumentDTOProps<ITitle>): ITitle {
+    const keys: (keyof ITitle)[] = [
+      'episodes',
+      'episodesMeta'
+    ];
+
+    return this.DTO<ITitle>(object, details ? [] : keys);
   }
 }

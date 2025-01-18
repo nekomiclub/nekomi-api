@@ -1,4 +1,3 @@
-import * as dto from '../handlers/dtos';
 import Fuse, { FuseResult } from 'fuse.js';
 import express from 'express';
 
@@ -41,7 +40,7 @@ export async function updateSearch(specify?: TSearchEngine) {
       });
 
       return {
-        ...dto.title(el.toObject()),
+        ...new MongoDocumentDTO().anime({ document: el }),
         episodesDubbed: maxEp
       };
     }), {
@@ -58,7 +57,7 @@ export async function updateSearch(specify?: TSearchEngine) {
   }
 
   if (specify === undefined || specify === 'user') {
-    UserSeacrh = new Fuse(users.map(el => dto.user(el.toObject())), {
+    UserSeacrh = new Fuse(users.map(el => new MongoDocumentDTO().user({ document: el })), {
       keys: ['id', 'username'],
       includeScore: true
     });
@@ -130,7 +129,7 @@ export async function getSearch(req: express.Request, res: express.Response) {
 
     if (getManyMode) {
       if (engines[0] === 'title') {
-        const titles = (await Title.find()).map(el => dto.title(el.toObject()));
+        const titles = (await Title.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
 
         titles.forEach(el => {
           const result: ISearchExtended<FuseResult<ITitle>> = {

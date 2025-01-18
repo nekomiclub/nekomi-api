@@ -10,7 +10,7 @@ import { INotifyDubberInvite } from '../interfaces/services/Notify';
 import { Logger } from '../services/LoggerService';
 import { Notify } from '../services/NotifyService';
 import { ProductionMode, config } from '../config';
-import { createID, getUTC } from '../handlers/handler';
+import { createUUID, getUTC } from '../handlers/handler';
 
 
 
@@ -78,7 +78,7 @@ export class DubberService {
 
   /** Crete new Dubber instance */
   static async create({ nameUkr, nameEng, id }: IDubberCreate): Promise<HydratedDocument<IDubber>> {
-    id = ProductionMode ? createID() : id ?? createID();
+    id = ProductionMode ? createUUID() : id ?? createUUID();
     const slug = createSlug(nameEng);
 
     if (!validator.isLength(nameUkr, { max: config.VALIDATION.CreateUser.maxNameLength, min: config.VALIDATION.CreateUser.minNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is not valid`);

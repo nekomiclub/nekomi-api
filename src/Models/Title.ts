@@ -16,7 +16,7 @@ import { IUser } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
 import { Notify } from '../services/NotifyService';
 import { config } from '../config';
-import { createID, getUTC, parseIMDBDate } from '../handlers/handler';
+import { createUUID, getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
 
 
@@ -134,7 +134,7 @@ export class TitleService {
   }
 
   static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
-    const ID = TestMode ? id ?? createID() : createID();
+    const ID = TestMode && id ? id : createUUID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
       separator: '-'

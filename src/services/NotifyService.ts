@@ -1,4 +1,3 @@
-import * as dto from '../handlers/dtos';
 import Dubber from '../Models/Dubber';
 import Title from '../Models/Title';
 import User from '../Models/User';
@@ -113,7 +112,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
     event,
     participants: users.map(el => el.telegramData!.id!),
     data: {
-      title: dto.title(title.toObject()),
+      title: new MongoDocumentDTO().anime({ document: title }),
       dubber: new MongoDocumentDTO().dubber({ document: dubber }),
       episodeOrder,
     }
@@ -135,7 +134,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
     event,
     participants: users.map(el => el.telegramData!.id!),
     data: {
-      title: dto.title(title.toObject())
+      title: new MongoDocumentDTO().anime({ document: title })
     }
   };
 

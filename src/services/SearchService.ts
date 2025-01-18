@@ -1,4 +1,3 @@
-import * as dto from '~/handlers/dtos';
 import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import TitleModel from '~/Models/Title';
@@ -72,7 +71,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await TitleModel.find()).map(el => dto.title(el.toObject()));
+      const list = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],

@@ -2,7 +2,6 @@ import express from 'express';
 import { AxiosError } from 'axios';
 
 import * as TokenService from '../services/TokenService';
-import * as dto from '../handlers/dtos';
 
 import * as Role from '../Models/Role';
 import Title from '../Models/Title';
@@ -15,6 +14,7 @@ import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
 import { ITitle } from '../interfaces/Title';
 import { IUserTogetherRoom } from '../interfaces/User';
 import { Logger } from '../services/LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 import { ProductionMode, TestMode, config } from '../config';
 import { TRoleCapability } from '../interfaces/Roles';
 import { getMockData } from '../handlers/mocks';
@@ -279,7 +279,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const lib = user.libs.find(el => el.id === parseLib);
       if (!lib) throw new E404(`Lib ${parseLib} is not found`);
 
-      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => dto.title(title.toObject(), privateMode));
+      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
     }
 
     // Fetch together room
@@ -294,7 +294,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     return res.status(200).json({
       message: `OK. ${privateMode ? 'Sensetive information hidden.' : 'Sensetive information returned.'}`,
-      user: dto.user(user.toObject(), privateMode),
+      user: new MongoDocumentDTO().user({ document: user, details: !privateMode }),
       parsedLib,
       parsedRoles,
       togetherRoom,

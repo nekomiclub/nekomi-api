@@ -11,8 +11,12 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import Router from './router';
+import AnimeRouter from './routes/AnimeRouter';
+import Cache from './services/CacheService';
+import DubberRouter from './routes/DubberRouter';
+import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
+import UserRouter from './routes/UserRouter';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
@@ -104,10 +108,10 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 
 
 //* Routing & handling
-app.use('/dubber', Router.DubberRouter);
-app.use('/user', Router.UserRouter);
-app.use('/title', Router.TitleRouter);
-app.use('/', Router.RootRouter);
+app.use('/dubber', DubberRouter);
+app.use('/user', UserRouter);
+app.use(['/title', '/anime'], AnimeRouter);
+app.use('/', GenericRouter);
 
 wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
 wss.on('listening', () => {
@@ -119,8 +123,9 @@ wss.on('listening', () => {
 //* HTTP server
 (async function () {
   const REPETATIVE_HANDLERS = [
-    await updateSearch(),
-    await removeUsersLinkTelegramToken(),
+    updateSearch,
+    removeUsersLinkTelegramToken,
+    Cache.forcePurge
   ] as const;
 
   wss.on('connection', WebsocketRouter);
@@ -147,10 +152,7 @@ wss.on('listening', () => {
       // Cache updating
       setInterval(async () => {
         // Update cache
-        await Promise.all([
-          updateSearch(),
-          removeUsersLinkTelegramToken(),
-        ]);
+        await Promise.all(REPETATIVE_HANDLERS);
       }, 43200000); // 43200000 // 12h
 
       // Poll site online

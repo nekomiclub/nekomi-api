@@ -1,6 +1,5 @@
 import express from 'express';
 
-import * as dto from '../handlers/dtos';
 
 import Cache from '~/services/CacheService';
 import Dubber from '../Models/Dubber';
@@ -159,7 +158,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     //   Logger.info(`Title ${title.id} synced with hikka.io`);
     // }
 
-    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: dto.title(title.toObject(), privateMode), parsedDubbers });
+    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: new MongoDocumentDTO().anime({ document: title, details: !privateMode }), parsedDubbers });
   });
 }
 
@@ -183,7 +182,7 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
     updateSearch('title');
 
-    return res.status(201).json({ message: 'New title created', id: title.id, title: dto.title(title.toObject()) });
+    return res.status(201).json({ message: 'New title created', id: title.id, title: new MongoDocumentDTO().anime({ document: title }) });
   });
 }
 
@@ -430,20 +429,20 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
         if (!title) throw new E404(`Title ${id} is not found in featured data`);
 
         HomeWrapped.featured.push({
-          ...dto.title(title.toObject()),
+          ...new MongoDocumentDTO().anime({ document: title }),
           backgroundURL,
           videoURL
         });
       }
 
       // Parse popular
-      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
+      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => new MongoDocumentDTO().anime({ document: el }));
 
       // Fetch recently updated
-      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => dto.title(el.toObject()));
+      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
 
       // Fetch hight rated
-      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => dto.title(el.toObject()));
+      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
 
       Cache.push<Required<ICacheHomeWrapped>>({
         DEFINE_KEY: 'HomeWrapped',

@@ -13,7 +13,7 @@ import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress
 import { Logger } from '../services/LoggerService';
 import { TNotifyEvent } from '../interfaces/services/Notify';
 import { config } from '../config';
-import { createID, createStringID, getUTC } from '../handlers/handler';
+import { createStringID, createUUID, getUTC } from '../handlers/handler';
 
 
 
@@ -99,7 +99,7 @@ export class UserService {
     const libs: IUserLib[] = [
       {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -109,7 +109,7 @@ export class UserService {
         type: 'favorite'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -119,7 +119,7 @@ export class UserService {
         type: 'watched'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -129,7 +129,7 @@ export class UserService {
         type: 'watching'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: true,
           immortal: true,
@@ -139,7 +139,7 @@ export class UserService {
         type: 'plans'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: true,
           immortal: true,

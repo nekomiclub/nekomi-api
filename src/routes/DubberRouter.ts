@@ -8,8 +8,8 @@ const DubberRouter = express.Router();
 
 
 //* Generic
-DubberRouter.get(`/search`, DubberRoutes.GetSearch);
 DubberRouter.get(`/:query`, DubberRoutes.GetOne);
+DubberRouter.get(`/search`, DubberRoutes.GetSearch);
 DubberRouter.put(`/avatar`, DubberRoutes.PutAvatar);
 DubberRouter.put(`/banner`, DubberRoutes.PutBanner);
 

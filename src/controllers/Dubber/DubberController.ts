@@ -1,10 +1,9 @@
-import * as dto from '~/handlers/dtos';
 import Cache from '~/services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
-import { DocumentDTO } from '~/core/services/DTO';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { ICacheDubbedAnime, ICacheParsedMembers } from '~/interfaces/services/Cache';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/IDubber';
@@ -47,16 +46,12 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       dubbedAnime = cached;
     } else {
-      const titles = (await TitleModel.find()).map(el => dto.title(el.toObject(), false));
+      const titles = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
       const withDubbing = titles.filter(title => {
         return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
       });
 
-      dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => dto.title({
-        __v: 0,
-        _id: '',
-        ...el
-      }, true));
+      dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => new DocumentDTO().anime({ object: el }));
 
       Cache.push<ICacheDubbedAnime>({
         dubberId: dubberService.dubber.id,
@@ -72,7 +67,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       parsedMembers = cached;
     } else {
-      const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(el => dto.user(el.toObject(), true));
+      const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
 
       parsedMembers = users;
 

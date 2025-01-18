@@ -2,30 +2,7 @@ import * as uuid from 'uuid';
 import ip from 'ip';
 import { convert as convertSlug } from 'url-slug';
 
-interface IGetNewUTC {
-  year: number
-  /** January is first month, december is 12 */
-  month: number
-  date: number
-  weekDay: number
-  hrs: number
-  mins: number
-  secs: number
-  ms: number
-  timestamp: number
-  /** Time
-   * @returns 'hh:mm'
-   */
-  time: string
-  /** Accurate time
-   * @returns 'hh:mm:ss.mss'
-   */
-  timeAccurate: string
-  /** European fulldate
-   * @returns 'dd.mm.yyyy'
-   */
-  fulldate: string
-}
+
 
 /** Return current IPv4 if raw match 0.0.0.0 */
 export function preserveIP(raw: string): string {
@@ -74,7 +51,30 @@ export function getRandomNumberInRange(min: number, max: number): number {
 /** Get UTC date
  * @param timestamp Timestamp to start from. Default - now
  */
-export function getUTC(timestamp?: number | null): IGetNewUTC {
+export function getUTC(timestamp?: number | null): {
+  year: number
+  /** January is first month, december is 12 */
+  month: number
+  date: number
+  weekDay: number
+  hrs: number
+  mins: number
+  secs: number
+  ms: number
+  timestamp: number
+  /** Time
+   * @returns 'hh:mm'
+   */
+  time: string
+  /** Accurate time
+   * @returns 'hh:mm:ss.mss'
+   */
+  timeAccurate: string
+  /** European fulldate
+   * @returns 'dd.mm.yyyy'
+   */
+  fulldate: string
+} {
   const now = timestamp ? new Date(timestamp) : new Date();
 
   const year = now.getUTCFullYear();
@@ -120,27 +120,6 @@ export function parseIMDBDate(dateString: string): number {
 }
 
 
-
-/** Turn number to string & add zero before number if it less than 10
- * @deprecated use String.padStart
- */
-export function addZeroIfNumberSingle(num: number): string {
-  return num <= 9 ? `0${num}` : `${num}`;
-}
-
-/** Create UUID v4 id
- * @deprecated use getUUID
- */
-export function createID(): string {
-  return uuid.v4();
-}
-
-/** Get random number in range
- * @deprecated use getRandomNumberInRange()
- */
-export function randomNumber(min: number, max: number): number {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-}
 
 /** Return part of elements by it's page and limit */
 export function arrayPagination({ elements, limit, page }: { elements: any[], page: number, limit: number }) {

@@ -8,7 +8,7 @@ import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../interf
 import { INTERNALS, config } from '../../config';
 import { IUser } from '../../interfaces/User';
 import { NotifyService } from '../../services/NotifyService';
-import { createID, getUTC } from '../../handlers/handler';
+import { createUUID, getUTC } from '../../handlers/handler';
 
 beforeAll(() => {
   const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
@@ -383,7 +383,7 @@ describe('User controller', () => {
       await request(baseURL)
         .post('/user/linkTelegram/verify')
         .send({
-          token: createID()
+          token: createUUID()
         })
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify([BotCSRF]))
