@@ -5,7 +5,7 @@ import https from 'https';
 import { HandleRequest } from './ErrorService';
 
 import { config } from '../config';
-import { singCSRFToken } from '../services/TokenService';
+import { singCSRFToken } from './TokenService';
 
 
 

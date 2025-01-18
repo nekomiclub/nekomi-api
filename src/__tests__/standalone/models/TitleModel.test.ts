@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 import DubberModel, { DubberService } from '../../../Models/Dubber';
 import UserModel, { UserService } from '../../../Models/User';
-import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
+import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../Services/ErrorService';
 import { INTERNALS, config } from '../../../config';
-import { ITitleEpisodeMeta, TAnimeGenre } from '../../../interfaces/Title';
+import { ITitleEpisodeMeta, TAnimeGenre } from '../../../Interfaces/Title';
 import { Readable } from 'stream';
 import { TitleService } from '../../../Models/Title';
 import { getUTC } from '../../../handlers/handler';

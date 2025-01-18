@@ -1,15 +1,15 @@
-import DubberModel from '../models/DubberModel';
-import ServiceControls from '../interfaces/ServiceControls';
+import DubberModel from '../Models/DubberModel';
+import ServiceControls from '../Interfaces/ServiceControls';
 import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
-import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../services/ErrorService';
+import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../Services/ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { IDubber, TDubberMemberRole } from '../interfaces/IDubber';
-import { INotifyDubberInvite } from '../../interfaces/services/Notify';
-import { Logger } from '../../services/LoggerService';
+import { IDubber, TDubberMemberRole } from '../Interfaces/IDubber';
+import { INotifyDubberInvite } from '../../Interfaces/services/Notify';
+import { Logger } from '../../Services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
-import { NekomiUploadsApi } from './Api/NekomiUploads';
-import { Notify } from '../../services/NotifyService';
+import { NekomiUploadsApi } from './API/NekomiUploads';
+import { Notify } from '../../Services/NotifyService';
 import { TestMode, config } from '../../config';
 import { createSlug, createStringID, createUUID, getUTC, trimString } from '../../handlers/handler';
 

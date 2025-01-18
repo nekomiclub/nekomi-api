@@ -1,7 +1,4 @@
-import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
-
 import bodyParser from 'body-parser';
-import chalk from 'chalk';
 import cookieParser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
 import express from 'express';
@@ -11,22 +8,18 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import AnimeRouter from './routes/AnimeRouter';
-import Cache from './services/CacheService';
-import DubberRouter from './routes/DubberRouter';
-import GenericRouter from './routes/GenericRouter';
-import Search from './services/SearchService';
-import UserRouter from './routes/UserRouter';
-import { Logger } from './services/LoggerService';
-import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
-import { decodeToken } from './services/TokenService';
+import AnimeRouter from './Routers/AnimeRouter';
+import Cache from './Services/CacheService';
+import DubberRouter from './Routers/DubberRouter';
+import GenericRouter from './Routers/GenericRouter';
+import Search from './Services/SearchService';
+import UserRouter from './Routers/UserRouter';
+import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
+import { Logger } from './Services/LoggerService';
+import { WebSocketOnlinePoll, WebsocketRouter } from './Controllers/webSocket';
+import { decodeToken } from './Services/TokenService';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
-import { updateSearch } from './controllers/root';
-
-
-
-// Preflight
-chalk.level = 1;
+import { updateSearch } from './Controllers/root';
 
 
 

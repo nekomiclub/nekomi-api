@@ -1,13 +1,13 @@
-import DubberService from '~/core/services/DubberService';
+import DubberService from '~/core/Services/DubberService';
 import Fuse from 'fuse.js';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/interfaces/IDubber';
-import { ITitle } from '~/interfaces/Title';
-import { IUser } from '~/interfaces/User';
+import { IDubber } from '~/core/Interfaces/IDubber';
+import { ITitle } from '~/Interfaces/Title';
+import { IUser } from '~/Interfaces/User';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
 
 
 

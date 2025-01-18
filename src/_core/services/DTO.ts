@@ -1,7 +1,7 @@
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '../interfaces/IDubber';
-import { ITitle } from '~/interfaces/Title';
-import { IUser } from '~/interfaces/User';
+import { IDubber } from '../Interfaces/IDubber';
+import { ITitle } from '~/Interfaces/Title';
+import { IUser } from '~/Interfaces/User';
 
 
 

@@ -1,7 +1,7 @@
 import Dubber from '../Models/Dubber';
 import express from 'express';
-import { HandleRequest } from '../services/ErrorService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
+import { HandleRequest } from '../Services/ErrorService';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
 
 
 

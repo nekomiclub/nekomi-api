@@ -1,22 +1,22 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import * as TokenService from '../services/TokenService';
+import * as TokenService from '../Services/TokenService';
 
 import * as Role from '../Models/Role';
 import Title from '../Models/Title';
 import User, { UserModel, UserService } from '../Models/User';
-import { $http } from '~/services/HTTPService';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
-import { ITitle } from '../interfaces/Title';
-import { IUserTogetherRoom } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
+import { $http } from '~/Services/HTTPService';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
+import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
+import { ITitle } from '../Interfaces/Title';
+import { IUserTogetherRoom } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
 import { ProductionMode, TestMode, config } from '../config';
-import { TRoleCapability } from '../interfaces/Roles';
+import { TRoleCapability } from '../Interfaces/Roles';
 import { getMockData } from '../handlers/mocks';
 import { updateSearch } from './root';
 

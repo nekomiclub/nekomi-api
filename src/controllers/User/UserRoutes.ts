@@ -1,7 +1,7 @@
 import UserController, { IUserGetSearch } from './UserController';
 import { CheckCSRF } from '~/middlewares';
-import { ERR_MIDDLEWARE_REQUIRED } from '~/services/ErrorService';
-import { HTTPEndpoint } from '~/services/HTTPService';
+import { ERR_MIDDLEWARE_REQUIRED } from '~/Services/ErrorService';
+import { HTTPEndpoint } from '~/Services/HTTPService';
 import { config } from '~/config';
 import { parseObjectTypes } from '~/handlers/handler';
 import { query } from 'express-validator';

@@ -1,7 +1,7 @@
 import { DevelopmentMode } from '~/config';
-import { ICacheDubbedAnime, ICacheHomeWrapped, ICacheParsedMembers } from '~/interfaces/services/Cache';
-import { ITitle } from '~/interfaces/Title';
-import { IUser } from '~/interfaces/User';
+import { ICacheDubbedAnime, ICacheHomeWrapped, ICacheParsedMembers } from '~/Interfaces/services/Cache';
+import { ITitle } from '~/Interfaces/Title';
+import { IUser } from '~/Interfaces/User';
 import { Logger } from './LoggerService';
 import { createUUID, getUTC } from '~/handlers/handler';
 

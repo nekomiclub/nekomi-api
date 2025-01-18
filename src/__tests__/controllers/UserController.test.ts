@@ -3,11 +3,11 @@ import request from 'supertest';
 
 import Title, { TitleService } from '../../Models/Title';
 import UserModel, { UserService } from '../../Models/User';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../interfaces/Mocks';
+import { IFK_UsapiAuthRefresh } from '../../Interfaces/http/FkUsapi';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/Mocks';
 import { INTERNALS, config } from '../../config';
-import { IUser } from '../../interfaces/User';
-import { NotifyService } from '../../services/NotifyService';
+import { IUser } from '../../Interfaces/User';
+import { NotifyService } from '../../Services/NotifyService';
 import { createUUID, getUTC } from '../../handlers/handler';
 
 beforeAll(() => {

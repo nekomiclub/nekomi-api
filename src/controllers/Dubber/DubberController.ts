@@ -1,15 +1,15 @@
-import Cache from '~/services/CacheService';
-import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/services/DubberService';
-import Search from '~/services/SearchService';
+import Cache from '~/Services/CacheService';
+import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/Services/DubberService';
+import Search from '~/Services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { ICacheDubbedAnime, ICacheParsedMembers } from '~/interfaces/services/Cache';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/IDubber';
-import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
-import { ITitle } from '~/interfaces/Title';
-import { IUser } from '~/interfaces/User';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
+import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/Services/ErrorService';
+import { ICacheDubbedAnime, ICacheParsedMembers } from '~/Interfaces/services/Cache';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/IDubber';
+import { IEXPRESS_REQ_NEKOMI_USER } from '~/Interfaces/globals';
+import { ITitle } from '~/Interfaces/Title';
+import { IUser } from '~/Interfaces/User';
 
 
 

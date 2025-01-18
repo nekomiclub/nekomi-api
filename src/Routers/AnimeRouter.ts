@@ -1,5 +1,5 @@
 import * as RouteValidation from '../handlers/routeValidation';
-import * as TitleController from '../controllers/title';
+import * as TitleController from '../Controllers/title';
 import express from 'express';
 
 

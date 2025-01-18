@@ -5,10 +5,10 @@ import { $http } from './HTTPService';
 import { AxiosError } from 'axios';
 import { DevelopmentMode } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/Notify';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
-import { NEKOMI_BOT } from '../interfaces/http/Bot';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { NEKOMI_BOT } from '../Interfaces/http/Bot';
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 

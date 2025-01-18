@@ -1,7 +1,7 @@
-import { $upload } from '~/services/HTTPService';
+import { $upload } from '~/Services/HTTPService';
 import { AxiosError } from 'axios';
-import { Logger } from '~/services/LoggerService';
-import { TUploadType } from '~/core/interfaces/Api/NekomiUploads';
+import { Logger } from '~/Services/LoggerService';
+import { TUploadType } from '~/core/Interfaces/API/NekomiUploads';
 import { config } from '~/config';
 
 interface IPostUploadProps {

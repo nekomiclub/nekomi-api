@@ -1,14 +1,15 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
-import { MiddlewareService } from './services/MiddlewareService';
-import { TRoleCapability } from './interfaces/Roles';
+import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './Services/ErrorService';
+import { MiddlewareService } from './Services/MiddlewareService';
+import { TRoleCapability } from './Interfaces/Roles';
 import { TestMode, config } from './config';
 import { getMockData } from './handlers/mocks';
 
 
 const Middleware = new MiddlewareService();
+
 
 
 /** Routes access-control middleware

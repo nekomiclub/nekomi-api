@@ -1,9 +1,7 @@
-import { config as dotenvCfg } from 'dotenv';
-
-dotenvCfg();
-
+import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
+import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 
 import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
@@ -11,9 +9,16 @@ import { getUTC, preserveIP } from './handlers/handler';
 
 
 
+// Preflight
+chalk.level = 1;
+dotenvCfg();
+
+
+
 export const DevelopmentMode = process.argv.includes('devMode');
 export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
+
 
 
 const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;

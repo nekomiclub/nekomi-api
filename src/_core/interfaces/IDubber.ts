@@ -5,14 +5,17 @@ export interface IDubber {
   slug: string
   avatar: string
   description: string | null
-  members: IDubberMember[]
-
-  /** Invited members IDs */
-  membersInvited: string[]
-
   banner: string
   nameEng: string
   nameUkr: string
+
+  /** @private */
+  members: IDubberMember[]
+
+  /** Invited members IDs
+   * @private
+   */
+  membersInvited: string[]
 
 
   statistics: {
@@ -56,3 +59,7 @@ export interface IDubberMember {
   /** UTC-0 timestamp */
   memberSince: number
 }
+
+
+
+export default IDubber;

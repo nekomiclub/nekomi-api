@@ -3,12 +3,12 @@ import * as cfg from '../config';
 import User from '../Models/User';
 import { $http } from './HTTPService';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
+import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
 import { HydratedDocument } from 'mongoose';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../interfaces/Mocks';
-import { IUser } from '../interfaces/User';
-import { TRoleCapability } from '../interfaces/Roles';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/Mocks';
+import { IUser } from '../Interfaces/User';
+import { TRoleCapability } from '../Interfaces/Roles';
 import { parseRoles } from '../Models/Role';
 
 interface Props {

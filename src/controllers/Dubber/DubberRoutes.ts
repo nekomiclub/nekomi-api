@@ -1,9 +1,9 @@
 import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberGetSearch, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './DubberController';
 import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { HTTPEndpoint } from '~/services/HTTPService';
-import { MiddlewareService } from '~/services/MiddlewareService';
+import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/Services/ErrorService';
+import { HTTPEndpoint } from '~/Services/HTTPService';
+import { MiddlewareService } from '~/Services/MiddlewareService';
 import { body, param, query } from 'express-validator';
 import { config } from '~/config';
 import { parseObjectTypes } from '~/handlers/handler';

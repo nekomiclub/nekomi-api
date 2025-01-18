@@ -2,13 +2,13 @@ import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 import { convert as createSlug } from 'url-slug';
 
-import NewDubberModel from '../_core/models/DubberModel';
+import NewDubberModel from '../_core/Models/DubberModel';
 import UserModel, { UserService } from './User';
-import { E400, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
-import { IDubber, TDubberMemberRole } from '~/core/interfaces/IDubber';
-import { INotifyDubberInvite } from '../interfaces/services/Notify';
-import { Logger } from '../services/LoggerService';
-import { Notify } from '../services/NotifyService';
+import { E400, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../Services/ErrorService';
+import { IDubber, TDubberMemberRole } from '~/core/Interfaces/IDubber';
+import { INotifyDubberInvite } from '../Interfaces/services/Notify';
+import { Logger } from '../Services/LoggerService';
+import { Notify } from '../Services/NotifyService';
 import { ProductionMode, config } from '../config';
 import { createUUID, getUTC } from '../handlers/handler';
 

@@ -1,27 +1,27 @@
 import express from 'express';
 
 
-import Cache from '~/services/CacheService';
+import Cache from '~/Services/CacheService';
 import Dubber from '../Models/Dubber';
 import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '~/services/HTTPService';
-import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { ICacheHomeWrapped } from '~/interfaces/services/Cache';
-import { IDubber } from '~/core/interfaces/IDubber';
-import { IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
-import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../interfaces/Title';
-import { IUserWatchProgress } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { MiddlewareService } from '~/services/MiddlewareService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
-import { TRoleCapability } from '../interfaces/Roles';
+import { $http } from '~/Services/HTTPService';
+import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
+import { EpisodeQualities, TEpisodeQuality } from '../Interfaces/http/Uploads';
+import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../Interfaces/http/FkAuthority';
+import { ICacheHomeWrapped } from '~/Interfaces/services/Cache';
+import { IDubber } from '~/core/Interfaces/IDubber';
+import { IFK_UsapiAuthRefresh } from '../Interfaces/http/FkUsapi';
+import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
+import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/Title';
+import { IUserWatchProgress } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { MiddlewareService } from '~/Services/MiddlewareService';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { TRoleCapability } from '../Interfaces/Roles';
 import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
-import { singCSRFToken } from '../services/TokenService';
+import { singCSRFToken } from '../Services/TokenService';
 import { updateSearch } from './root';
 
 

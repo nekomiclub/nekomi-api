@@ -102,16 +102,16 @@
         "./src/_core/*",
       ],
       "~/controllers/*": [
-        "./src/controllers/*",
+        "./src/Controllers/*",
       ],
       "~/handlers/*": [
         "./src/handlers/*",
       ],
       "~/interfaces/*": [
-        "./src/interfaces/*",
+        "./src/Interfaces/*",
       ],
       "~/services/*": [
-        "./src/services/*",
+        "./src/Services/*",
       ],
       "~/*": [
         "./src/*",
@@ -120,8 +120,9 @@
   },
   "include": [
     "**/*.*",
-    "src/index.ts"
-, ".conf/.puppeteerrc.cjs"  ],
+    "src/index.ts",
+    ".conf/.puppeteerrc.cjs"
+  ],
   "exclude": [
     "node_modules",
     "dist/**/*"
@@ -130,7 +131,7 @@
     "esnext"
   ],
   "files": [
-    "./src/interfaces/globals.d.ts"
+    "src/Interfaces/globals.d.ts"
   ],
   "ts-node": {
     "esm": true,

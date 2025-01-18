@@ -1,8 +1,8 @@
-import DubberService from '../../_core/services/DubberService';
+import DubberService from '../../_core/Services/DubberService';
 import UserModel, { UserService } from '../../Models/User';
 import mongoose from 'mongoose';
-import { HTTPErrorConstructor } from '../../services/ErrorService';
-import { NotifyService } from '../../services/NotifyService';
+import { HTTPErrorConstructor } from '../../Services/ErrorService';
+import { NotifyService } from '../../Services/NotifyService';
 import { config } from '../../config';
 
 

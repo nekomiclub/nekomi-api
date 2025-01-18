@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 
 import DubberModel from '../../Models/Dubber';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../interfaces/Mocks';
+import { IFK_UsapiAuthRefresh } from '../../Interfaces/http/FkUsapi';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/Mocks';
 import { INTERNALS, config } from '../../config';
 import { TitleService } from '../../Models/Title';
 import { UserService } from '../../Models/User';
