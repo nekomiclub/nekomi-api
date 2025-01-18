@@ -211,7 +211,7 @@ export async function postUpload(req: express.Request, res: express.Response) {
     };
 
     try {
-      const postData = await NekomiUploadsAPI.postUpload({ file, type, uploadedById: userID! });
+      const postData = await NekomiUploadsAPI.uploadFile({ file, type, uploadedById: userID! });
 
       UPLOAD_DATA.url = postData.url;
       UPLOAD_DATA.id = postData.id;

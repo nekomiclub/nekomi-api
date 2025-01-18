@@ -82,6 +82,39 @@ const ERR_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'dubber:
 
 
 
+// export const DUBBER_DEFAULT_INSTANCE: IDubber = {
+// id: '',
+// nameUkr: '',
+// nameEng: '',
+// name: '',
+// slug: '',
+// avatar: config.vars.defaultAvatar,
+// banner: config.vars.defaultBanner,
+// description: null,
+// members: [],
+// membersInvited: [],
+// socials: {
+//   instagram: null,
+//   telegram: null,
+//   tiktok: null,
+//   youtube: null
+// },
+// support: {
+//   bymeacoffee: null,
+//   diaka: null,
+//   monobank: null,
+//   patreon: null,
+//   privatbank: null
+// },
+// statistics: {
+//   createdAt: getUTC().timestamp
+// },
+// createdAt: getUTC().timestamp,
+// code: ''
+// };
+
+
+
 class DubberModelControls implements TDubberModelControls {
   readonly TestMode: boolean;
 
@@ -282,7 +315,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
-    if (value?.length ?? 0 > 256) throw new E400(`This link is too large (above 256 chars)`);
+    if (value?.length && value.length > 256) throw new E400(`This link is too large (above 256 chars)`);
 
     try {
       if (value !== null) {
@@ -307,7 +340,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
-    if (value?.length ?? 0 > 256) throw new E400(`This link is too large (above 256 chars)`);
+    if (value?.length && value.length > 256) throw new E400(`This link is too large (above 256 chars)`);
 
     try {
 
@@ -568,7 +601,7 @@ export class DubberService extends DubberModelControls {
 
     const prevAvatarId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
 
-    const { id, url } = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/avatar', uploadedById: userId });
+    const { id, url } = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/avatar', uploadedById: userId });
 
     this.document.avatar = url;
     this.document.markModified('avatar');
@@ -594,7 +627,7 @@ export class DubberService extends DubberModelControls {
 
     const prevBannerId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
 
-    const { id, url } = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/banner', uploadedById: userId });
+    const { id, url } = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById: userId });
 
     this.document.banner = url;
     this.document.markModified('banner');

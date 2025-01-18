@@ -50,7 +50,7 @@ export class MiddlewareService {
     };
 
     if (!this.TestMode) {
-      const sessionData = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
+      const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
       DATA.id = sessionData.id;
       DATA.username = sessionData.username;
@@ -100,7 +100,7 @@ export class MiddlewareService {
     };
 
     if (!this.TestMode) {
-      const data = await FullkekwAuthorityAPI.getVerify({ token });
+      const data = await FullkekwAuthorityAPI.verifyToken({ token });
 
       DATA.origin = data.origin;
       DATA.verified = data.verified;

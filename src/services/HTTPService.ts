@@ -5,7 +5,7 @@ import https from 'https';
 import { HandleRequest } from './ErrorService';
 
 import { config } from '../config';
-import { singCSRFToken } from './TokenService';
+import { signCSRFToken } from './TokenService';
 
 
 
@@ -20,7 +20,7 @@ export const $http = axios.create({
 });
 
 $http.interceptors.request.use(async cfg => {
-  cfg.headers[config.vars.csrfHeader] = singCSRFToken();
+  cfg.headers[config.vars.csrfHeader] = signCSRFToken();
 
   return cfg;
 });
@@ -33,7 +33,7 @@ export const $upload = axios.create({
 });
 
 $upload.interceptors.request.use(async cfg => {
-  cfg.headers[config.vars.csrfHeader] = singCSRFToken();
+  cfg.headers[config.vars.csrfHeader] = signCSRFToken();
 
   return cfg;
 });

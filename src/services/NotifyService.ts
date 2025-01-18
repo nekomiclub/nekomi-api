@@ -121,7 +121,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await NekomiBotAPI.postBroadcast(broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -141,7 +141,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await NekomiBotAPI.postBroadcast(broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 
   users.forEach(async user => {
     user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
@@ -171,7 +171,7 @@ async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubb
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await NekomiBotAPI.postBroadcast(broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 }
 
 export const Notify = new NotifyService();

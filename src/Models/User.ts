@@ -223,7 +223,7 @@ export class UserService {
     try {
       // Upload banner
       const uploadedById = this.user.id;
-      const postData = await NekomiUploadsAPI.postUpload({ file, type: 'photo/user/banner', uploadedById });
+      const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
       UPLOAD_DATA.url = postData.url;
 
       // Remove previous banner if it not default

@@ -20,7 +20,7 @@ import { MongoDocumentDTO } from '~/core/Services/DTO';
 import { TRoleCapability } from '../Interfaces/Roles';
 import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
-import { singCSRFToken } from '../Services/TokenService';
+import { signCSRFToken } from '../Services/TokenService';
 import { updateSearch } from './root';
 
 
@@ -110,7 +110,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
       };
 
       if (!TestMode) {
-        const data = await FullkekwAuthorityAPI.getVerify({ token: CSRFToken });
+        const data = await FullkekwAuthorityAPI.verifyToken({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -360,7 +360,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     const { id: userID, username } = req.nekomi.user!;
 
     if (!key) {
-      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${singCSRFToken()}\n----------------`);
+      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${signCSRFToken()}\n----------------`);
       Logger.info(`[TitleController]: Title ${id} delete request by ${userID}/${username} detected. Delete token issued in server console`);
 
       throw new ERR_MISSING_AUTHORIZATION();
@@ -375,7 +375,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     };
 
     if (!TestMode) {
-      const data = await FullkekwAuthorityAPI.getVerify({ token: key });
+      const data = await FullkekwAuthorityAPI.verifyToken({ token: key });
 
       CSRF_DATA.verified = data.verified;
       CSRF_DATA.origin = data.origin;

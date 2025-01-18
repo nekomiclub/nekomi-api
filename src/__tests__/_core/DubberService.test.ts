@@ -304,19 +304,6 @@ describe('DubberService', () => {
 
       // Role must be appended in members list
       expect(dubberService.dubber.members.find(el => el.id === MemberId1)?.role).toBe('leader');
-
-
-
-      //* ERR_NAME_LENGTH_INVALID
-      try {
-
-
-        expect(true).toBeFalsy();
-      } catch (e) {
-        if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_length_invalid');
-        }
-      }
     });
 
     test('Exclude member', async () => {
@@ -332,30 +319,6 @@ describe('DubberService', () => {
 
       // User must be excluded from members list
       expect(dubberService.dubber.members.some(el => el.id === MemberId1)).toBeFalsy();
-
-
-
-      //* ERR_NAME_LENGTH_INVALID
-      try {
-
-
-        expect(true).toBeFalsy();
-      } catch (e) {
-        if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_length_invalid');
-        }
-      }
-
-      //* ERR_NAME_LENGTH_INVALID
-      try {
-
-
-        expect(true).toBeFalsy();
-      } catch (e) {
-        if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_length_invalid');
-        }
-      }
     });
   });
 });

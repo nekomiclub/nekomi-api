@@ -774,7 +774,7 @@ export class TitleService {
 
       // Upload poster
       if (!this.TestMode) {
-        const postData = await NekomiUploadsAPI.postUpload({ file, type: 'photo/title/poster', uploadedById: user.id });
+        const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
         UPLOAD_DATA.id = postData.id;
       } else {
         if (!mockData) throw new E500(`Mock data is not provided`);

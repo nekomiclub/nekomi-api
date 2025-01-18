@@ -4,7 +4,7 @@ import { Logger } from '~/Services/LoggerService';
 import { TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '~/config';
 
-interface IPostUploadProps {
+interface IUploadFileProps {
   file: Express.Multer.File
   uploadedById: string
   type: TUploadType
@@ -27,7 +27,7 @@ export class NekomiUploadsAPI {
     return new URL(url).pathname.replace('/', '');
   }
 
-  static async postUpload({ file, uploadedById, type, qualities }: IPostUploadProps) {
+  static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps) {
     const { buffer, originalname, mimetype } = file;
 
     const formData = new FormData();

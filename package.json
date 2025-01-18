@@ -9,7 +9,7 @@
     "dev-test": "npx nodemon devMode testMode",
     "start": "npx tsx ./src/index.ts prodMode",
     "test-all": "npx jest --silent",
-    "test": "npx jest --silent standalone",
+    "test": "npx jest --silent standalone _core",
     "build": "npx rimraf dist && npx eslint . --fix && git add . && npx tsc",
     "find-circular": "npx madge --circular --extensions ts .",
     "prepare": "husky"

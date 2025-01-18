@@ -63,7 +63,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
     // Validate session
     if (!TestMode) {
-      const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: session });
+      const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: session });
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
@@ -139,7 +139,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
     try {
       if (!TestMode) {
         // Sync nekomi data with fullkekw user api
-        const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
+        const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
         session.id = data.id;
         session.avatar = data.avatar;
@@ -205,7 +205,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
       if (!TestMode) {
         try {
-          const data = await FullkekwUserAPI.getAuthRefresh({ sessionCookie: token });
+          const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
           DATA.username = data.username;
         } catch (e) {
@@ -237,7 +237,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       };
 
       if (!TestMode) {
-        const data = await FullkekwAuthorityAPI.getVerify({ token: CSRFToken });
+        const data = await FullkekwAuthorityAPI.verifyToken({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;

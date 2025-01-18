@@ -8,7 +8,7 @@ interface IGetUserProps {
   id: string
 }
 
-interface IGetAuthRefreshProps {
+interface IRefreshAuthProps {
   sessionCookie: string
 }
 
@@ -31,7 +31,7 @@ export default class FullkekwUserAPI {
     return data;
   }
 
-  static async getAuthRefresh({ sessionCookie }: IGetAuthRefreshProps) {
+  static async refreshAuth({ sessionCookie }: IRefreshAuthProps) {
     const { data } = await $http.get<IFullkekwUserAPI_TokenData>(`${baseURL}/auth/refresh`, {
       headers: {
         Cookie: `session=${sessionCookie}`
