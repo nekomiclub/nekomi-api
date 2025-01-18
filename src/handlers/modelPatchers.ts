@@ -1,14 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
-import DubberModel from '../Models/Dubber';
+import DubberModel from '~/core/Models/DubberModel';
 import TitleModel from '../Models/Title';
 import UserModel from '../Models/User';
 import { HydratedDocument } from 'mongoose';
 import { ITitle } from '../Interfaces/Title';
 import { Logger } from '../Services/LoggerService';
 import { TitleService } from '../Models/Title';
-import { config } from '../config';
 import { getUTC } from './handler';
 
 
@@ -45,28 +44,7 @@ export async function patchDubberModel() {
   for (const key in dubbers) {
     const dubber = dubbers[key];
 
-    dubber.set('thumbURL', undefined, { strict: false });
-    dubber.set('rating', undefined, { strict: false });
-    dubber.set('leader', undefined, { strict: false });
-    dubber.set('editors', undefined, { strict: false });
-    dubber.set('membersInvitePending', undefined, { strict: false });
 
-    dubber.statistics = {
-      createdAt: dubber.createdAt
-    };
-
-    dubber.slug = dubber.code;
-    dubber.nameUkr = dubber.name;
-    dubber.nameEng = dubber.code;
-    dubber.banner = config.vars.defaultBanner;
-
-    dubber.members = [];
-    dubber.membersInvited = [];
-
-    dubber.set('statistics.created_at', undefined, { strict: false });
-    dubber.set('name_ukr', undefined, { strict: false });
-    dubber.set('name_eng', undefined, { strict: false });
-    dubber.set('members_invited', undefined, { strict: false });
 
     await dubber.save();
   }

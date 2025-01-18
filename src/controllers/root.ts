@@ -1,7 +1,7 @@
 import Fuse, { FuseResult } from 'fuse.js';
 import express from 'express';
 
-import Dubber from '../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
 import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import Title from '../Models/Title';
 import User from '../Models/User';
@@ -29,7 +29,7 @@ export type TSearchEngine = 'dubber' | 'user' | 'title';
 export async function updateSearch(specify?: TSearchEngine) {
   const titles = await Title.find();
   const users = await User.find();
-  const dubbers = await Dubber.find();
+  const dubbers = await new DubberService().getAll();
 
   if (specify === undefined || specify === 'title') {
     TitleSearch = new Fuse(titles.map(el => {
@@ -50,7 +50,7 @@ export async function updateSearch(specify?: TSearchEngine) {
   }
 
   if (specify === undefined || specify === 'dubber') {
-    DubberSearch = new Fuse(dubbers.map(el => new MongoDocumentDTO().dubber({ document: el })), {
+    DubberSearch = new Fuse(dubbers, {
       keys: ['code', 'id', 'name'],
       includeScore: true
     });

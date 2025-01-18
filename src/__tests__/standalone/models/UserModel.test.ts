@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { DubberService } from '../../../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../../Services/ErrorService';
 import { INTERNALS, config } from '../../../config';
 import { TNotifyEvent } from '../../../Interfaces/services/Notify';
@@ -29,6 +29,7 @@ describe('User Model', () => {
 
   const TestTitleID1 = `test-models_user--T1`;
   const TestDubberID1 = `test-models_user--D1`;
+  const TestDubberEng = `testmodelsuserda`;
 
   const TestID1 = `test-models_user--U1`;
   const TestUS1 = `testusername1`;
@@ -43,7 +44,7 @@ describe('User Model', () => {
     User = new UserService({ user });
 
     await UserService.create({ id: TestID2, username: TestUS2 });
-    await DubberService.create({ nameEng: TestDubberID1, id: TestDubberID1, nameUkr: TestDubberID1 });
+    await new DubberService({ TestMode: true }).create({ nameEng: TestDubberEng, DEV_ID: TestDubberID1, nameUkr: TestDubberID1 });
     await TitleService.create({
       id: TestTitleID1
     }, true);
@@ -57,7 +58,7 @@ describe('User Model', () => {
     await UserService.delete(TestID1, 'Test purge', 'many');
     await UserService.delete(TestID2, 'Test purge', 'many');
 
-    await DubberService.delete(TestDubberID1, 'Test purge', 'many');
+    await new DubberService({ TestMode: true }).deleteMany(TestDubberID1);
     await TitleService.delete(TestTitleID1, 'Test purge', 'many');
   }
 

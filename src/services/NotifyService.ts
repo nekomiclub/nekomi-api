@@ -1,13 +1,13 @@
-import Dubber from '../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
 import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
 import Title from '../Models/Title';
 import User from '../Models/User';
 import { AxiosError } from 'axios';
 import { DevelopmentMode } from '../config';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/Notify';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
 
 
 
@@ -103,8 +103,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
   const title = await Title.findOne({ id: titleID });
   if (!title) throw new E404(`Title ${titleID} is not found`);
 
-  const dubber = await Dubber.findOne({ id: dubberID });
-  if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
+  const dubber = await new DubberService().getById(dubberID);
 
   if (isNaN(+episodeOrder)) throw new ERR_INVALID_PAYLOAD(`Episode order can not be NaN`);
 
@@ -114,7 +113,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
     participants: users.map(el => el.telegramData!.id!),
     data: {
       title: new MongoDocumentDTO().anime({ document: title }),
-      dubber: new MongoDocumentDTO().dubber({ document: dubber }),
+      dubber: new DocumentDTO().dubber({ object: dubber }),
       episodeOrder,
     }
   };
@@ -155,8 +154,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberInvite>) {
   const { dubber_id, user_id } = payload;
 
-  const dubber = await Dubber.findOne({ id: dubber_id });
-  if (!dubber) throw new E404(`Dubber ${dubber_id} is not found`);
+  const dubber = await new DubberService().getById(dubber_id);
 
   const user = await User.findOne({ id: user_id });
   if (!user) throw new E404(`User ${user_id} is not found`);
@@ -165,7 +163,7 @@ async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubb
     event,
     participants: [user.telegramData!.id!],
     data: {
-      dubber: new MongoDocumentDTO().dubber({ document: dubber })
+      dubber: new DocumentDTO().dubber({ object: dubber })
     }
   };
 

@@ -1,14 +1,13 @@
-import Dubber from '../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
 import express from 'express';
 import { HandleRequest } from '../Services/ErrorService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
 
 
 
 export async function getAll(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const dubbers = await Dubber.find();
+    const dubbers = await new DubberService().getAll();
 
-    return res.status(200).json({ message: 'ok', dubbers: dubbers.map(dubber => new MongoDocumentDTO().dubber({ document: dubber })) });
+    return res.status(200).json({ message: 'ok', dubbers });
   });
 }
