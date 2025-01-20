@@ -1,6 +1,6 @@
 {
   "watch": [
-    "./"
+    "./src"
   ],
   "ext": ".ts",
   "ignore": [
@@ -8,5 +8,5 @@
     "dist",
     "src/__tests__"
   ],
-  "exec": "npx eslint . --fix --ext .ts && npx tsx ./src/index.ts"
+  "exec": "npx eslint . --fix && npx tsx ./src/index.ts"
 }

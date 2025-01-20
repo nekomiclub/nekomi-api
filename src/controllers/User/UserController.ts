@@ -45,10 +45,15 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
       const isInvitePending = user.subscribes.includes(NotifyService.createEvent({ event: 'dubber_invite_pending', key: parseInvitationStatusFor }));
       const isOthersMemberAlready = user.statistics.dubber_team_member;
 
-      if (isTelegramNotLinked) invitationStatus = 'telegram_not_linked';
-      else if (isInvitePending) invitationStatus = 'invite_pending';
-      else if (isOthersMemberAlready) invitationStatus = 'others_member_already';
-      else invitationStatus = 'can_be_invited';
+      if (isTelegramNotLinked) {
+        invitationStatus = 'telegram_not_linked';
+      } else if (isInvitePending) {
+        invitationStatus = 'invite_pending';
+      } else if (isOthersMemberAlready) {
+        invitationStatus = 'others_member_already';
+      } else {
+        invitationStatus = 'can_be_invited';
+      }
     }
 
     results.push({

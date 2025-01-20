@@ -27,6 +27,8 @@ interface IUserCreate {
 
   avatar?: string
   TestMode?: boolean
+
+  TEST_DUBBER_TEAM_MEMBER?: string
   TEST_IS_TELEGRAM_LINKED?: boolean
 }
 
@@ -88,7 +90,7 @@ export class UserService {
 
 
 
-  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode }: IUserCreate): Promise<HydratedDocument<IUser>> {
+  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode, TEST_DUBBER_TEAM_MEMBER }: IUserCreate): Promise<HydratedDocument<IUser>> {
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
@@ -150,6 +152,7 @@ export class UserService {
     ];
 
     const isTelegramLinked = TestMode && TEST_IS_TELEGRAM_LINKED ? TEST_IS_TELEGRAM_LINKED : false;
+    const dubberTeamMember = TestMode && TEST_DUBBER_TEAM_MEMBER ? TEST_DUBBER_TEAM_MEMBER : null;
 
     const payload: IUser = {
       id,
@@ -162,7 +165,7 @@ export class UserService {
         accountCreated: getUTC().timestamp,
         isTelegramLinked,
         viewtime: 0,
-        dubber_team_member: null,
+        dubber_team_member: dubberTeamMember,
       },
       togetherRooms: [],
       subscribes: [],

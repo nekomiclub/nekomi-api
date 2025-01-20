@@ -6,6 +6,7 @@ import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import Title from '../Models/Title';
 import User from '../Models/User';
 import { AxiosError } from 'axios';
+import { DevelopmentMode, config } from '../config';
 import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../Services/ErrorService';
 import { IDubber } from '~/core/Interfaces/IDubber';
 import { ITitle } from '../Interfaces/Title';
@@ -14,7 +15,6 @@ import { Logger } from '../Services/LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
 import { TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { checkValue } from '../handlers/handlers';
-import { config } from '../config';
 
 
 
@@ -164,6 +164,7 @@ export async function getSearch(req: express.Request, res: express.Response) {
           matches.forEach(match => rawResults.push({ type: 'user', item: match }));
         }
       } catch (e) {
+        if (DevelopmentMode) console.error(e);
         throw new ERR_NOT_READY();
       }
     }

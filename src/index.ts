@@ -116,9 +116,9 @@ wss.on('listening', () => {
 //* HTTP server
 (async function () {
   const REPETATIVE_HANDLERS = [
-    updateSearch,
-    removeUsersLinkTelegramToken,
-    Cache.forcePurge
+    await updateSearch(),
+    await removeUsersLinkTelegramToken(),
+    Cache.forcePurge()
   ] as const;
 
   wss.on('connection', WebsocketRouter);

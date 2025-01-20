@@ -4,7 +4,7 @@ import UserModel, { UserService } from '../../Models/User';
 import validator from 'validator';
 import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../Services/ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { IDubber, TDubberMemberRole } from '../Interfaces/IDubber';
+import { IDubber, IDubberMember, TDubberMemberRole } from '../Interfaces/IDubber';
 import { INotifyDubberInvite } from '../../Interfaces/services/Notify';
 import { Logger } from '../../Services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
@@ -21,6 +21,9 @@ interface IDubberCreateProps {
 
   /** Set dubber id. Only in test mode */
   DEV_ID?: string
+
+  TEST_MEMBERS?: IDubberMember[]
+  TEST_MEMBERS_INVITED?: string[]
 }
 
 interface IDubberCRUDProps {
@@ -125,7 +128,7 @@ class DubberModelControls implements TDubberModelControls {
 
 
   async create(props: IDubberCreateProps): Promise<IDubber> {
-    const { DEV_ID } = props;
+    const { DEV_ID, TEST_MEMBERS, TEST_MEMBERS_INVITED } = props;
     let { nameUkr, nameEng } = props;
 
     nameUkr = trimString(nameUkr);
@@ -144,6 +147,11 @@ class DubberModelControls implements TDubberModelControls {
 
 
 
+    const members = this.TestMode && TEST_MEMBERS?.length ? TEST_MEMBERS : [];
+    const membersInvited = this.TestMode && TEST_MEMBERS_INVITED?.length ? TEST_MEMBERS_INVITED : [];
+
+
+
     const instance: IDubber = {
       id,
       nameUkr,
@@ -153,8 +161,8 @@ class DubberModelControls implements TDubberModelControls {
       avatar: config.vars.defaultAvatar,
       banner: config.vars.defaultBanner,
       description: null,
-      members: [],
-      membersInvited: [],
+      members,
+      membersInvited,
       socials: {
         instagram: null,
         telegram: null,
@@ -347,7 +355,7 @@ export class DubberService extends DubberModelControls {
       if (value !== null) {
         const { host } = new URL(value);
 
-        if (key === 'bymeacoffee' && host !== 'bymeacoffee.com') throw null;
+        if (key === 'bymeacoffee' && host !== 'buymeacoffee.com') throw null;
         if (key === 'diaka' && host !== 'diaka.ua') throw null;
         if (key === 'monobank' && host !== 'send.monobank.ua') throw null;
         if (key === 'patreon' && host !== 'patreon.com') throw null;
@@ -476,7 +484,7 @@ export class DubberService extends DubberModelControls {
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
     if (declineInvite && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
-    if (!this.document.members.some(el => el.id === id)) throw new E404(`User ${id} is not found in this team`);
+    if (!declineInvite && !this.document.members.some(el => el.id === id)) throw new E404(`User ${id} is not found in this team`);
 
     Logger.info(`[DubberService]: Deleting user from the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 

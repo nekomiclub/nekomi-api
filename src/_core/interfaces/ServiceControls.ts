@@ -1,4 +1,4 @@
-export default interface ServiceControls<CREATE, OUT_DOC> {
+interface ServiceControls<CREATE, OUT_DOC> {
   /** Create the document */
   create(props: CREATE): Promise<OUT_DOC>
   /** Delete the document */
@@ -12,3 +12,7 @@ export default interface ServiceControls<CREATE, OUT_DOC> {
   /** Get list of all documents */
   getAll(details?: boolean): Promise<OUT_DOC[]>
 }
+
+
+
+export default ServiceControls;

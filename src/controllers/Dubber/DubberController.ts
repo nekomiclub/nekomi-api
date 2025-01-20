@@ -46,7 +46,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       dubbedAnime = cached;
     } else {
-      const titles = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
+      const titles = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
       const withDubbing = titles.filter(title => {
         return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
       });
@@ -184,7 +184,6 @@ async function PutBanner({ currentUser, dubberId, file }: IDubberPutBannerProps)
 //* ===================================== PATCH SETTINGS
 export interface IDubberPatchSettingsProps {
   dubberId: string
-  userId: string
   currentUser: IEXPRESS_REQ_NEKOMI_USER
   nameUkr?: string
   nameEng?: string
@@ -293,6 +292,7 @@ async function PostInviteAccept({ dubberId, userId }: IDubberPostInviteSADProps)
   await dubberService.init(dubberId);
 
   await dubberService.memberAdd({ id: userId, checkInvitation: true });
+  Cache.purgeCategory('dubber:parsed_members');
 
   return {
     status: 200,
@@ -341,6 +341,7 @@ async function PatchMemberById({ dubberId, userId, role, currentUser }: IDubberP
   if (typeof role === 'string') await dubberService.memberEdit({ id: userId, role });
 
   await dubberService.save();
+  Cache.purgeCategory('dubber:parsed_members');
 
   return {
     status: 200,
@@ -368,6 +369,7 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
 
   await dubberService.memberDelete({ id: userId, declineInvite: false });
+  Cache.purgeCategory('dubber:parsed_members');
 
   return {
     status: 200,

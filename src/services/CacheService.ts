@@ -44,6 +44,13 @@ class CacheService {
     Logger.debug(`[CacheService]: Forced cache purge completed`);
   }
 
+  /** Purge categorory */
+  purgeCategory(DEFINE_KEY: string) {
+    this.Cached = this.Cached.filter(el => el.data.DEFINE_KEY !== DEFINE_KEY);
+
+    Logger.debug(`[CacheService]: Category ${DEFINE_KEY} purged`);
+  }
+
   push<T>(el: T) {
     if (DevelopmentMode) return Logger.debug(`[CacheService (DEV)]: Cache push passed due to development mode`);
 

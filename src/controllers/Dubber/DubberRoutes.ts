@@ -116,9 +116,8 @@ const patchSettings = HTTPEndpoint(async (req, res) => {
   if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED('checkAccess');
 
   const { dubberId, description, nameEng, nameUkr, socialLinks, supportLinks } = req.body as IDubberPatchSettingsProps;
-  const { id: userId } = req.nekomi.user!;
 
-  const { status, message, dubber } = await DubberController.PatchSettings({ dubberId, userId, description, nameEng, nameUkr, socialLinks, supportLinks, currentUser: req.nekomi.user! });
+  const { status, message, dubber } = await DubberController.PatchSettings({ dubberId, description, nameEng, nameUkr, socialLinks, supportLinks, currentUser: req.nekomi.user! });
 
   return res.status(status).json({ message, dubber });
 });

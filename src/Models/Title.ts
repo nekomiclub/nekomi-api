@@ -49,6 +49,8 @@ interface ITitleCreate {
   episodesCount?: number
   mal_id?: string
   poster?: string
+
+  TEST_EPISODES?: ITitleEpisode[]
 }
 
 interface IPatchNames {
@@ -134,7 +136,7 @@ export class TitleService {
     if (TestMode) this.TestMode = TestMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
     const ID = TestMode && id ? id : createUUID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
@@ -150,6 +152,10 @@ export class TitleService {
 
 
 
+    const episodes = TestMode && TEST_EPISODES?.length ? TEST_EPISODES : [];
+
+
+
     const payload: ITitle = {
       id: ID,
       code,
@@ -162,7 +168,7 @@ export class TitleService {
       country: country || 'Other',
       description: description || 'Це новий тайтл на nekomi.club :)',
       details: details || 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері nekomi.',
-      episodes: [],
+      episodes,
       episodesCount: episodesCount || null,
       episodesMeta: [],
       genres: genres || [],
