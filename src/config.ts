@@ -58,23 +58,33 @@ const DOMAIN = {
 export const STATIC = {
   HomeWrapped: {
     featured: ProductionMode ? [{
-      id: '1db09f56-4ca8-4f11-9f6d-ca27ab682165',
-      backgroundURL: 'https://media.nekomi.club/21df5d21-c78f-4e5b-a101-65ead751310e',
-      videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
+      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
     }] : [{
       id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
       backgroundURL: 'https://media.nekomi.club/21df5d21-c78f-4e5b-a101-65ead751310e',
       videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
+    }, {
+      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
     }],
 
 
     popular: ProductionMode ? [
-      '10132d3e-366a-484b-8caa-be4d97e51f6b',
-      '33f283ac-0c22-4266-8ced-96292fe7ce7e',
-      '18be952e-40ae-4527-9266-042e3d813012',
-      '72d081e4-7783-4e2e-8dc8-b6fcd8926964',
-      'b4229fae-5908-4488-874d-57dce31d2ad7',
-      '0b342f7c-515a-4f58-b309-2de334f79dc8',
+      'f846581c-0c8c-4d73-84aa-76d5ed928453',
+      '89186167-012a-4f2f-baba-386506219499',
+      'd59f2791-06b7-4288-910b-2d63532529c7',
+      '185a03d1-43e6-40aa-87ee-604ace1ad872',
+      '0bb51720-4797-40c5-9898-e8b2aba90f27',
+      'd25f540d-c1a9-41b5-923f-d0eae93dce9b',
+      '3fd37e65-c7a5-415f-bb14-8fb248cfe3bb',
+      '9df91c38-1cb3-49ca-ae42-d43be59afe89',
+      'e395bd75-fa4e-4971-a175-84d6392ec8db',
+      'fa4b5af3-977d-4ca7-8e22-a65eb45ae061',
+      'a0993d0e-3088-4a79-b3b5-00b3104b2f74',
+      '354205aa-14e3-4b3c-8b72-6f96a1effdee',
     ] : [
       '627690b0-f0c1-490d-b50e-c5ace32cd563',
       '2e546c6f-8545-4ea4-b9b9-3533d860d36a',

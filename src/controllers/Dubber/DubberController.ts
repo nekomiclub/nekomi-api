@@ -292,6 +292,8 @@ async function PostInviteAccept({ dubberId, userId }: IDubberPostInviteSADProps)
   await dubberService.init(dubberId);
 
   await dubberService.memberAdd({ id: userId, checkInvitation: true });
+
+  Search.update('user');
   Cache.purgeCategory('dubber:parsed_members');
 
   return {
@@ -309,6 +311,8 @@ async function PostInviteDecline({ dubberId, userId }: IDubberPostInviteSADProps
   await dubberService.init(dubberId);
 
   await dubberService.memberDelete({ id: userId, declineInvite: true });
+
+  Search.update('user');
 
   return {
     status: 200,
@@ -369,6 +373,8 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
 
   await dubberService.memberDelete({ id: userId, declineInvite: false });
+
+  Search.update('user');
   Cache.purgeCategory('dubber:parsed_members');
 
   return {

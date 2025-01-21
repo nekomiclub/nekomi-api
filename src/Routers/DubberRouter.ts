@@ -8,8 +8,11 @@ const DubberRouter = express.Router();
 
 
 //* Generic
-DubberRouter.get(`/:query`, DubberRoutes.GetOne);
 DubberRouter.get(`/search`, DubberRoutes.GetSearch);
+/** @deprecated use dubber/search?q=~all instead */
+DubberRouter.get(`/all`, DubberControllerOld.getAll);
+DubberRouter.get(`/:query`, DubberRoutes.GetOne);
+
 DubberRouter.put(`/avatar`, DubberRoutes.PutAvatar);
 DubberRouter.put(`/banner`, DubberRoutes.PutBanner);
 
@@ -28,8 +31,6 @@ DubberRouter.delete(`/member`, DubberRoutes.DeleteMemberById);
 
 
 //! DEPRECATED
-/** @deprecated use dubber/search?q=~all instead */
-DubberRouter.get(`/all`, DubberControllerOld.getAll);
 
 
 
