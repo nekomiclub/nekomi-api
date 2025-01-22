@@ -61,10 +61,14 @@ export const STATIC = {
       id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
       backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
       videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+    }, {
+      id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
+      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
     }] : [{
       id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-      backgroundURL: 'https://media.nekomi.club/21df5d21-c78f-4e5b-a101-65ead751310e',
-      videoURL: 'https://media.nekomi.club/3c3407d5-7ec7-40b1-a564-1180950c0f08'
+      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
     }, {
       id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
       backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
