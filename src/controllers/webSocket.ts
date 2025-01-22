@@ -3,12 +3,12 @@ import http from 'http';
 
 import UserModel from '../Models/User';
 import validator from 'validator';
-import { E403, E404, E501, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_MISSING_AUTHORIZATION, HTTPErrorConstructor } from '../services/ErrorService';
-import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, IWS_WTConnect, IWS_WTMessage, IWS_WTSync, Message, Request, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '../interfaces/WebSocket';
-import { Logger } from '../services/LoggerService';
-import { MiddlewareService } from '../services/MiddlewareService';
-import { WebSocketExtended } from '../interfaces/globals';
-import { config, devMode } from '../config';
+import { DevelopmentMode, config } from '../config';
+import { E403, E404, E501, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_MISSING_AUTHORIZATION, HTTPErrorConstructor } from '../Services/ErrorService';
+import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, IWS_WTConnect, IWS_WTMessage, IWS_WTSync, Message, Request, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '../Interfaces/WebSocket';
+import { Logger } from '../Services/LoggerService';
+import { MiddlewareService } from '../Services/MiddlewareService';
+import { WebSocketExtended } from '../Interfaces/globals';
 import { getUTC } from '../handlers/handler';
 import { wss } from '../index';
 
@@ -82,7 +82,7 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
     } catch (e) {
       if (e instanceof HTTPErrorConstructor) {
         const emsg = `[WebSocket/${e.status}]: ${e.code} - ${e.message}`;
-        if (devMode) console.error(chalk.red(emsg));
+        if (DevelopmentMode) console.error(chalk.red(emsg));
 
         if (e.status >= 500) {
           Logger.error(emsg);
@@ -151,7 +151,7 @@ async function site_connected({ ws, message }: IWS_Route, IP: string) {
   if (!OnlineClients.includes(id)) {
     OnlineClients.push(id);
   } else {
-    if (!devMode) return;
+    if (!DevelopmentMode) return;
 
     const response: Response = {
       type: 'ok',
@@ -189,7 +189,7 @@ async function site_disconnected({ ws, message }: IWS_Route, IP: string) {
   if (OnlineClients.some(el => el === IP || el === payload.SID)) {
     OnlineClients = OnlineClients.filter(el => el !== IP && el !== payload.SID);
   } else {
-    if (!devMode) return;
+    if (!DevelopmentMode) return;
 
     const response: Response = {
       type: 'ok',

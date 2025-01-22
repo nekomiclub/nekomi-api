@@ -1,9 +1,18 @@
 import { WebSocket } from 'ws';
 
 import { IUserTogetherRoom } from './User';
-import { TMiddlewareName } from '../services/MiddlewareService';
+import { TMiddlewareName } from '../Services/MiddlewareService';
 import { TRoleCapability } from './Roles';
 import { TWS_Group } from './WebSocket';
+
+
+export interface IEXPRESS_REQ_NEKOMI_USER {
+  id: string
+  username: string
+  capabilities: TRoleCapability[]
+}
+
+
 
 declare global {
   namespace Express {
@@ -11,13 +20,9 @@ declare global {
       /** Nekomi internal data */
       nekomi: {
         /** Request user
-         * @requires FkUsapiAuthRefresh middleware
+         * @requires CheckAccess middleware
          */
-        user?: {
-          id: string
-          username: string
-          capabilities: TRoleCapability[]
-        }
+        user?: IEXPRESS_REQ_NEKOMI_USER
 
         /** Request passed middlewares */
         middlewaresPassed?: TMiddlewareName[]

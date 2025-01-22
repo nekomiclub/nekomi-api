@@ -1,4 +1,4 @@
-import { IDubber } from '../Dubber';
+import { IDubber } from '~/core/Interfaces/IDubber';
 import { ITitle } from '../Title';
 
 export const NOTIFY_EVENTS = [

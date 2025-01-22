@@ -1,30 +1,25 @@
 export type TDubberMemberRole = 'leader' | 'editor' | 'member'
 
-/** Dubber interface */
 export interface IDubber {
   id: string
   slug: string
   avatar: string
   description: string | null
+  banner: string
+  nameEng: string
+  nameUkr: string
+
+  /** @private */
   members: IDubberMember[]
 
-  /** Invited members IDs */
+  /** Invited members IDs
+   * @private
+   */
   membersInvited: string[]
 
 
-  /** @since 1.3.2 */
-  banner: string
-
-  /** @since 1.3.2 */
-  nameUkr: string
-
-  /** @since 1.3.2 */
-  nameEng: string
-
-
-
   statistics: {
-    /** Creation UTC0 timestamp */
+    /** UTC-0 timestamp */
     createdAt: number
   }
 
@@ -50,7 +45,7 @@ export interface IDubber {
    */
   createdAt: number
 
-  /** @deprecated use name_ukr instead */
+  /** @deprecated redundant */
   name: string
 
   /** @deprecated use slug instead */
@@ -61,6 +56,10 @@ export interface IDubberMember {
   id: string
   role: TDubberMemberRole
 
-  /** Member since UTC0 timestamp */
+  /** UTC-0 timestamp */
   memberSince: number
 }
+
+
+
+export default IDubber;

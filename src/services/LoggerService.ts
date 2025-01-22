@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
+import { getUTC } from '../handlers/handler';
 
 export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace', 'suspicious'] as const;
 export type TLogType = typeof LOG_TYPES[number];
@@ -29,7 +29,7 @@ class LoggerService {
   /** Write log */
   private append({ msg, type, e }: { type: TLogType, msg: string, e?: any }) {
     const emsg = e?.msg || e?.message || e?.data?.message || e?.data?.msg || e?.response?.data?.message || e?.response?.data?.message;
-    const date = `${getUTC().fulldate}/${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}:${getUTC().ms < 100 ? `0${addZeroIfNumberSingle(getUTC().ms)}` : getUTC().ms}`;
+    const date = `${getUTC().fulldate}/${getUTC().time}.${String(getUTC().secs).padStart(2, '0')}:${String(getUTC().ms).padStart(4, '0')}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
     const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;

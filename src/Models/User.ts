@@ -2,23 +2,23 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 
 import * as cfg from '../config';
 import DubberModel from './Dubber';
+import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import Role from './Role';
 import Title, { TitleModel } from './Title';
 import validator from 'validator';
-import { $http } from '../handlers/http';
 import { AxiosError } from 'axios';
-import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS } from '../interfaces/http/Uploads';
-import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { TNotifyEvent } from '../interfaces/services/Notify';
+import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../Services/ErrorService';
+import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { TNotifyEvent } from '../Interfaces/services/Notify';
 import { config } from '../config';
-import { createID, createStringID, getUTC } from '../handlers/handler';
+import { createStringID, createUUID, getUTC } from '../handlers/handler';
 
 
 
 interface IUserServiceProps {
   user: HydratedDocument<IUser>
+  TestMode?: boolean
 }
 
 interface IUserCreate {
@@ -26,6 +26,10 @@ interface IUserCreate {
   username: string
 
   avatar?: string
+  TestMode?: boolean
+
+  TEST_DUBBER_TEAM_MEMBER?: string
+  TEST_IS_TELEGRAM_LINKED?: boolean
 }
 
 interface IPatchLib {
@@ -77,14 +81,16 @@ export const UserModel = mongoose.model<IUser>('user', new Schema({
 export class UserService {
   readonly user: HydratedDocument<IUser>;
   readonly stack: string[] = [];
+  readonly TestMode: boolean = false;
 
-  constructor({ user }: IUserServiceProps) {
+  constructor({ user, TestMode }: IUserServiceProps) {
     this.user = user;
+    this.TestMode = Boolean(TestMode);
   }
 
 
 
-  static async create({ id, username, avatar }: IUserCreate): Promise<HydratedDocument<IUser>> {
+  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode, TEST_DUBBER_TEAM_MEMBER }: IUserCreate): Promise<HydratedDocument<IUser>> {
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
@@ -94,7 +100,7 @@ export class UserService {
     const libs: IUserLib[] = [
       {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -104,7 +110,7 @@ export class UserService {
         type: 'favorite'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -114,7 +120,7 @@ export class UserService {
         type: 'watched'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: false,
           immortal: true,
@@ -124,7 +130,7 @@ export class UserService {
         type: 'watching'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: true,
           immortal: true,
@@ -134,7 +140,7 @@ export class UserService {
         type: 'plans'
       }, {
         createdAt: getUTC().timestamp,
-        id: createID(),
+        id: createUUID(),
         settings: {
           hidden: true,
           immortal: true,
@@ -145,18 +151,21 @@ export class UserService {
       }
     ];
 
+    const isTelegramLinked = TestMode && TEST_IS_TELEGRAM_LINKED ? TEST_IS_TELEGRAM_LINKED : false;
+    const dubberTeamMember = TestMode && TEST_DUBBER_TEAM_MEMBER ? TEST_DUBBER_TEAM_MEMBER : null;
+
     const payload: IUser = {
       id,
       username,
       avatar: avatar || config.vars.defaultAvatar,
-      banner: config.vars.defaultUserBanner,
+      banner: config.vars.defaultBanner,
       libs,
       roles: ['user'],
       statistics: {
         accountCreated: getUTC().timestamp,
-        isTelegramLinked: false,
+        isTelegramLinked,
         viewtime: 0,
-        dubber_team_member: null,
+        dubber_team_member: dubberTeamMember,
       },
       togetherRooms: [],
       subscribes: [],
@@ -210,33 +219,22 @@ export class UserService {
 
   /** Upload profile banner. Will save the document */
   async uploadBanner({ file }: { file: Express.Multer.File }) {
-    const { buffer, originalname, filename, mimetype } = file;
-    const formData = new FormData();
-
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', this.user.id);
-    formData.set('type', 'photo/user/banner');
-
     const UPLOAD_DATA: { url: string } = {
       url: ''
     };
 
     try {
       // Upload banner
-      const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
+      const uploadedById = this.user.id;
+      const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
       UPLOAD_DATA.url = postData.url;
 
       // Remove previous banner if it not default
-      if (this.user.banner !== config.vars.defaultUserBanner) {
+      if (this.user.banner !== config.vars.defaultBanner) {
         const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
+        const deletedById = this.user.id;
 
-        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-          params: {
-            by: this.user.id
-          }
-        });
+        await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById });
       }
     } catch (e) {
       if (e instanceof AxiosError) {

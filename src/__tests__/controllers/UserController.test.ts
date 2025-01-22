@@ -3,12 +3,12 @@ import request from 'supertest';
 
 import Title, { TitleService } from '../../Models/Title';
 import UserModel, { UserService } from '../../Models/User';
-import { IFK_UsapiAuthRefresh } from '../../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../interfaces/Mocks';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/Mocks';
 import { INTERNALS, config } from '../../config';
-import { IUser } from '../../interfaces/User';
-import { NotifyService } from '../../services/NotifyService';
-import { createID, getUTC } from '../../handlers/handler';
+import { IUser } from '../../Interfaces/User';
+import { NotifyService } from '../../Services/NotifyService';
+import { createUUID, getUTC } from '../../handlers/handler';
 
 beforeAll(() => {
   const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
@@ -99,7 +99,7 @@ describe('User controller', () => {
 
   describe('GET /user/validate', () => {
     // Should refresh usapi session and sync usapi & nekomi user object
-    const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+    const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
       id: 'FkUsapiAuthRefresh',
       code: 200,
       data: {
@@ -165,7 +165,7 @@ describe('User controller', () => {
     });
 
     test('200 - Get user data by session', async () => {
-      const UsapiRefreshMock: IMock<IFK_UsapiAuthRefresh> = {
+      const UsapiRefreshMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
@@ -254,7 +254,7 @@ describe('User controller', () => {
 
   describe('POST /user/signin', () => {
     test('200 - Login exist user', async () => {
-      const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+      const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
@@ -275,7 +275,7 @@ describe('User controller', () => {
     });
 
     test('201 - Create new account', async () => {
-      const usapiMock: IMock<IFK_UsapiAuthRefresh> = {
+      const usapiMock: IMock<IFullkekwUserAPI_TokenData> = {
         id: 'FkUsapiAuthRefresh',
         code: 200,
         data: {
@@ -383,7 +383,7 @@ describe('User controller', () => {
       await request(baseURL)
         .post('/user/linkTelegram/verify')
         .send({
-          token: createID()
+          token: createUUID()
         })
         .set(config.vars.csrfHeader, '_MOCKED')
         .set(config.vars.mockHeader, JSON.stringify([BotCSRF]))

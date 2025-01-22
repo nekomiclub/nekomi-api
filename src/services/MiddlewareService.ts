@@ -1,31 +1,33 @@
 import * as cfg from '../config';
 
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import User from '../Models/User';
-import { $http } from '../handlers/http';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
 import { HydratedDocument } from 'mongoose';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../interfaces/Mocks';
-import { IUser } from '../interfaces/User';
-import { TRoleCapability } from '../interfaces/Roles';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/Mocks';
+import { IUser } from '../Interfaces/User';
+import { TRoleCapability } from '../Interfaces/Roles';
 import { parseRoles } from '../Models/Role';
 
+
+
 interface Props {
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
+
 export class MiddlewareService {
-  private testMode = cfg.testMode;
+  private TestMode = cfg.TestMode;
 
   constructor(props?: Props) {
     if (props) {
-      const { testMode } = props;
+      const { TestMode } = props;
 
-      this.testMode = testMode !== undefined ? testMode : cfg.testMode;
+      this.TestMode = TestMode !== undefined ? TestMode : cfg.TestMode;
     }
   }
 
@@ -47,12 +49,8 @@ export class MiddlewareService {
       capabilities: []
     };
 
-    if (!this.testMode) {
-      const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-        headers: {
-          Cookie: `session=${token}`
-        }
-      });
+    if (!this.TestMode) {
+      const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
       DATA.id = sessionData.id;
       DATA.username = sessionData.username;
@@ -74,7 +72,7 @@ export class MiddlewareService {
     //* Pass if no capabilities required
     if (!capabilities.length) return { user, capabilities: [] };
 
-    const caps = this.testMode ? DATA.capabilities : await parseRoles(user.roles);
+    const caps = this.TestMode ? DATA.capabilities : await parseRoles(user.roles);
 
     //* Pass if user is root
     if (caps.includes('root')) return { user, capabilities: caps };
@@ -101,13 +99,11 @@ export class MiddlewareService {
       verified: false
     };
 
-    if (!this.testMode) {
-      const response = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-        token
-      });
+    if (!this.TestMode) {
+      const data = await FullkekwAuthorityAPI.verifyToken({ token });
 
-      DATA.origin = response.data.origin;
-      DATA.verified = response.data.verified;
+      DATA.origin = data.origin;
+      DATA.verified = data.verified;
     } else {
       if (!mockData) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
 

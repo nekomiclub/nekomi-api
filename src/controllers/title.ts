@@ -1,25 +1,26 @@
 import express from 'express';
 
-import * as dto from '../handlers/dtos';
-
-import Cache from '../services/CacheService';
+import Cache from '~/Services/CacheService';
 import Dubber from '../Models/Dubber';
-import Title, { TitleService } from '../Models/Title';
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
+import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '../handlers/http';
-import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_NOT_READY, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '../interfaces/http/Uploads';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
-import { IDubber } from '../interfaces/Dubber';
-import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
-import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../interfaces/Title';
-import { IUserWatchProgress } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { TRoleCapability } from '../interfaces/Roles';
-import { config, testMode } from '../config';
+import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
+import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
+import { ICacheHomeWrapped } from '~/Interfaces/services/Cache';
+import { IDubber } from '~/core/Interfaces/IDubber';
+import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
+import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
+import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/Title';
+import { IUserWatchProgress } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { MiddlewareService } from '~/Services/MiddlewareService';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { TRoleCapability } from '../Interfaces/Roles';
+import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
-import { singCSRFToken } from '../services/TokenService';
+import { signCSRFToken } from '../Services/TokenService';
 import { updateSearch } from './root';
 
 
@@ -103,15 +104,13 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
     // Check if client can get detailed data
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFK_AuthorityVerify = {
+      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
 
-      if (!testMode) {
-        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-          token: CSRFToken
-        });
+      if (!TestMode) {
+        const data = await FullkekwAuthorityAPI.verifyToken({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -134,7 +133,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
       title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
 
-      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => dto.dubber(dubber.toObject(), privateMode));
+      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => new MongoDocumentDTO().dubber({ document: dubber, details: !privateMode }));
     }
 
     // TODO add sync with hikka.io
@@ -156,7 +155,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     //   Logger.info(`Title ${title.id} synced with hikka.io`);
     // }
 
-    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: dto.title(title.toObject(), privateMode), parsedDubbers });
+    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: new MongoDocumentDTO().anime({ document: title, details: !privateMode }), parsedDubbers });
   });
 }
 
@@ -180,7 +179,7 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
     updateSearch('title');
 
-    return res.status(201).json({ message: 'New title created', id: title.id, title: dto.title(title.toObject()) });
+    return res.status(201).json({ message: 'New title created', id: title.id, title: new MongoDocumentDTO().anime({ document: title }) });
   });
 }
 
@@ -361,7 +360,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
     const { id: userID, username } = req.nekomi.user!;
 
     if (!key) {
-      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${singCSRFToken()}\n----------------`);
+      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${signCSRFToken()}\n----------------`);
       Logger.info(`[TitleController]: Title ${id} delete request by ${userID}/${username} detected. Delete token issued in server console`);
 
       throw new ERR_MISSING_AUTHORIZATION();
@@ -375,10 +374,8 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       verified: false
     };
 
-    if (!testMode) {
-      const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-        token: key
-      });
+    if (!TestMode) {
+      const data = await FullkekwAuthorityAPI.verifyToken({ token: key });
 
       CSRF_DATA.verified = data.verified;
       CSRF_DATA.origin = data.origin;
@@ -405,10 +402,51 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
   await HandleRequest(req, res, async () => {
     if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    if (!Cache.HomeWrapped.featured.length) throw new ERR_NOT_READY();
+    let HomeWrapped: ICacheHomeWrapped = {
+      featured: [],
+      hightRated: [],
+      popular: [],
+      updatedRecently: []
+    };
+
+    const cache = Cache.getHomeWrapped();
+
+    if (cache) {
+      HomeWrapped = cache;
+    } else {
+      const titles = await TitleModel.find();
+
+      // Parse featured
+      for (const key in config.STATIC.HomeWrapped.featured) {
+        const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
+
+        const title = await TitleModel.findOne({ id: id });
+        if (!title) throw new E404(`Title ${id} is not found in featured data`);
+
+        HomeWrapped.featured.push({
+          ...new MongoDocumentDTO().anime({ document: title }),
+          backgroundURL,
+          videoURL
+        });
+      }
+
+      // Parse popular
+      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => new MongoDocumentDTO().anime({ document: el }));
+
+      // Fetch recently updated
+      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
+
+      // Fetch hight rated
+      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
+
+      Cache.push<Required<ICacheHomeWrapped>>({
+        DEFINE_KEY: 'HomeWrapped',
+        ...HomeWrapped,
+      });
+    }
 
     const sessionToken = req.cookies[config.vars.sessionCookie];
-    const session: IFK_UsapiAuthRefresh = {
+    const session: IFullkekwUserAPI_TokenData = {
       id: '',
       avatar: '',
       username: ''
@@ -418,20 +456,18 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
 
     // Parse user
     if (sessionToken) {
-      if (!testMode) {
-        try {
-          const { data: sessionData } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-            headers: {
-              Cookie: `session=${sessionToken}`
-            }
-          });
+      if (!TestMode) {
+        const middleware = new MiddlewareService();
 
-          session.id = sessionData.id;
+        try {
+          const { user } = await middleware.checkAccess(sessionToken);
+
+          session.id = user.id;
         } catch (e) {
           // Ignore
         }
       } else {
-        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         session.id = data.id;
       }
@@ -444,13 +480,13 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
 
       watchProgress = [];
 
-      Cache.HomeWrapped.featured.forEach(el => {
+      HomeWrapped.featured.forEach(el => {
         const wp = user.watchProgress.find(wp => wp.titleID === el.id);
 
         if (wp) watchProgress!.push(wp);
       });
     }
 
-    return res.status(200).json({ message: 'OK', ...Cache.HomeWrapped, watchProgress });
+    return res.status(200).json({ message: 'OK', ...HomeWrapped, watchProgress });
   });
 }

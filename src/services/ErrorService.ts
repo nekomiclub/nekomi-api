@@ -1,13 +1,13 @@
 import express from 'express';
 import ip from 'ip';
 import { AxiosError } from 'axios';
-import { addZeroIfNumberSingle, getUTC } from '../handlers/handler';
+import { getUTC } from '../handlers/handler';
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';
+import { DevelopmentMode } from '../config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
-import { devMode } from '../config';
 
 export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
@@ -94,7 +94,7 @@ export class E503 extends HTTPErrorConstructor {
  * 
  * @param preventFullfilled prevent default fullfilled response
  */
-export async function HandleRequest(req: express.Request, res: express.Response, cb: () => any | Promise<any>, preventFullfilled?: boolean) {
+export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>, preventFullfilled?: boolean) {
   try {
     const validation = validationResult(req);
 
@@ -102,7 +102,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     if (!validation.isEmpty()) throw new ERR_INVALID_PAYLOAD();
 
     // Run callback
-    await cb();
+    await cb(req, res);
 
     if (!preventFullfilled) {
       try {
@@ -110,7 +110,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       } catch (e) { null; }
     }
   } catch (e) {
-    const date = `${getUTC().fulldate} UTC-0 ${getUTC().time}.${addZeroIfNumberSingle(getUTC().secs)}`;
+    const date = `${getUTC().fulldate} UTC-0 ${getUTC().time}.${String(getUTC().secs).padStart(2, '0')}`;
 
     if (e instanceof HTTPErrorConstructor) {
       const emsg = `[HTTP/${e.status}]: ${e.code} - ${e.message}`;
@@ -118,7 +118,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       if (e.status >= 500) {
         Logger.error(emsg);
       } else {
-        if (devMode) console.log(chalk.red(emsg));
+        if (DevelopmentMode) console.log(chalk.red(emsg));
       }
 
       return res.status(e.status).json({ ...e, date });
@@ -140,7 +140,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
         } else {
-          if (devMode) console.log(chalk.red(emsg));
+          if (DevelopmentMode) console.log(chalk.red(emsg));
         }
       }
 
@@ -206,3 +206,6 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
     super(`Request not passed throught ${middleware} middleware and being rejected`, 'ERR_MIDDLEWARE_REQUIRED');
   }
 }
+
+export const ERR_NO_DOCUMENT = new E500(`NO DOCUMENT PASSED INTO CONSTRUCTOR`, 'generic:no_document');
+export const ERR_FILE_TOO_LARGE = new E400(`Uploaded file size is too large`, 'generic:file_too_large');

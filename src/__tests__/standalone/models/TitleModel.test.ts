@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 
-import DubberModel, { DubberService } from '../../../Models/Dubber';
+import DubberModel from '../../../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
 import UserModel, { UserService } from '../../../Models/User';
-import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
+import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../Services/ErrorService';
 import { INTERNALS, config } from '../../../config';
-import { ITitleEpisodeMeta, TAnimeGenre } from '../../../interfaces/Title';
+import { ITitleEpisodeMeta, TAnimeGenre } from '../../../Interfaces/Title';
 import { Readable } from 'stream';
 import { TitleService } from '../../../Models/Title';
 import { getUTC } from '../../../handlers/handler';
@@ -44,13 +45,13 @@ describe('Title Model', () => {
       username: 'testmodelstitle1'
     });
 
-    await DubberService.create({
-      id: TestID1,
-      nameEng: 'testmodelsdubber1',
+    await new DubberService({ TestMode: true }).create({
+      nameEng: 'testmodelsdubbera',
       nameUkr: 'test dubber 1',
+      DEV_ID: TestID1
     });
 
-    Title = new TitleService({ title, testMode: true });
+    Title = new TitleService({ title, TestMode: true });
   });
 
   afterAll(async () => {
@@ -61,7 +62,8 @@ describe('Title Model', () => {
     await TitleService.delete(TestID1, 'Test purge', 'many');
     await TitleService.delete(TestID2, 'Test purge', 'many');
     await UserService.delete(TestID1, 'Test purge', 'many');
-    await DubberService.delete(TestID1, 'Test purge', 'many');
+
+    await new DubberService({ TestMode: true }).deleteMany(TestID1);
   }
 
 

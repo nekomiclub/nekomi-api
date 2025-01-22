@@ -2,28 +2,29 @@ import mongoose, { HydratedDocument, Schema } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import * as cfg from '../config';
+import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
-import { $http, $upload } from '../handlers/http';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../interfaces/Title';
+import { $upload } from '~/Services/HTTPService';
+import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../Interfaces/Title';
 import { AxiosError } from 'axios';
-import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
-import { IA_UploadsUpload, NEKOMI_UPLOADS, TEpisodeQuality } from '../interfaces/http/Uploads';
-import { IChangeEpMeta } from '../controllers/title';
-import { IDubber } from '../interfaces/Dubber';
-import { INotifyAiringStarted, INotifyNewEpisode } from '../interfaces/services/Notify';
-import { IUser } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { Notify } from '../services/NotifyService';
+import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../Services/ErrorService';
+import { IChangeEpMeta } from '../Controllers/title';
+import { IDubber } from '~/core/Interfaces/IDubber';
+import { INotifyAiringStarted, INotifyNewEpisode } from '../Interfaces/services/Notify';
+import { IUser } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { Notify } from '../Services/NotifyService';
+import { TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '../config';
-import { createID, getUTC, parseIMDBDate } from '../handlers/handler';
+import { createUUID, getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
 
 
 
 interface ITitleServiceProps {
   title: HydratedDocument<ITitle>
-  testMode?: boolean
+  TestMode?: boolean
 }
 
 interface ITitleCreate {
@@ -48,6 +49,8 @@ interface ITitleCreate {
   episodesCount?: number
   mal_id?: string
   poster?: string
+
+  TEST_EPISODES?: ITitleEpisode[]
 }
 
 interface IPatchNames {
@@ -125,16 +128,16 @@ export const TitleModel = mongoose.model<ITitle>('title', new Schema({
 export class TitleService {
   readonly title: HydratedDocument<ITitle>;
   readonly stack: string[] = [];
-  readonly testMode = cfg.testMode;
+  readonly TestMode = cfg.TestMode;
 
-  constructor({ title, testMode }: ITitleServiceProps) {
+  constructor({ title, TestMode }: ITitleServiceProps) {
     this.title = title;
 
-    if (testMode) this.testMode = testMode;
+    if (TestMode) this.TestMode = TestMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster }: ITitleCreate, testMode?: boolean): Promise<HydratedDocument<ITitle>> {
-    const ID = testMode ? id ?? createID() : createID();
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
+    const ID = TestMode && id ? id : createUUID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
       separator: '-'
@@ -146,6 +149,10 @@ export class TitleService {
       camelCase: true,
       separator: '-'
     });
+
+
+
+    const episodes = TestMode && TEST_EPISODES?.length ? TEST_EPISODES : [];
 
 
 
@@ -161,7 +168,7 @@ export class TitleService {
       country: country || 'Other',
       description: description || 'Це новий тайтл на nekomi.club :)',
       details: details || 'Якщо ви помітили цей тайтл, будь ласка напишіть про це в тікети на діскорд сервері nekomi.',
-      episodes: [],
+      episodes,
       episodesCount: episodesCount || null,
       episodesMeta: [],
       genres: genres || [],
@@ -518,7 +525,7 @@ export class TitleService {
 
     // End function if in test mode
     // TODO: Make integration test covering it 
-    if (this.testMode) return;
+    if (this.TestMode) return;
 
     const href = `${url.origin}${url.pathname}`;
     const results: ITitleEpisodeMeta[] = [];
@@ -640,7 +647,7 @@ export class TitleService {
       };
 
       // Upload
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const { data } = await $upload.post<{ id: string, frames: number }>(`${config.URL.nekomi_uploads}/upload`, formData);
 
         UPLOAD_DATA.id = data.id;
@@ -677,7 +684,7 @@ export class TitleService {
 
       await this.save();
 
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const notifyNewEpisodePayload: INotifyNewEpisode = {
           dubberID: dubber.id,
           episodeOrder,
@@ -732,15 +739,10 @@ export class TitleService {
 
 
     try {
-      if (!this.testMode) {
+      if (!this.TestMode) {
         const uploadID = `${ep.qualities.q1080.split('/')[ep.qualities.q1080.split('/').length - 1]}`;
 
-        await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-          params: {
-            withChildren: true,
-            by: user.id
-          }
-        });
+        await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById: user.id, withChildren: true });
       }
 
       Logger.debug(`[TitleService]: Episode ${order}/${dubber.id} in ${this.title.id} deleted by ${user.id}`);
@@ -767,18 +769,9 @@ export class TitleService {
    * Will check titleEdit capability
    */
   async uploadPoster({ file, user }: IUploadPoster, mockData?: IM_TitleServiceUploadPoster): Promise<{ id: string, posterURL: string }> {
-    const { buffer, originalname, filename, mimetype } = file;
-
     const caps = await parseRoles(user.roles);
-    const formData = new FormData();
 
     if (!caps.includes('root') && !caps.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
-
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', user.id);
-    formData.set('type', 'photo/title/poster');
 
     try {
       const UPLOAD_DATA: IM_TitleServiceUploadPoster = {
@@ -786,8 +779,8 @@ export class TitleService {
       };
 
       // Upload poster
-      if (!this.testMode) {
-        const { data: postData } = await $http.post<IA_UploadsUpload>(NEKOMI_UPLOADS.upload, formData);
+      if (!this.TestMode) {
+        const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
         UPLOAD_DATA.id = postData.id;
       } else {
         if (!mockData) throw new E500(`Mock data is not provided`);
@@ -800,12 +793,8 @@ export class TitleService {
         if (this.title.poster.match(cfg.config.DOMAIN.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
-          if (!this.testMode) {
-            await $http.delete(NEKOMI_UPLOADS.delete_upload(uploadID), {
-              params: {
-                by: user.id
-              }
-            });
+          if (!this.TestMode) {
+            await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById: user.id });
           }
         }
       } catch (e) {

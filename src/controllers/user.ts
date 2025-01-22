@@ -1,22 +1,23 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import * as TokenService from '../services/TokenService';
-import * as dto from '../handlers/dtos';
+import * as TokenService from '../Services/TokenService';
 
 import * as Role from '../Models/Role';
+import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import Title from '../Models/Title';
 import User, { UserModel, UserService } from '../Models/User';
-import { $http } from '../handlers/http';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
-import { FK_AUTHORITY_ROUTES, IFK_AuthorityVerify } from '../interfaces/http/FkAuthority';
-import { FK_USAPI_ROUTES, IFK_UsapiAuthRefresh } from '../interfaces/http/FkUsapi';
-import { IM_FkAuthorityVerify } from '../interfaces/Mocks';
-import { ITitle } from '../interfaces/Title';
-import { IUserTogetherRoom } from '../interfaces/User';
-import { Logger } from '../services/LoggerService';
-import { TRoleCapability } from '../interfaces/Roles';
-import { config, prodMode, testMode } from '../config';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
+import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
+import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
+import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
+import { ITitle } from '../Interfaces/Title';
+import { IUserTogetherRoom } from '../Interfaces/User';
+import { Logger } from '../Services/LoggerService';
+import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { ProductionMode, TestMode, config } from '../config';
+import { TRoleCapability } from '../Interfaces/Roles';
 import { getMockData } from '../handlers/mocks';
 import { updateSearch } from './root';
 
@@ -56,23 +57,19 @@ export async function postSignin(req: express.Request, res: express.Response) {
     const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
-    const DATA: IFK_UsapiAuthRefresh = {};
+    const DATA: IFullkekwUserAPI_TokenData = {};
 
 
 
     // Validate session
-    if (!testMode) {
-      const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-        headers: {
-          Cookie: `session=${session}`
-        }
-      });
+    if (!TestMode) {
+      const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: session });
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
       DATA.username = data.username;
     } else {
-      const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+      const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
@@ -104,7 +101,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
       httpOnly: true,
       maxAge: config.vars.sessionCookieExpireOffset,
-      domain: prodMode ? `.${config.DOMAIN.nekomi}` : undefined
+      domain: ProductionMode ? `.${config.DOMAIN.nekomi}` : undefined
     }).json({
       message: 'User signed in',
       id: DATA.id,
@@ -121,7 +118,7 @@ export async function getLogout(req: express.Request, res: express.Response) {
 
     return res.status(200).clearCookie(config.vars.sessionCookie, {
       httpOnly: true,
-      domain: prodMode ? `.${config.DOMAIN.nekomi}` : undefined
+      domain: ProductionMode ? `.${config.DOMAIN.nekomi}` : undefined
     }).json({ message: `Logged out` });
   });
 }
@@ -136,17 +133,13 @@ export async function getValidate(req: express.Request, res: express.Response) {
     const token = req.cookies[config.vars.sessionCookie];
     if (!token) return res.status(202).json({ message: 'Session not provided' });
 
-    // @ts-expect-error Need an empty object
-    const session: IFK_UsapiAuthRefresh = {};
+    // @ts-expect-error Need empty object
+    const session: IFullkekwUserAPI_TokenData = {};
 
     try {
-      if (!testMode) {
+      if (!TestMode) {
         // Sync nekomi data with fullkekw user api
-        const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-          headers: {
-            Cookie: `session=${token}`
-          }
-        });
+        const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
         session.id = data.id;
         session.avatar = data.avatar;
@@ -201,7 +194,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Get user by session
     if (query === '*') {
-      const DATA: IFK_UsapiAuthRefresh = {
+      const DATA: IFullkekwUserAPI_TokenData = {
         avatar: '',
         id: '',
         username: ''
@@ -210,13 +203,9 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const token = req.cookies[config.vars.sessionCookie];
       if (!token) throw new ERR_MISSING_AUTHORIZATION(`Can not get own data (*) without session cookie provided`);
 
-      if (!testMode) {
+      if (!TestMode) {
         try {
-          const { data } = await $http.get<IFK_UsapiAuthRefresh>(FK_USAPI_ROUTES.refresh, {
-            headers: {
-              Cookie: `session=${token}`
-            }
-          });
+          const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
           DATA.username = data.username;
         } catch (e) {
@@ -229,7 +218,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
           }
         }
       } else {
-        const { data } = getMockData<IFK_UsapiAuthRefresh>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         DATA.username = data.username;
       }
@@ -242,15 +231,13 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFK_AuthorityVerify = {
+      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
 
-      if (!testMode) {
-        const { data } = await $http.post<IFK_AuthorityVerify>(FK_AUTHORITY_ROUTES.verify, {
-          token: CSRFToken
-        });
+      if (!TestMode) {
+        const data = await FullkekwAuthorityAPI.verifyToken({ token: CSRFToken });
 
         DATA.origin = data.origin;
         DATA.verified = data.verified;
@@ -279,7 +266,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const lib = user.libs.find(el => el.id === parseLib);
       if (!lib) throw new E404(`Lib ${parseLib} is not found`);
 
-      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => dto.title(title.toObject(), privateMode));
+      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
     }
 
     // Fetch together room
@@ -294,7 +281,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     return res.status(200).json({
       message: `OK. ${privateMode ? 'Sensetive information hidden.' : 'Sensetive information returned.'}`,
-      user: dto.user(user.toObject(), privateMode),
+      user: new MongoDocumentDTO().user({ document: user, details: !privateMode }),
       parsedLib,
       parsedRoles,
       togetherRoom,

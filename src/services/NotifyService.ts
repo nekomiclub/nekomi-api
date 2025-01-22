@@ -1,14 +1,15 @@
-import * as dto from '../handlers/dtos';
-import Dubber from '../Models/Dubber';
+import DubberService from '~/core/Services/DubberService';
+import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
 import Title from '../Models/Title';
 import User from '../Models/User';
-import { $http } from '../handlers/http';
 import { AxiosError } from 'axios';
+import { DevelopmentMode } from '../config';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../interfaces/services/Notify';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/Notify';
 import { Logger } from './LoggerService';
-import { NEKOMI_BOT } from '../interfaces/http/Bot';
-import { devMode } from '../config';
+
+
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
@@ -44,7 +45,7 @@ export class NotifyService {
         Logger.error(`[Notify/HTTP]: An error occured while processing ${event}: ${e.code} - ${e.message}`);
       } else if (e instanceof AxiosError) {
         Logger.error(`[Notify/Axios]: An error occured while processing ${event}: ${e.code}`, e);
-        if (devMode) console.error(e.response?.data);
+        if (DevelopmentMode) console.error(e.response?.data);
       } else {
         Logger.error(`[Notify]: An uncaught error occured while processing ${event}`, e);
       }
@@ -102,8 +103,7 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
   const title = await Title.findOne({ id: titleID });
   if (!title) throw new E404(`Title ${titleID} is not found`);
 
-  const dubber = await Dubber.findOne({ id: dubberID });
-  if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
+  const dubber = await new DubberService().getById(dubberID);
 
   if (isNaN(+episodeOrder)) throw new ERR_INVALID_PAYLOAD(`Episode order can not be NaN`);
 
@@ -112,15 +112,15 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
     event,
     participants: users.map(el => el.telegramData!.id!),
     data: {
-      title: dto.title(title.toObject()),
-      dubber: dto.dubber(dubber.toObject()),
+      title: new MongoDocumentDTO().anime({ document: title }),
+      dubber: new DocumentDTO().dubber({ object: dubber }),
       episodeOrder,
     }
   };
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -134,13 +134,13 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
     event,
     participants: users.map(el => el.telegramData!.id!),
     data: {
-      title: dto.title(title.toObject())
+      title: new MongoDocumentDTO().anime({ document: title })
     }
   };
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 
   users.forEach(async user => {
     user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
@@ -154,8 +154,7 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
 async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberInvite>) {
   const { dubber_id, user_id } = payload;
 
-  const dubber = await Dubber.findOne({ id: dubber_id });
-  if (!dubber) throw new E404(`Dubber ${dubber_id} is not found`);
+  const dubber = await new DubberService().getById(dubber_id);
 
   const user = await User.findOne({ id: user_id });
   if (!user) throw new E404(`User ${user_id} is not found`);
@@ -164,13 +163,13 @@ async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubb
     event,
     participants: [user.telegramData!.id!],
     data: {
-      dubber: dto.dubber(dubber.toObject())
+      dubber: new DocumentDTO().dubber({ object: dubber })
     }
   };
 
   Logger.debug(`[Notify]: Broadcasted ${event} event`);
 
-  await $http.post(NEKOMI_BOT.broadcast, broadcastPayload);
+  await NekomiBotAPI.broadcast(broadcastPayload);
 }
 
 export const Notify = new NotifyService();

@@ -100,5 +100,5 @@ export interface IWS_WTSync {
   moment: number
   isPlaying: boolean
   isBuffering: boolean
-  syncedWithId
+  syncedWithId: string
 }

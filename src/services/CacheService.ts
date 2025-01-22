@@ -1,57 +1,92 @@
-import * as dto from '../handlers/dtos';
-import TitleModel from '../Models/Title';
-import { E404 } from './ErrorService';
-import { ICacheHomeWrapped } from '../interfaces/services/Cache';
+import { DevelopmentMode } from '~/config';
+import { ICacheDubbedAnime, ICacheHomeWrapped, ICacheParsedMembers } from '~/Interfaces/services/Cache';
+import { ITitle } from '~/Interfaces/Title';
+import { IUser } from '~/Interfaces/User';
 import { Logger } from './LoggerService';
-import { config } from '../config';
+import { createUUID, getUTC } from '~/handlers/handler';
+
+
+
+interface ICacheRecord {
+  createdAt: number
+  id: string
+  data: any
+}
+
+
 
 class CacheService {
-  readonly HomeWrapped: ICacheHomeWrapped = {
-    featured: [],
-    hightRated: [],
-    popular: [],
-    updatedRecently: []
-  };
+  Cached: ICacheRecord[] = [];
 
-  constructor() {
-    // Fill initial cache
 
-    Promise.all([
-      this.updateHomeWrapped()
-    ]);
+
+  private checkCacheValidity(el: ICacheRecord): boolean {
+    return el.createdAt + (60000 * 60) > getUTC().timestamp;
   }
 
-  async updateHomeWrapped(): Promise<ICacheHomeWrapped> {
-    const titles = await TitleModel.find();
+  private getById<T>(id: string): T | undefined {
+    const el = this.Cached.find(el => el.id === id);
 
-    // Parse featured
-    for (const key in config.STATIC.HomeWrapped.featured) {
-      const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
+    // Return cached
+    if (el && this.checkCacheValidity(el)) return el.data;
 
-      const title = await TitleModel.findOne({ id: id });
-      if (!title) throw new E404(`Title ${id} is not found in featured data`);
+    // Purge
+    this.Cached = this.Cached.filter(record => record.id !== el?.id);
+    return undefined;
+  }
 
-      this.HomeWrapped.featured.push({
-        ...dto.title(title.toObject()),
-        backgroundURL,
-        videoURL
-      });
-    }
+  /** Forced cache puge */
+  forcePurge() {
+    this.Cached.forEach(el => {
+      if (!this.checkCacheValidity(el)) this.Cached = this.Cached.filter(record => record.id !== el?.id);
+    });
 
-    // Parse popular
-    this.HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => dto.title(el.toObject()));
+    Logger.debug(`[CacheService]: Forced cache purge completed`);
+  }
 
-    // Fetch recently updated
-    this.HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => dto.title(el.toObject()));
+  /** Purge categorory */
+  purgeCategory(DEFINE_KEY: string) {
+    this.Cached = this.Cached.filter(el => el.data.DEFINE_KEY !== DEFINE_KEY);
 
-    // Fetch hight rated
-    this.HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => dto.title(el.toObject()));
+    Logger.debug(`[CacheService]: Category ${DEFINE_KEY} purged`);
+  }
 
-    Logger.info(`[Cache]: Cache for Home Wrapped updated`);
+  push<T>(el: T) {
+    if (DevelopmentMode) return Logger.debug(`[CacheService (DEV)]: Cache push passed due to development mode`);
 
-    return this.HomeWrapped;
+    this.Cached.push({
+      id: createUUID(),
+      createdAt: getUTC().timestamp,
+      data: el,
+    });
+  }
+
+  getDubbedAnime(id: string): ITitle[] | undefined {
+    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:dubbed_anime');
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheDubbedAnime;
+    return res.titles;
+  }
+
+  getDubberMembers(id: string): IUser[] | undefined {
+    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:parsed_members');
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheParsedMembers;
+    return res.members;
+  }
+
+  getHomeWrapped() {
+    const existed = this.Cached.find(el => el.data?.DEFINE_KEY === 'HomeWrapped');
+    if (!existed) return undefined;
+
+    const res = this.getById(existed.id) as ICacheHomeWrapped;
+    return res;
   }
 }
 
-export const Cache = new CacheService();
+
+
+const Cache = new CacheService();
 export default Cache;
