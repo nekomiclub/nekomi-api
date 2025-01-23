@@ -1,6 +1,6 @@
 import express from 'express';
 
-import CacheService from '~/Services/CacheService';
+import CacheService from '~/services/CacheService';
 import Dubber from '../Models/Dubber';
 import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
 import Title, { TitleModel, TitleService } from '../Models/Title';
@@ -14,7 +14,7 @@ import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
 import { ITitle, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/ITitle';
 import { IUserWatchProgress } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
-import { MiddlewareService } from '~/Services/MiddlewareService';
+import { MiddlewareService } from '~/services/MiddlewareService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
 import { TRoleCapability } from '../Interfaces/IRoles';
 import { TestMode, config } from '../config';

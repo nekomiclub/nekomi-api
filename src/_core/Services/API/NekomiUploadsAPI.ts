@@ -1,6 +1,6 @@
-import { $upload } from '~/Services/HTTPService';
+import { $upload } from '~/services/HTTPService';
 import { AxiosError } from 'axios';
-import { Logger } from '~/Services/LoggerService';
+import { Logger } from '~/services/LoggerService';
 import { TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '~/config';
 

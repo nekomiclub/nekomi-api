@@ -1,8 +1,8 @@
-import Search from '~/Services/SearchService';
+import Search from '~/services/SearchService';
 import UserModel from '~/Models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { IUser } from '~/interfaces/IUser';
-import { NotifyService } from '~/Services/NotifyService';
+import { NotifyService } from '~/services/NotifyService';
 
 
 

@@ -1,6 +1,6 @@
 import * as RouteValidation from '../handlers/routeValidation';
 import * as UserController from '../Controllers/user';
-import UserRoutes from '~/Controllers/User/UserRoutes';
+import UserRoutes from '~/controllers/User/UserRoutes';
 import express from 'express';
 
 
