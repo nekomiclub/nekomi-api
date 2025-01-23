@@ -13,8 +13,8 @@ import { getUTC } from '~/handlers/handler';
 
 
 
-export const DubberDubbedAnimeCache = new CacheService<ITitle[]>();
-export const DubberParsedMembersCache = new CacheService<IUser[]>();
+export const DubberDubbedAnimeCache = new CacheService<ITitle[]>('DubberDubbedAnimeCache');
+export const DubberParsedMembersCache = new CacheService<IUser[]>('DubberParsedMembersCache');
 
 
 

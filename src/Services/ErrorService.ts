@@ -9,8 +9,12 @@ import { DevelopmentMode } from '../config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
 
+
+
 export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
 export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
+
+
 
 export class HTTPErrorConstructor {
   message: string;
@@ -23,6 +27,8 @@ export class HTTPErrorConstructor {
     this.code = code || 'HTTP_ERROR';
   }
 }
+
+
 
 /** HTTP_BAD_REQUEST */
 export class E400 extends HTTPErrorConstructor {

@@ -100,7 +100,7 @@ type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
 
 
-export const AnimeHomeWrappedCache = new CacheService<IHomeWrapped>();
+export const AnimeHomeWrappedCache = new CacheService<IHomeWrapped>('AnimeHomeWrappedCache');
 
 
 
