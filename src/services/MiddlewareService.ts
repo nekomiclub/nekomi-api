@@ -5,9 +5,9 @@ import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import User from '../Models/User';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/Mocks';
-import { IUser } from '../Interfaces/User';
-import { TRoleCapability } from '../Interfaces/Roles';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/IMocks';
+import { IUser } from '../Interfaces/IUser';
+import { TRoleCapability } from '../Interfaces/IRoles';
 import { parseRoles } from '../Models/Role';
 
 

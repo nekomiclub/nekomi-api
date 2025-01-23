@@ -5,7 +5,7 @@ import DubberModel from '~/core/Models/DubberModel';
 import TitleModel from '../Models/Title';
 import UserModel from '../Models/User';
 import { HydratedDocument } from 'mongoose';
-import { ITitle } from '../Interfaces/Title';
+import { ITitle } from '../Interfaces/ITitle';
 import { Logger } from '../Services/LoggerService';
 import { TitleService } from '../Models/Title';
 import { getUTC } from './handler';

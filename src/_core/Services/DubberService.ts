@@ -5,7 +5,7 @@ import validator from 'validator';
 import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../Services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IDubber, IDubberMember, TDubberMemberRole } from '../Interfaces/IDubber';
-import { INotifyDubberInvite } from '../../Interfaces/services/Notify';
+import { INotifyDubberInvite } from '../../Interfaces/services/INotify';
 import { Logger } from '../../Services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
 import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';

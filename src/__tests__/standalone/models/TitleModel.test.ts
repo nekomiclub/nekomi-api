@@ -5,7 +5,7 @@ import DubberService from '~/core/Services/DubberService';
 import UserModel, { UserService } from '../../../Models/User';
 import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../Services/ErrorService';
 import { INTERNALS, config } from '../../../config';
-import { ITitleEpisodeMeta, TAnimeGenre } from '../../../Interfaces/Title';
+import { ITitleEpisodeMeta, TAnimeGenre } from '../../../Interfaces/ITitle';
 import { Readable } from 'stream';
 import { TitleService } from '../../../Models/Title';
 import { getUTC } from '../../../handlers/handler';

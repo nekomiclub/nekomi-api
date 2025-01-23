@@ -6,7 +6,7 @@ import { AxiosError } from 'axios';
 import { DevelopmentMode } from '../config';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/Notify';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/INotify';
 import { Logger } from './LoggerService';
 
 

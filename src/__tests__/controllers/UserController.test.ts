@@ -4,9 +4,9 @@ import request from 'supertest';
 import Title, { TitleService } from '../../Models/Title';
 import UserModel, { UserService } from '../../Models/User';
 import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/Mocks';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/IMocks';
 import { INTERNALS, config } from '../../config';
-import { IUser } from '../../Interfaces/User';
+import { IUser } from '../../Interfaces/IUser';
 import { NotifyService } from '../../Services/NotifyService';
 import { createUUID, getUTC } from '../../handlers/handler';
 

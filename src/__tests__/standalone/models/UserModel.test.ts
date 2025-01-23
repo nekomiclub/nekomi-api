@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import DubberService from '~/core/Services/DubberService';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../../Services/ErrorService';
 import { INTERNALS, config } from '../../../config';
-import { TNotifyEvent } from '../../../Interfaces/services/Notify';
+import { TNotifyEvent } from '../../../Interfaces/services/INotify';
 import { TitleService } from '../../../Models/Title';
 import { UserService } from '../../../Models/User';
 

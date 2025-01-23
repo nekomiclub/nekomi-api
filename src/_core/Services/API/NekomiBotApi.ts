@@ -1,5 +1,5 @@
 import { $http } from '~/services/HTTPService';
-import { INotifyBroadcast } from '~/interfaces/services/Notify';
+import { INotifyBroadcast } from '~/interfaces/services/INotify';
 import { config } from '~/config';
 
 

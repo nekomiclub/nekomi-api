@@ -1,9 +1,9 @@
 import { WebSocket } from 'ws';
 
-import { IUserTogetherRoom } from './User';
+import { IUserTogetherRoom } from './IUser';
 import { TMiddlewareName } from '../Services/MiddlewareService';
-import { TRoleCapability } from './Roles';
-import { TWS_Group } from './WebSocket';
+import { TRoleCapability } from './IRoles';
+import { TWS_Group } from './IWebSocket';
 
 
 export interface IEXPRESS_REQ_NEKOMI_USER {

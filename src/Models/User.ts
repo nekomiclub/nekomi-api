@@ -8,9 +8,9 @@ import Title, { TitleModel } from './Title';
 import validator from 'validator';
 import { AxiosError } from 'axios';
 import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../Services/ErrorService';
-import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../Interfaces/User';
+import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
-import { TNotifyEvent } from '../Interfaces/services/Notify';
+import { TNotifyEvent } from '../Interfaces/services/INotify';
 import { config } from '../config';
 import { createStringID, createUUID, getUTC } from '../handlers/handler';
 

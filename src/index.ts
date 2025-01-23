@@ -9,7 +9,6 @@ import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
 import AnimeRouter from './Routers/AnimeRouter';
-import Cache from './Services/CacheService';
 import DubberRouter from './Routers/DubberRouter';
 import GenericRouter from './Routers/GenericRouter';
 import Search from './Services/SearchService';
@@ -118,7 +117,6 @@ wss.on('listening', () => {
   const REPETATIVE_HANDLERS = [
     await updateSearch(),
     await removeUsersLinkTelegramToken(),
-    Cache.forcePurge()
   ] as const;
 
   wss.on('connection', WebsocketRouter);

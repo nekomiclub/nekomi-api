@@ -1,92 +1,46 @@
 import { DevelopmentMode } from '~/config';
-import { ICacheDubbedAnime, ICacheHomeWrapped, ICacheParsedMembers } from '~/Interfaces/services/Cache';
-import { ITitle } from '~/Interfaces/Title';
-import { IUser } from '~/Interfaces/User';
 import { Logger } from './LoggerService';
-import { createUUID, getUTC } from '~/handlers/handler';
+import { getUTC } from '~/handlers/handler';
 
 
 
-interface ICacheRecord {
-  createdAt: number
+interface ICacheRecord<T = any> {
   id: string
-  data: any
+  createdAt: number
+  data: T
 }
 
 
 
-class CacheService {
-  Cached: ICacheRecord[] = [];
+export class CacheService<T = any> {
+  private Cached: ICacheRecord<T>[] = [];
 
-
-
-  private checkCacheValidity(el: ICacheRecord): boolean {
-    return el.createdAt + (60000 * 60) > getUTC().timestamp;
+  constructor() {
+    // Purge every hour
+    setInterval(() => {
+      this.Cached = [];
+    }, 3600000);
   }
 
-  private getById<T>(id: string): T | undefined {
-    const el = this.Cached.find(el => el.id === id);
-
-    // Return cached
-    if (el && this.checkCacheValidity(el)) return el.data;
-
-    // Purge
-    this.Cached = this.Cached.filter(record => record.id !== el?.id);
-    return undefined;
+  purge({ id }: { id: string }) {
+    this.Cached = this.Cached.filter(el => el.id !== id);
   }
 
-  /** Forced cache puge */
-  forcePurge() {
-    this.Cached.forEach(el => {
-      if (!this.checkCacheValidity(el)) this.Cached = this.Cached.filter(record => record.id !== el?.id);
-    });
+  get({ id }: { id: string }): T | undefined {
+    const record = this.Cached.find(el => el.id === id);
 
-    Logger.debug(`[CacheService]: Forced cache purge completed`);
+    if (!record) return undefined;
+    if (getUTC().timestamp > record.createdAt + (60000 * 60)) return undefined;
+
+    return record.data;
   }
 
-  /** Purge categorory */
-  purgeCategory(DEFINE_KEY: string) {
-    this.Cached = this.Cached.filter(el => el.data.DEFINE_KEY !== DEFINE_KEY);
-
-    Logger.debug(`[CacheService]: Category ${DEFINE_KEY} purged`);
-  }
-
-  push<T>(el: T) {
+  push(payload: ICacheRecord<T>) {
     if (DevelopmentMode) return Logger.debug(`[CacheService (DEV)]: Cache push passed due to development mode`);
 
-    this.Cached.push({
-      id: createUUID(),
-      createdAt: getUTC().timestamp,
-      data: el,
-    });
-  }
-
-  getDubbedAnime(id: string): ITitle[] | undefined {
-    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:dubbed_anime');
-    if (!existed) return undefined;
-
-    const res = this.getById(existed.id) as ICacheDubbedAnime;
-    return res.titles;
-  }
-
-  getDubberMembers(id: string): IUser[] | undefined {
-    const existed = this.Cached.find(el => el.data?.dubberId === id && el.data.DEFINE_KEY === 'dubber:parsed_members');
-    if (!existed) return undefined;
-
-    const res = this.getById(existed.id) as ICacheParsedMembers;
-    return res.members;
-  }
-
-  getHomeWrapped() {
-    const existed = this.Cached.find(el => el.data?.DEFINE_KEY === 'HomeWrapped');
-    if (!existed) return undefined;
-
-    const res = this.getById(existed.id) as ICacheHomeWrapped;
-    return res;
+    this.purge({ id: payload.id });
+    this.Cached.push(payload);
   }
 }
 
-
-
-const Cache = new CacheService();
-export default Cache;
+export default CacheService;

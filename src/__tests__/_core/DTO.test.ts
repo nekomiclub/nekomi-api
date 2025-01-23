@@ -1,7 +1,7 @@
 import IDubber from '~/core/Interfaces/IDubber';
 import { DocumentDTO } from '~/core/Services/DTO';
-import { ITitle } from '~/interfaces/Title';
-import { IUser } from '~/interfaces/User';
+import { ITitle } from '~/interfaces/ITitle';
+import { IUser } from '~/interfaces/IUser';
 import { config } from '~/config';
 import { getUTC } from '~/handlers/handler';
 

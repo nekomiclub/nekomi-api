@@ -11,13 +11,13 @@ import User, { UserModel, UserService } from '../Models/User';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
 import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
 import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
-import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
-import { ITitle } from '../Interfaces/Title';
-import { IUserTogetherRoom } from '../Interfaces/User';
+import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
+import { ITitle } from '../Interfaces/ITitle';
+import { IUserTogetherRoom } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
 import { ProductionMode, TestMode, config } from '../config';
-import { TRoleCapability } from '../Interfaces/Roles';
+import { TRoleCapability } from '../Interfaces/IRoles';
 import { getMockData } from '../handlers/mocks';
 import { updateSearch } from './root';
 

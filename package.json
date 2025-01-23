@@ -1,7 +1,7 @@
 {
   "name": "nekomi-api",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
@@ -11,8 +11,7 @@
     "test-all": "npx jest --silent",
     "test": "npx jest --silent standalone _core",
     "build": "npx rimraf dist && npx eslint . --fix && git add . && npx tsc",
-    "find-circular": "npx madge --circular --extensions ts .",
-    "prepare": "husky"
+    "find-circular": "npx madge --circular --extensions ts ."
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -54,8 +53,6 @@
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "fuse.js": "^7.0.0",
-    "get-video-duration": "^4.1.0",
-    "inquirer": "^11.0.2",
     "ip": "^1.1.8",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.1",

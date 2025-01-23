@@ -4,8 +4,8 @@ import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { E500, ERR_NOT_READY } from './ErrorService';
 import { IDubber } from '~/core/Interfaces/IDubber';
-import { ITitle } from '~/Interfaces/Title';
-import { IUser } from '~/Interfaces/User';
+import { ITitle } from '~/interfaces/ITitle';
+import { IUser } from '~/interfaces/IUser';
 import { Logger } from './LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
 
@@ -36,8 +36,6 @@ class SearchService {
       this.update('dubber'),
       this.update('anime'),
     ]);
-
-    Logger.info(`[SearchService]: Service initialized`);
   }
 
   /** Update search engine */

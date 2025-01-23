@@ -1,4 +1,4 @@
-import { TRoleCapability } from './Roles';
+import { TRoleCapability } from './IRoles';
 
 export type TMockID =
   /** Mocks fk-authority/verify endpoint */

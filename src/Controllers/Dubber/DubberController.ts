@@ -1,15 +1,20 @@
-import Cache from '~/Services/CacheService';
+import CacheService from '~/Services/CacheService';
 import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/Services/DubberService';
 import Search from '~/Services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/Services/ErrorService';
-import { ICacheDubbedAnime, ICacheParsedMembers } from '~/Interfaces/services/Cache';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/IDubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/Interfaces/globals';
-import { ITitle } from '~/Interfaces/Title';
-import { IUser } from '~/Interfaces/User';
+import { ITitle } from '~/interfaces/ITitle';
+import { IUser } from '~/interfaces/IUser';
+import { getUTC } from '~/handlers/handler';
+
+
+
+export const DubberDubbedAnimeCache = new CacheService<ITitle[]>();
+export const DubberParsedMembersCache = new CacheService<IUser[]>();
 
 
 
@@ -36,12 +41,14 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
   let dubbedAnime: ITitle[] | undefined = undefined;
   let parsedMembers: IUser[] | undefined = undefined;
 
+
+
   if (detailed) {
     dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
   }
 
   if (detailed && fetchDubbedAnime) {
-    const cached = Cache.getDubbedAnime(dubberService.dubber.id);
+    const cached = DubberDubbedAnimeCache.get({ id: dubberService.dubber.id });
 
     if (cached && useCache) {
       dubbedAnime = cached;
@@ -53,16 +60,16 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
       dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => new DocumentDTO().anime({ object: el }));
 
-      Cache.push<ICacheDubbedAnime>({
-        dubberId: dubberService.dubber.id,
-        DEFINE_KEY: 'dubber:dubbed_anime',
-        titles: dubbedAnime
+      DubberDubbedAnimeCache.push({
+        id: dubberService.dubber.id,
+        createdAt: getUTC().timestamp,
+        data: dubbedAnime
       });
     }
   }
 
   if (detailed && parseMembers) {
-    const cached = Cache.getDubberMembers(dubberService.dubber.id);
+    const cached = DubberParsedMembersCache.get({ id: dubberService.dubber.id });
 
     if (cached && useCache) {
       parsedMembers = cached;
@@ -71,10 +78,10 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
       parsedMembers = users;
 
-      Cache.push<ICacheParsedMembers>({
-        dubberId: dubberService.dubber.id,
-        members: users,
-        DEFINE_KEY: 'dubber:parsed_members'
+      DubberParsedMembersCache.push({
+        id: dubberService.dubber.id,
+        createdAt: getUTC().timestamp,
+        data: parsedMembers
       });
     }
   }
@@ -294,7 +301,7 @@ async function PostInviteAccept({ dubberId, userId }: IDubberPostInviteSADProps)
   await dubberService.memberAdd({ id: userId, checkInvitation: true });
 
   Search.update('user');
-  Cache.purgeCategory('dubber:parsed_members');
+  DubberParsedMembersCache.purge({ id: dubberService.dubber.id });
 
   return {
     status: 200,
@@ -345,7 +352,7 @@ async function PatchMemberById({ dubberId, userId, role, currentUser }: IDubberP
   if (typeof role === 'string') await dubberService.memberEdit({ id: userId, role });
 
   await dubberService.save();
-  Cache.purgeCategory('dubber:parsed_members');
+  DubberParsedMembersCache.purge({ id: dubberService.dubber.id });
 
   return {
     status: 200,
@@ -375,7 +382,7 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
   await dubberService.memberDelete({ id: userId, declineInvite: false });
 
   Search.update('user');
-  Cache.purgeCategory('dubber:parsed_members');
+  DubberParsedMembersCache.purge({ id: dubberService.dubber.id });
 
   return {
     status: 200,

@@ -1,25 +1,25 @@
 import express from 'express';
 
-import Cache from '~/Services/CacheService';
+import CacheService from '~/Services/CacheService';
 import Dubber from '../Models/Dubber';
 import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
 import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
-import { ICacheHomeWrapped } from '~/Interfaces/services/Cache';
 import { IDubber } from '~/core/Interfaces/IDubber';
 import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
 import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
-import { IM_FkAuthorityVerify } from '../Interfaces/Mocks';
-import { ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/Title';
-import { IUserWatchProgress } from '../Interfaces/User';
+import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
+import { ITitle, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/ITitle';
+import { IUserWatchProgress } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
 import { MiddlewareService } from '~/Services/MiddlewareService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { TRoleCapability } from '../Interfaces/Roles';
+import { TRoleCapability } from '../Interfaces/IRoles';
 import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
+import { getUTC } from '~/handlers/handler';
 import { signCSRFToken } from '../Services/TokenService';
 import { updateSearch } from './root';
 
@@ -80,12 +80,27 @@ interface IUploadPoster {
   type: TPatchTitleFormDataType
 }
 
+interface ITitleWithMeta extends ITitle {
+  videoURL: string
+  backgroundURL: string
+}
+
+interface IHomeWrapped {
+  featured: ITitleWithMeta[]
+  hightRated: ITitle[]
+  popular: ITitle[]
+  updatedRecently: ITitle[]
+}
+
 export interface IChangeEpMeta extends ITitleEpisodeMeta {
   action: 'edit' | 'delete'
 }
 
 type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
+
+
+export const AnimeHomeWrappedCache = new CacheService<IHomeWrapped>();
 
 
 
@@ -402,14 +417,14 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
   await HandleRequest(req, res, async () => {
     if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-    let HomeWrapped: ICacheHomeWrapped = {
+    let HomeWrapped: IHomeWrapped = {
       featured: [],
       hightRated: [],
       popular: [],
       updatedRecently: []
     };
 
-    const cache = Cache.getHomeWrapped();
+    const cache = AnimeHomeWrappedCache.get({ id: 'HomeWrapped' });
 
     if (cache) {
       HomeWrapped = cache;
@@ -439,9 +454,10 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
       // Fetch hight rated
       HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
 
-      Cache.push<Required<ICacheHomeWrapped>>({
-        DEFINE_KEY: 'HomeWrapped',
-        ...HomeWrapped,
+      AnimeHomeWrappedCache.push({
+        id: 'HomeWrapped',
+        createdAt: getUTC().timestamp,
+        data: HomeWrapped
       });
     }
 
