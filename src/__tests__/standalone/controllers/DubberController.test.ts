@@ -1,6 +1,6 @@
 process.argv.push('testMode');
 
-import DubberController from '~/controllers/Dubber/DubberController';
+import DubberController from '~/Controllers/Dubber/DubberController';
 import DubberService from '~/core/Services/DubberService';
 import Search from '~/services/SearchService';
 import mongoose from 'mongoose';
