@@ -633,7 +633,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
 
-    const prevBannerId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
+    const prevBannerId = NekomiUploadsAPI.getUploadIdFromURL(this.document.banner);
 
     const { id, url } = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById: userId });
 
