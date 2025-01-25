@@ -18,7 +18,7 @@ const upload = multer();
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
   const { query } = parseObjectTypes<IDubberGetOneByQueryProps>(req.params);
-  let { detailed, fetchDubbedAnime, parseMembers, useCache } = parseObjectTypes<IDubberGetOneByQueryProps>(req.query);
+  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<IDubberGetOneByQueryProps>(req.query);
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   // Ensure that only client get detailed document
@@ -29,9 +29,9 @@ const getOne = HTTPEndpoint(async (req, res) => {
     detailed = true;
   }
 
-  const { dubber, message, status, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache });
+  const data = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly });
 
-  return res.status(status).json({ message, dubber, dubbedAnime, parsedMembers });
+  return res.status(data.status).json(data);
 });
 
 const GetOne = [
