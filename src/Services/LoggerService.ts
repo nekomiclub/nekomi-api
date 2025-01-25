@@ -3,8 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import { getUTC } from '../handlers/handler';
 
+
+
 export const LOG_TYPES = ['info', 'warn', 'error', 'fail', 'debug', 'trace', 'suspicious'] as const;
 export type TLogType = typeof LOG_TYPES[number];
+
+
 
 /** Logging service */
 class LoggerService {
@@ -19,6 +23,8 @@ class LoggerService {
   private LOG_SUSPICIOUS_FILE = `${this.LOG_FOLDER}/suspicious.log`;
   private LOG_FILE_MAX_ROWS = 30000;
 
+
+
   constructor() {
     this.checkFilesystem();
 
@@ -26,10 +32,12 @@ class LoggerService {
     this.debug(`[Startup]: ------------------ DRY RUN ------------------`);
   }
 
+
+
   /** Write log */
   private append({ msg, type, e }: { type: TLogType, msg: string, e?: any }) {
     const emsg = e?.msg || e?.message || e?.data?.message || e?.data?.msg || e?.response?.data?.message || e?.response?.data?.message;
-    const date = `${getUTC().fulldate}/${getUTC().time}.${String(getUTC().secs).padStart(2, '0')}:${String(getUTC().ms).padStart(4, '0')}`;
+    const date = `${getUTC().fulldate}/${getUTC().timeAccurate}`;
     const parsedType = `${type.toUpperCase()}${[...Array(this.MAX_TYPE_LENGTH - type.length + 1).keys()].map(el => null).join(' ')}`;
 
     const logMessage = `${msg}.${e !== undefined ? ` ${emsg ? `EMSG - ${emsg}` : `Stack - ${JSON.stringify(e, Object.getOwnPropertyNames(e), 2)}`}` : ''}`;

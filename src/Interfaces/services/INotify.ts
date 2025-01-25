@@ -1,9 +1,7 @@
-import { IDubber } from '~/core/Interfaces/IDubber';
-import { ITitle } from '../ITitle';
-
 export const NOTIFY_EVENTS = [
   'new_episode',
   'airing_started',
+
   'dubber_invite_pending',
   'dubber_invite_accepted',
   'dubber_invite_declined',
@@ -12,12 +10,6 @@ export const NOTIFY_EVENTS = [
 
 export type TNotifyEvent = typeof NOTIFY_EVENTS[number];
 
-export interface INotifyBroadcast<PARTICIPANTS = string[], DATA = object> {
-  event: TNotifyEvent
-  participants: PARTICIPANTS
-  data: DATA
-}
-
 export interface IEventPayload<P = object> {
   event: TNotifyEvent
   payload: P
@@ -25,37 +17,20 @@ export interface IEventPayload<P = object> {
 
 //* --------- EVENTS
 
-/** new_episode event */
+/** new_episode */
 export interface INotifyNewEpisode {
   titleID: string
   dubberID: string
   episodeOrder: number
 }
 
-/** new_episode event broadcasted */
-export type TNotifyBroadcastNewEpisode = INotifyBroadcast<number[], {
-  title: ITitle
-  dubber: IDubber
-  episodeOrder: number
-}>
-
 /** airing_started */
 export interface INotifyAiringStarted {
   titleID: string
 }
 
-/** airing_started event broadcasted */
-export type TNotifyBroadcastAiringStarted = INotifyBroadcast<number[], {
-  title: ITitle
-}>
-
-/** dubber_invite_pending */
-export interface INotifyDubberInvite {
-  user_id: string
-  dubber_id: string
+/** dubber_invite accept & decline & pending, dubber_member_excluded */
+export interface INotifyDubberTell {
+  userId: string
+  dubberId: string
 }
-
-/** dubber_invite_pending event broadcasted */
-export type TNotifyBroadcastDubberInvite = INotifyBroadcast<number[], {
-  dubber: IDubber
-}>

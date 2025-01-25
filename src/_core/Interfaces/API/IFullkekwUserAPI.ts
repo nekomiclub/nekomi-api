@@ -4,6 +4,15 @@
 
 
 
+export interface IFullkekwUserAPI_GetUser {
+  user: {
+    id: string
+    username: string
+    email: string
+    avatarURL: string
+  }
+}
+
 export interface IFullkekwUserAPI_TokenData {
   id: string
   username: string

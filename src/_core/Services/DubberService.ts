@@ -5,7 +5,7 @@ import validator from 'validator';
 import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../Services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IDubber, IDubberMember, TDubberMemberRole } from '../Interfaces/IDubber';
-import { INotifyDubberInvite } from '../../Interfaces/services/INotify';
+import { INotifyDubberTell } from '../../Interfaces/services/INotify';
 import { Logger } from '../../Services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
 import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
@@ -394,11 +394,11 @@ export class DubberService extends DubberModelControls {
 
     if (!this.TestMode) {
       try {
-        await Notify.broadcast<INotifyDubberInvite>({
+        await Notify.broadcast<INotifyDubberTell>({
           event: 'dubber_invite_accepted',
           payload: {
-            user_id: id,
-            dubber_id: this.document.id
+            userId: id,
+            dubberId: this.document.id
           }
         });
       } catch (e) {
@@ -497,10 +497,10 @@ export class DubberService extends DubberModelControls {
 
       if (!this.TestMode) {
         try {
-          await Notify.broadcast<INotifyDubberInvite>({
+          await Notify.broadcast<INotifyDubberTell>({
             event: 'dubber_invite_declined', payload: {
-              user_id: id,
-              dubber_id: this.document.id
+              userId: id,
+              dubberId: this.document.id
             }
           });
         } catch (e) {
@@ -519,10 +519,10 @@ export class DubberService extends DubberModelControls {
 
       if (!this.TestMode) {
         try {
-          await Notify.broadcast<INotifyDubberInvite>({
+          await Notify.broadcast<INotifyDubberTell>({
             event: 'dubber_member_excluded', payload: {
-              user_id: id,
-              dubber_id: this.document.id
+              userId: id,
+              dubberId: this.document.id
             }
           });
         } catch (e) {
@@ -575,11 +575,11 @@ export class DubberService extends DubberModelControls {
 
     if (!this.TestMode) {
       try {
-        await Notify.broadcast<INotifyDubberInvite>({
+        await Notify.broadcast<INotifyDubberTell>({
           event: 'dubber_invite_pending',
           payload: {
-            user_id: id,
-            dubber_id: this.dubber.id
+            userId: id,
+            dubberId: this.dubber.id
           }
         });
       } catch (e) {

@@ -78,27 +78,27 @@ export function getUTC(timestamp?: number | null): {
   const now = timestamp ? new Date(timestamp) : new Date();
 
   const year = now.getUTCFullYear();
-  const month = +String(now.getUTCMonth() + 1).padStart(2, '0');
-  const date = +String(now.getUTCDate()).padStart(2, '0');
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const date = String(now.getUTCDate()).padStart(2, '0');
   const weekDay = now.getUTCDay();
-  const hrs = +String(now.getUTCHours()).padStart(2, '0');
-  const mins = +String(now.getUTCMinutes()).padStart(2, '0');
-  const secs = now.getUTCSeconds();
-  const ms = +String(now.getUTCMilliseconds()).padStart(4, '0');
+  const hrs = String(now.getUTCHours()).padStart(2, '0');
+  const mins = String(now.getUTCMinutes()).padStart(2, '0');
+  const secs = String(now.getUTCSeconds()).padStart(2, '0');
+  const ms = String(now.getUTCMilliseconds()).padStart(4, '0');
 
   return {
     year,
-    month,
-    date,
+    month: +month,
+    date: +date,
     weekDay,
-    hrs,
-    mins,
-    secs,
-    ms,
+    hrs: +hrs,
+    mins: +mins,
+    secs: +secs,
+    ms: +ms,
     timestamp: now.getTime(),
     fulldate: `${date}.${month}.${year}`,
     time: `${hrs}:${mins}`,
-    timeAccurate: `${hrs}:${mins}:${String(secs).padStart(2, '0')}.${ms}`,
+    timeAccurate: `${hrs}:${mins}:${secs}.${ms}`,
   };
 }
 
