@@ -153,7 +153,7 @@ const UpdateHandlers = [
         } catch (e) {
           Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
         }
-      }, 10000); // 21600000 // 6h
+      }, 21600000); // 21600000 // 6h
 
 
 
