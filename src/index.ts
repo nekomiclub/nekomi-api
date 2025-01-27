@@ -113,12 +113,13 @@ wss.on('listening', () => {
 
 
 //* HTTP server
-(async function () {
-  const REPETATIVE_HANDLERS = [
-    await updateSearch(),
-    await removeUsersLinkTelegramToken(),
-  ] as const;
+const UpdateHandlers = [
+  updateSearch(),
+  removeUsersLinkTelegramToken(),
+  Search.init(),
+] as const;
 
+(async function () {
   wss.on('connection', WebsocketRouter);
 
   app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, async () => {
@@ -137,14 +138,24 @@ wss.on('listening', () => {
   ----------------------------
     `);
 
-      await Promise.all(REPETATIVE_HANDLERS);
-      await Search.init();
 
-      // Cache updating
+      // Callback body
+      Promise.all(UpdateHandlers);
+
+
+
+      // Update cache
       setInterval(async () => {
-        // Update cache
-        await Promise.all(REPETATIVE_HANDLERS);
-      }, 43200000); // 43200000 // 12h
+        try {
+          Logger.debug(`[System]: Updating cache...`);
+          await Promise.all(UpdateHandlers);
+          Logger.debug(`[System]: Cache updated`);
+        } catch (e) {
+          Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
+        }
+      }, 10000); // 21600000 // 6h
+
+
 
       // Poll site online
       setInterval(async () => {
