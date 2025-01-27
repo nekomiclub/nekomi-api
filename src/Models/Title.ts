@@ -790,11 +790,11 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match(cfg.config.DOMAIN.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
-          const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
+        if (this.title.poster !== config.vars.defaultPoster) {
+          const uploadId = NekomiUploadsAPI.getUploadIdFromURL(this.title.poster);
 
           if (!this.TestMode) {
-            await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById: user.id });
+            await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById: user.id });
           }
         }
       } catch (e) {
