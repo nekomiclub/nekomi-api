@@ -5,7 +5,7 @@ import { getUTC } from '../handlers/handler';
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';
-import { DevelopmentMode } from '../config';
+import { DevelopmentMode, config } from '../config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
 
@@ -24,7 +24,7 @@ export class HTTPErrorConstructor {
   constructor({ message, status, code }: { message: string, status: THTTPErrorCode, code?: string }) {
     this.message = message;
     this.status = status;
-    this.code = code || 'HTTP_ERROR';
+    this.code = code || 'generic:http_error';
   }
 }
 
@@ -33,63 +33,63 @@ export class HTTPErrorConstructor {
 /** HTTP_BAD_REQUEST */
 export class E400 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 400, code: code || 'HTTP_BAD_REQUEST' });
+    super({ message, status: 400, code: code || 'generic:bad_request' });
   }
 }
 
 /** HTTP_NOT_AUTHORIZED */
 export class E401 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 401, code: code || 'HTTP_NOT_AUTHORIZED' });
+    super({ message, status: 401, code: code || 'generic:missing_authorization' });
   }
 }
 
 /** HTTP_FORBIDDEN */
 export class E403 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 403, code: code || 'HTTP_FORBIDDEN' });
+    super({ message, status: 403, code: code || 'generic:forbidden' });
   }
 }
 
 /** HTTP_NOT_FOUND */
 export class E404 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 404, code: code || 'HTTP_NOT_FOUND' });
+    super({ message, status: 404, code: code || 'generic:not_found' });
   }
 }
 
 /** HTTP_TEAPOT */
 export class E418 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 418, code: code || 'HTTP_TEAPOT' });
+    super({ message, status: 418, code: code || 'generic:idk' });
   }
 }
 
 /** HTTP_INTERNAL */
 export class E500 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 500, code: code || 'HTTP_INTERNAL' });
+    super({ message, status: 500, code: code || 'generic:server_error' });
   }
 }
 
 /** HTTP_NOT_IMPLEMENTED */
 export class E501 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 501, code: code || 'HTTP_NOT_IMPLEMENTED' });
+    super({ message, status: 501, code: code || 'generic:method_not_implemented' });
   }
 }
 
 /** HTTP_BAD_GATEWAY */
 export class E502 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 502, code: code || 'HTTP_BAD_GATEWAY' });
+    super({ message, status: 502, code: code || 'generic:bad_gateway' });
   }
 }
 
 /** HTTP_SERVICE_UNAVAILABLE */
 export class E503 extends HTTPErrorConstructor {
   constructor(message: string, code?: string) {
-    super({ message, status: 503, code: code || 'HTTP_SERVICE_UNAVAILABLE' });
+    super({ message, status: 503, code: code || 'generic:service_not_available' });
   }
 }
 
@@ -213,5 +213,44 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
   }
 }
 
-export const ERR_NO_DOCUMENT = new E500(`NO DOCUMENT PASSED INTO CONSTRUCTOR`, 'generic:no_document');
+
+
+
+
+
+//* ========= GENERIC
+export enum ERR_GENERIC {
+  LINK_INVALID = 'generic:link_invalid',
+  USERNAME_LENGTH_INVALID = 'generic:username_length_invalid',
+  USERNAME_NOT_LATIN = 'generic:username_not_latin',
+  DESCRIPTION_LENGTH_INVALID = 'generic:description_length_invalid',
+}
+
+export const ERR_USERNAME_LENGTH_INVALID = new E400(`Username must be in range between ${config.VALIDATION.CreateUser.minNameLength} and ${config.VALIDATION.CreateUser.maxNameLength} symbols`, ERR_GENERIC.USERNAME_LENGTH_INVALID);
+export const ERR_USERNAME_NOT_LATIN = new E400(`Username must contain only latin characters`, ERR_GENERIC.USERNAME_NOT_LATIN);
+
+export const ERR_DESCRIPTION_LENGTH_INVALID = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols`, ERR_GENERIC.DESCRIPTION_LENGTH_INVALID);
+
+export const ERR_LINK_INVALID = new E400(`Link was parsed with error, domain is not valid or it's length is above 256 chars`, ERR_GENERIC.LINK_INVALID);
+export const ERR_NO_DOCUMENT = new E500(`No document is passed into the constructor`, 'generic:no_document');
 export const ERR_FILE_TOO_LARGE = new E400(`Uploaded file size is too large`, 'generic:file_too_large');
+
+
+
+//* ========= DUBBER
+export const ERR_DUBBER_OTHER_TEAM_MEMBER = new E400(`User is already take part in another dubber team`, 'dubber:other_team_member');
+
+export const ERR_DUBBER_NOT_INVITED = new E400(`User is not invited in the dubber team`, 'dubber:not_invited');
+export const ERR_DUBBER_ALREADY_INVITED = new E400(`User is already invited in the dubber team`, 'dubber:already_invited');
+
+export const ERR_DUBBER_MEMBER_ALREADY = new E400(`User is already member of the dubber team`, 'dubber:member_already');
+export const ERR_DUBBER_NOT_MEMBER = new E400(`User is not a member of the team`, 'dubber:not_member');
+
+
+
+//* ========= ANIME
+
+
+
+//* ========= USER
+export const ERR_USER_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'user:telegram_not_linked');

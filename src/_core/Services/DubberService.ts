@@ -1,9 +1,10 @@
+import validator from 'validator';
+import { HydratedDocument } from 'mongoose';
+
 import DubberModel from '../Models/DubberModel';
 import ServiceControls from '../Interfaces/ServiceControls';
 import UserModel, { UserService } from '../../Models/User';
-import validator from 'validator';
-import { E400, E404, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_NO_DOCUMENT } from '../../Services/ErrorService';
-import { HydratedDocument } from 'mongoose';
+import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '../../Services/ErrorService';
 import { IDubber, IDubberMember, TDubberMemberRole } from '../Interfaces/IDubber';
 import { INotifyDubberTell } from '../../Interfaces/services/INotify';
 import { Logger } from '../../Services/LoggerService';
@@ -71,53 +72,6 @@ type TDubberModelControls = ServiceControls<IDubberCreateProps, IDubber>
 
 
 
-const ERR_NAME_LENGTH_INVALID = new E400(`Dubber name must be in range between ${config.VALIDATION.CreateUser.minNameLength} and ${config.VALIDATION.CreateUser.maxNameLength} symbols`, 'dubber:name_length_invalid');
-const ERR_NAME_NOT_LATIN = new E400(`Dubber english name must contain only latin letters`, 'dubber:name_not_latin');
-const ERR_DESCRIPTION_LENGTH_INVALUD = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`, 'dubber:description_length_invalid');
-const ERR_LINK_DOMAIN_MISSMATCH = new E400(`Some links points to invalid domains or link parsed with error`, 'dubber:link_domain_missmatch');
-
-export const ERR_DUBBER_OTHER_TEAM_MEMBER = new E400(`User is already take part in another dubber team`, 'dubber:other_team_member');
-export const ERR_DUBBER_NOT_INVITED = new E400(`User is not invited in this team`, 'dubber:not_invited');
-export const ERR_DUBBER_ALREADY_INVITED = new E400(`User is already invited in this team`, 'dubber:already_invited');
-const ERR_MEMBER_ALREADY = new E400(`User is already member of this team`, 'dubber:member_already');
-const ERR_NOT_MEMBER = new E400(`User is not member in this team`, 'dubber:not_member');
-const ERR_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'dubber:telegram_not_linked');
-
-
-
-// export const DUBBER_DEFAULT_INSTANCE: IDubber = {
-// id: '',
-// nameUkr: '',
-// nameEng: '',
-// name: '',
-// slug: '',
-// avatar: config.vars.defaultAvatar,
-// banner: config.vars.defaultBanner,
-// description: null,
-// members: [],
-// membersInvited: [],
-// socials: {
-//   instagram: null,
-//   telegram: null,
-//   tiktok: null,
-//   youtube: null
-// },
-// support: {
-//   bymeacoffee: null,
-//   diaka: null,
-//   monobank: null,
-//   patreon: null,
-//   privatbank: null
-// },
-// statistics: {
-//   createdAt: getUTC().timestamp
-// },
-// createdAt: getUTC().timestamp,
-// code: ''
-// };
-
-
-
 class DubberModelControls implements TDubberModelControls {
   readonly TestMode: boolean;
 
@@ -134,9 +88,9 @@ class DubberModelControls implements TDubberModelControls {
     nameUkr = trimString(nameUkr);
     nameEng = trimString(nameEng);
 
-    if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
-    if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
-    if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_NAME_NOT_LATIN;
+    if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
+    if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
+    if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_USERNAME_NOT_LATIN;
 
     const id = this.TestMode && DEV_ID ? DEV_ID : createUUID();
     const createdAt = getUTC().timestamp;
@@ -268,7 +222,7 @@ export class DubberService extends DubberModelControls {
 
     if (nameUkr !== undefined) {
       nameUkr = trimString(nameUkr);
-      if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
+      if (!validator.isLength(nameUkr, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
 
       this.stack.push(`nameUkr: ${this.document.nameUkr} > ${nameUkr}`);
 
@@ -280,8 +234,8 @@ export class DubberService extends DubberModelControls {
 
     if (nameEng !== undefined) {
       nameEng = trimString(nameEng);
-      if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
-      if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_NAME_NOT_LATIN;
+      if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
+      if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_USERNAME_NOT_LATIN;
 
       let slug = createSlug(nameEng);
 
@@ -306,7 +260,7 @@ export class DubberService extends DubberModelControls {
 
     if (description?.length) {
       description = trimString(description);
-      if (!validator.isLength(description, { max: config.VALIDATION.PatchTitle.maxDetailsLength })) ERR_DESCRIPTION_LENGTH_INVALUD;
+      if (!validator.isLength(description, { max: config.VALIDATION.PatchTitle.maxDetailsLength })) ERR_DESCRIPTION_LENGTH_INVALID;
 
       this.stack.push(`description: ${this.document.description?.length} symbols > ${description.length} symbols`);
     } else {
@@ -323,7 +277,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
-    if (value?.length && value.length > 256) throw new E400(`This link is too large (above 256 chars)`);
+    if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
 
     try {
       if (value !== null) {
@@ -335,7 +289,7 @@ export class DubberService extends DubberModelControls {
         if (key === 'youtube' && host !== 'youtube.com') throw null;
       }
     } catch (e) {
-      throw ERR_LINK_DOMAIN_MISSMATCH;
+      throw ERR_LINK_INVALID;
     }
 
     this.stack.push(`social ${key}: ${this.document.socials[key]} > ${value}`);
@@ -348,7 +302,7 @@ export class DubberService extends DubberModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
-    if (value?.length && value.length > 256) throw new E400(`This link is too large (above 256 chars)`);
+    if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
 
     try {
 
@@ -362,7 +316,7 @@ export class DubberService extends DubberModelControls {
         if (key === 'privatbank') throw null;
       }
     } catch (e) {
-      throw ERR_LINK_DOMAIN_MISSMATCH;
+      throw ERR_LINK_INVALID;
     }
 
     this.stack.push(`support ${key}: ${this.document.support[key]} > ${value}`);
@@ -381,7 +335,7 @@ export class DubberService extends DubberModelControls {
 
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
-    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_DUBBER_MEMBER_ALREADY;
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
     if (checkInvitation && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
 
@@ -440,7 +394,7 @@ export class DubberService extends DubberModelControls {
     if (!user) throw new E404(`User ${id} is not found`);
 
     const member = this.document.members.find(el => el.id === id);
-    if (!member) throw ERR_NOT_MEMBER;
+    if (!member) throw ERR_DUBBER_NOT_MEMBER;
 
     const userService = new UserService({ user });
 
@@ -561,10 +515,10 @@ export class DubberService extends DubberModelControls {
 
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
-    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_MEMBER_ALREADY;
+    if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_DUBBER_MEMBER_ALREADY;
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
     if (this.document.membersInvited.includes(id)) throw ERR_DUBBER_ALREADY_INVITED;
-    if (!user.statistics.isTelegramLinked) throw ERR_TELEGRAM_NOT_LINKED;
+    if (!user.statistics.isTelegramLinked) throw ERR_USER_TELEGRAM_NOT_LINKED;
 
     Logger.info(`[DubberService]: Inviting user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 

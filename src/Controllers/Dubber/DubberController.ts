@@ -1,10 +1,10 @@
 import CacheService from '~/services/CacheService';
-import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/Services/DubberService';
+import DubberService from '~/core/Services/DubberService';
 import Search from '~/services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
-import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/IDubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/ITitle';
