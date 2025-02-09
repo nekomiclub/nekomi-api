@@ -790,7 +790,7 @@ export class TitleService {
 
       // Remove old poster
       try {
-        if (this.title.poster.match(cfg.config.DOMAIN.nekomi) || this.title.poster.match(config.URL.nekomi_core)) {
+        if (this.title.poster.match(cfg.config.DOMAIN.nekomi_media) && this.title.poster !== config.vars.defaultPoster) {
           const uploadID = this.title.poster.split('/')[this.title.poster.split('/').length - 1];
 
           if (!this.TestMode) {
