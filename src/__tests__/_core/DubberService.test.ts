@@ -1,7 +1,7 @@
 import DubberService from '../../_core/Services/DubberService';
 import UserModel, { UserService } from '../../Models/User';
 import mongoose from 'mongoose';
-import { HTTPErrorConstructor } from '../../Services/ErrorService';
+import { ERR_GENERIC, HTTPErrorConstructor } from '../../Services/ErrorService';
 import { NotifyService } from '../../Services/NotifyService';
 import { config } from '../../config';
 
@@ -97,7 +97,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_not_latin');
+          expect(e.code).toBe(ERR_GENERIC.USERNAME_NOT_LATIN);
         }
       }
 
@@ -111,7 +111,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_length_invalid');
+          expect(e.code).toBe(ERR_GENERIC.USERNAME_LENGTH_INVALID);
         }
       }
     });
@@ -183,7 +183,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:name_length_invalid');
+          expect(e.code).toBe(ERR_GENERIC.USERNAME_LENGTH_INVALID);
         }
       }
     });
@@ -205,7 +205,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:description_length_invalid');
+          expect(e.code).toBe(ERR_GENERIC.DESCRIPTION_LENGTH_INVALID);
         }
       }
     });
@@ -227,7 +227,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:link_domain_missmatch');
+          expect(e.code).toBe(ERR_GENERIC.LINK_INVALID);
         }
       }
     });
@@ -249,7 +249,7 @@ describe('DubberService', () => {
         expect(true).toBeFalsy();
       } catch (e) {
         if (e instanceof HTTPErrorConstructor) {
-          expect(e.code).toBe('dubber:link_domain_missmatch');
+          expect(e.code).toBe(ERR_GENERIC.LINK_INVALID);
         }
       }
     });

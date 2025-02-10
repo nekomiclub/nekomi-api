@@ -1,10 +1,17 @@
+import express from 'express';
+
 import * as RouteValidation from '../handlers/routeValidation';
 import * as TitleController from '../Controllers/title';
-import express from 'express';
+import AnimeRoutes from '~/controllers/Anime/AnimeRoutes';
 
 
 
 const AnimeRouter = express.Router();
+
+
+
+//* Generic
+AnimeRouter.get(`/search`, AnimeRoutes.GetSearch);
 
 
 

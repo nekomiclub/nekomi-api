@@ -52,7 +52,6 @@ const hskey = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.clu
 const hscert = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
 const hschain = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
-export const app = express();
 export const wss = ProductionMode ? new WebSocketServer({
   server: https.createServer({
     key: hskey,
@@ -79,6 +78,8 @@ const CORSOpt: CorsOptions = {
 
 
 //* Setup http middlewares
+export const app = express();
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(cors(CORSOpt));

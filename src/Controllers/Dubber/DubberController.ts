@@ -1,10 +1,10 @@
 import CacheService from '~/services/CacheService';
-import DubberService, { ERR_DUBBER_NOT_INVITED } from '~/core/Services/DubberService';
+import DubberService from '~/core/Services/DubberService';
 import Search from '~/services/SearchService';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
-import { E500, ERR_ACCESS_REJECTED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/IDubber';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/ITitle';
@@ -13,8 +13,8 @@ import { getUTC } from '~/handlers/handler';
 
 
 
-export const DubberDubbedAnimeCache = new CacheService<ITitle[]>();
-export const DubberParsedMembersCache = new CacheService<IUser[]>();
+export const DubberDubbedAnimeCache = new CacheService<ITitle[]>('DubberDubbedAnimeCache');
+export const DubberParsedMembersCache = new CacheService<IUser[]>('DubberParsedMembersCache');
 
 
 
@@ -25,21 +25,32 @@ export interface IDubberGetOneByQueryProps {
   fetchDubbedAnime?: boolean
   parseMembers?: boolean
 
+  /** Fetch only dubber metadata, will set dubber to null */
+  metadataOnly?: boolean
+
   /** Use cache
    * @default true
    */
   useCache?: boolean
 }
 
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache }: IDubberGetOneByQueryProps) {
+interface IDubberMetadata {
+  title: string
+  description: string
+  keywords: string[]
+  photo: string
+}
+
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
   useCache = useCache ?? true;
 
-  let dubber = new DocumentDTO().dubber({ object: dubberService.dubber });
+  let dubber: IDubber = new DocumentDTO().dubber({ object: dubberService.dubber });
   let dubbedAnime: ITitle[] | undefined = undefined;
   let parsedMembers: IUser[] | undefined = undefined;
+  let metadata: IDubberMetadata | undefined = undefined;
 
 
 
@@ -47,6 +58,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
   }
 
+  // Fetch dubbed anime's
   if (detailed && fetchDubbedAnime) {
     const cached = DubberDubbedAnimeCache.get({ id: dubberService.dubber.id });
 
@@ -68,6 +80,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     }
   }
 
+  // Parse members
   if (detailed && parseMembers) {
     const cached = DubberParsedMembersCache.get({ id: dubberService.dubber.id });
 
@@ -86,12 +99,26 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     }
   }
 
+  // Send only metadata
+  if (metadataOnly) {
+    metadata = {
+      title: dubber.nameUkr,
+      description: dubber.description ?? 'Ця команда озвучує аніме на nekomi.club',
+      keywords: [dubber.nameUkr, dubber.nameEng],
+      photo: dubber.avatar
+    };
+
+    // @ts-ignore
+    dubber = null;
+  }
+
   return {
     status: 200,
     message: `ok${detailed ? ' + private details' : ''}`,
     dubber,
     dubbedAnime,
-    parsedMembers
+    parsedMembers,
+    metadata
   };
 }
 

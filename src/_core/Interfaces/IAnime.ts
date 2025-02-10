@@ -14,7 +14,7 @@ export interface ITitle {
   details: string | null
   updatedAt: number
 
-  /** @since 1.3.2 */
+  /** @deprecated*/
   hikkaSyncedAt: number
 
   /** @private */
@@ -23,10 +23,10 @@ export interface ITitle {
   /** @private */
   episodesMeta: ITitleEpisodeMeta[]
 
-  /** Code (url encoded eng name) */
+  /** Code (url encoded eng name) @deprecated use slug instead */
   code: string
 
-  /** @since 1.3.2 */
+  /** @since 1.3.2 @deprecated use malId instead */
   mal_id: string | null
 
   names: {
@@ -36,11 +36,15 @@ export interface ITitle {
   },
 
   rating: {
+    /** @deprecated */
     IMDB: number | null
-    /** @since 1.3.2 */
+    /** @since 1.3.2
+     * @deprecated use score.mal
+     */
     mal: number | null
     /** MAL rated by
      * @since 1.3.2
+     * @deprecated use score.malScoredBy
      */
     mal_poll: number | null
     /** @deprecated 1.3.2 */

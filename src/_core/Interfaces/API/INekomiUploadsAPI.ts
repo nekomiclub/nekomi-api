@@ -16,3 +16,12 @@ export type TUploadType =
   | 'video/title/episode'
   | 'video/srt'
   | 'video/srt-temp'
+
+export interface INekomiUploadsAPI_UploadFile {
+  id: string
+  url: string
+  srt_id?: string
+
+  /** @type video/title/episode - total frames count */
+  frames?: number
+}

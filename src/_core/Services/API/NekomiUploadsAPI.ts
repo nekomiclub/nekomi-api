@@ -1,8 +1,10 @@
 import { $upload } from '~/services/HTTPService';
 import { AxiosError } from 'axios';
+import { INekomiUploadsAPI_UploadFile, TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { Logger } from '~/services/LoggerService';
-import { TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { config } from '~/config';
+
+
 
 interface IUploadFileProps {
   file: Express.Multer.File
@@ -40,14 +42,10 @@ export class NekomiUploadsAPI {
 
     if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
-    const { data } = await $upload.post<{
-      id: string
-      url: string
-      srt_id?: string
+    const url = `${baseURL}/upload`;
+    Logger.trace(`[NekomiUploadsAPI]: POST - ${url}`);
 
-      /** @type video/title/episode - total frames count */
-      frames?: number
-    }>(`${baseURL}/upload`, formData);
+    const { data } = await $upload.post<INekomiUploadsAPI_UploadFile>(url, formData);
 
     Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
 
@@ -56,7 +54,10 @@ export class NekomiUploadsAPI {
 
   static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
     try {
-      await $upload.delete(`${baseURL}/upload/${id}`, {
+      const url = `${baseURL}/upload/${id}`;
+      Logger.trace(`[NekomiUploadsAPI]: DELETE - ${url}`);
+
+      await $upload.delete(url, {
         params: {
           by: deletedById,
           withChildren

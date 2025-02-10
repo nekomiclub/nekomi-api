@@ -1,21 +1,27 @@
+import { AxiosError } from 'axios';
+
 import DubberService from '~/core/Services/DubberService';
 import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
 import Title from '../Models/Title';
-import User from '../Models/User';
-import { AxiosError } from 'axios';
-import { DevelopmentMode } from '../config';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
+import User, { UserModel, UserService } from '../Models/User';
+import { DevelopmentMode, config } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberInvite, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyBroadcastAiringStarted, TNotifyBroadcastDubberInvite, TNotifyBroadcastNewEpisode, TNotifyEvent } from '../Interfaces/services/INotify';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '../Interfaces/services/INotify';
+import { InlineKeyboardMarkup } from '~/core/Interfaces/API/INekomiBotAPI';
 import { Logger } from './LoggerService';
 
 
 
 type TEventFunction = (payload: IEventPayload<any>) => Promise<void>
 
+interface INotifyTestProps {
+  telegramId?: number
+}
+
 const EVENTS: { [EVENT in TNotifyEvent]?: TEventFunction } = {
-  new_episode,
   airing_started,
+  new_episode,
+
   dubber_invite_pending: HANDLER_dubber_tell,
   dubber_invite_accepted: HANDLER_dubber_tell,
   dubber_invite_declined: HANDLER_dubber_tell,
@@ -53,43 +59,53 @@ export class NotifyService {
   }
 
   /** Test specified event with mocked data */
-  async test(event: TNotifyEvent) {
+  async test(event: TNotifyEvent, { telegramId }: INotifyTestProps) {
     Logger.debug(`[Notify]: Testing ${event}...`);
 
-    switch (event) {
-      case 'new_episode': {
-        const title = await Title.findOne({ episodes: { $ne: [] } });
+    if (event === 'new_episode') {
+      const title = await Title.findOne();
+      if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
 
-        if (!title) {
-          return Logger.fail(`[Notify]: Testing ${event} failed - Title with non empty episodes is not found`);
-        }
+      const payload: INotifyNewEpisode = {
+        titleID: title.id,
+        dubberID: title.episodes[0].dubberID,
+        episodeOrder: title.episodes[0].order,
+      };
 
-        const payload: INotifyNewEpisode = {
-          titleID: title.id,
-          dubberID: title.episodes[0].dubberID,
-          episodeOrder: title.episodes[0].order,
-        };
+      await this.broadcast({ event, payload });
+    }
 
-        await this.broadcast({ event, payload });
+    if (event === 'airing_started') {
+      const title = await Title.findOne();
+      if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
 
-        break;
-      }
+      const payload: INotifyAiringStarted = {
+        titleID: title.id,
+      };
 
-      case 'airing_started': {
-        const title = await Title.findOne();
+      await this.broadcast({ event, payload });
+    }
 
-        if (!title) {
-          return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
-        }
+    if (
+      event === 'dubber_invite_pending'
+      || event === 'dubber_invite_accepted'
+      || event === 'dubber_invite_declined'
+      || event === 'dubber_member_excluded'
+    ) {
+      if (!telegramId) return Logger.fail(`[Notify]: Can not send notify due to telegramId missing`);
 
-        const payload: INotifyAiringStarted = {
-          titleID: title.id,
-        };
+      const user = await UserModel.findOne({ telegramData: { id: telegramId } });
+      if (!user) return Logger.fail(`[Notify]: Can not find user with telegram id ${telegramId}`);
 
-        await this.broadcast({ event, payload });
+      const dubberService = new DubberService();
+      const dubber = (await dubberService.getAll())[0];
 
-        break;
-      }
+      const payload: INotifyDubberTell = {
+        userId: user.id,
+        dubberId: dubber.id
+      };
+
+      await this.broadcast({ event, payload });
     }
   }
 }
@@ -105,22 +121,27 @@ async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>)
 
   const dubber = await new DubberService().getById(dubberID);
 
-  if (isNaN(+episodeOrder)) throw new ERR_INVALID_PAYLOAD(`Episode order can not be NaN`);
+  const users = (await User.find({
+    subscribes: NotifyService.createEvent({ event, key: title.id })
+  })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === title.id));
 
-  const users = (await User.find({ subscribes: `${event}/${title.id}` })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === title.id));
-  const broadcastPayload: TNotifyBroadcastNewEpisode = {
-    event,
-    participants: users.map(el => el.telegramData!.id!),
-    data: {
-      title: new MongoDocumentDTO().anime({ document: title }),
-      dubber: new DocumentDTO().dubber({ object: dubber }),
-      episodeOrder,
+  const audience = users.map(el => el.telegramData!.id!);
+
+
+  await NekomiBotAPI.broadcast({
+    audience,
+    message: `🆕 ${episodeOrder} серія в озвученні ${dubber.nameUkr} завантажена на nekomi.club!\n\n🎬 ${title.names.ukr} / ${title.names.eng}\n`,
+    photo: title.poster,
+    replyMarkup: {
+      inline_keyboard: [[{
+        text: 'Дивитись 👉👉👉',
+        url: `${config.URL.nekomi_site}/w/${title.code}`
+      }]]
     }
-  };
+  });
 
-  Logger.debug(`[Notify]: Broadcasted ${event} event`);
+  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: title.id })}; audience: ${audience.join(', ')}]`);
 
-  await NekomiBotAPI.broadcast(broadcastPayload);
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
@@ -129,47 +150,74 @@ async function airing_started({ event, payload }: IEventPayload<INotifyAiringSta
   const title = await Title.findOne({ id: titleID });
   if (!title) throw new E404(`Title ${titleID} is not found`);
 
-  const users = (await User.find({ subscribes: `${event}/${title.id}` })).filter(el => el.statistics.isTelegramLinked);
-  const broadcastPayload: TNotifyBroadcastAiringStarted = {
-    event,
-    participants: users.map(el => el.telegramData!.id!),
-    data: {
-      title: new MongoDocumentDTO().anime({ document: title })
+  const users = (await User.find({ subscribes: NotifyService.createEvent({ event, key: title.id }) })).filter(el => el.statistics.isTelegramLinked);
+  const audience = users.map(el => el.telegramData!.id!);
+
+  await NekomiBotAPI.broadcast({
+    audience,
+    message: `🎉 Почалась трансляція анонсованого аніме!\n\n🎬 ${title.names.ukr} / ${title.names.eng}`,
+    photo: title.poster,
+    replyMarkup: {
+      inline_keyboard: [[{
+        text: '📺 Дивитися',
+        url: `${config.URL.nekomi_site}/w/${title.code}`
+      }]]
     }
-  };
-
-  Logger.debug(`[Notify]: Broadcasted ${event} event`);
-
-  await NekomiBotAPI.broadcast(broadcastPayload);
+  });
 
   users.forEach(async user => {
-    user.subscribes = user.subscribes.filter(el => el !== `${event}/${title.id}`);
-    await user.save();
+    const userService = new UserService({ user });
+    userService.removeSubscribe({ event, key: title.id });
 
-    Logger.debug(`[Notify]: User ${event} subscibe removed due to firs fire`);
+    await user.save();
   });
+
+  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: title.id })}; audience: ${audience.join(', ')}]`);
 }
 
-/** Handle dubber_invite accept & decline & invite, dubber_member_exclude */
-async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberInvite>) {
-  const { dubber_id, user_id } = payload;
+/** Handle dubber_invite accept & decline & invite, dubber_member_excluded */
+async function HANDLER_dubber_tell({ event, payload }: IEventPayload<INotifyDubberTell>) {
+  const { dubberId, userId } = payload;
 
-  const dubber = await new DubberService().getById(dubber_id);
+  const dubber = await new DubberService().getById(dubberId);
 
-  const user = await User.findOne({ id: user_id });
-  if (!user) throw new E404(`User ${user_id} is not found`);
+  const user = await User.findOne({ id: userId });
+  if (!user) throw new E404(`User ${userId} is not found`);
 
-  const broadcastPayload: TNotifyBroadcastDubberInvite = {
-    event,
-    participants: [user.telegramData!.id!],
-    data: {
-      dubber: new DocumentDTO().dubber({ object: dubber })
-    }
+  const audience = [user.telegramData!.id!];
+  let message = '';
+  let replyMarkup: InlineKeyboardMarkup = {
+    inline_keyboard: []
   };
 
-  Logger.debug(`[Notify]: Broadcasted ${event} event`);
+  if (event === 'dubber_invite_pending') {
+    message = `👋 Тебе запросили в команду озвучення [${dubber.nameUkr}](${config.URL.nekomi_site}/dub/${dubber.slug}), що відповімо?`;
+    replyMarkup = {
+      inline_keyboard: [[{
+        text: '❌ Утримаюсь',
+        url: `${config.URL.nekomi_site}/dub/${dubber.slug}?invite=decline`
+      }, {
+        text: '✔️ Я в справі',
+        url: `${config.URL.nekomi_site}/dub/${dubber.slug}?invite=accept`
+      }]]
+    };
+  } else if (event === 'dubber_invite_accepted') {
+    message = `🎉 Тепер ти учасник команди озвучення [${dubber.nameUkr}](${config.URL.nekomi_site}/dub/${dubber.slug}), мої вітання!`;
+  } else if (event === 'dubber_invite_declined') {
+    message = `❌ Ти відхилив запрошення в команду озвучення [${dubber.nameUkr}](${config.URL.nekomi_site}/dub/${dubber.slug}), па-па!`;
+  } else if (event === 'dubber_member_excluded') {
+    message = `😥 Тебе виключили з команди озвучення [${dubber.nameUkr}](${config.URL.nekomi_site}/dub/${dubber.slug}), і таке трапляється...`;
+  }
 
-  await NekomiBotAPI.broadcast(broadcastPayload);
+  await NekomiBotAPI.broadcast({
+    audience,
+    message,
+    replyMarkup
+  });
+
+  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: dubber.id })}; audience: ${audience.join(', ')}]`);
 }
+
+
 
 export const Notify = new NotifyService();
