@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IDubber } from '../Interfaces/IDubber';
+import { IDubber } from '../Interfaces/Dubber.intf';
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
 export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({

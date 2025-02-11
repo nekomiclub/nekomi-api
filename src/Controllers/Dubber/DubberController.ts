@@ -5,7 +5,7 @@ import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/IDubber';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/Interfaces/Dubber.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/interfaces/globals';
 import { ITitle } from '~/interfaces/ITitle';
 import { IUser } from '~/interfaces/IUser';

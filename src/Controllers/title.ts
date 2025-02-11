@@ -7,7 +7,7 @@ import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
-import { IDubber } from '~/core/Interfaces/IDubber';
+import { IDubber } from '~/core/Interfaces/Dubber.intf';
 import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
 import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
 import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';

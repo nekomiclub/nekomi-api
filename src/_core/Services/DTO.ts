@@ -1,5 +1,5 @@
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '../Interfaces/IDubber';
+import { IDubber } from '../Interfaces/Dubber.intf';
 import { ITitle } from '~/interfaces/ITitle';
 import { IUser } from '~/interfaces/IUser';
 

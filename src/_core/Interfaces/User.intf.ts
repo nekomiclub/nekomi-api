@@ -38,6 +38,9 @@ export interface IUserStatistics {
    */
   dubber_team_member: string | null
 
+  /** Dubber team ID in which user is member */
+  dubberTeamMember: string | null
+
   /** UTC-0 timestamp */
   accountCreated: number
 
@@ -54,7 +57,7 @@ export interface IUserWatchProgress {
   /** Watch progress in seconds */
   progress: number
 
-  /** Last update UT-0 timestamp */
+  /** Last update UTC-0 timestamp */
   updatedAt: number
 }
 

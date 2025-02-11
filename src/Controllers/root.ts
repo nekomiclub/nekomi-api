@@ -8,7 +8,7 @@ import User from '../Models/User';
 import { AxiosError } from 'axios';
 import { DevelopmentMode, config } from '../config';
 import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../Services/ErrorService';
-import { IDubber } from '~/core/Interfaces/IDubber';
+import { IDubber } from '~/core/Interfaces/Dubber.intf';
 import { ITitle } from '../Interfaces/ITitle';
 import { IUser } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';

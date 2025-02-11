@@ -6,11 +6,11 @@ import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
-import { AnimeAgeRates, AnimeGenres, AnimeSeasons, AnimeStatuses, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountries, TitleTypes } from '../Interfaces/ITitle';
+import { AnimeAgeRatesOld, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleTypesOld } from '../Interfaces/ITitle';
 import { AxiosError } from 'axios';
 import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../Services/ErrorService';
 import { IChangeEpMeta } from '../Controllers/title';
-import { IDubber } from '~/core/Interfaces/IDubber';
+import { IDubber } from '~/core/Interfaces/Dubber.intf';
 import { INotifyAiringStarted, INotifyNewEpisode } from '../Interfaces/services/INotify';
 import { IUser } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
@@ -119,7 +119,19 @@ export const TitleModel = mongoose.model<ITitle>('title', new Schema({
   updatedAt: Number,
   details: String,
   mal_id: String,
-  hikkaSyncedAt: Number,
+  malId: Number,
+  broadcast: Object,
+  genresNew: Array,
+  malSyncedAt: Number,
+  media: String,
+  pictures: Array,
+  rate: String,
+  related: Array,
+  score: Object,
+  seasonNew: String,
+  slug: String,
+  statusNew: String,
+  studiosNew: Array
 }));
 
 
@@ -179,8 +191,24 @@ export class TitleService {
         mal: null,
         mal_poll: null
       },
-      hikkaSyncedAt: 0,
       mal_id: mal_id ?? null,
+      malId: mal_id ? +mal_id : null,
+      malSyncedAt: null,
+      broadcast: null,
+      genresNew: [],
+      media: 'unknown',
+      pictures: [],
+      rate: 'pg_13',
+      related: [],
+      score: {
+        imdb: null,
+        mal: null,
+        malScoredBy: null
+      },
+      seasonNew: 'winter',
+      slug: code,
+      statusNew: 'finished_airing',
+      studiosNew: [],
       season: season || 'winter',
       status: status || 'announcement',
       studios: studios || ['Fullkekw'],
@@ -290,7 +318,7 @@ export class TitleService {
     const trimmed = description.trim().replace(/\s+/g, ' ');
     if (!validator.isLength(trimmed, { max: config.VALIDATION.PatchTitle.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols length`);
 
-    this.stack.push(`Changed description (${this.title.description.length} symbols > ${trimmed.length} symbols)`);
+    this.stack.push(`Changed description (${this.title.description?.length} symbols > ${trimmed.length} symbols)`);
     this.title.markModified('description');
 
     this.title.description = trimmed;
@@ -345,7 +373,7 @@ export class TitleService {
     genres.forEach(genre => {
       const trimmed = genre.trim().replace(/\s+/g, ' ') as TAnimeGenre;
 
-      if (!AnimeGenres.includes(trimmed)) throw new ERR_TYPE_INVALID(`Genre ${trimmed} is invalid`);
+      if (!AnimeGenresOld.includes(trimmed)) throw new ERR_TYPE_INVALID(`Genre ${trimmed} is invalid`);
 
       trimmed_genres.push(trimmed);
     });
@@ -411,7 +439,7 @@ export class TitleService {
 
 
   async patchAgeRate(ageRate: TAnimeAgeRate) {
-    if (!AnimeAgeRates.includes(ageRate)) throw new ERR_TYPE_INVALID(`Age rate ${ageRate} is invalid`);
+    if (!AnimeAgeRatesOld.includes(ageRate)) throw new ERR_TYPE_INVALID(`Age rate ${ageRate} is invalid`);
 
     this.title.markModified('ageRate');
 
@@ -420,7 +448,7 @@ export class TitleService {
   }
 
   async patchType(type: TTitleType) {
-    if (!TitleTypes.includes(type)) throw new ERR_TYPE_INVALID(`Type ${type} is invalid`);
+    if (!TitleTypesOld.includes(type)) throw new ERR_TYPE_INVALID(`Type ${type} is invalid`);
 
     this.title.markModified('type');
 
@@ -429,7 +457,7 @@ export class TitleService {
   }
 
   async patchSeason(season: TAnimeSeason) {
-    if (!AnimeSeasons.includes(season)) throw new ERR_TYPE_INVALID(`Season ${season} is invalid`);
+    if (!AnimeSeasonsOld.includes(season)) throw new ERR_TYPE_INVALID(`Season ${season} is invalid`);
 
     this.title.markModified('season');
 
@@ -438,7 +466,7 @@ export class TitleService {
   }
 
   async patchCountry(country: TTitleCountry) {
-    if (!TitleCountries.includes(country)) throw new ERR_TYPE_INVALID(`Country ${country} is invalid`);
+    if (!TitleCountriesOld.includes(country)) throw new ERR_TYPE_INVALID(`Country ${country} is invalid`);
 
     this.title.markModified('country');
 
@@ -447,7 +475,7 @@ export class TitleService {
   }
 
   async patchStatus(status: TAnimeStatus) {
-    if (!AnimeStatuses.includes(status)) throw new ERR_TYPE_INVALID(`Status ${status} is invalid`);
+    if (!AnimeStatusesOld.includes(status)) throw new ERR_TYPE_INVALID(`Status ${status} is invalid`);
 
     this.title.markModified('status');
 

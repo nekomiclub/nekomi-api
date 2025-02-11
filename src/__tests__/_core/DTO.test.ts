@@ -1,4 +1,4 @@
-import IDubber from '~/core/Interfaces/IDubber';
+import IDubber from '~/core/Interfaces/Dubber.intf';
 import { DocumentDTO } from '~/core/Services/DTO';
 import { ITitle } from '~/interfaces/ITitle';
 import { IUser } from '~/interfaces/IUser';
@@ -20,6 +20,7 @@ describe('DTOs', () => {
         dubber_team_member: '',
         isTelegramLinked: false,
         viewtime: 0,
+        dubberTeamMember: ''
       },
       subscribes: [],
       telegramData: null,
@@ -54,7 +55,6 @@ describe('DTOs', () => {
       episodesCount: 12,
       episodesMeta: [],
       genres: [],
-      hikkaSyncedAt: 0,
       id: '',
       mal_id: null,
       names: {
@@ -74,7 +74,24 @@ describe('DTOs', () => {
       studios: [],
       type: 'ONA',
       updatedAt: 0,
-      year: 20254
+      year: 2025,
+      broadcast: null,
+      genresNew: [],
+      malId: null,
+      malSyncedAt: null,
+      media: 'movie',
+      pictures: [],
+      rate: 'g',
+      related: [],
+      score: {
+        imdb: null,
+        mal: null,
+        malScoredBy: null
+      },
+      seasonNew: 'fall',
+      slug: '',
+      statusNew: 'currently_airing',
+      studiosNew: []
     };
 
     const withDetails = new DocumentDTO().anime({ object: anime, details: true });

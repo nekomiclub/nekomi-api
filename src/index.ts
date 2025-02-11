@@ -17,6 +17,7 @@ import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
 import { Logger } from './Services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './Controllers/webSocket';
 import { decodeToken } from './Services/TokenService';
+import { patchAnimeModel, patchUserModel } from './handlers/modelPatchers';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
 import { updateSearch } from './Controllers/root';
 
@@ -143,6 +144,10 @@ const UpdateHandlers = [
       // Callback body
       Promise.all(UpdateHandlers);
 
+      if (ProductionMode) {
+        await patchAnimeModel();
+        await patchUserModel();
+      }
 
 
       // Update cache

@@ -13,10 +13,12 @@ export function preserveIP(raw: string): string {
   }
 }
 
+/** @deprecated this version is outdated */
 export function createUUID(): string {
   return uuid.v4();
 }
 
+/** @deprecated this version is outdated */
 export function createSlug(input: string) {
   return convertSlug(input, {
     camelCase: true,
@@ -24,11 +26,14 @@ export function createSlug(input: string) {
   });
 }
 
+/** @deprecated this version is outdated */
 export function trimString(input: string) {
   return input.trim().replace(/\s+/g, ' ');
 }
 
-/** Get ID with specified length */
+/** Get ID with specified length
+ * @deprecated use createID
+ */
 export function createStringID(length: number) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;

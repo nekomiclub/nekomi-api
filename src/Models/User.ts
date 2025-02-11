@@ -166,6 +166,7 @@ export class UserService {
         isTelegramLinked,
         viewtime: 0,
         dubber_team_member: dubberTeamMember,
+        dubberTeamMember: dubberTeamMember
       },
       togetherRooms: [],
       subscribes: [],

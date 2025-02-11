@@ -3,7 +3,7 @@ import Fuse from 'fuse.js';
 import TitleModel from '~/Models/Title';
 import UserModel from '~/Models/User';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/Interfaces/IDubber';
+import { IDubber } from '~/core/Interfaces/Dubber.intf';
 import { ITitle } from '~/interfaces/ITitle';
 import { IUser } from '~/interfaces/IUser';
 import { Logger } from './LoggerService';
