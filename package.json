@@ -6,15 +6,18 @@
   "type": "module",
   "scripts": {
     "dev": "npx nodemon devMode",
-    "dev-test": "npx nodemon devMode testMode",
     "start": "npx tsx ./src/index.ts prodMode",
-    "test-all": "npx jest --silent",
     "test": "npx jest --silent standalone _core",
-    "build": "npx rimraf dist && npx eslint . --fix && git add . && npx tsc",
-    "find-circular": "npx madge --circular --extensions ts ."
+    "build": "npm run cleanup && npx eslint . --fix && git add . && npx tsc",
+    "prepare": "npm run test && npm run build",
+    "cleanup": "npx rimraf dist .cache .dump",
+    "test-all": "npx jest --silent",
+    "dev-test": "npx nodemon devMode testMode",
+    "echo": "echo hello"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.21.0",
     "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
