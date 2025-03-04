@@ -4,9 +4,9 @@ import request from 'supertest';
 import DubberModel from '~/core/models/DubberModel';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '~/interfaces/types';
-import { INTERNALS, config } from '../../config';
-import { TitleService } from '../../models/Title';
-import { UserService } from '../../models/User';
+import { INTERNALS, config } from '~/config';
+import { TitleService } from '~/models/Title';
+import { UserService } from '~/models/User';
 
 
 beforeAll(() => {

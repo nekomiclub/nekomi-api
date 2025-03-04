@@ -1,6 +1,6 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '../interfaces/Anime.intf';
-import AnimeModel from '../models/AnimeModel';
-import ServiceControls from '../interfaces/ServiceControls';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/Anime.intf';
+import AnimeModel from '~/core/models/AnimeModel';
+import ServiceControls from '~/core/interfaces/ServiceControls';
 import validator from 'validator';
 import { DevelopmentMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST } from '~/services/ErrorService';

@@ -2,13 +2,13 @@ import mongoose from 'mongoose';
 
 import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
-import UserModel, { UserService } from '../../../models/User';
+import UserModel, { UserService } from '~/models/User';
 import { AnimeEpisodeMeta, TAnimeGenre } from '~/interfaces/Anime.intf';
-import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
-import { INTERNALS, config } from '../../../config';
+import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { INTERNALS, config } from '~/config';
 import { Readable } from 'stream';
-import { TitleService } from '../../../models/Title';
-import { getUTC } from '../../../handlers/handler';
+import { TitleService } from '~/models/Title';
+import { getUTC } from '~/handlers/handler';
 
 
 

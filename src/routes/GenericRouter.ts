@@ -1,5 +1,5 @@
-import * as RootController from '../controllers/root';
-import * as RouteValidation from '../handlers/routeValidation';
+import * as RootController from '~/controllers/root';
+import * as RouteValidation from '~/handlers/routeValidation';
 import express from 'express';
 
 

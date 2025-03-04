@@ -1,8 +1,8 @@
-import User, { UserService } from '../../models/User';
+import User, { UserService } from '~/models/User';
 import mongoose from 'mongoose';
-import { E404, ERR_ACCESS_REJECTED } from '../../services/ErrorService';
-import { INTERNALS, config } from '../../config';
-import { MiddlewareService } from '../../services/MiddlewareService';
+import { E404, ERR_ACCESS_REJECTED } from '~/services/ErrorService';
+import { INTERNALS, config } from '~/config';
+import { MiddlewareService } from '~/services/MiddlewareService';
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService({ TestMode: true });

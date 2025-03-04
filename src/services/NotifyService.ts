@@ -2,9 +2,9 @@ import { AxiosError } from 'axios';
 
 import DubberService from '~/core/services/DubberService';
 import NekomiBotAPI from '~/core/services/API/NekomiBotApi';
-import Title from '../models/Title';
-import User, { UserModel, UserService } from '../models/User';
-import { DevelopmentMode, config } from '../config';
+import Title from '~/models/Title';
+import User, { UserModel, UserService } from '~/models/User';
+import { DevelopmentMode, config } from '~/config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '~/interfaces/types';
 import { InlineKeyboardMarkup } from '~/core/interfaces/API/NekomiBotAPI.intf';

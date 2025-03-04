@@ -1,11 +1,11 @@
 import express from 'express';
 import ip from 'ip';
 import { AxiosError } from 'axios';
-import { getUTC } from '../handlers/handler';
+import { getUTC } from '~/handlers/handler';
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';
-import { DevelopmentMode, config } from '../config';
+import { DevelopmentMode, config } from '~/config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
 

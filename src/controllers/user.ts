@@ -1,24 +1,24 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import * as TokenService from '../services/TokenService';
+import * as TokenService from '~/services/TokenService';
 
-import * as Role from '../models/Role';
+import * as Role from '~/models/Role';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
-import Title from '../models/Title';
-import User, { UserModel, UserService } from '../models/User';
+import Title from '~/models/Title';
+import User, { UserModel, UserService } from '~/models/User';
 import { Anime } from '~/interfaces/Anime.intf';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify } from '~/interfaces/types';
 import { IUserTogetherRoom } from '~/interfaces/User.intf';
-import { Logger } from '../services/LoggerService';
+import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
-import { ProductionMode, TestMode, config } from '../config';
+import { ProductionMode, TestMode, config } from '~/config';
 import { TRoleCapability } from '~/interfaces/Role.intf';
-import { getMockData } from '../handlers/mocks';
+import { getMockData } from '~/handlers/mocks';
 import { updateSearch } from './root';
 
 

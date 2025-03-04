@@ -1,7 +1,7 @@
 import { HydratedDocument } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
-import * as cfg from '../config';
+import * as cfg from '~/config';
 import AnimeModelNew from '~/core/models/AnimeModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
@@ -9,17 +9,17 @@ import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
 import { Anime, AnimeAgeRatesOld, AnimeEpisode, AnimeEpisodeMeta, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleTypesOld } from '~/interfaces/Anime.intf';
 import { AxiosError } from 'axios';
-import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
-import { IChangeEpMeta } from '../controllers/title';
+import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { IChangeEpMeta } from '~/controllers/title';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { INotifyAiringStarted, INotifyNewEpisode } from '~/interfaces/types';
 import { IUser } from '~/interfaces/User.intf';
-import { Logger } from '../services/LoggerService';
-import { Notify } from '../services/NotifyService';
+import { Logger } from '~/services/LoggerService';
+import { Notify } from '~/services/NotifyService';
 import { TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { config } from '../config';
+import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
-import { getUTC, parseIMDBDate } from '../handlers/handler';
+import { getUTC, parseIMDBDate } from '~/handlers/handler';
 import { parseRoles } from './Role';
 
 

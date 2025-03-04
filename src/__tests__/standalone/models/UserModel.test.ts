@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 import DubberService from '~/core/services/DubberService';
-import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../../../services/ErrorService';
-import { INTERNALS, config } from '../../../config';
+import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
+import { INTERNALS, config } from '~/config';
 import { TNotifyEvent } from '~/interfaces/types';
-import { TitleService } from '../../../models/Title';
-import { UserService } from '../../../models/User';
+import { TitleService } from '~/models/Title';
+import { UserService } from '~/models/User';
 
 
 

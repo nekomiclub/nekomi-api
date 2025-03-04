@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
-import { getUTC } from '../handlers/handler';
+import { getUTC } from '~/handlers/handler';
 
 
 

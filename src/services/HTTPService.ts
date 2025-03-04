@@ -4,7 +4,7 @@ import http from 'http';
 import https from 'https';
 import { HandleRequest } from './ErrorService';
 
-import { config } from '../config';
+import { config } from '~/config';
 import { signCSRFToken } from './TokenService';
 
 

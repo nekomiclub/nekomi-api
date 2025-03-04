@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
+import { config } from '~/config';
 import { createID } from '~/utils/create-id';
-import { getUTC } from '../handlers/handler';
+import { getUTC } from '~/handlers/handler';
 
 /** Decoded token interface */
 interface ITokenPayload<T = any> {

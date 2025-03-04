@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IRole, TRoleCapability } from '~/interfaces/Role.intf';
-import { Logger } from '../services/LoggerService';
+import { Logger } from '~/services/LoggerService';
 
 /** Roles mongodb model */
 export const Role = mongoose.model<IRole>('role', new Schema({

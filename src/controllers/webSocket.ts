@@ -1,16 +1,16 @@
 import chalk from 'chalk';
 import http from 'http';
 
-import UserModel from '../models/User';
+import UserModel from '~/models/User';
 import validator from 'validator';
-import { DevelopmentMode, config } from '../config';
-import { E403, E404, E501, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_MISSING_AUTHORIZATION, HTTPErrorConstructor } from '../services/ErrorService';
+import { DevelopmentMode, config } from '~/config';
+import { E403, E404, E501, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_MISSING_AUTHORIZATION, HTTPErrorConstructor } from '~/services/ErrorService';
 import { IWS_OnlineChanged, IWS_Route, IWS_SiteConnection, IWS_WTConnect, IWS_WTMessage, IWS_WTSync, Message, Request, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '~/interfaces/WebSocket';
-import { Logger } from '../services/LoggerService';
-import { MiddlewareService } from '../services/MiddlewareService';
+import { Logger } from '~/services/LoggerService';
+import { MiddlewareService } from '~/services/MiddlewareService';
 import { WebSocketExtended } from '~/interfaces/globals';
-import { getUTC } from '../handlers/handler';
-import { wss } from '../index';
+import { getUTC } from '~/handlers/handler';
+import { wss } from '~/index';
 
 
 

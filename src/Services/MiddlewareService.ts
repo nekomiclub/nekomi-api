@@ -1,14 +1,14 @@
-import * as cfg from '../config';
+import * as cfg from '~/config';
 
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
-import User from '../models/User';
+import User from '~/models/User';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '~/interfaces/types';
 import { IUser } from '~/interfaces/User.intf';
 import { TRoleCapability } from '~/interfaces/Role.intf';
-import { parseRoles } from '../models/Role';
+import { parseRoles } from '~/models/Role';
 
 
 

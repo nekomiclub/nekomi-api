@@ -3,18 +3,18 @@ import express from 'express';
 
 import DubberService from '~/core/services/DubberService';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
-import Title from '../models/Title';
-import User from '../models/User';
+import Title from '~/models/Title';
+import User from '~/models/User';
 import { Anime } from '~/interfaces/Anime.intf';
 import { AxiosError } from 'axios';
-import { DevelopmentMode, config } from '../config';
-import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { DevelopmentMode, config } from '~/config';
+import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '~/services/ErrorService';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { IUser } from '~/interfaces/User.intf';
-import { Logger } from '../services/LoggerService';
+import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { checkValue } from '../handlers/handlers';
+import { checkValue } from '~/handlers/handlers';
 
 
 

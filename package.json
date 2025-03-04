@@ -30,6 +30,7 @@
     "@typescript-eslint/parser": "^5.54.1",
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
+    "eslint-plugin-path": "^1.4.0-beta.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "husky": "^9.1.7",

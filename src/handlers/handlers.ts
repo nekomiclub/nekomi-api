@@ -1,6 +1,6 @@
 
-import User from '../models/User';
-import { Logger } from '../services/LoggerService';
+import User from '~/models/User';
+import { Logger } from '~/services/LoggerService';
 
 
 

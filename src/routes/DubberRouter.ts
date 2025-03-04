@@ -1,4 +1,4 @@
-import * as DubberControllerOld from '../controllers/dubber';
+import * as DubberControllerOld from '~/controllers/dubber';
 import DubberRoutes from '~/controllers/Dubber/DubberRoutes';
 import express from 'express';
 

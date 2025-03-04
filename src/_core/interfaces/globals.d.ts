@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 
 import { IUserTogetherRoom } from './IUser';
-import { TMiddlewareName } from '../../services/MiddlewareService';
+import { TMiddlewareName } from '~/services/MiddlewareService';
 import { TRoleCapability } from './IRoles';
 import { TWS_Group } from './IWebSocket';
 

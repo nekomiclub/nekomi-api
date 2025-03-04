@@ -2,8 +2,8 @@ import cors from 'cors';
 import multer from 'multer';
 import { body } from 'express-validator';
 
-import { CheckAccess, CheckCSRF } from '../middlewares';
-import { config } from '../config';
+import { CheckAccess, CheckCSRF } from '~/middlewares';
+import { config } from '~/config';
 
 
 

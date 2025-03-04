@@ -1,8 +1,8 @@
 import express from 'express';
 import { AxiosError } from 'axios';
-import { E500 } from '../services/ErrorService';
+import { E500 } from '~/services/ErrorService';
 import { IMock, TMockID } from '~/interfaces/types';
-import { config } from '../config';
+import { config } from '~/config';
 
 /** Get mock data */
 export function getMockData<T = any>(req: express.Request, id: TMockID): IMock<T> {

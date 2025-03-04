@@ -1,6 +1,6 @@
 import DubberService from '~/core/services/DubberService';
 import express from 'express';
-import { HandleRequest } from '../services/ErrorService';
+import { HandleRequest } from '~/services/ErrorService';
 
 
 

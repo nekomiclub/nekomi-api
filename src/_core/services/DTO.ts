@@ -1,6 +1,6 @@
 import { Anime } from '~/interfaces/Anime.intf';
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '../interfaces/Dubber.intf';
+import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { IUser } from '~/interfaces/User.intf';
 
 
