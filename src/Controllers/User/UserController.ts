@@ -1,7 +1,7 @@
 import Search from '~/services/SearchService';
-import UserModel from '~/Models/User';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
-import { IUser } from '~/interfaces/IUser';
+import UserModel from '~/models/User';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
+import { IUser } from '~/interfaces/User.intf';
 import { NotifyService } from '~/services/NotifyService';
 
 

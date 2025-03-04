@@ -8,18 +8,18 @@ import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import AnimeRouter from './Routers/AnimeRouter';
-import DubberRouter from './Routers/DubberRouter';
-import GenericRouter from './Routers/GenericRouter';
-import Search from './Services/SearchService';
-import UserRouter from './Routers/UserRouter';
+import AnimeRouter from './routes/AnimeRouter';
+import DubberRouter from './routes/DubberRouter';
+import GenericRouter from './routes/GenericRouter';
+import Search from './services/SearchService';
+import UserRouter from './routes/UserRouter';
 import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
-import { Logger } from './Services/LoggerService';
-import { WebSocketOnlinePoll, WebsocketRouter } from './Controllers/webSocket';
-import { decodeToken } from './Services/TokenService';
+import { Logger } from './services/LoggerService';
+import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
+import { decodeToken } from './services/TokenService';
 import { patchAnimeModel, patchUserModel } from './handlers/modelPatchers';
 import { removeUsersLinkTelegramToken } from './handlers/handlers';
-import { updateSearch } from './Controllers/root';
+import { updateSearch } from './controllers/root';
 
 
 

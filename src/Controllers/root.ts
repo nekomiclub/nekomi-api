@@ -1,24 +1,24 @@
 import Fuse, { FuseResult } from 'fuse.js';
 import express from 'express';
 
-import DubberService from '~/core/Services/DubberService';
-import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
-import Title from '../Models/Title';
-import User from '../Models/User';
+import DubberService from '~/core/services/DubberService';
+import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
+import Title from '../models/Title';
+import User from '../models/User';
+import { Anime } from '~/interfaces/Anime.intf';
 import { AxiosError } from 'axios';
 import { DevelopmentMode, config } from '../config';
-import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../Services/ErrorService';
-import { IDubber } from '~/core/Interfaces/Dubber.intf';
-import { ITitle } from '../Interfaces/ITitle';
-import { IUser } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { TUploadType } from '~/core/Interfaces/API/NekomiUploadsAPI';
+import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_NOT_READY, HandleRequest } from '../services/ErrorService';
+import { IDubber } from '~/core/interfaces/Dubber.intf';
+import { IUser } from '~/interfaces/User.intf';
+import { Logger } from '../services/LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
+import { TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { checkValue } from '../handlers/handlers';
 
 
 
-let TitleSearch: Fuse<ITitle>;
+let TitleSearch: Fuse<Anime>;
 let DubberSearch: Fuse<IDubber>;
 let UserSeacrh: Fuse<IUser>;
 
@@ -107,8 +107,8 @@ export async function getSearch(req: express.Request, res: express.Response) {
     const { q } = req.query as ISearchQuery;
     let { limit, page, engines } = req.query as ISearchQuery;
 
-    let results: (ISearchExtended<IDubber> | ISearchExtended<ITitle> | ISearchExtended<IUser>)[] = [];
-    let rawResults: (ISearchExtended<FuseResult<IDubber>> | ISearchExtended<FuseResult<IUser>> | ISearchExtended<FuseResult<ITitle>>)[] = [];
+    let results: (ISearchExtended<IDubber> | ISearchExtended<Anime> | ISearchExtended<IUser>)[] = [];
+    let rawResults: (ISearchExtended<FuseResult<IDubber>> | ISearchExtended<FuseResult<IUser>> | ISearchExtended<FuseResult<Anime>>)[] = [];
     let totalResults = 0;
 
     limit = checkValue(limit, { notNaN: true, maxLength: 100, minLength: 1 }) ? +limit! : 30;
@@ -132,7 +132,7 @@ export async function getSearch(req: express.Request, res: express.Response) {
         const titles = (await Title.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
 
         titles.forEach(el => {
-          const result: ISearchExtended<FuseResult<ITitle>> = {
+          const result: ISearchExtended<FuseResult<Anime>> = {
             type: 'title',
             item: {
               item: el,

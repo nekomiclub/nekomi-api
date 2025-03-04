@@ -1,6 +1,6 @@
 import { $http } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
-import { NekomiBot_PostBroadcast } from '~/core/Interfaces/API/NekomiBotAPI.intf';
+import { NekomiBot_PostBroadcast } from '~/core/interfaces/API/NekomiBotAPI.intf';
 import { config } from '~/config';
 
 

@@ -1,4 +1,4 @@
-import { DayOfWeek } from '~/interfaces/types';
+import { DayOfWeek } from '~/core/interfaces/types';
 
 
 
@@ -87,13 +87,13 @@ export interface Anime {
   country: TTitleCountry
   /** @deprecated use genresNew instead */
   genres: TAnimeGenre[]
-  /** @deprecated use ageRateNew instead */
+  /** @deprecated use rate instead */
   ageRate: TAnimeAgeRate
   /** @deprecated use statusNew instead */
   status: TAnimeStatus
   /** @deprecated use seasonNew instead */
   season: TAnimeSeason
-  /** @deprecated use mediaType instead */
+  /** @deprecated use media instead */
   type: TTitleType
   /** @deprecated use studiosNew instead */
   studios: string[]
@@ -624,12 +624,5 @@ export const TitleCountriesOld = ['Japan', 'South Corea', 'China', 'Other'] as c
 export type TTitleCountry = typeof TitleCountriesOld[number]
 
 
-
-/** @deprecated use AnimeEpisode instead */
-export type ITitleEpisode = AnimeEpisode
-/** @deprecated use AnimeEpisodeMeta instead */
-export type ITitleEpisodeMeta = AnimeEpisodeMeta
-/** @deprecated use Anime instead */
-export type ITitle = Anime;
 
 export default Anime;

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
-import DubberModel from '../../../Models/Dubber';
-import DubberService from '~/core/Services/DubberService';
-import UserModel, { UserService } from '../../../Models/User';
-import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../Services/ErrorService';
+import DubberModel from '~/core/models/DubberModel';
+import DubberService from '~/core/services/DubberService';
+import UserModel, { UserService } from '../../../models/User';
+import { AnimeEpisodeMeta, TAnimeGenre } from '~/interfaces/Anime.intf';
+import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../../../services/ErrorService';
 import { INTERNALS, config } from '../../../config';
-import { ITitleEpisodeMeta, TAnimeGenre } from '../../../Interfaces/ITitle';
 import { Readable } from 'stream';
-import { TitleService } from '../../../Models/Title';
+import { TitleService } from '../../../models/Title';
 import { getUTC } from '../../../handlers/handler';
 
 
@@ -383,7 +383,7 @@ describe('Title Model', () => {
       const engObfuscated = ' Hello     world  ';
       const ukr = 'Васап йоу';
 
-      let episode: ITitleEpisodeMeta;
+      let episode: AnimeEpisodeMeta;
 
       // Add
       await Title.patchEpisodeMeta({

@@ -1,23 +1,23 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import * as TokenService from '../Services/TokenService';
+import * as TokenService from '../services/TokenService';
 
-import * as Role from '../Models/Role';
-import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
-import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
-import Title from '../Models/Title';
-import User, { UserModel, UserService } from '../Models/User';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
-import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
-import { ITitle } from '../Interfaces/ITitle';
-import { IUserTogetherRoom } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
+import * as Role from '../models/Role';
+import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
+import Title from '../models/Title';
+import User, { UserModel, UserService } from '../models/User';
+import { Anime } from '~/interfaces/Anime.intf';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { IM_FkAuthorityVerify } from '~/interfaces/types';
+import { IUserTogetherRoom } from '~/interfaces/User.intf';
+import { Logger } from '../services/LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 import { ProductionMode, TestMode, config } from '../config';
-import { TRoleCapability } from '../Interfaces/IRoles';
+import { TRoleCapability } from '~/interfaces/Role.intf';
 import { getMockData } from '../handlers/mocks';
 import { updateSearch } from './root';
 
@@ -187,7 +187,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     let privateMode = true; // If private mode is true, client can not get some private information
     let parsedRoles: TRoleCapability[] | undefined = undefined;
-    let parsedLib: ITitle[] | undefined = undefined;
+    let parsedLib: Anime[] | undefined = undefined;
     let togetherRoom: IUserTogetherRoom | undefined = undefined;
 
 

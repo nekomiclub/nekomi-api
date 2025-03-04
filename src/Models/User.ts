@@ -1,18 +1,19 @@
 import mongoose, { HydratedDocument, Schema } from 'mongoose';
 
 import * as cfg from '../config';
-import DubberModel from './Dubber';
-import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
+import DubberModel from '~/core/models/DubberModel';
+import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import Role from './Role';
 import Title, { TitleModel } from './Title';
 import validator from 'validator';
 import { AxiosError } from 'axios';
-import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../Services/ErrorService';
-import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
-import { TNotifyEvent } from '../Interfaces/services/INotify';
+import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '../services/ErrorService';
+import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '~/interfaces/User.intf';
+import { Logger } from '../services/LoggerService';
+import { TNotifyEvent } from '~/interfaces/types';
 import { config } from '../config';
-import { createStringID, createUUID, getUTC } from '../handlers/handler';
+import { createID, createUUID } from '~/utils/create-id';
+import { getUTC } from '../handlers/handler';
 
 
 
@@ -482,7 +483,7 @@ export class UserService {
     const title = await TitleModel.findOne({ id: titleId });
     if (!title) throw new E404(`Title ${titleId} is not found`);
 
-    const id = createStringID(6);
+    const id = createID(6);
 
     rooms.push({
       id,

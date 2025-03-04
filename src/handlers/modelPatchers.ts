@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 
-import DubberModel from '~/core/Models/DubberModel';
-import TitleModel from '../Models/Title';
-import UserModel from '../Models/User';
-import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/interfaces/ITitle';
+import DubberModel from '~/core/models/DubberModel';
+import TitleModel from '../models/Title';
+import UserModel from '../models/User';
+import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/interfaces/Anime.intf';
 import { HydratedDocument } from 'mongoose';
-import { Logger } from '../Services/LoggerService';
+import { Logger } from '../services/LoggerService';
 import { createSlug } from '~/utils/create-slug';
 import { getUTC } from './handler';
 
@@ -127,7 +127,7 @@ export async function patchAnimeModel() {
 
 export async function loadTitles() {
   // const startedAt = getUTC().timestamp;
-  // const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/load-titles.json`).toString()).titles as ITitle[];
+  // const titles = JSON.parse(fs.readFileSync(`${path.resolve()}/src/load-titles.json`).toString()).titles as Anime[];
 
   // stampDB('LoadTitles', titles);
   // Logger.info('Start loading titles from the file...');

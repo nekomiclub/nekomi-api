@@ -1,5 +1,3 @@
-import * as uuid from 'uuid';
-import { convert as convertSlug } from 'url-slug';
 
 
 
@@ -10,42 +8,6 @@ export function preserveIP(raw: string): string {
   } else {
     return raw;
   }
-}
-
-/** @deprecated this version is outdated */
-export function createUUID(): string {
-  return uuid.v4();
-}
-
-/** @deprecated this version is outdated */
-export function createSlug(input: string) {
-  return convertSlug(input, {
-    camelCase: true,
-    separator: '-'
-  });
-}
-
-/** @deprecated this version is outdated */
-export function trimString(input: string) {
-  return input.trim().replace(/\s+/g, ' ');
-}
-
-/** Get ID with specified length
- * @deprecated use createID
- */
-export function createStringID(length: number) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-
-  let result = '';
-  let counter = 0;
-
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-
-  return result;
 }
 
 export function getRandomNumberInRange(min: number, max: number): number {

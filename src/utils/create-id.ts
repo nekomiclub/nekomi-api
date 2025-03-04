@@ -19,3 +19,5 @@ export function createID(length: number) {
 
   return result;
 }
+
+export default createID;

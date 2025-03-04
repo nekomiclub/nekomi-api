@@ -1,14 +1,15 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import request from 'supertest';
 
-import Title, { TitleService } from '../../Models/Title';
-import UserModel, { UserService } from '../../Models/User';
-import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/IMocks';
+import Title, { TitleService } from '../../models/Title';
+import UserModel, { UserService } from '../../models/User';
+import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '~/interfaces/types';
 import { INTERNALS, config } from '../../config';
-import { IUser } from '../../Interfaces/IUser';
-import { NotifyService } from '../../Services/NotifyService';
-import { createUUID, getUTC } from '../../handlers/handler';
+import { IUser } from '~/interfaces/User.intf';
+import { NotifyService } from '../../services/NotifyService';
+import { createUUID } from '~/utils/create-id';
+import { getUTC } from '../../handlers/handler';
 
 beforeAll(() => {
   const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;

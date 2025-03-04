@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 
-import DubberModel from '../../Models/Dubber';
-import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/IMocks';
+import DubberModel from '~/core/models/DubberModel';
+import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '~/interfaces/types';
 import { INTERNALS, config } from '../../config';
-import { TitleService } from '../../Models/Title';
-import { UserService } from '../../Models/User';
+import { TitleService } from '../../models/Title';
+import { UserService } from '../../models/User';
 
 
 beforeAll(() => {

@@ -1,26 +1,26 @@
 import express from 'express';
 
 import CacheService from '~/services/CacheService';
-import Dubber from '../Models/Dubber';
-import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
-import Title, { TitleModel, TitleService } from '../Models/Title';
-import User from '../Models/User';
-import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/NekomiUploadsAPI';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
-import { IDubber } from '~/core/Interfaces/Dubber.intf';
-import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
-import { ITitle, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/ITitle';
-import { IUserWatchProgress } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
+import DubberModel from '~/core/models/DubberModel';
+import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
+import Title, { TitleModel, TitleService } from '../models/Title';
+import User from '../models/User';
+import { Anime, AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '~/interfaces/Anime.intf';
+import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../services/ErrorService';
+import { EpisodeQualities, TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { IDubber } from '~/core/interfaces/Dubber.intf';
+import { IM_FkAuthorityVerify } from '~/interfaces/types';
+import { IUserWatchProgress } from '~/interfaces/User.intf';
+import { Logger } from '../services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { TRoleCapability } from '../Interfaces/IRoles';
+import { MongoDocumentDTO } from '~/core/services/DTO';
+import { TRoleCapability } from '~/interfaces/Role.intf';
 import { TestMode, config } from '../config';
 import { getMockData } from '../handlers/mocks';
 import { getUTC } from '~/handlers/handler';
-import { signCSRFToken } from '../Services/TokenService';
+import { signCSRFToken } from '../services/TokenService';
 import { updateSearch } from './root';
 
 
@@ -80,19 +80,19 @@ interface IUploadPoster {
   type: TPatchTitleFormDataType
 }
 
-interface ITitleWithMeta extends ITitle {
+interface ITitleWithMeta extends Anime {
   videoURL: string
   backgroundURL: string
 }
 
 interface IHomeWrapped {
   featured: ITitleWithMeta[]
-  hightRated: ITitle[]
-  popular: ITitle[]
-  updatedRecently: ITitle[]
+  hightRated: Anime[]
+  popular: Anime[]
+  updatedRecently: Anime[]
 }
 
-export interface IChangeEpMeta extends ITitleEpisodeMeta {
+export interface IChangeEpMeta extends AnimeEpisodeMeta {
   action: 'edit' | 'delete'
 }
 
@@ -148,7 +148,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
       title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
 
-      parsedDubbers = (await Dubber.find({ id: { $in: dubberIDs } })).map(dubber => new MongoDocumentDTO().dubber({ document: dubber, details: !privateMode }));
+      parsedDubbers = (await DubberModel.find({ id: { $in: dubberIDs } })).map(dubber => new MongoDocumentDTO().dubber({ document: dubber, details: !privateMode }));
     }
 
     // TODO add sync with hikka.io
@@ -229,7 +229,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         let qualities = JSON.parse(req.body.qualities) as TEpisodeQuality[];
         let { order } = req.body as IUploadEpisode;
 
-        const dubber = await Dubber.findOne({ id: dubberID });
+        const dubber = await DubberModel.findOne({ id: dubberID });
         if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
         order = +order;
@@ -351,7 +351,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
 
       if (dubberID === undefined || order === undefined) throw new ERR_TYPE_INVALID(`Some fields are missing at deleteEpisode`);
 
-      const dubber = await Dubber.findOne({ id: dubberID });
+      const dubber = await DubberModel.findOne({ id: dubberID });
       if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
       order = parseNaN('Order', order);

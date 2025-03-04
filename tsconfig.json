@@ -102,16 +102,22 @@
         "./src/_core/*",
       ],
       "~/controllers/*": [
-        "./src/Controllers/*",
+        "./src/controllers/*",
       ],
       "~/handlers/*": [
         "./src/handlers/*",
       ],
       "~/interfaces/*": [
-        "./src/Interfaces/*",
+        "./src/_core/interfaces/*",
       ],
       "~/services/*": [
-        "./src/Services/*",
+        "./src/services/*",
+      ],
+      "~/utils/*": [
+        "./src/utils/*",
+      ],
+      "~/routes/*": [
+        "./src/routes/*",
       ],
       "~/*": [
         "./src/*",
@@ -129,7 +135,7 @@
     "esnext"
   ],
   "files": [
-    "src/Interfaces/globals.d.ts"
+    "./src/_core/interfaces/globals.d.ts"
   ],
   "ts-node": {
     "esm": true,

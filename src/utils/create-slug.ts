@@ -6,3 +6,5 @@ export function createSlug(input: string) {
     separator: '-'
   });
 }
+
+export default createSlug;

@@ -2,29 +2,30 @@ import { HydratedDocument } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import * as cfg from '../config';
-import AnimeModelNew from '~/core/Models/AnimeModel';
-import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
+import AnimeModelNew from '~/core/models/AnimeModel';
+import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
-import { AnimeAgeRatesOld, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, ITitle, ITitleEpisode, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleTypesOld } from '../Interfaces/ITitle';
+import { Anime, AnimeAgeRatesOld, AnimeEpisode, AnimeEpisodeMeta, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleTypesOld } from '~/interfaces/Anime.intf';
 import { AxiosError } from 'axios';
-import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../Services/ErrorService';
-import { IChangeEpMeta } from '../Controllers/title';
-import { IDubber } from '~/core/Interfaces/Dubber.intf';
-import { INotifyAiringStarted, INotifyNewEpisode } from '../Interfaces/services/INotify';
-import { IUser } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
-import { Notify } from '../Services/NotifyService';
-import { TEpisodeQuality } from '~/core/Interfaces/API/NekomiUploadsAPI';
+import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '../services/ErrorService';
+import { IChangeEpMeta } from '../controllers/title';
+import { IDubber } from '~/core/interfaces/Dubber.intf';
+import { INotifyAiringStarted, INotifyNewEpisode } from '~/interfaces/types';
+import { IUser } from '~/interfaces/User.intf';
+import { Logger } from '../services/LoggerService';
+import { Notify } from '../services/NotifyService';
+import { TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { config } from '../config';
-import { createUUID, getUTC, parseIMDBDate } from '../handlers/handler';
+import { createUUID } from '~/utils/create-id';
+import { getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
 
 
 
 interface ITitleServiceProps {
-  title: HydratedDocument<ITitle>
+  title: HydratedDocument<Anime>
   TestMode?: boolean
 }
 
@@ -51,7 +52,7 @@ interface ITitleCreate {
   mal_id?: string
   poster?: string
 
-  TEST_EPISODES?: ITitleEpisode[]
+  TEST_EPISODES?: AnimeEpisode[]
 }
 
 interface IPatchNames {
@@ -105,7 +106,7 @@ export const TitleModel = AnimeModelNew;
 
 /** Create/path/delete User instance */
 export class TitleService {
-  readonly title: HydratedDocument<ITitle>;
+  readonly title: HydratedDocument<Anime>;
   readonly stack: string[] = [];
   readonly TestMode = cfg.TestMode;
 
@@ -115,7 +116,7 @@ export class TitleService {
     if (TestMode) this.TestMode = TestMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<ITitle>> {
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<Anime>> {
     const ID = TestMode && id ? id : createUUID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
@@ -135,7 +136,7 @@ export class TitleService {
 
 
 
-    const payload: ITitle = {
+    const payload: Anime = {
       id: ID,
       uuid: ID,
       code,
@@ -524,7 +525,7 @@ export class TitleService {
     if (this.TestMode) return;
 
     const href = `${url.origin}${url.pathname}`;
-    const results: ITitleEpisodeMeta[] = [];
+    const results: AnimeEpisodeMeta[] = [];
 
     const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
@@ -545,7 +546,7 @@ export class TitleService {
         };
 
         const cards = el[2].querySelectorAll(cfg.cardClass);
-        let tmp: ITitleEpisodeMeta[] = [];
+        let tmp: AnimeEpisodeMeta[] = [];
 
         cards.forEach((card: any, i: number) => {
           const title = card.querySelector('.ipc-title__text').innerText.split('∙ ')[1] as string;
@@ -600,7 +601,7 @@ export class TitleService {
    * Will check seriesAdd capability
    * Will save the document
    */
-  async uploadEpisode({ file, user, dubber, episodeOrder, qualities }: IUploadEpisode, mockData?: IM_TitleSerciveUploadEpisode): Promise<ITitleEpisode> {
+  async uploadEpisode({ file, user, dubber, episodeOrder, qualities }: IUploadEpisode, mockData?: IM_TitleSerciveUploadEpisode): Promise<AnimeEpisode> {
     let requestTimestamp = getUTC().timestamp;
 
     const { buffer, originalname, filename, mimetype } = file;
@@ -623,7 +624,7 @@ export class TitleService {
     formData.set('type', 'video/title/episode');
     formData.set('qualities', JSON.stringify(qualities));
 
-    const ep: ITitleEpisode = {
+    const ep: AnimeEpisode = {
       dubberID: dubber.id,
       order: episodeOrder,
       frames: [],

@@ -9,6 +9,7 @@
   ],
   "moduleNameMapper": {
     "^~/core/(.*)$": "<rootDir>/src/_core/$1",
+    "^~/interfaces/(.*)$": "<rootDir>/src/_core/interfaces/$1",
     "^~/(.*)$": "<rootDir>/src/$1"
   }
 }

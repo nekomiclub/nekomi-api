@@ -1,12 +1,12 @@
 process.argv.push('testMode');
 
-import DubberController from '~/Controllers/Dubber/DubberController';
-import DubberService from '~/core/Services/DubberService';
+import DubberController from '~/controllers/Dubber/DubberController';
+import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import mongoose from 'mongoose';
 import { HTTPErrorConstructor } from '~/services/ErrorService';
-import { TitleService } from '~/Models/Title';
-import { UserService } from '~/Models/User';
+import { TitleService } from '~/models/Title';
+import { UserService } from '~/models/User';
 import { config } from '~/config';
 
 

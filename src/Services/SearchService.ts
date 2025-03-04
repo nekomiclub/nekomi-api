@@ -1,13 +1,13 @@
-import DubberService from '~/core/Services/DubberService';
+import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
-import TitleModel from '~/Models/Title';
-import UserModel from '~/Models/User';
+import TitleModel from '~/models/Title';
+import UserModel from '~/models/User';
+import { Anime } from '~/interfaces/Anime.intf';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/Interfaces/Dubber.intf';
-import { ITitle } from '~/interfaces/ITitle';
-import { IUser } from '~/interfaces/IUser';
+import { IDubber } from '~/core/interfaces/Dubber.intf';
+import { IUser } from '~/interfaces/User.intf';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 
 
 
@@ -26,7 +26,7 @@ export type TSearchEngine = 'user' | 'dubber' | 'anime';
 class SearchService {
   private UserEngine: Fuse<IUser> | null = null;
   private DubberEngine: Fuse<IDubber> | null = null;
-  private AnimeEngine: Fuse<ITitle> | null = null;
+  private AnimeEngine: Fuse<Anime> | null = null;
 
 
 

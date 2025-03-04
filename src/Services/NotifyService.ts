@@ -1,13 +1,13 @@
 import { AxiosError } from 'axios';
 
-import DubberService from '~/core/Services/DubberService';
-import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
-import Title from '../Models/Title';
-import User, { UserModel, UserService } from '../Models/User';
+import DubberService from '~/core/services/DubberService';
+import NekomiBotAPI from '~/core/services/API/NekomiBotApi';
+import Title from '../models/Title';
+import User, { UserModel, UserService } from '../models/User';
 import { DevelopmentMode, config } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '../Interfaces/services/INotify';
-import { InlineKeyboardMarkup } from '~/core/Interfaces/API/NekomiBotAPI.intf';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '~/interfaces/types';
+import { InlineKeyboardMarkup } from '~/core/interfaces/API/NekomiBotAPI.intf';
 import { Logger } from './LoggerService';
 
 

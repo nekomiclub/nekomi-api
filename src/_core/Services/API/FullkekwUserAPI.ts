@@ -1,5 +1,5 @@
 import { $http } from '~/services/HTTPService';
-import { FullkekwUserAPI_GetUser, FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwUserAPI_GetUser, FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 

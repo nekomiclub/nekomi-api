@@ -1,7 +1,7 @@
 import express from 'express';
 
 import * as RouteValidation from '../handlers/routeValidation';
-import * as TitleController from '../Controllers/title';
+import * as TitleController from '../controllers/title';
 import AnimeRoutes from '~/controllers/Anime/AnimeRoutes';
 
 

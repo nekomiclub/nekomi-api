@@ -1,7 +1,7 @@
 import Search from '~/services/SearchService';
-import TitleModel from '~/Models/Title';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
-import { ITitle } from '~/interfaces/ITitle';
+import TitleModel from '~/models/Title';
+import { Anime } from '~/interfaces/Anime.intf';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 
 
 
@@ -12,13 +12,13 @@ export interface IAnimeGetSearch {
 }
 
 export interface IAnimeGetSearchResult {
-  anime: ITitle
+  anime: Anime
 }
 
 async function GetSearch({ q }: IAnimeGetSearch) {
   const limit = 15;
 
-  let animeResults: ITitle[] = [];
+  let animeResults: Anime[] = [];
 
   if (q === '~all') {
     // Get all

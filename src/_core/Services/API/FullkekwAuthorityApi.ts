@@ -1,5 +1,5 @@
 import { $http } from '~/services/HTTPService';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 

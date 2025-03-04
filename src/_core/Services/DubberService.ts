@@ -1,18 +1,21 @@
 import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 
-import DubberModel from '../Models/DubberModel';
-import ServiceControls from '../Interfaces/ServiceControls';
-import UserModel, { UserService } from '../../Models/User';
-import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '../../Services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '../Interfaces/Dubber.intf';
-import { INotifyDubberTell } from '../../Interfaces/services/INotify';
-import { Logger } from '../../Services/LoggerService';
+import DubberModel from '../models/DubberModel';
+import ServiceControls from '../interfaces/ServiceControls';
+import UserModel, { UserService } from '../../models/User';
+import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '../../services/ErrorService';
+import { IDubber, IDubberMember, TDubberMemberRole } from '../interfaces/Dubber.intf';
+import { INotifyDubberTell } from '~/interfaces/types';
+import { Logger } from '../../services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
 import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
-import { Notify } from '../../Services/NotifyService';
+import { Notify } from '../../services/NotifyService';
 import { TestMode, config } from '../../config';
-import { createSlug, createStringID, createUUID, getUTC, trimString } from '../../handlers/handler';
+import { createID, createUUID } from '~/utils/create-id';
+import { createSlug } from '~/utils/create-slug';
+import { getUTC } from '../../handlers/handler';
+import { trimString } from '~/utils/trim-string';
 
 
 
@@ -97,7 +100,7 @@ class DubberModelControls implements TDubberModelControls {
     let slug = createSlug(nameEng);
 
     const exist = await DubberModel.findOne({ slug });
-    if (exist) slug = slug + `-${createStringID(3)}`;
+    if (exist) slug = slug + `-${createID(3)}`;
 
 
 
@@ -240,7 +243,7 @@ export class DubberService extends DubberModelControls {
       let slug = createSlug(nameEng);
 
       const exist = await DubberModel.findOne({ slug });
-      if (exist && exist.id !== this.document.id) slug = slug + `-${createStringID(3)}`;
+      if (exist && exist.id !== this.document.id) slug = slug + `-${createID(3)}`;
 
       this.stack.push(`nameEng: ${this.document.nameEng} > ${nameEng}`);
       this.stack.push(`slug: ${this.document.slug} > ${slug}`);

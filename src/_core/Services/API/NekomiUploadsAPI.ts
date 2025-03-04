@@ -1,7 +1,7 @@
 import { $upload } from '~/services/HTTPService';
 import { AxiosError } from 'axios';
 import { Logger } from '~/services/LoggerService';
-import { NekomiUploadsAPI_UploadFile, TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/NekomiUploadsAPI';
+import { NekomiUploadsAPI_UploadFile, TEpisodeQuality, TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { config } from '~/config';
 
 

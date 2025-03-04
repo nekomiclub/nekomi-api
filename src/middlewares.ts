@@ -1,9 +1,9 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './Services/ErrorService';
-import { MiddlewareService } from './Services/MiddlewareService';
-import { TRoleCapability } from './Interfaces/IRoles';
+import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
+import { MiddlewareService } from './services/MiddlewareService';
+import { TRoleCapability } from '~/interfaces/Role.intf';
 import { TestMode, config } from './config';
 import { getMockData } from './handlers/mocks';
 
