@@ -1,7 +1,8 @@
-import mongoose, { HydratedDocument, Schema } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import * as cfg from '../config';
+import AnimeModelNew from '~/core/Models/AnimeModel';
 import NekomiUploadsAPI from '~/core/Services/API/NekomiUploadsAPI';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
@@ -15,7 +16,7 @@ import { INotifyAiringStarted, INotifyNewEpisode } from '../Interfaces/services/
 import { IUser } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
 import { Notify } from '../Services/NotifyService';
-import { TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
+import { TEpisodeQuality } from '~/core/Interfaces/API/NekomiUploadsAPI';
 import { config } from '../config';
 import { createUUID, getUTC, parseIMDBDate } from '../handlers/handler';
 import { parseRoles } from './Role';
@@ -96,43 +97,9 @@ export interface IM_TitleServiceUploadPoster {
 const ERR_DUBBER_MISSMATCH = new E403('Dubber can not change episodes in other teams', 'title:dubber_missmatch');
 
 
-
-/** To create/patch/delete Title instance use TitleService */
-export const TitleModel = mongoose.model<ITitle>('title', new Schema({
-  id: String,
-  names: Object,
-  code: String,
-  poster: String,
-  rating: Object,
-  description: String,
-  status: String,
-  episodesCount: Number,
-  genres: Array,
-  ageRate: String,
-  season: String,
-  type: String,
-  year: Number,
-  studios: Array,
-  country: String,
-  episodes: Array,
-  episodesMeta: Array,
-  updatedAt: Number,
-  details: String,
-  mal_id: String,
-  malId: Number,
-  broadcast: Object,
-  genresNew: Array,
-  malSyncedAt: Number,
-  media: String,
-  pictures: Array,
-  rate: String,
-  related: Array,
-  score: Object,
-  seasonNew: String,
-  slug: String,
-  statusNew: String,
-  studiosNew: Array
-}));
+/** To create/patch/delete Dubber instance use DubberService */
+export const AnimeModel = AnimeModelNew;
+export const TitleModel = AnimeModelNew;
 
 
 
@@ -170,6 +137,7 @@ export class TitleService {
 
     const payload: ITitle = {
       id: ID,
+      uuid: ID,
       code,
       names: {
         ukr: names?.ukr || `Тайтл без назви ${ID}`,

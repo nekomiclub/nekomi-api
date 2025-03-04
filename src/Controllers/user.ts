@@ -9,8 +9,8 @@ import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
 import Title from '../Models/Title';
 import User, { UserModel, UserService } from '../Models/User';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
-import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
 import { ITitle } from '../Interfaces/ITitle';
 import { IUserTogetherRoom } from '../Interfaces/IUser';
@@ -57,7 +57,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
-    const DATA: IFullkekwUserAPI_TokenData = {};
+    const DATA: FullkekwUserAPI_TokenData = {};
 
 
 
@@ -69,7 +69,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       DATA.avatar = data.avatar;
       DATA.username = data.username;
     } else {
-      const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+      const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
@@ -134,7 +134,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
     if (!token) return res.status(202).json({ message: 'Session not provided' });
 
     // @ts-expect-error Need empty object
-    const session: IFullkekwUserAPI_TokenData = {};
+    const session: FullkekwUserAPI_TokenData = {};
 
     try {
       if (!TestMode) {
@@ -194,7 +194,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Get user by session
     if (query === '*') {
-      const DATA: IFullkekwUserAPI_TokenData = {
+      const DATA: FullkekwUserAPI_TokenData = {
         avatar: '',
         id: '',
         username: ''
@@ -218,7 +218,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
           }
         }
       } else {
-        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         DATA.username = data.username;
       }
@@ -231,7 +231,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
+      const DATA: FullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };

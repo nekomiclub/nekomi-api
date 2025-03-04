@@ -1,5 +1,4 @@
 import * as uuid from 'uuid';
-import ip from 'ip';
 import { convert as convertSlug } from 'url-slug';
 
 
@@ -7,7 +6,7 @@ import { convert as convertSlug } from 'url-slug';
 /** Return current IPv4 if raw match 0.0.0.0 */
 export function preserveIP(raw: string): string {
   if (raw === '0.0.0.0') {
-    return ip.address();
+    return '127.0.0.1';
   } else {
     return raw;
   }

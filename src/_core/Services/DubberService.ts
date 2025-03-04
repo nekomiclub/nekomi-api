@@ -148,7 +148,7 @@ class DubberModelControls implements TDubberModelControls {
   async deleteOne(id: string): Promise<void> {
     await DubberModel.deleteOne({ id });
 
-    Logger.info(`[DubberService]: 1 document has been deleted. [id: ${id}]`);
+    Logger.info(`[DubberService]: single document has been deleted. [id: ${id}]`);
   }
 
   async deleteMany(id: string): Promise<void> {

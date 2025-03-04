@@ -14,7 +14,7 @@ export interface InlineKeyboardButton {
   pay?: boolean | undefined;
 }
 
-export interface INekomiBot_PostBroadcast {
+export interface NekomiBot_PostBroadcast {
   message: string
   audience: number[]
 

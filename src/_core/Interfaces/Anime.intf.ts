@@ -3,7 +3,7 @@ import { DayOfWeek } from '~/interfaces/types';
 
 
 export interface Anime {
-  id: string
+  uuid: string
   poster: string
   year: number
   episodesCount: number | null
@@ -44,9 +44,9 @@ export interface Anime {
   malSyncedAt: number | null
   /** @since 2.1.0 */
   slug: string
-  /** @since 2.1.0 */
+  /** Anime pictures URL's @since 2.1.0 */
   pictures: string[]
-  /** Related anime id's @since 2.1.0 */
+  /** Related animes ID's @since 2.1.0 */
   related: string[]
 
   /** @since 2.1.0 */
@@ -78,6 +78,8 @@ export interface Anime {
     Animee: number | null
   }
 
+  /** @deprecated use uuid instead */
+  id: string
   /** @since 1.3.2 @deprecated use malId instead */
   mal_id: string | null
 

@@ -4,7 +4,7 @@ import path from 'path';
 import DubberModel from '~/core/Models/DubberModel';
 import TitleModel from '../Models/Title';
 import UserModel from '../Models/User';
-import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/interfaces/ITitle';
+import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/interfaces/ITitle';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '../Services/LoggerService';
 import { createSlug } from '~/utils/create-slug';
@@ -72,6 +72,7 @@ export async function patchAnimeModel() {
     anime.studiosNew = anime.studiosNew ?? [];
     anime.broadcast = anime.broadcast ?? null;
     anime.malSyncedAt = anime.malSyncedAt ?? null;
+    anime.uuid = anime.id;
 
     anime.score = anime.score ?? {
       imdb: anime.rating.IMDB,
@@ -111,9 +112,9 @@ export async function patchAnimeModel() {
 
     anime.genres.forEach(code => {
       const slug = createSlug(code);
-      const genre = ANIME_GENRES[slug];
+      const genre = ANIME_GENRES[slug] as AnimeGenre;
 
-      if (genre) anime.genresNew.push(genre);
+      if (genre) anime.genresNew.push(genre.slug);
     });
 
     await anime.save();

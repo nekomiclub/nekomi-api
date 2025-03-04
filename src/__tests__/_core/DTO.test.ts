@@ -1,8 +1,9 @@
 import IDubber from '~/core/Interfaces/Dubber.intf';
+import { Anime } from '~/interfaces/ITitle';
 import { DocumentDTO } from '~/core/Services/DTO';
-import { ITitle } from '~/interfaces/ITitle';
 import { IUser } from '~/interfaces/IUser';
 import { config } from '~/config';
+import { createUUID } from '~/utils/create-id';
 import { getUTC } from '~/handlers/handler';
 
 
@@ -45,7 +46,8 @@ describe('DTOs', () => {
   });
 
   test('Anime DTO', () => {
-    const anime: ITitle = {
+    const anime: Anime = {
+      uuid: createUUID(),
       ageRate: 'PG-13',
       code: '',
       country: 'Other',

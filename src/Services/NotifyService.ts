@@ -7,7 +7,7 @@ import User, { UserModel, UserService } from '../Models/User';
 import { DevelopmentMode, config } from '../config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '../Interfaces/services/INotify';
-import { InlineKeyboardMarkup } from '~/core/Interfaces/API/INekomiBotAPI';
+import { InlineKeyboardMarkup } from '~/core/Interfaces/API/NekomiBotAPI.intf';
 import { Logger } from './LoggerService';
 
 

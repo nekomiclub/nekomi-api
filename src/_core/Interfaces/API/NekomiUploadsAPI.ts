@@ -17,7 +17,7 @@ export type TUploadType =
   | 'video/srt'
   | 'video/srt-temp'
 
-export interface INekomiUploadsAPI_UploadFile {
+export interface NekomiUploadsAPI_UploadFile {
   id: string
   url: string
   srt_id?: string

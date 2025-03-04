@@ -13,7 +13,7 @@ import { ITitle } from '../Interfaces/ITitle';
 import { IUser } from '../Interfaces/IUser';
 import { Logger } from '../Services/LoggerService';
 import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
+import { TUploadType } from '~/core/Interfaces/API/NekomiUploadsAPI';
 import { checkValue } from '../handlers/handlers';
 
 

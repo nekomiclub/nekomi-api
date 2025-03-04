@@ -6,10 +6,10 @@ import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
 import Title, { TitleModel, TitleService } from '../Models/Title';
 import User from '../Models/User';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/INekomiUploadsAPI';
+import { EpisodeQualities, TEpisodeQuality } from '~/core/Interfaces/API/NekomiUploadsAPI';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
 import { IDubber } from '~/core/Interfaces/Dubber.intf';
-import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
-import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
 import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
 import { ITitle, ITitleEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '../Interfaces/ITitle';
 import { IUserWatchProgress } from '../Interfaces/IUser';
@@ -119,7 +119,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
 
     // Check if client can get detailed data
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
+      const DATA: FullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
@@ -462,7 +462,7 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
     }
 
     const sessionToken = req.cookies[config.vars.sessionCookie];
-    const session: IFullkekwUserAPI_TokenData = {
+    const session: FullkekwUserAPI_TokenData = {
       id: '',
       avatar: '',
       username: ''
@@ -483,7 +483,7 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
           // Ignore
         }
       } else {
-        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         session.id = data.id;
       }

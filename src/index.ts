@@ -70,8 +70,8 @@ const CORSOpt: CorsOptions = {
     `https://${config.DOMAIN.nekomi_auth}`,
     `https://${config.DOMAIN.nekomi_core}`,
 
-    !ProductionMode ? 'http://192.168.0.106:3001' : '_null',
-    !ProductionMode ? 'http://192.168.0.106:3000' : '_null',
+    !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
+    !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
   ].filter(el => el !== '_null'),
   credentials: true,
 };

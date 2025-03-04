@@ -1,10 +1,10 @@
 //! --------------
-//! VERSION: 2.0.0
+//! VERSION: 2.1.0
 //! --------------
 
 
 
-export interface IFullkekwUserAPI_GetUser {
+export interface FullkekwUserAPI_GetUser {
   user: {
     id: string
     username: string
@@ -13,7 +13,7 @@ export interface IFullkekwUserAPI_GetUser {
   }
 }
 
-export interface IFullkekwUserAPI_TokenData {
+export interface FullkekwUserAPI_TokenData {
   id: string
   username: string
   avatar: string

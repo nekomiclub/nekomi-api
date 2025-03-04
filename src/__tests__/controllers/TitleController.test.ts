@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 
 import DubberModel from '../../Models/Dubber';
-import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
+import { FullkekwUserAPI_TokenData } from '~/core/Interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '../../Interfaces/IMocks';
 import { INTERNALS, config } from '../../config';
 import { TitleService } from '../../Models/Title';
@@ -89,7 +89,7 @@ describe('Title Controller', () => {
     }
   };
 
-  const UsapiRefreshMock: IMock<IFullkekwUserAPI_TokenData> = {
+  const UsapiRefreshMock: IMock<FullkekwUserAPI_TokenData> = {
     id: 'FkUsapiAuthRefresh',
     code: 200,
     data: {
