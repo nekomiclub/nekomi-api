@@ -13,11 +13,11 @@ import DubberRouter from './routes/DubberRouter';
 import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
+import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
-import { patchAnimeModel, patchUserModel } from './handlers/modelPatchers';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 import { updateSearch } from './controllers/root';
 
@@ -144,10 +144,13 @@ const UpdateHandlers = [
       // Callback body
       Promise.all(UpdateHandlers);
 
-      if (ProductionMode) {
-        await patchAnimeModel();
-        await patchUserModel();
-      }
+      await ANIME_MODEL_UPDATE.run();
+
+      // TODO: remove after use
+      Promise.all([
+        ANIME_MODEL_UPDATE.run(),
+        USER_MODEL_UPDATE.run(),
+      ]);
 
 
       // Update cache
