@@ -3,7 +3,7 @@ import { CheckCSRF } from '~/middlewares';
 import { ERR_MIDDLEWARE_REQUIRED } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { config } from '~/config';
-import { parseObjectTypes } from '~/handlers/handler';
+import { parseObjectTypes } from '~/utils/parse-object-types';
 import { query } from 'express-validator';
 
 

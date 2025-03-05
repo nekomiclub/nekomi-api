@@ -1,7 +1,8 @@
+import getUTC from '~/utils/get-utc';
 import jwt from 'jsonwebtoken';
 import { config } from '~/config';
 import { createID } from '~/utils/create-id';
-import { getUTC } from '~/handlers/handler';
+
 
 /** Decoded token interface */
 interface ITokenPayload<T = any> {

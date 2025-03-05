@@ -4,8 +4,9 @@ import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 
+import getUTC from './utils/get-utc';
+import preserveIP from './utils/preserve-ip';
 import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
-import { getUTC, preserveIP } from './handlers/handler';
 
 
 

@@ -14,7 +14,7 @@ import { IUser } from '~/interfaces/User.intf';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { checkValue } from '~/handlers/handlers';
+import { checkValue } from '~/utils/deprecated-utils';
 
 
 

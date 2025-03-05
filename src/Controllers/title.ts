@@ -5,6 +5,7 @@ import DubberModel from '~/core/models/DubberModel';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import Title, { TitleModel, TitleService } from '~/models/Title';
 import User from '~/models/User';
+import getUTC from '~/utils/get-utc';
 import { Anime, AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '~/interfaces/Anime.intf';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
@@ -19,7 +20,7 @@ import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TRoleCapability } from '~/interfaces/Role.intf';
 import { TestMode, config } from '~/config';
 import { getMockData } from '~/handlers/mocks';
-import { getUTC } from '~/handlers/handler';
+
 import { signCSRFToken } from '~/services/TokenService';
 import { updateSearch } from './root';
 

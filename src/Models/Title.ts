@@ -4,6 +4,8 @@ import { convert as urlSlugConvert } from 'url-slug';
 import * as cfg from '~/config';
 import AnimeModelNew from '~/core/models/AnimeModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
+import getUTC from '~/utils/get-utc';
+import parseIMDBDate from '~/utils/parse-imdb-date';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
@@ -19,7 +21,6 @@ import { Notify } from '~/services/NotifyService';
 import { TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
-import { getUTC, parseIMDBDate } from '~/handlers/handler';
 import { parseRoles } from './Role';
 
 

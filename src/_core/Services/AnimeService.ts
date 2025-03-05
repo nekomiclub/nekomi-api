@@ -1,6 +1,8 @@
 import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import ServiceControls from '~/core/interfaces/ServiceControls';
+import getUTC from '~/utils/get-utc';
+import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { DevelopmentMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST } from '~/services/ErrorService';
@@ -9,8 +11,6 @@ import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
-import { getUTC } from '~/handlers/handler';
-import { trimString } from '~/utils/trim-string';
 
 
 

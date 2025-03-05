@@ -5,8 +5,8 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "npx nodemon devMode",
-    "start": "npx tsx ./src/index.ts prodMode",
+    "dev": "npx rimraf dist && npx nodemon devMode",
+    "start": "npx rimraf dist && && npx tsx ./src/index.ts prodMode",
     "test": "npx jest --silent standalone _core",
     "build": "npm run cleanup && npx eslint . --fix && git add . && npx tsc",
     "prepare": "npm run test && npm run build",

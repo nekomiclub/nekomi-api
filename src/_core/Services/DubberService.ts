@@ -4,6 +4,7 @@ import { HydratedDocument } from 'mongoose';
 import DubberModel from '~/core/models/DubberModel';
 import ServiceControls from '~/core/interfaces/ServiceControls';
 import UserModel, { UserService } from '~/models/User';
+import getUTC from '~/utils/get-utc';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { INotifyDubberTell } from '~/interfaces/types';
@@ -14,7 +15,6 @@ import { Notify } from '~/services/NotifyService';
 import { TestMode, config } from '~/config';
 import { createID, createUUID } from '~/utils/create-id';
 import { createSlug } from '~/utils/create-slug';
-import { getUTC } from '~/handlers/handler';
 import { trimString } from '~/utils/trim-string';
 
 

@@ -1,7 +1,8 @@
 import express from 'express';
+import getUTC from '~/utils/get-utc';
 import ip from 'ip';
 import { AxiosError } from 'axios';
-import { getUTC } from '~/handlers/handler';
+
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';

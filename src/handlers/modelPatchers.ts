@@ -4,11 +4,11 @@ import path from 'path';
 import DubberModel from '~/core/models/DubberModel';
 import TitleModel from '~/models/Title';
 import UserModel from '~/models/User';
+import getUTC from '~/utils/get-utc';
 import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/interfaces/Anime.intf';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { createSlug } from '~/utils/create-slug';
-import { getUTC } from './handler';
 
 
 

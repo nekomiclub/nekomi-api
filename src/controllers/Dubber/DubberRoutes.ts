@@ -6,7 +6,7 @@ import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { body, param, query } from 'express-validator';
 import { config } from '~/config';
-import { parseObjectTypes } from '~/handlers/handler';
+import { parseObjectTypes } from '~/utils/parse-object-types';
 
 
 
