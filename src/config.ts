@@ -187,9 +187,6 @@ const vars = {
   /** CSRF Token header name */
   csrfHeader: 'X-CSRF-Token',
 
-  /** Production IP */
-  prodIP: '192.168.0.107',
-
   /** CSRF token expiration */
   CSRF_EXPIRE: 180000,
 
@@ -199,7 +196,7 @@ const vars = {
   /** Default banner */
   defaultBanner: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
 
-  /** Default poster */
+  /** Default anime poster */
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
 };
 

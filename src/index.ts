@@ -4,7 +4,6 @@ import cors, { CorsOptions } from 'cors';
 import express from 'express';
 import fs from 'fs';
 import https from 'https';
-import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
@@ -20,21 +19,6 @@ import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 import { updateSearch } from './controllers/root';
-
-
-
-//* Prevent run production not on production machine
-if (ProductionMode && ip.address() !== config.vars.prodIP) {
-  Logger.error(`[Startup]: Startup denied for ${ip.address()} (IP does not match default production IP)`);
-
-  throw new Error(`
-    ----------------------------
-    NEKOMI-CORE STARTUP DENIED
-
-    Current IP (${ip.address()}) is not permitted to run production
-    ----------------------------
-  `);
-}
 
 
 
@@ -144,13 +128,12 @@ const UpdateHandlers = [
       // Callback body
       Promise.all(UpdateHandlers);
 
-      await ANIME_MODEL_UPDATE.run();
-
       // TODO: remove after use
       Promise.all([
         ANIME_MODEL_UPDATE.run(),
         USER_MODEL_UPDATE.run(),
       ]);
+
 
 
       // Update cache

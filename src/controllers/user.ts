@@ -18,7 +18,7 @@ import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 import { ProductionMode, TestMode, config } from '~/config';
 import { TRoleCapability } from '~/interfaces/Role.intf';
-import { getMockData } from '~/handlers/mocks';
+import { getMockData } from '~/utils/deprecated-utils';
 import { updateSearch } from './root';
 
 

@@ -19,7 +19,7 @@ import { MiddlewareService } from '~/services/MiddlewareService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TRoleCapability } from '~/interfaces/Role.intf';
 import { TestMode, config } from '~/config';
-import { getMockData } from '~/handlers/mocks';
+import { getMockData } from '~/utils/deprecated-utils';
 
 import { signCSRFToken } from '~/services/TokenService';
 import { updateSearch } from './root';

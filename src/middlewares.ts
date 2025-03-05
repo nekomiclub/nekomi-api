@@ -5,7 +5,7 @@ import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorServic
 import { MiddlewareService } from './services/MiddlewareService';
 import { TRoleCapability } from '~/interfaces/Role.intf';
 import { TestMode, config } from './config';
-import { getMockData } from './handlers/mocks';
+import { getMockData } from '~/utils/deprecated-utils';
 
 
 const Middleware = new MiddlewareService();
