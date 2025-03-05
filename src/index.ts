@@ -12,6 +12,7 @@ import DubberRouter from './routes/DubberRouter';
 import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
+import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
 import { Logger } from './services/LoggerService';
@@ -27,7 +28,7 @@ mongoose.set('strictQuery', false);
 mongoose.connect(config.mongodbUrl, {
   retryWrites: true,
 }).catch(e => {
-  Logger.fail('[Startup/MongoDB]: MongoDB connection errored', e);
+  Logger.fail('[System]: MongoDB connection failed', e);
 });
 
 
@@ -74,7 +75,7 @@ app.options('*', cors(CORSOpt));
 
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const IP = getRequestIP(req.headers);
   const session = decodeToken(req.cookies[config.vars.sessionCookie] ?? '');
 
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
@@ -91,9 +92,9 @@ app.use('/user', UserRouter);
 app.use(['/title', '/anime'], AnimeRouter);
 app.use('/', GenericRouter);
 
-wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
+wss.on('error', e => { Logger.error(`[System]: Websocket error occured`, e); });
 wss.on('listening', () => {
-  Logger.info(`[Startup]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
+  Logger.info(`[System]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
 });
 
 
@@ -109,7 +110,7 @@ const UpdateHandlers = [
   wss.on('connection', WebsocketRouter);
 
   app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, async () => {
-    Logger.info(`[Startup]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+    Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
 
     try {
       console.log(`
@@ -156,13 +157,16 @@ const UpdateHandlers = [
         await WebSocketOnlinePoll();
       }, 600000); // 600000 // 10m
     } catch (e) {
-      Logger.error('[Startup]: An error occured in one of post-init handlers', e);
+      Logger.error('[System]: An error occured in one of post-init handlers', e);
     }
   });
 })();
 
 app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {
-  Logger.info(`[HTTP]: Request rickrolled`);
+  const IP = getRequestIP(req.headers);
+
+  Logger.info(`[Request/${IP}]: Request has been rickrolled`);
+
   return res.redirect(`https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley`);
 });
 
@@ -170,10 +174,10 @@ app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) 
 
 //* 404 catcher. Writes suspicious logs
 app.all('*', (req: express.Request, res: express.Response) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const IP = getRequestIP(req.headers);
 
   if (req.url !== '/') {
-    Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
+    Logger.suspicious(`[Request/${IP}]: ${req.method} - ${req.url} is not found`);
   }
 
   return res.status(404).json({ message: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });

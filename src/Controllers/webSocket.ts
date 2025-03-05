@@ -11,6 +11,7 @@ import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { WebSocketExtended } from '~/interfaces/globals';
 
+import getRequestIP from '~/utils/get-request-ip';
 import { wss } from '~/index';
 
 
@@ -50,7 +51,7 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
   ws.on('message', async message => {
     try {
       const parsed = JSON.parse(message.toString()) as Message;
-      const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || 'IP_UNDEFINED';
+      const IP = getRequestIP(req.headers);
 
       if (!parsed.type || !WS_TYPES.includes(parsed.type) || !parsed.payload || !parsed.CSRF) throw new ERR_INVALID_PAYLOAD();
 
