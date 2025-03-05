@@ -129,10 +129,12 @@ const UpdateHandlers = [
       Promise.all(UpdateHandlers);
 
       // TODO: remove after use
-      Promise.all([
-        ANIME_MODEL_UPDATE.run(),
-        USER_MODEL_UPDATE.run(),
-      ]);
+      if (ProductionMode) {
+        Promise.all([
+          ANIME_MODEL_UPDATE.run(),
+          USER_MODEL_UPDATE.run(),
+        ]);
+      }
 
 
 
@@ -158,6 +160,11 @@ const UpdateHandlers = [
     }
   });
 })();
+
+app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {
+  Logger.info(`[HTTP]: Request rickrolled`);
+  return res.redirect(`https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley`);
+});
 
 
 

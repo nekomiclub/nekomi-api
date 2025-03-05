@@ -200,6 +200,18 @@ const vars = {
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
 };
 
+/** Funny thing to rickroll some endpoints */
+const rickrollEndpoints: RegExp[] = [
+  /\/\.env(.+)?/gi,
+  /\/cgi-bin(.+)?/gi,
+  /\/login(.+)?/gi,
+  /\/dns-query(.+)?/gi,
+  /\/query(.+)?/gi,
+  /\/hello.world(.+)?/gi,
+  /\/geoserver(.+)?/gi,
+  /\/\.git(.+)?/gi,
+];
+
 
 
 export const config = {
@@ -214,6 +226,7 @@ export const config = {
   VALIDATION,
   DOMAIN,
   STATIC,
+  rickrollEndpoints
 };
 
 

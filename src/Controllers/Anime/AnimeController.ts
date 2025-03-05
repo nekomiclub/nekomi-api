@@ -7,7 +7,10 @@ import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 
 //* ===================================== GET SEARCH
 export interface IAnimeGetSearch {
-  /** Query ~all will return all anime's */
+  /** 
+   * Query ~all will return all anime documents
+   * Query ~wo-mal-id will return anime documents where mal_id: null
+  */
   q: string
 }
 
