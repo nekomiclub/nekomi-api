@@ -5,7 +5,7 @@ import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { DevelopmentMode, config } from '~/config';
-import { E400, E404, ERR_ALREADY_EXIST } from '~/services/ErrorService';
+import { E400, E404, ERR_ALREADY_EXIST, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
@@ -29,11 +29,6 @@ export const ERR_NAME_LENGTH_INVALID = new E400(`English name must be between ${
 
 
 class AnimeModelControls implements AnimeModelControlsType {
-  private document: HydratedDocument<Anime> | null = null;
-  private stack: string[] = [];
-
-
-
   async create(props: AnimeCreateProps): Promise<Anime> {
     const { DEV_UUID } = props;
     let { nameEng } = props;
@@ -110,11 +105,11 @@ class AnimeModelControls implements AnimeModelControlsType {
     };
 
     const document = new AnimeModel(instance);
-    // await document.save();
+    await document.save();
 
     Logger.info(`[AnimeService]: New document has been created. [uuid: ${uuid}]`);
 
-    return document;
+    return instance;
   }
 
   async deleteOne(uuid: string): Promise<void> {
@@ -136,15 +131,15 @@ class AnimeModelControls implements AnimeModelControlsType {
     return list;
   }
 
-  async getById(id: string, details?: boolean): Promise<Anime> {
-    const document = await AnimeModel.findOne({ id });
-    if (!document) throw new E404(`Anime by id (${id}) is not found`);
+  async getById(uuid: string, details?: boolean): Promise<Anime> {
+    const document = await AnimeModel.findOne({ uuid });
+    if (!document) throw new E404(`Anime by uuid (${uuid}) is not found`);
 
     return new MongoDocumentDTO().anime({ document, details });
   }
 
   async getByQuery(query: string, details?: boolean): Promise<Anime> {
-    const document = await AnimeModel.findOne({ $or: [{ id: query }, { slug: query }] });
+    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }] });
     if (!document) throw new E404(`Anime by query (${query}) is not found`);
 
     return new MongoDocumentDTO().anime({ document, details });
@@ -154,7 +149,35 @@ class AnimeModelControls implements AnimeModelControlsType {
 
 
 export class AnimeService extends AnimeModelControls {
+  private document: HydratedDocument<Anime> | null = null;
+  private stack: string[] = [];
 
+
+
+  async init(query: string) {
+    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }] }); // Hydrated document required, find by built-in method is not possible
+    if (!document) throw new E404(`Document ${query} is not found`);
+
+    this.document = document;
+  }
+
+  /** Save the document
+   * @returns current patch stack
+   */
+  async save(): Promise<string[]> {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    await this.document.save();
+
+    Logger.debug(`[AnimeService]: Document patched. [uuid: ${this.document.uuid}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
+
+    return this.stack;
+  }
+
+  get anime(): Anime {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    return new MongoDocumentDTO().anime({ document: this.document, details: true });
+  }
 }
 
 

@@ -36,17 +36,18 @@ export const deleteTitleId = [
 
 
 //* Generic
+AnimeRouter.get(`/all`, AnimeRoutes.GetAll);
 AnimeRouter.get(`/search`, AnimeRoutes.GetSearch);
 
+AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
 
 
-AnimeRouter.get(['/all', '/total'], TitleController.getTotal); //* /total is deprecated
+AnimeRouter.get(['/total'], TitleController.getTotal); //* /total is deprecated
 
 AnimeRouter.get('/home_wrapped', getHomeWrapped, TitleController.getHomeWrapped);
 AnimeRouter.post('/', postTitle, TitleController.postTitle);
 
 //! Must be below all endpoints
-AnimeRouter.get('/:query', TitleController.getTitleQuery);
 AnimeRouter.patch('/:id', patchTitleId, TitleController.patchTitle);
 AnimeRouter.delete('/:id', deleteTitleId, TitleController.deleteTitle);
 

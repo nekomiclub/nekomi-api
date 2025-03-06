@@ -60,6 +60,14 @@ export interface IDubberMember {
   memberSince: number
 }
 
+export interface DubberMetadata {
+  id: string
+  slug: string
+  nameUkr: string
+  nameEng: string
+  avatarURL: string
+}
+
 
 
 export default IDubber;

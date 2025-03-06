@@ -35,13 +35,6 @@ export interface IDubberGetOneByQueryProps {
   useCache?: boolean
 }
 
-interface IDubberMetadata {
-  title: string
-  description: string
-  keywords: string[]
-  photo: string
-}
-
 async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: IDubberGetOneByQueryProps) {
   const dubberService = new DubberService();
   await dubberService.init(query);
@@ -51,7 +44,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
   let dubber: IDubber = new DocumentDTO().dubber({ object: dubberService.dubber });
   let dubbedAnime: Anime[] | undefined = undefined;
   let parsedMembers: IUser[] | undefined = undefined;
-  let metadata: IDubberMetadata | undefined = undefined;
+  let metadata: object | undefined = undefined;
 
 
 

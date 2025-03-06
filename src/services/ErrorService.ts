@@ -1,6 +1,5 @@
 import express from 'express';
 import getUTC from '~/utils/get-utc';
-import ip from 'ip';
 import { AxiosError } from 'axios';
 
 import { validationResult } from 'express-validator';
@@ -134,7 +133,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       const code = e.response?.data.code || e.code || 'HTTP_ERROR';
       const message = e.response?.data.message || e.response?.data.msg || e.message || 'Message not provided';
 
-      const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll(ip.address(), 'local.addr')}`;
+      const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll('127.0.0.1', 'local.addr')}`;
 
       let reqURL = e.config?.url;
 
@@ -142,7 +141,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         const message = `[AXIOS/503]: Connection refused`;
         Logger.error(`[AXIOS/503]: Connection to ${reqURL} refused`);
 
-        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
+        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
       } else {
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
@@ -151,7 +150,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         }
       }
 
-      return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
+      return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
     } else {
       console.error(e);
 

@@ -625,4 +625,23 @@ export type TTitleCountry = typeof TitleCountriesOld[number]
 
 
 
+export interface AnimeMetadata {
+  title: string
+  description: string
+  keywords: string[]
+  photo: string
+}
+
+export interface AnimeRelated {
+  uuid: Anime['uuid']
+  slug: Anime['slug']
+  posterURL: Anime['poster']
+  genres: AnimeGenre[]
+  malScore: Anime['score']['mal']
+  nameUkr: Anime['names']['ukr']
+  episodesCount: Anime['episodesCount']
+}
+
+
+
 export default Anime;
