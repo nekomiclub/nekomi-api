@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IRole, TRoleCapability } from '~/interfaces/Role.intf';
+import { IRole, TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { Logger } from '~/services/LoggerService';
 
 /** Roles mongodb model */

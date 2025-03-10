@@ -4,12 +4,12 @@ import Search from '~/services/SearchService';
 import TitleModel from '~/models/Title';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
-import { Anime } from '~/interfaces/Anime.intf';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
-import { IUser } from '~/interfaces/User.intf';
+import { IUser } from '~/core/interfaces/UserIntf';
 
 
 

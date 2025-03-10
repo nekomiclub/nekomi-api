@@ -1,7 +1,7 @@
 import Search from '~/services/SearchService';
 import UserModel from '~/models/User';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { IUser } from '~/interfaces/User.intf';
+import { IUser, UserWatchProgress } from '~/core/interfaces/UserIntf';
 import { NotifyService } from '~/services/NotifyService';
 
 
@@ -67,6 +67,17 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
     message: 'ok',
     results
   };
+}
+
+
+
+//* ===================================== PATCH BY ID
+interface UserPatchProps {
+  watchProgress?: UserWatchProgress
+}
+
+export function PatchById({ watchProgress }: UserPatchProps) {
+
 }
 
 

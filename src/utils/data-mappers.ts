@@ -1,5 +1,5 @@
-import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, AnimeMetadata, AnimeRelated } from '~/core/interfaces/Anime.intf';
-import IDubber, { DubberMetadata } from '~/core/interfaces/Dubber.intf';
+import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, AnimeMetadata, AnimeRelated } from '~/core/interfaces/AnimeIntf';
+import IDubber, { DubberMetadata } from '~/core/interfaces/DubberIntf';
 
 export function DubberMetadataMapper(dubber: IDubber): DubberMetadata {
   return {

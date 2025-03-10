@@ -1,21 +1,21 @@
-export interface IUser {
+export interface User {
   id: string
   username: string
   avatar: string
   banner: string
-  togetherRooms: IUserTogetherRoom[]
+  togetherRooms: UserTogetherRoom[]
 
   /** @private */
-  statistics: IUserStatistics
+  statistics: UserStatistics
 
   /** @private */
-  libs: IUserLib[]
+  libs: UserLib[]
 
   /** @private */
   roles: string[]
 
   /** @private */
-  watchProgress: IUserWatchProgress[]
+  watchProgress: UserWatchProgress[]
 
   /** @private */
   telegramData: IUserTelegramData | null
@@ -30,7 +30,7 @@ export interface IUser {
 }
 
 /** User nekomi statistics */
-export interface IUserStatistics {
+export interface UserStatistics {
   isTelegramLinked: boolean
 
   /** Dubber team ID in which user is member
@@ -49,7 +49,7 @@ export interface IUserStatistics {
 }
 
 /** User watch progress item */
-export interface IUserWatchProgress {
+export interface UserWatchProgress {
   titleID: string
   dubberID: string
   episodeOrder: number
@@ -67,7 +67,7 @@ export interface IUserTelegramData {
 
 export type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
 
-export interface IUserLib {
+export interface UserLib {
   id: string
   type: TUserLibType
 
@@ -88,7 +88,7 @@ export interface IUserLib {
   }
 }
 
-export interface IUserTogetherRoom {
+export interface UserTogetherRoom {
   id: string
   titleId: string
   settings: {
@@ -102,4 +102,17 @@ export interface IUserTogetherRoom {
 
 
 
-export default IUser;
+/** @deprecated use UserStatistics instead */
+export type IUserStatistics = UserStatistics;
+
+/** @deprecated use UserTogetherRoom instead */
+export type IUserTogetherRoom = UserTogetherRoom
+
+/** @deprecated use UserWatchProgress instead */
+export type IUserWatchProgress = UserWatchProgress;
+
+/** @deprecated use UserLib instead */
+export type IUserLib = UserLib;
+
+export type IUser = User;
+export default User;

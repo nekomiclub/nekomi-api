@@ -6,8 +6,8 @@ import User from '~/models/User';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '~/interfaces/types';
-import { IUser } from '~/interfaces/User.intf';
-import { TRoleCapability } from '~/interfaces/Role.intf';
+import { IUser } from '~/core/interfaces/UserIntf';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { parseRoles } from '~/models/Role';
 
 

@@ -1,4 +1,4 @@
-import Anime from '~/core/interfaces/Anime.intf';
+import Anime from '~/core/interfaces/AnimeIntf';
 import mongoose, { Schema } from 'mongoose';
 
 

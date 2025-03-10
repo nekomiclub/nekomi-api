@@ -4,7 +4,7 @@ import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import UserModel, { UserService } from '~/models/User';
 import getUTC from '~/utils/get-utc';
-import { AnimeEpisodeMeta, TAnimeGenre } from '~/interfaces/Anime.intf';
+import { AnimeEpisodeMeta, TAnimeGenre } from '~/core/interfaces/AnimeIntf';
 import { ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { INTERNALS, config } from '~/config';
 import { Readable } from 'stream';

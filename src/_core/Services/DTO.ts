@@ -1,7 +1,7 @@
-import { Anime } from '~/interfaces/Anime.intf';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '~/core/interfaces/Dubber.intf';
-import { IUser } from '~/interfaces/User.intf';
+import { IDubber } from '~/core/interfaces/DubberIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
 
 
 

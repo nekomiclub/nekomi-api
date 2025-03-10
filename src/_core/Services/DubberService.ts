@@ -2,16 +2,16 @@ import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 
 import DubberModel from '~/core/models/DubberModel';
-import ServiceControls from '~/core/interfaces/ServiceControls';
 import UserModel, { UserService } from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
 import { INotifyDubberTell } from '~/interfaces/types';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
 import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
 import { Notify } from '~/services/NotifyService';
+import { ServiceControls } from '~/core/interfaces/types';
 import { TestMode, config } from '~/config';
 import { createID, createUUID } from '~/utils/create-id';
 import { createSlug } from '~/utils/create-slug';
@@ -143,7 +143,7 @@ class DubberModelControls implements TDubberModelControls {
     const document = new DubberModel(instance);
     await document.save();
 
-    Logger.info(`[DubberService]: New document has been created. [id: ${id}]`);
+    Logger.info(`[DubberService]: New document was created. [id: ${id}]`);
 
     return instance;
   }
@@ -151,13 +151,13 @@ class DubberModelControls implements TDubberModelControls {
   async deleteOne(id: string): Promise<void> {
     await DubberModel.deleteOne({ id });
 
-    Logger.info(`[DubberService]: single document has been deleted. [id: ${id}]`);
+    Logger.info(`[DubberService]: Single document was deleted. [id: ${id}]`);
   }
 
   async deleteMany(id: string): Promise<void> {
     const details = await DubberModel.deleteMany({ id });
 
-    Logger.info(`[DubberService]: ${details.deletedCount} document have been deleted. [id: ${id}]`);
+    Logger.info(`[DubberService]: Some document were deleted. [id: ${id}; count: ${details.deletedCount}]`);
   }
 
   async getAll(details?: boolean): Promise<IDubber[]> {
@@ -171,14 +171,14 @@ class DubberModelControls implements TDubberModelControls {
 
   async getById(id: string, details?: boolean): Promise<IDubber> {
     const document = await DubberModel.findOne({ id });
-    if (!document) throw new E404(`Dubber ${id} is not found`);
+    if (!document) throw new E404(`Dubber with id (${id}) is not found`);
 
     return new MongoDocumentDTO().dubber({ document, details });
   }
 
   async getByQuery(query: string, details?: boolean): Promise<IDubber> {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }] });
-    if (!document) throw new E404(`Dubber ${query} is not found`);
+    if (!document) throw new E404(`Dubber with query (${query}) is not found`);
 
     return new MongoDocumentDTO().dubber({ document, details });
   }

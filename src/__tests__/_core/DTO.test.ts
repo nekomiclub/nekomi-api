@@ -1,8 +1,8 @@
-import IDubber from '~/core/interfaces/Dubber.intf';
+import IDubber from '~/core/interfaces/DubberIntf';
 import getUTC from '~/utils/get-utc';
-import { Anime } from '~/interfaces/Anime.intf';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { DocumentDTO } from '~/core/services/DTO';
-import { IUser } from '~/interfaces/User.intf';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
 

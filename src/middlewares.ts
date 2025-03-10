@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 
 import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
 import { MiddlewareService } from './services/MiddlewareService';
-import { TRoleCapability } from '~/interfaces/Role.intf';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { TestMode, config } from './config';
 import { getMockData } from '~/utils/deprecated-utils';
 

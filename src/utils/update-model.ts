@@ -4,7 +4,7 @@ import createSlug from './create-slug';
 import fs from 'fs';
 import getUTC from './get-utc';
 import path from 'path';
-import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/Anime.intf';
+import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/AnimeIntf';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';

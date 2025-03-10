@@ -1,6 +1,5 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/Anime.intf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
-import ServiceControls from '~/core/interfaces/ServiceControls';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
@@ -9,6 +8,7 @@ import { E400, E404, ERR_ALREADY_EXIST, ERR_NO_DOCUMENT } from '~/services/Error
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
+import { ServiceControls } from '~/core/interfaces/types';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
 

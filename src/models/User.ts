@@ -9,7 +9,7 @@ import getUTC from '~/utils/get-utc';
 import validator from 'validator';
 import { AxiosError } from 'axios';
 import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
-import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '~/interfaces/User.intf';
+import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '~/core/interfaces/UserIntf';
 import { Logger } from '~/services/LoggerService';
 import { TNotifyEvent } from '~/interfaces/types';
 import { config } from '~/config';

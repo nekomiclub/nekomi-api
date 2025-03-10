@@ -2,10 +2,10 @@ import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import TitleModel from '~/models/Title';
 import UserModel from '~/models/User';
-import { Anime } from '~/interfaces/Anime.intf';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/interfaces/Dubber.intf';
-import { IUser } from '~/interfaces/User.intf';
+import { IDubber } from '~/core/interfaces/DubberIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { Logger } from './LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 

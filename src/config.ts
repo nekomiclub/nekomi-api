@@ -147,6 +147,10 @@ const VALIDATION = {
     MaximumAvatarSize: 1048576,
     /** In bytes */
     MaximumBannerSize: 2097152,
+
+    MinimumLibNameLength: 3,
+    MaximumLibNameLength: 32,
+    MaximumIncreaseViewtime: 7200, // 2h
   }
 };
 

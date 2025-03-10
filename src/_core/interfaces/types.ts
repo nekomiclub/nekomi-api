@@ -1,11 +1,10 @@
-import { TRoleCapability } from '~/interfaces/Role.intf';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 
+/** Make single key in T optional */
+export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
-
-
-//* ============================= MOCKING
 export type TMockID =
   /** Mocks fk-authority/verify endpoint */
   | 'FkAuthorityVerify'
@@ -40,9 +39,6 @@ export interface IM_FkAuthorityVerify {
   origin: string
 }
 
-
-
-//* ============================= NOTIFY
 export const NOTIFY_EVENTS = [
   'new_episode',
   'airing_started',
@@ -60,8 +56,6 @@ export interface IEventPayload<P = object> {
   payload: P
 }
 
-//* --------- EVENTS
-
 /** new_episode */
 export interface INotifyNewEpisode {
   titleID: string
@@ -78,4 +72,19 @@ export interface INotifyAiringStarted {
 export interface INotifyDubberTell {
   userId: string
   dubberId: string
+}
+
+export interface ServiceControls<CREATE, OUT_DOC> {
+  /** Create the document */
+  create(props: CREATE): Promise<OUT_DOC>
+  /** Delete the document */
+  deleteOne(id: string): Promise<void>
+  /** Delete many documents with same id */
+  deleteMany(id: string): Promise<void>
+  /** Get document by id */
+  getById(id: string, details?: boolean): Promise<OUT_DOC>
+  /** Get document by slug, code, etc */
+  getByQuery(query: string, details?: boolean): Promise<OUT_DOC>
+  /** Get list of all documents */
+  getAll(details?: boolean): Promise<OUT_DOC[]>
 }

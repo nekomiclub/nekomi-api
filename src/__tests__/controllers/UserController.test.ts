@@ -7,7 +7,7 @@ import getUTC from '~/utils/get-utc';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh, IMock } from '~/interfaces/types';
 import { INTERNALS, config } from '~/config';
-import { IUser } from '~/interfaces/User.intf';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { NotifyService } from '~/services/NotifyService';
 import { createUUID } from '~/utils/create-id';
 
