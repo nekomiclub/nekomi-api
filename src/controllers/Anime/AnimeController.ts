@@ -100,13 +100,13 @@ export interface AnimeGetByQueryProps {
 }
 
 export interface AnimeGetByQuery {
-  /** Will be null only when metadataOnly = true */
-  anime: Anime | null
+  /** Will be undefined only when metadataOnly = true */
+  anime?: Anime
 
-  genres: AnimeGenre[] | null
-  media: AnimeMedia | null
-  rate: AnimeRate | null
-  season: AnimeSeason | null
+  genres?: AnimeGenre[]
+  media?: AnimeMedia
+  rate?: AnimeRate
+  season?: AnimeSeason
 
   related?: AnimeRelated[]
   dubbers?: DubberMetadata[]
@@ -131,10 +131,10 @@ async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubb
 
 
 
-  let genres: AnimeGetByQuery['genres'] = null;
-  let rate: AnimeGetByQuery['rate'] = null;
-  let media: AnimeGetByQuery['media'] = null;
-  let season: AnimeGetByQuery['season'] = null;
+  let genres: AnimeGetByQuery['genres'] = undefined;
+  let rate: AnimeGetByQuery['rate'] = undefined;
+  let media: AnimeGetByQuery['media'] = undefined;
+  let season: AnimeGetByQuery['season'] = undefined;
 
   let related: AnimeGetByQuery['related'] = undefined;
   let dubbers: AnimeGetByQuery['dubbers'] = undefined;
@@ -178,7 +178,7 @@ async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubb
 
 
   return {
-    anime: metadataOnly ? null : anime,
+    anime: metadataOnly ? undefined : anime,
 
     genres: genres,
     rate: rate,

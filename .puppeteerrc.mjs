@@ -1,3 +1,10 @@
+/**
+ * PUPPETEER CONFIG  
+ * 
+ * @copyright fullkekw
+ * @version 07.03.2025
+*/
+
 import { __dirname, join } from 'path';
 
 /**

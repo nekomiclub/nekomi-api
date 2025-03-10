@@ -1,3 +1,12 @@
+/**
+ * ESLINT CONFIG  
+ * 
+ * @copyright fullkekw
+ * @version 07.03.2025
+*/
+
+
+
 import js from '@eslint/js';
 import path from 'node:path';
 import pathPlugin from 'eslint-plugin-path';
