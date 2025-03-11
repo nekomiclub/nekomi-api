@@ -38,7 +38,6 @@ export const deleteTitleId = [
 //* Generic
 AnimeRouter.get(`/all`, AnimeRoutes.GetAll);
 AnimeRouter.get(`/search`, AnimeRoutes.GetSearch);
-
 AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
 
 

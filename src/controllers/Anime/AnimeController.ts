@@ -7,26 +7,23 @@ import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_MEDIA_TYPES, ANIME_RATE, ANIME_RA
 import { AnimeMetadataMapper, AnimeRelatedMapper, DubberMetadataMapper } from '~/utils/data-mappers';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberMetadata } from '~/core/interfaces/DubberIntf';
-import { E401 } from '~/services/ErrorService';
-import { MiddlewareService } from '~/services/MiddlewareService';
-import { TestMode, config } from '~/config';
 
 
 
 //* ===================================== GET SEARCH
-export interface AnimeGetSearch {
-  /** 
+export interface AnimeGetSearchProps {
+  /**
    * Query ~all will return all anime documents
    * Query ~wo-mal-id will return anime documents where mal_id: null
   */
   q: string
 }
 
-export interface AnimeGetSearchResult {
-  anime: Anime
+export interface AnimeGetSearch {
+  results: Anime[]
 }
 
-async function GetSearch({ q }: AnimeGetSearch) {
+async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
   const limit = 15;
 
   let animeResults: Anime[] = [];
@@ -41,19 +38,13 @@ async function GetSearch({ q }: AnimeGetSearch) {
     animeResults = Search.search({ query: q, engine: 'anime', limit });
   }
 
-  const results: AnimeGetSearchResult[] = [];
+  const results: Anime[] = [];
 
   animeResults.forEach(anime => {
-    results.push({
-      anime: new DocumentDTO().anime({ object: anime }),
-    });
+    results.push(new DocumentDTO().anime({ object: anime }));
   });
 
-  return {
-    status: 200,
-    message: 'ok',
-    results
-  };
+  return { results };
 }
 
 
@@ -97,8 +88,6 @@ export interface AnimeGetByQueryProps {
   /** Return detailed document. Require valid CSRF */
   detailed?: boolean
 
-  CSRF_Token?: string
-
   fetchDubbers?: boolean
   fetchRelated?: boolean
 }
@@ -117,30 +106,14 @@ export interface AnimeGetByQuery {
   metadata?: AnimeMetadata
 }
 
-async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubbers, fetchRelated }: AnimeGetByQueryProps): Promise<AnimeGetByQuery> {
+async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRelated }: AnimeGetByQueryProps): Promise<AnimeGetByQuery> {
   const animeService = new AnimeService();
   await animeService.init(query);
 
-  let withDetails = false;
-
-  //* Handle withDetails
-  if (detailed) {
-    if (!CSRF_Token) throw new E401(`CSRF token is required to get detailed document`);
-    if (!TestMode) await new MiddlewareService().checkCSRF({
-      token: CSRF_Token,
-      origins: [config.DOMAIN.nekomi]
-    });
-
-    withDetails = true;
-  }
-
   let anime = animeService.anime;
 
-  //* Sync with myanimelist
-  if (anime.malId !== undefined) {
-    await animeService.syncWithMyAnimeList();
-  }
-
+  // Sync with myanimelist
+  if (anime.malId !== undefined) await animeService.syncWithMyAnimeList();
 
   let genres: AnimeGetByQuery['genres'] = undefined;
   let rate: AnimeGetByQuery['rate'] = undefined;
@@ -154,47 +127,48 @@ async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubb
 
 
 
-  //* Handle metadataOnly
-  if (metadataOnly) {
-    metadata = AnimeMetadataMapper(anime);
-  }
+  // Handle metadataOnly
+  if (metadataOnly) metadata = AnimeMetadataMapper(anime);
 
-  //* Handle withDetails, fetchDubbers, fetchRelated
-  if (withDetails && !metadataOnly) {
+  // Fetch dubbers & related
+  if (detailed && !metadataOnly) {
     genres = anime.genresNew.map(slug => ANIME_GENRES[slug]);
     rate = ANIME_RATES[anime.rate];
     media = ANIME_MEDIA_TYPES[anime.media];
     season = ANIME_SEASONS[anime.seasonNew];
 
     if (fetchDubbers) {
-      const uniqueDubberIDs: string[] = [];
+      const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
-      anime.episodes.forEach(episode => {
-        if (!uniqueDubberIDs.includes(episode.dubberID)) uniqueDubberIDs.push(episode.dubberID);
-      });
-
-      const results = await DubberModel.find({ $or: uniqueDubberIDs.map(el => { return { id: el }; }) });
-      dubbers = results.map(dubber => DubberMetadataMapper(new MongoDocumentDTO().dubber({ document: dubber })));
+      if (dubberIds.length) {
+        const results = await DubberModel.find({ $or: dubberIds.map(el => { return { id: el }; }) });
+        dubbers = results.map(dubber => DubberMetadataMapper(new MongoDocumentDTO().dubber({ document: dubber })));
+      } else {
+        dubbers = [];
+      }
     }
 
     if (fetchRelated) {
-      const results = await AnimeModel.find({ $or: anime.related.map(el => { return { id: el }; }) });
-      related = results.map(anime => AnimeRelatedMapper(new MongoDocumentDTO().anime({ document: anime })));
+      if (anime.related.length) {
+        const results = await AnimeModel.find({ $or: anime.related.map(el => { return { id: el }; }) });
+        related = results.map(anime => AnimeRelatedMapper(new MongoDocumentDTO().anime({ document: anime })));
+      } else {
+        related = [];
+      }
     }
   }
 
-  if (!withDetails) {
-    anime = new DocumentDTO().anime({ object: anime });
-  }
+  if (!detailed) anime = new DocumentDTO().anime({ object: anime });
+
 
 
   return {
     anime: metadataOnly ? undefined : anime,
 
-    genres: genres,
-    rate: rate,
-    media: media,
-    season: season,
+    genres,
+    rate,
+    media,
+    season,
 
     dubbers,
     related,

@@ -1,3 +1,18 @@
+/**
+ * @fileoverview CONTROLLER TESTS ARE DEPRECATED AND MUST BE REFACTORED INTO Router TESTS 
+*/
+
+it('deprecated', () => expect(true).toBeTruthy());
+
+
+
+
+
+
+
+
+
+
 process.argv.push('testMode');
 
 import DubberController from '~/controllers/Dubber/DubberController';

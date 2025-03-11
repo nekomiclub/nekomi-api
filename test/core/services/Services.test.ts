@@ -1,8 +1,15 @@
+process.argv.push('testMode');
+process.argv.push('devMode');
+
+
+
 import User, { UserService } from '~/models/User';
 import mongoose from 'mongoose';
 import { E404, ERR_ACCESS_REJECTED } from '~/services/ErrorService';
 import { INTERNALS, config } from '~/config';
 import { MiddlewareService } from '~/services/MiddlewareService';
+
+
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService();

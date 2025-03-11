@@ -1,3 +1,8 @@
+process.argv.push('testMode');
+process.argv.push('devMode');
+
+
+
 import DubberService from '~/core/services/DubberService';
 import UserModel, { UserService } from '~/models/User';
 import mongoose from 'mongoose';

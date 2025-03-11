@@ -4,13 +4,13 @@ import axios from 'axios';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
-import { DevelopmentMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
 import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
+import { TestMode, config } from '~/config';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
 
@@ -18,8 +18,6 @@ import { createUUID } from '~/utils/create-id';
 
 interface AnimeCreateProps {
   nameEng: string
-
-  DEV_UUID?: string
 }
 
 type AnimeModelControlsType = ServiceControls<AnimeCreateProps, Anime>
@@ -32,7 +30,6 @@ export const ERR_NAME_LENGTH_INVALID = new E400(`English name must be between ${
 
 class AnimeModelControls implements AnimeModelControlsType {
   async create(props: AnimeCreateProps): Promise<Anime> {
-    const { DEV_UUID } = props;
     let { nameEng } = props;
 
     nameEng = trimString(nameEng);
@@ -40,7 +37,7 @@ class AnimeModelControls implements AnimeModelControlsType {
     // Validate eng name length
     if (!validator.isLength(nameEng, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
 
-    const uuid = DevelopmentMode ? DEV_UUID ?? createUUID() : createUUID();
+    const uuid = TestMode ? `~test-${createUUID()}` : createUUID();
     const slug = createSlug(nameEng);
 
     const exist = await AnimeModel.findOne({ slug });
@@ -244,10 +241,6 @@ export class AnimeService extends AnimeModelControls {
 
 
       this.document.malSyncedAt = getUTC().timestamp;
-
-
-
-      console.log(this.anime);
     } catch (e) {
       return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
     }

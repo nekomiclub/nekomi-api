@@ -14,7 +14,7 @@ import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
 import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
-import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
+import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
@@ -113,7 +113,7 @@ const UpdateHandlers = [
     Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
 
     try {
-      console.log(`
+      if (!TestMode) console.log(`
   ----------------------------
   NEKOMI-API STARTED UP
 

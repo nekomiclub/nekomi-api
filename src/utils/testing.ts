@@ -1,7 +1,9 @@
+import AnimeModel from '~/core/models/AnimeModel';
 import express from 'express';
 import { E500 } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
 
@@ -47,14 +49,10 @@ export const GetCheckAccessMock = (req: express.Request) => getMock(req, MockID.
 
 
 
-export async function testStart() {
-
-}
-
-export async function testEnd() {
-
-}
-
 export async function testPurge() {
+  const purgeRegex = /~test/gi;
 
+  await AnimeModel.deleteMany({ uuid: { $regex: purgeRegex } });
+
+  Logger.info(`[Testing]: Testing documents were purged`);
 }

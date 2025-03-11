@@ -1,3 +1,8 @@
+process.argv.push('testMode');
+process.argv.push('devMode');
+
+
+
 import IDubber from '~/core/interfaces/DubberIntf';
 import getUTC from '~/utils/get-utc';
 import { Anime } from '~/core/interfaces/AnimeIntf';
