@@ -184,7 +184,8 @@ export class TitleService {
       studios: studios || ['Fullkekw'],
       type: type || 'serial',
       updatedAt: getUTC().timestamp,
-      year: year || getUTC().year
+      year: year || getUTC().year,
+      posterAdapt: null,
     };
 
     const title = new TitleModel(payload);

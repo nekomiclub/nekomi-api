@@ -25,6 +25,8 @@ const GetSearch = [
   getSearch,
 ];
 
+
+
 //* ===================================== GET ALL
 const getAll = HTTPEndpoint(async (req, res) => {
   const data = await AnimeController.GetAll();
@@ -35,6 +37,8 @@ const getAll = HTTPEndpoint(async (req, res) => {
 const GetAll = [
   getAll,
 ];
+
+
 
 //* ===================================== GET BY QUERY
 const getByQuery = HTTPEndpoint(async (req, res) => {

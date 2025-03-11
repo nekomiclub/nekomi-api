@@ -70,6 +70,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       updatedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
 
+      posterAdapt: null,
       broadcast: null,
       description: null,
       details: null,

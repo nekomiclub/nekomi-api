@@ -48,6 +48,7 @@ describe('DTOs', () => {
   test('Anime DTO', () => {
     const anime: Anime = {
       uuid: createUUID(),
+      posterAdapt: null,
       ageRate: 'PG-13',
       code: '',
       country: 'Other',

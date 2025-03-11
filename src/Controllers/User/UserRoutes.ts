@@ -25,6 +25,8 @@ const GetSearch = [
   getSearch,
 ];
 
+
+
 //* ===================================== PATCH USER
 const patchUser = HTTPEndpoint(async (req, res) => {
   if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);

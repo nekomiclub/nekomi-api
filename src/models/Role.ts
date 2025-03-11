@@ -1,14 +1,14 @@
-import mongoose, { Schema } from 'mongoose';
+import RoleModelNew from '~/core/models/RoleModel';
 import { IRole, TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { Logger } from '~/services/LoggerService';
 
-/** Roles mongodb model */
-export const Role = mongoose.model<IRole>('role', new Schema({
-  capabilities: Array,
-  code: String,
-  id: String,
-  title: String
-}));
+
+
+/** @deprecated use from /core */
+export const RoleModel = RoleModelNew;
+/** @deprecated use RoleModel instead */
+export const Role = RoleModelNew;
+
 
 /** Create new role object */
 export async function createRole(payload: IRole) {

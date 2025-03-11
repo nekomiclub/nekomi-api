@@ -56,6 +56,8 @@ async function GetSearch({ q }: AnimeGetSearch) {
   };
 }
 
+
+
 //* ===================================== GET ALL
 export interface AnimeGetAll {
   total: number
@@ -82,6 +84,8 @@ async function GetAll(): Promise<AnimeGetAll> {
     fullfilled: fullfilled.length
   };
 }
+
+
 
 //* ===================================== GET BY QUERY
 export interface AnimeGetByQueryProps {

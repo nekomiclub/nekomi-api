@@ -1,5 +1,5 @@
 /** Role object */
-export interface IRole {
+export interface Role {
   id: string
   code: string
   title: string
@@ -35,4 +35,6 @@ export type TRoleCapability = typeof RoleCapabilities[number];
 
 
 
-export default IRole;
+/** @deprecated use Role instead */
+export type IRole = Role;
+export default Role;

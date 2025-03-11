@@ -1,10 +1,11 @@
-import mongoose, { HydratedDocument, Schema } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 import * as cfg from '~/config';
 import DubberModel from '~/core/models/DubberModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import Role from './Role';
 import Title, { TitleModel } from './Title';
+import UserModelNew from '~/core/models/UserModel';
 import getUTC from '~/utils/get-utc';
 import validator from 'validator';
 import { AxiosError } from 'axios';
@@ -14,7 +15,6 @@ import { Logger } from '~/services/LoggerService';
 import { TNotifyEvent } from '~/interfaces/types';
 import { config } from '~/config';
 import { createID, createUUID } from '~/utils/create-id';
-
 
 
 
@@ -61,21 +61,8 @@ interface ICreateTogetherRoom {
 
 
 
-/** To create/patch/delete User instance use UserService */
-export const UserModel = mongoose.model<IUser>('user', new Schema({
-  id: String,
-  libs: Array,
-  statistics: Object,
-  roles: Array,
-  avatar: String,
-  username: String,
-  subscribes: Array,
-  watchProgress: Array,
-  telegramData: Object,
-  telegramLinkToken: String,
-  banner: String,
-  togetherRooms: Array,
-}));
+/** To create/patch/delete User instance use UserService @deprecated use model from /core */
+export const UserModel = UserModelNew;
 
 
 

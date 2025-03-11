@@ -38,7 +38,8 @@ export const AnimeModel = mongoose.model<Anime>('title', new Schema({
   genres: Array,
   country: String,
   code: String,
-  ageRate: String
+  ageRate: String,
+  posterAdapt: String
 }));
 
 

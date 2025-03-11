@@ -138,6 +138,7 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('AnimeModel', async () => {
     anime.broadcast = anime.broadcast ?? null;
     anime.malSyncedAt = anime.malSyncedAt ?? null;
     anime.uuid = anime.id;
+    anime.posterAdapt = anime.posterAdapt ?? null;
 
     anime.score = anime.score ?? {
       imdb: anime.rating.IMDB,

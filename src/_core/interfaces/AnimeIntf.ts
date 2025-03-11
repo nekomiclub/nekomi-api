@@ -48,6 +48,8 @@ export interface Anime {
   pictures: string[]
   /** Related animes ID's @since 2.1.0 */
   related: string[]
+  /** Poster adapted by dubber ID @since 2.1.0 */
+  posterAdapt: string | null
 
   /** @since 2.1.0 */
   score: {
