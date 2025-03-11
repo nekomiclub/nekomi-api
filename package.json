@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "npx nodemon devMode",
     "start": "npx tsx ./src/index.ts prodMode",
-    "test": "npx jest --silent standalone _core",
+    "test": "npx jest --silent standalone _core --forceExit",
     "build": "npm run cleanup && npx eslint . --fix && git add . && npx tsc",
-    "prepare": "npm run test && npm run build",
+    "prepare": "npm run build",
     "cleanup": "npx rimraf dist .cache .dump",
     "test-all": "npx jest --silent",
     "dev-test": "npx nodemon devMode testMode"

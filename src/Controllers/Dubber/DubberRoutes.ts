@@ -24,7 +24,10 @@ const getOne = HTTPEndpoint(async (req, res) => {
   // Ensure that only client get detailed document
   if (detailed !== undefined && CSRFToken !== undefined) {
     const middleware = new MiddlewareService();
-    await middleware.checkCSRF(CSRFToken, [config.DOMAIN.nekomi]);
+    await middleware.checkCSRF({
+      token: CSRFToken,
+      origins: [config.DOMAIN.nekomi]
+    });
 
     detailed = true;
   }

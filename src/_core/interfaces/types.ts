@@ -6,12 +6,13 @@ export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K
 
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
+/** @deprecated use MockID instead */
 export type TMockID =
   /** Mocks fk-authority/verify endpoint */
   | 'FkAuthorityVerify'
   | 'FkUsapiAuthRefresh'
 
-/** Mock interface */
+/** Mock interface @deprecated use Mock instead */
 export interface IMock<T = any> {
   /** Mock ID. */
   id: TMockID
@@ -23,8 +24,7 @@ export interface IMock<T = any> {
   data: T
 }
 
-
-/** FkUsapiAuthRefresh mock */
+/** FkUsapiAuthRefresh mock @deprecated use CheckCSRFMock instead */
 export interface IM_FkUsapiAuthRefresh {
   id: string
   capabilities: TRoleCapability[]
@@ -32,7 +32,7 @@ export interface IM_FkUsapiAuthRefresh {
   avatar: string
 }
 
-/** FkAuthorityVerify mock */
+/** FkAuthorityVerify mock @deprecated use CheckAccessMock instead */
 export interface IM_FkAuthorityVerify {
   verified: boolean
 

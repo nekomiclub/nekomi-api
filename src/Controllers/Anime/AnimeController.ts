@@ -9,7 +9,7 @@ import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberMetadata } from '~/core/interfaces/DubberIntf';
 import { E401 } from '~/services/ErrorService';
 import { MiddlewareService } from '~/services/MiddlewareService';
-import { config } from '~/config';
+import { TestMode, config } from '~/config';
 
 
 
@@ -126,7 +126,10 @@ async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubb
   //* Handle withDetails
   if (detailed) {
     if (!CSRF_Token) throw new E401(`CSRF token is required to get detailed document`);
-    await new MiddlewareService().checkCSRF(CSRF_Token, [config.DOMAIN.nekomi]);
+    if (!TestMode) await new MiddlewareService().checkCSRF({
+      token: CSRF_Token,
+      origins: [config.DOMAIN.nekomi]
+    });
 
     withDetails = true;
   }

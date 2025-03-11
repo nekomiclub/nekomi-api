@@ -57,7 +57,10 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
 
       // Check CSRF
       const middlewareService = new MiddlewareService();
-      await middlewareService.checkCSRF(parsed.CSRF, [config.DOMAIN.nekomi]);
+      await middlewareService.checkCSRF({
+        token: parsed.CSRF,
+        origins: [config.DOMAIN.nekomi]
+      });
 
       // Ensure inner data is not undefined
       ws.nekomi = ws.nekomi ?? {
@@ -71,7 +74,9 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
       if (PRIVATE_ROUTES.includes(parsed.type)) {
         if (!parsed.Authorization) throw new ERR_MISSING_AUTHORIZATION();
 
-        const { user } = await middlewareService.checkAccess(parsed.Authorization);
+        const { user } = await middlewareService.checkAccess({
+          token: parsed.Authorization
+        });
 
         ws.nekomi.user = {
           id: user.id

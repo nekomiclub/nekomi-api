@@ -5,7 +5,7 @@ import { INTERNALS, config } from '~/config';
 import { MiddlewareService } from '~/services/MiddlewareService';
 
 describe('Middleware Service', () => {
-  const instance = new MiddlewareService({ TestMode: true });
+  const instance = new MiddlewareService();
 
   beforeAll(() => {
     const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
@@ -48,39 +48,55 @@ describe('Middleware Service', () => {
 
 
     test('Pass - No capability required', async () => {
-      await instance.checkAccess('_MOCKED', [], {
-        id: TestID1,
-        avatar: '#',
-        username: '#',
-        capabilities: ['root']
+      await instance.checkAccess({
+        token: '_MOCKED',
+        capabilities: [],
+        mock: {
+          id: TestID1,
+          avatar: '#',
+          username: '#',
+          capabilities: ['root']
+        }
       });
     });
 
     test('Pass - Root capability present', async () => {
-      await instance.checkAccess('_MOCKED', [], {
-        id: TestID1,
-        avatar: '#',
-        username: '#',
-        capabilities: ['root']
+      await instance.checkAccess({
+        token: '_MOCKED',
+        capabilities: [],
+        mock: {
+          id: TestID1,
+          avatar: '#',
+          username: '#',
+          capabilities: ['root']
+        }
       });
     });
 
     test('Pass - Capabilities matched', async () => {
-      await instance.checkAccess('_MOCKED', ['dubber', 'admin'], {
-        id: TestID1,
-        avatar: '#',
-        username: '#',
-        capabilities: ['dubber', 'admin']
+      await instance.checkAccess({
+        token: '_MOCKED',
+        capabilities: ['dubber', 'admin'],
+        mock: {
+          id: TestID1,
+          avatar: '#',
+          username: '#',
+          capabilities: ['dubber', 'admin']
+        }
       });
     });
 
     test('Reject - User is not found', async () => {
       try {
-        await instance.checkAccess('_MOCKED', ['dubber', 'admin'], {
-          id: '_INVALID',
-          avatar: '#',
-          username: '#',
-          capabilities: ['dubber', 'admin']
+        await instance.checkAccess({
+          token: '_MOCKED',
+          capabilities: ['dubber', 'admin'],
+          mock: {
+            id: '_INVALID',
+            avatar: '#',
+            username: '#',
+            capabilities: ['dubber', 'admin']
+          }
         });
       } catch (e) {
         if (e instanceof E404) return expect(true).toBeTruthy();
@@ -91,11 +107,15 @@ describe('Middleware Service', () => {
 
     test('Reject - Capability missmatch', async () => {
       try {
-        await instance.checkAccess('_MOCKED', ['dubber', 'admin'], {
-          id: TestID1,
-          avatar: '#',
-          username: '#',
-          capabilities: ['admin']
+        await instance.checkAccess({
+          token: '_MOCKED',
+          capabilities: ['dubber', 'admin'],
+          mock: {
+            id: TestID1,
+            avatar: '#',
+            username: '#',
+            capabilities: ['admin']
+          }
         });
       } catch (e) {
         if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
@@ -107,24 +127,36 @@ describe('Middleware Service', () => {
 
   describe('checkCSRF', () => {
     test('Pass - No required origin', async () => {
-      expect(await instance.checkCSRF('_MOCKED', [], {
-        origin: config.DOMAIN.nekomi_core,
-        verified: true
+      expect(await instance.checkCSRF({
+        token: '_MOCKED',
+        origins: [],
+        mock: {
+          origin: config.DOMAIN.nekomi_core,
+          verified: true
+        }
       })).toBeTruthy();
     });
 
     test('Pass - Required origin specified', async () => {
-      expect(await instance.checkCSRF('_MOCKED', [config.DOMAIN.nekomi_core], {
-        origin: config.DOMAIN.nekomi_core,
-        verified: true
+      expect(await instance.checkCSRF({
+        token: '_MOCKED',
+        origins: [config.DOMAIN.nekomi_core],
+        mock: {
+          origin: config.DOMAIN.nekomi_core,
+          verified: true
+        }
       })).toBeTruthy();
     });
 
     test('Reject - Token not verified', async () => {
       try {
-        await instance.checkCSRF('_MOCKED', [], {
-          origin: '_INVALID',
-          verified: false
+        await instance.checkCSRF({
+          token: '_MOCKED',
+          origins: [],
+          mock: {
+            origin: '_INVALID',
+            verified: false
+          }
         });
       } catch (e) {
         if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
@@ -135,9 +167,13 @@ describe('Middleware Service', () => {
 
     test('Pass - Origin missmatch', async () => {
       try {
-        await instance.checkCSRF('_MOCKED', [config.DOMAIN.nekomi_core], {
-          origin: '_INVALID',
-          verified: true
+        await instance.checkCSRF({
+          token: '_MOCKED',
+          origins: [config.DOMAIN.nekomi_core],
+          mock: {
+            origin: '_INVALID',
+            verified: true
+          }
         });
       } catch (e) {
         if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
