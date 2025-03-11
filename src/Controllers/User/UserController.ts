@@ -1,5 +1,6 @@
 import Search from '~/services/SearchService';
 import UserModel from '~/models/User';
+import UserService from '~/core/services/UserService';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { IUser, UserWatchProgress } from '~/core/interfaces/UserIntf';
 import { NotifyService } from '~/services/NotifyService';
@@ -72,12 +73,23 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
 
 
 //* ===================================== PATCH BY ID
-interface UserPatchProps {
+export interface UserPatchProps {
+  id: string
+
   watchProgress?: UserWatchProgress
+
+  /** Anime ID */
+  deleteWatchProgress?: string
 }
 
-export function PatchById({ watchProgress }: UserPatchProps) {
+export async function PatchById({ id, watchProgress, deleteWatchProgress }: UserPatchProps) {
+  const userService = new UserService();
+  await userService.init(id);
 
+  if (watchProgress) await userService.patchWatchProgress(watchProgress);
+  if (deleteWatchProgress) await userService.deleteWatchProgress({ animeId: deleteWatchProgress });
+
+  await userService.save();
 }
 
 
@@ -85,4 +97,5 @@ export function PatchById({ watchProgress }: UserPatchProps) {
 
 export default class UserController {
   static GetSearch = GetSearch;
+  static PatchById = PatchById;
 }

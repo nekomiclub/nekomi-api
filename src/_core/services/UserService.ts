@@ -184,8 +184,8 @@ export class UserService extends UserModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
     const { dubberID, episodeOrder, progress, titleID } = props;
 
-    const anime = await new AnimeService().getById(titleID);
-    const dubber = await new DubberService().getById(dubberID);
+    const anime = await new AnimeService().getById(titleID, true);
+    const dubber = await new DubberService().getById(dubberID, true);
 
     const episode = anime.episodes.find(el => el.dubberID === dubberID);
     if (!episode) throw new E404(`Anime episode is not found in this dub`);
@@ -204,8 +204,13 @@ export class UserService extends UserModelControls {
 
     const details = `[animeId: ${titleID}; dubberId: ${dubberID}; episode: ${episodeOrder}; progress: ${progress}s]`;
 
-    if (!exist) this.stack.push(`Created new watch progress record. ${details}`);
-    else this.stack.push(`Updated watch progress record. ${details}`);
+    if (!exist) {
+      this.document.watchProgress.push(watchProgress as UserWatchProgress);
+
+      this.stack.push(`Created new watch progress record. ${details}`);
+    } else this.stack.push(`Updated watch progress record. ${details}`);
+
+    this.document.markModified('watchProgress');
   }
 
   async deleteWatchProgress({ animeId }: { animeId: string }) {
@@ -220,8 +225,6 @@ export class UserService extends UserModelControls {
   async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: UserPatchStatistics) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
-    this.document.markModified('statistics');
-
     if (increaseViewtime !== undefined) {
       if (increaseViewtime > config.VALIDATION.User.MaximumIncreaseViewtime) increaseViewtime = config.VALIDATION.User.MaximumIncreaseViewtime;
 
@@ -229,7 +232,7 @@ export class UserService extends UserModelControls {
 
       this.user.statistics.viewtime += increaseViewtime;
 
-      this.stack.push(`Viewtime increased. [by: ${increaseViewtime} (${prevViewtime} > ${increaseViewtime})]`);
+      this.stack.push(`Viewtime increased. [by: ${increaseViewtime} (${prevViewtime} > ${prevViewtime + increaseViewtime})]`);
     }
 
     if (dubberTeamMember !== undefined) {
@@ -243,7 +246,7 @@ export class UserService extends UserModelControls {
         return;
       }
 
-      const dubber = await new DubberService().getById(dubberTeamMember);
+      const dubber = await new DubberService().getById(dubberTeamMember, true);
 
       this.user.statistics.dubberTeamMember = dubberTeamMember;
 
@@ -257,6 +260,8 @@ export class UserService extends UserModelControls {
 
       this.stack.push(`Telegram link status changed. [linked: ${prevStatus} > ${isTelegramLinked}]`);
     }
+
+    this.document.markModified('statistics');
   }
 }
 

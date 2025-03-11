@@ -13,14 +13,6 @@ const UserRouter = express.Router();
 
 
 
-export const userPatch = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-  upload.single('file'),
-  body('method')
-    .notEmpty().withMessage('Patch method must be provided')
-];
-
 export const userLinkTelegram = [
   CheckCSRF([config.DOMAIN.nekomi_bot]),
   body(['animeeID', 'telegramID'])
@@ -70,7 +62,7 @@ export const userDeleteTogether = [
 //* Generic
 UserRouter.get(`/search`, UserRoutes.GetSearch);
 
-
+UserRouter.patch([`/me`, '/:id', `/`], UserRoutes.PatchUser); //* / is deprecated
 
 
 
@@ -83,8 +75,6 @@ UserRouter.post(`/signin`, userSignin, UserController.postSignin);
 UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
 UserRouter.post([`/link/telegram`, `/linkTelegram`], userLinkTelegram, UserController.postLinkTelegram); //* /linkTelegram is deprecated
 UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
-
-UserRouter.patch([`/me`, `/`], userPatch, UserController.patchUser); //* / is deprecated
 
 UserRouter.post('/together', userPostTogether, UserController.createTogetherRoom);
 // UserRouter.patch('/together/:id', UserController.getQuery);
