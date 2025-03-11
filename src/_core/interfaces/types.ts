@@ -1,3 +1,4 @@
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, AnimeStudio } from './AnimeIntf';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 
 /** Make single key in T optional */
@@ -87,4 +88,37 @@ export interface ServiceControls<CREATE, OUT_DOC> {
   getByQuery(query: string, details?: boolean): Promise<OUT_DOC>
   /** Get list of all documents */
   getAll(details?: boolean): Promise<OUT_DOC[]>
+}
+
+export interface MyAnimeListNode {
+  id: number
+  main_picture: {
+    medium: string
+    large: string
+  }
+
+  media_type?: ANIME_MEDIA_TYPE
+  num_episodes?: number
+  studios?: AnimeStudio[]
+  rating?: ANIME_RATE
+  status?: ANIME_STATUS
+  genres?: {
+    id: number
+    name: string
+  }[]
+
+  /** Score */
+  mean?: number
+
+  /** Scored by */
+  num_scoring_users?: number
+
+  broadcast?: {
+    day_of_the_week: DayOfWeek
+
+    /** e.g 12:30 */
+    start_time: string
+  }
+
+  related_anime?: MyAnimeListNode[]
 }

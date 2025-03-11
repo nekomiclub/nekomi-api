@@ -119,6 +119,8 @@ export interface AnimeGetByQuery {
 
 async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubbers, fetchRelated }: AnimeGetByQueryProps): Promise<AnimeGetByQuery> {
   const animeService = new AnimeService();
+  await animeService.init(query);
+
   let withDetails = false;
 
   //* Handle withDetails
@@ -129,10 +131,12 @@ async function GetByQuery({ query, metadataOnly, detailed, CSRF_Token, fetchDubb
     withDetails = true;
   }
 
-  // TODO: Sync with myanimelist
+  let anime = animeService.anime;
 
-  let anime = await animeService.getByQuery(query, true);
-
+  //* Sync with myanimelist
+  if (anime.malId !== undefined) {
+    await animeService.syncWithMyAnimeList();
+  }
 
 
   let genres: AnimeGetByQuery['genres'] = undefined;

@@ -172,7 +172,8 @@ const URL = {
 };
 
 const env = {
-  CSRF: process.env['CSRF-Token']!
+  CSRF: process.env['CSRF-Token']!,
+  MALClientID: process.env['MAL-Client-ID']!,
 };
 
 const vars = {

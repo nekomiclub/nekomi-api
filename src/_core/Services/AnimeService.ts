@@ -1,5 +1,6 @@
 import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
+import axios from 'axios';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
@@ -7,8 +8,9 @@ import { DevelopmentMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
+import { MALGenres } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
-import { ServiceControls } from '~/core/interfaces/types';
+import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
 
@@ -140,7 +142,7 @@ class AnimeModelControls implements AnimeModelControlsType {
   }
 
   async getByQuery(query: string, details?: boolean): Promise<Anime> {
-    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }] });
+    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }, { malId: +query }, { mal_id: query }] });
     if (!document) throw new E404(`Anime by query (${query}) is not found`);
 
     return new MongoDocumentDTO().anime({ document, details });
@@ -178,6 +180,77 @@ export class AnimeService extends AnimeModelControls {
   get anime(): Anime {
     if (!this.document) throw ERR_NO_DOCUMENT;
     return new MongoDocumentDTO().anime({ document: this.document, details: true });
+  }
+
+
+
+  /** Fetch details from myanimelist & save */
+  async syncWithMyAnimeList() {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (this.anime.malId === undefined) return;
+
+    const API_ENDPONT = `https://api.myanimelist.net/v2`;
+    const fields: (keyof MyAnimeListNode)[] = [
+      'broadcast',
+      'genres',
+      'media_type',
+      'num_episodes',
+      'status',
+      'studios',
+      'related_anime',
+      'rating',
+      'num_scoring_users',
+      'mean'
+    ];
+
+    try {
+      const { data: node } = await axios.get<MyAnimeListNode>(`${API_ENDPONT}/anime/${this.anime.malId}`, {
+        headers: {
+          'X-MAL-CLIENT-ID': config.env.MALClientID
+        },
+        params: {
+          fields: fields.join(', ')
+        }
+      });
+
+      this.document.score.mal = node.mean ?? this.document.score.mal;
+      this.document.score.malScoredBy = node.num_scoring_users ?? this.document.score.malScoredBy;
+      this.document.episodesCount = node.num_episodes ?? this.document.episodesCount;
+      this.document.studiosNew = node.studios ?? this.document.studiosNew;
+
+      this.document.rate = node.rating ?? this.document.rate;
+      this.document.statusNew = node.status ?? this.document.statusNew;
+      this.document.media = node.media_type ?? this.document.media;
+      this.document.genresNew = MALGenres(node.genres) ?? this.document.genresNew;
+
+      this.document.broadcast = node.broadcast ? {
+        day: node.broadcast.day_of_the_week,
+        time: node.broadcast.start_time
+      } : this.document.broadcast;
+
+      // this.document.related = [];
+      // for (const key in node.related_anime) {
+      //   const el = node.related_anime[key].node;
+
+      //   try {
+      //     const anime = await new AnimeService().getByQuery(el.id);
+
+      //     this.document.related.push(anime.uuid);
+      //   } catch (e) { continue; }
+      // }
+
+      this.document.poster = this.document.poster.includes(config.DOMAIN.nekomi_media) ? this.document.poster : node.main_picture.large;
+
+
+
+      this.document.malSyncedAt = getUTC().timestamp;
+
+
+
+      console.log(this.anime);
+    } catch (e) {
+      return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
+    }
   }
 }
 
