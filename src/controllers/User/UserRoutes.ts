@@ -1,7 +1,6 @@
 import UserController from './UserController';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
-import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
@@ -51,10 +50,11 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     });
   }
 
+  // Parse query from session
   if (query === '*') {
     if (!SessionCookie) throw new ERR_MISSING_AUTHORIZATION;
 
-    query = decodeToken<FullkekwUserAPI_TokenData>(SessionCookie).payload?.id ?? query;
+    query = decodeToken(SessionCookie).payload?.userId ?? query;
   }
 
   const data = await UserController.GetByQuery({ query, detailed, metadataOnly, parseCapabilities });
@@ -94,7 +94,7 @@ const getTogetherRoom = HTTPEndpoint(async (req, res) => {
 
   const data = await UserController.GetTogetherRoom({ query, roomId });
 
-  return res.status(200).json({ message: 'ok', results: data });
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 const GetTogetherRoom = [

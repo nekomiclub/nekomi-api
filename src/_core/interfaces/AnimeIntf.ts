@@ -42,12 +42,19 @@ export interface Anime {
   /** Poster adapted by dubber ID @since 2.1.0 */
   posterAdapt: string | null
 
-  /** @since 2.1.0 */
   score: {
     imdb: number | null
     mal: number | null
     malScoredBy: number | null
   }
+}
+
+export interface HydratedAnime {
+  anime: Anime
+  genres: AnimeGenre[]
+  media: AnimeMedia
+  rate: AnimeRate
+  season: AnimeSeason
 }
 
 export interface TitleOld {

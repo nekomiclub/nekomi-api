@@ -68,7 +68,7 @@ describe('AnimeRouter', () => {
 
       const data = res.body.results as AnimeGetSearch;
 
-      expect(data[0].malId).toBeNull();
+      expect(data[0].anime.malId).toBeNull();
     });
   });
 

@@ -141,8 +141,8 @@ export class AnimeService extends AnimeModelControls {
 
 
   async init(query: string) {
-    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }] }); // Hydrated document required, find by built-in method is not possible
-    if (!document) throw new E404(`Document ${query} is not found`);
+    const document = await AnimeModel.findOne({ $or: [{ uuid: query }, { slug: query }] }); // Hydrated document required, find by built-in method is not possible
+    if (!document) throw new E404(`Document with query (${query}) is not found`);
 
     this.document = document;
   }

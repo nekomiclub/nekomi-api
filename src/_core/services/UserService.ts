@@ -1,7 +1,7 @@
 import AnimeService from './AnimeService';
 import DubberService from './DubberService';
 import User, { UserLib, UserWatchProgress } from '~/core/interfaces/UserIntf';
-import UserModel from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import createID, { createUUID } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import getUTC from '~/utils/get-utc';
@@ -135,7 +135,7 @@ class UserModelControls implements TUserModelControls {
   }
 
   async getByQuery(query: string, details?: boolean): Promise<User> {
-    const document = await UserModel.findOne({ $or: [{ id: query }, { slug: query }] });
+    const document = await UserModel.findOne({ $or: [{ id: query }, { username: query }] });
     if (!document) throw new E404(`User with query (${query}) is not found`);
 
     return new MongoDocumentDTO().user({ document, details });

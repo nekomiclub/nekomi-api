@@ -4,10 +4,11 @@ import CacheService from '~/services/CacheService';
 import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
-import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_MEDIA_TYPES, ANIME_RATE, ANIME_RATES, ANIME_SEASONS, Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, AnimeRelatedMapper, DubberMetadataMapper } from '~/utils/data-mappers';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
+import { HydrateAnimeDocument } from '~/utils/hydrate-document';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -60,10 +61,10 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
     animeResults = Search.search({ query: q, engine: 'anime', limit });
   }
 
-  const results: Anime[] = [];
+  const results: HydratedAnime[] = [];
 
   animeResults.forEach(anime => {
-    results.push(new DocumentDTO().anime({ object: anime }));
+    results.push(HydrateAnimeDocument(new DocumentDTO().anime({ object: anime })));
   });
 
   return results;
@@ -107,11 +108,19 @@ async function GetFeatured(): Promise<AnimeFeatured> {
     }
 
     // Process hot
-    featured.hot = (await AnimeModel.find({ uuid: { $in: config.STATIC.AnimeFeatured.hot } })).map(el => new MongoDocumentDTO().anime({ document: el }));
+    featured.hot = (await AnimeModel.find(
+      { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
+    )).map(el => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: el })));
+
     // Process recently updated
-    featured.updatedRecently = animes.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new DocumentDTO().anime({ object: el }));
+    featured.updatedRecently = animes.sort(
+      (a, b) => b.updatedAt - a.updatedAt
+    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+
     // Process rated
-    featured.rated = animes.filter(el => el.score.mal !== null).sort((a, b) => b.score!.mal! - a.score!.mal!).slice(0, 20).map(el => new DocumentDTO().anime({ object: el }));
+    featured.rated = animes.filter(el => el.score.mal !== null).sort(
+      (a, b) => b.score!.mal! - a.score!.mal!
+    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
 
     AnimeFeaturedCache.push({
       id: AnimeFeaturedCacheID,
@@ -138,19 +147,13 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
   const animeService = new AnimeService();
   await animeService.init(query);
 
-  let anime = animeService.anime;
+  const anime = animeService.anime;
 
   // Sync with myanimelist
   if (anime.malId !== null && getUTC().timestamp > Number(anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) await animeService.syncWithMyAnimeList();
 
-  let genres: AnimeGetByQuery['genres'] = undefined;
-  let rate: AnimeGetByQuery['rate'] = undefined;
-  let media: AnimeGetByQuery['media'] = undefined;
-  let season: AnimeGetByQuery['season'] = undefined;
-
   let related: AnimeGetByQuery['related'] = undefined;
   let dubbers: AnimeGetByQuery['dubbers'] = undefined;
-
   let metadata: AnimeGetByQuery['metadata'] = undefined;
 
 
@@ -160,11 +163,6 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
 
   // Fetch dubbers & related
   if (detailed && !metadataOnly) {
-    genres = anime.genres.map(slug => ANIME_GENRES[slug]);
-    rate = ANIME_RATES[anime.rate];
-    media = ANIME_MEDIA_TYPES[anime.media];
-    season = ANIME_SEASONS[anime.season];
-
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
@@ -186,18 +184,15 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
     }
   }
 
-  if (!detailed) anime = new DocumentDTO().anime({ object: anime });
+  let hydrated = HydrateAnimeDocument(detailed ? anime : new DocumentDTO().anime({ object: anime }));
+
+  // @ts-expect-error Hide hydrated when metadata only
+  if (metadataOnly) hydrated = undefined;
 
 
 
   return {
-    anime: metadataOnly ? undefined : anime,
-
-    genres,
-    rate,
-    media,
-    season,
-
+    ...hydrated,
     dubbers,
     related,
     metadata,

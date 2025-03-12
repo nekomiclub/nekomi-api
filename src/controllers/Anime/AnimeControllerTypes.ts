@@ -1,4 +1,4 @@
-import Anime, { AnimeGenre, AnimeMedia, AnimeRate, AnimeRelated, AnimeSeason } from '~/core/interfaces/AnimeIntf';
+import Anime, { AnimeRelated, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { Metadata } from '~/core/interfaces/types';
 
@@ -17,25 +17,19 @@ export interface AnimeGetAll {
 export interface AnimeGetByQueryProps {
   query: string
 
-  /** Return only metadata. Will set anime object to null */
+  /** Return only metadata, without hydrated anime */
   metadataOnly?: boolean
 
   /** Return detailed document */
   detailed?: boolean
 
+  /** @requires detailed mode */
   fetchDubbers?: boolean
+  /** @requires detailed mode */
   fetchRelated?: boolean
 }
 
-export interface AnimeGetByQuery {
-  /** Will be undefined with metadataOnly specified */
-  anime?: Anime
-
-  genres?: AnimeGenre[]
-  media?: AnimeMedia
-  rate?: AnimeRate
-  season?: AnimeSeason
-
+export interface AnimeGetByQuery extends HydratedAnime {
   related?: AnimeRelated[]
   dubbers?: DubberCompact[]
   metadata?: Metadata
@@ -49,7 +43,7 @@ export interface AnimeGetSearchProps {
   q: string
 }
 
-export type AnimeGetSearch = Anime[]
+export type AnimeGetSearch = HydratedAnime[]
 
 export interface AnimeWithMedia extends Anime {
   videoURL: string
@@ -58,9 +52,9 @@ export interface AnimeWithMedia extends Anime {
 
 export interface AnimeFeatured {
   headliners: AnimeWithMedia[]
-  hot: Anime[]
-  rated: Anime[]
-  updatedRecently: Anime[]
+  hot: HydratedAnime[]
+  rated: HydratedAnime[]
+  updatedRecently: HydratedAnime[]
 }
 
 export interface AnimePostProps {

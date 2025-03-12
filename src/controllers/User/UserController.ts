@@ -1,15 +1,17 @@
-import Anime from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
+import AnimeService from '~/core/services/AnimeService';
 import Search from '~/services/SearchService';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E404 } from '~/services/ErrorService';
-import { IUser, UserTogetherRoom } from '~/core/interfaces/UserIntf';
+import { HydrateAnimeDocument } from '~/utils/hydrate-document';
+import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { Metadata } from '~/core/interfaces/types';
 import { NotifyService } from '~/services/NotifyService';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
-import { UserGetByQuery, UserGetByQueryProps, UserGetLibProps, UserGetSearch, UserGetSearchProps, UserGetTogetherRoomProps, UserPatchProps } from './UserControllerTypes';
+import { UserGetByQuery, UserGetByQueryProps, UserGetLib, UserGetLibProps, UserGetSearch, UserGetSearchProps, UserGetTogetherRoom, UserGetTogetherRoomProps, UserPatchProps } from './UserControllerTypes';
 import { parseRoles } from '~/models/Role';
 
 
@@ -103,17 +105,19 @@ async function GetByQuery({ query, metadataOnly, parseCapabilities, detailed }: 
  * Get user lib animes
  * 
  * @see UserGetLibProps
- * @returns Anime[]
+ * @returns UserGetLib
  */
-async function GetLib({ query, libId }: UserGetLibProps): Promise<Anime[]> {
+async function GetLib({ query, libId }: UserGetLibProps): Promise<UserGetLib> {
   const user = await new UserService().getByQuery(query, true);
   const lib = user.libs.find(el => el.id === libId);
   if (!lib) throw new E404(`Lib with id (${libId}) is not found`);
 
-  let animes: Anime[] = [];
+  let animes: HydratedAnime[] = [];
 
   if (lib.titles.length) {
-    animes = (await AnimeModel.find({ uuid: { $in: lib.titles } })).map(document => new MongoDocumentDTO().anime({ document }));
+    animes = (await AnimeModel.find(
+      { uuid: { $in: lib.titles } }
+    )).map(document => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document })));
   }
 
   return animes;
@@ -126,19 +130,25 @@ async function GetLib({ query, libId }: UserGetLibProps): Promise<Anime[]> {
  * Get user watch together room
  * 
  * @see UserGetTogetherRoomProps
- * @returns UserTogetherRoom
+ * @returns UserGetTogetherRoom
  */
-async function GetTogetherRoom({ query, roomId }: UserGetTogetherRoomProps): Promise<UserTogetherRoom> {
+async function GetTogetherRoom({ query, roomId }: UserGetTogetherRoomProps): Promise<UserGetTogetherRoom> {
   const user = await new UserService().getByQuery(query, true);
   const room = user.togetherRooms.find(el => el.id === roomId);
   if (!room) throw new E404(`Together room with id (${roomId}) is not found`);
 
-  return room;
+  const anime = await new AnimeService().getById(room.titleId);
+
+  return {
+    room,
+    anime: HydrateAnimeDocument(anime)
+  };
 }
 
 
 
 //* ===================================== PATCH BY ID
+/** @todo */
 export async function PatchById({ id, watchProgress, deleteWatchProgress }: UserPatchProps) {
   const userService = new UserService();
   await userService.init(id);

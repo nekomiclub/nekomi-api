@@ -1,4 +1,5 @@
-import User, { UserWatchProgress } from '~/core/interfaces/UserIntf';
+import User, { UserTogetherRoom, UserWatchProgress } from '~/core/interfaces/UserIntf';
+import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { Metadata } from '~/core/interfaces/types';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 
@@ -39,9 +40,16 @@ export interface UserGetLibProps {
   libId: string
 }
 
+export type UserGetLib = HydratedAnime[]
+
 export interface UserGetTogetherRoomProps {
   query: string
   roomId: string
+}
+
+export interface UserGetTogetherRoom {
+  room: UserTogetherRoom
+  anime: HydratedAnime
 }
 
 export interface UserPatchProps {
