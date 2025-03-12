@@ -67,7 +67,9 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
     results.push(HydrateAnimeDocument(new DocumentDTO().anime({ object: anime })));
   });
 
-  return results;
+  return {
+    results
+  };
 }
 
 

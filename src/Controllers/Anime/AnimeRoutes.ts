@@ -20,7 +20,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
 
   const data = await AnimeController.GetSearch({ q });
 
-  return res.status(200).json({ message: 'ok', results: data });
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 /** @tested 2.1.0 */

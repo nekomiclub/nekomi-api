@@ -2,49 +2,39 @@ import AnimeModel from '~/core/models/AnimeModel';
 import CacheService from '~/services/CacheService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
+import User, { IUser } from '~/core/interfaces/UserIntf';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
-import { Anime } from '~/core/interfaces/AnimeIntf';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
+import { DubberGetOneByQuery, DubberGetOneByQueryProps } from './DubberControllerTypes';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { HydrateAnimeDocument } from '~/utils/hydrate-document';
+import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
-import { IUser } from '~/core/interfaces/UserIntf';
+import { Metadata } from '~/core/interfaces/types';
 
 
 
 
-export const DubberDubbedAnimeCache = new CacheService<Anime[]>('DubberDubbedAnimeCache');
+export const DubberDubbedAnimeCache = new CacheService<HydratedAnime[]>('DubberDubbedAnimeCache');
 export const DubberParsedMembersCache = new CacheService<IUser[]>('DubberParsedMembersCache');
 
 
 
 //* ===================================== GET ONE
-export interface IDubberGetOneByQueryProps {
-  query: string
-  detailed?: boolean
-  fetchDubbedAnime?: boolean
-  parseMembers?: boolean
 
-  /** Fetch only dubber metadata, will set dubber to null */
-  metadataOnly?: boolean
 
-  /** Use cache
-   * @default true
-   */
-  useCache?: boolean
-}
-
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: IDubberGetOneByQueryProps) {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
   useCache = useCache ?? true;
 
   let dubber: IDubber = new DocumentDTO().dubber({ object: dubberService.dubber });
-  let dubbedAnime: Anime[] | undefined = undefined;
-  let parsedMembers: IUser[] | undefined = undefined;
-  let metadata: object | undefined = undefined;
+  let dubbedHydratedAnimes: HydratedAnime[] | undefined = undefined;
+  let parsedMembers: User[] | undefined = undefined;
+  let metadata: Metadata | undefined = undefined;
 
 
 
@@ -57,19 +47,21 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     const cached = DubberDubbedAnimeCache.get({ id: dubberService.dubber.id });
 
     if (cached && useCache) {
-      dubbedAnime = cached;
+      dubbedHydratedAnimes = cached;
     } else {
       const titles = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
       const withDubbing = titles.filter(title => {
         return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
       });
 
-      dubbedAnime = withDubbing.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8).map(el => new DocumentDTO().anime({ object: el }));
+      dubbedHydratedAnimes = withDubbing.sort(
+        (a, b) => b.updatedAt - a.updatedAt
+      ).slice(0, 8).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
 
       DubberDubbedAnimeCache.push({
         id: dubberService.dubber.id,
         createdAt: getUTC().timestamp,
-        data: dubbedAnime
+        data: dubbedHydratedAnimes
       });
     }
   }
@@ -107,10 +99,8 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
   }
 
   return {
-    status: 200,
-    message: `ok${detailed ? ' + private details' : ''}`,
     dubber,
-    dubbedAnime,
+    dubbedHydratedAnimes,
     parsedMembers,
     metadata
   };

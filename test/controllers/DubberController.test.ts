@@ -134,7 +134,7 @@ describe('DubberController', () => {
 
   describe('GetOneByQuery', () => {
     test(`Test details mode with others`, async () => {
-      const { dubber, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({
+      const { dubber, dubbedHydratedAnimes, parsedMembers } = await DubberController.GetOneByQuery({
         query: DubberUsernameA,
         detailed: true,
         fetchDubbedAnime: true,
@@ -150,7 +150,7 @@ describe('DubberController', () => {
     });
 
     test(`Test other modes without details`, async () => {
-      const { dubber, dubbedAnime, parsedMembers } = await DubberController.GetOneByQuery({
+      const { dubber, dubbedHydratedAnimes, parsedMembers } = await DubberController.GetOneByQuery({
         query: DubberUsernameA,
         fetchDubbedAnime: true,
         parseMembers: true
@@ -159,7 +159,7 @@ describe('DubberController', () => {
       // Must be undefined in not detailed mode
       expect(dubber.members).toBeUndefined();
       // Must be undefined in not detailed mode
-      expect(dubbedAnime).toBeUndefined();
+      expect(dubbedHydratedAnimes).toBeUndefined();
       // Must be undefined in not detailed mode
       expect(parsedMembers).toBeUndefined();
     });

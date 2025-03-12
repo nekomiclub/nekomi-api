@@ -1,6 +1,7 @@
-import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberGetSearch, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './DubberController';
+import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetSearch, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './DubberController';
 import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
+import { DubberGetOneByQueryProps } from './DubberControllerTypes';
 import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
@@ -17,8 +18,8 @@ const upload = multer();
 
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
-  const { query } = parseObjectTypes<IDubberGetOneByQueryProps>(req.params);
-  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<IDubberGetOneByQueryProps>(req.query);
+  const { query } = parseObjectTypes<DubberGetOneByQueryProps>(req.params);
+  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<DubberGetOneByQueryProps>(req.query);
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   // Ensure that only client get detailed document
@@ -34,7 +35,7 @@ const getOne = HTTPEndpoint(async (req, res) => {
 
   const data = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly });
 
-  return res.status(data.status).json(data);
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 const GetOne = [

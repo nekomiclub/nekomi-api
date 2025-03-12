@@ -120,7 +120,9 @@ async function GetLib({ query, libId }: UserGetLibProps): Promise<UserGetLib> {
     )).map(document => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document })));
   }
 
-  return animes;
+  return {
+    results: animes
+  };
 }
 
 

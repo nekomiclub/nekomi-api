@@ -51,9 +51,9 @@ describe('AnimeRouter', () => {
         })
         .expect(200);
 
-      const data = res.body.results as AnimeGetSearch;
+      const data = res.body as AnimeGetSearch;
 
-      expect(data.length).toBeGreaterThan(1);
+      expect(data.results.length).toBeGreaterThan(1);
     });
 
     it('should return only without mal id (~wo-mal-id)', async () => {
@@ -66,9 +66,9 @@ describe('AnimeRouter', () => {
         })
         .expect(200);
 
-      const data = res.body.results as AnimeGetSearch;
+      const data = res.body as AnimeGetSearch;
 
-      expect(data[0].anime.malId).toBeNull();
+      expect(data.results[0].anime.malId).toBeNull();
     });
   });
 

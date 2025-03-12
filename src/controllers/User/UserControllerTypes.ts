@@ -40,7 +40,9 @@ export interface UserGetLibProps {
   libId: string
 }
 
-export type UserGetLib = HydratedAnime[]
+export interface UserGetLib {
+  results: HydratedAnime[]
+}
 
 export interface UserGetTogetherRoomProps {
   query: string

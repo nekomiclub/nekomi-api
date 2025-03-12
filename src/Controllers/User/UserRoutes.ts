@@ -76,7 +76,7 @@ const getLib = HTTPEndpoint(async (req, res) => {
 
   const data = await UserController.GetLib({ query, libId });
 
-  return res.status(200).json({ message: 'ok', results: data });
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 const GetLib = [

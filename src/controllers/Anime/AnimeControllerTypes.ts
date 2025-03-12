@@ -43,7 +43,10 @@ export interface AnimeGetSearchProps {
   q: string
 }
 
-export type AnimeGetSearch = HydratedAnime[]
+export interface AnimeGetSearch {
+  results: HydratedAnime[]
+}
+
 
 export interface AnimeWithMedia extends Anime {
   videoURL: string
