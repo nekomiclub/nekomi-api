@@ -1,10 +1,11 @@
-import TitleModel from '~/models/Title';
+import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/AnimeIntf';
+import AnimeModel from '~/core/models/AnimeModel';
+import TitleModel from '~/core/models/TitleModel';
 import UserModel from '~/models/User';
 import createSlug from './create-slug';
 import fs from 'fs';
 import getUTC from './get-utc';
 import path from 'path';
-import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/AnimeIntf';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
@@ -115,10 +116,10 @@ class UpdateModel {
 
 
 
-export const ANIME_MODEL_UPDATE = new UpdateModel('AnimeModel', async () => {
+export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
   //! ====================== CREATE DUMP
   const documents = await TitleModel.find();
-  UpdateModel.dumpModel('AnimeModel', documents);
+  UpdateModel.dumpModel('TitleModel', documents);
   //! ====================== CREATE DUMP
 
   let touched = 0;
@@ -126,65 +127,83 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('AnimeModel', async () => {
 
   //* =======================
   for (const key in titles) {
-    const anime = titles[key];
+    const title = titles[key];
 
-    anime.set('hikkaSyncedAt', undefined, { strict: false });
-
-    anime.malId = anime.malId ? anime.malId : anime.mal_id !== null ? +anime.mal_id : null;
-    anime.slug = anime.slug ?? anime.code;
-    anime.related = anime.related ?? [];
-    anime.pictures = anime.pictures ?? [];
-    anime.studiosNew = anime.studiosNew ?? [];
-    anime.broadcast = anime.broadcast ?? null;
-    anime.malSyncedAt = anime.malSyncedAt ?? null;
-    anime.uuid = anime.id;
-    anime.posterAdapt = anime.posterAdapt ?? null;
-
-    anime.score = anime.score ?? {
-      imdb: anime.rating.IMDB,
-      mal: anime.rating.mal,
-      malScoredBy: anime.rating.mal_poll,
+    const anime: Anime = {
+      uuid: title.id,
+      broadcast: null,
+      description: title.description,
+      details: title.details,
+      episodes: title.episodes,
+      episodesCount: title.episodesCount,
+      episodesMeta: title.episodesMeta,
+      genres: [],
+      malId: title.mal_id !== null ? +title.mal_id : null,
+      malSyncedAt: 0,
+      media: 'unknown',
+      names: title.names,
+      pictures: [],
+      poster: title.poster,
+      posterAdapt: null,
+      rate: 'g',
+      related: [],
+      score: {
+        imdb: title.rating.IMDB,
+        mal: title.rating.mal,
+        malScoredBy: title.rating.mal_poll
+      },
+      season: 'fall',
+      slug: title.code,
+      status: 'currently_airing',
+      studios: [],
+      updatedAt: title.updatedAt,
+      year: title.year
     };
 
-    //* Mapper anime.ageRate
-    if (anime.ageRate === 'G') anime.rate = ANIME_RATE.G;
-    if (anime.ageRate === 'PG') anime.rate = ANIME_RATE.PG;
-    if (anime.ageRate === 'PG-13') anime.rate = ANIME_RATE.PG13;
-    if (anime.ageRate === 'R-17') anime.rate = ANIME_RATE.R17;
-    if (anime.ageRate === 'R+') anime.rate = ANIME_RATE.RPLUS;
-    if (anime.ageRate === 'Rx') anime.rate = ANIME_RATE.RX;
-
-    //* Mappper anime.status
-    if (anime.status === 'announcement') anime.statusNew = ANIME_STATUS.NOT_YET_AIRED;
-    if (anime.status === 'delayed') anime.statusNew = ANIME_STATUS.CURRENTLY_AIRING;
-    if (anime.status === 'ongoing') anime.statusNew = ANIME_STATUS.CURRENTLY_AIRING;
-    if (anime.status === 'out') anime.statusNew = ANIME_STATUS.FINISHED_AIRING;
-
-    //* Mapper anime.season
-    if (anime.season === 'autumn') anime.seasonNew = ANIME_SEASON.FALL;
-    if (anime.season === 'spring') anime.seasonNew = ANIME_SEASON.SPRING;
-    if (anime.season === 'summer') anime.seasonNew = ANIME_SEASON.SUMMER;
-    if (anime.season === 'winter') anime.seasonNew = ANIME_SEASON.WINTER;
-
-    //* Mapper anime.type
-    if (anime.type === 'ONA') anime.media = ANIME_MEDIA_TYPE.ONA;
-    if (anime.type === 'OVA') anime.media = ANIME_MEDIA_TYPE.OVA;
-    if (anime.type === 'film') anime.media = ANIME_MEDIA_TYPE.MOVIE;
-    if (anime.type === 'serial') anime.media = ANIME_MEDIA_TYPE.TV;
-    if (anime.type === 'special') anime.media = ANIME_MEDIA_TYPE.SPECIAL;
-
     //* Mapper anime.genres
-    anime.genresNew = [];
-
-    anime.genres.forEach(code => {
+    title.genres.forEach(code => {
       const slug = createSlug(code);
       const genre = ANIME_GENRES[slug] as AnimeGenre;
 
-      if (genre) anime.genresNew.push(genre.slug);
+      if (genre) anime.genres.push(genre.slug);
     });
 
+    //* Mapper anime.studios
+    anime.studios = title.studios.map(el => { return { id: '0', name: el }; });
+
+    //* Mapper anime.ageRate
+    if (title.ageRate === 'G') anime.rate = ANIME_RATE.G;
+    if (title.ageRate === 'PG') anime.rate = ANIME_RATE.PG;
+    if (title.ageRate === 'PG-13') anime.rate = ANIME_RATE.PG13;
+    if (title.ageRate === 'R-17') anime.rate = ANIME_RATE.R17;
+    if (title.ageRate === 'R+') anime.rate = ANIME_RATE.RPLUS;
+    if (title.ageRate === 'Rx') anime.rate = ANIME_RATE.RX;
+
+    //* Mappper anime.status
+    if (title.status === 'announcement') anime.status = ANIME_STATUS.NOT_YET_AIRED;
+    if (title.status === 'delayed') anime.status = ANIME_STATUS.CURRENTLY_AIRING;
+    if (title.status === 'ongoing') anime.status = ANIME_STATUS.CURRENTLY_AIRING;
+    if (title.status === 'out') anime.status = ANIME_STATUS.FINISHED_AIRING;
+
+    //* Mapper anime.season
+    if (title.season === 'autumn') anime.season = ANIME_SEASON.FALL;
+    if (title.season === 'spring') anime.season = ANIME_SEASON.SPRING;
+    if (title.season === 'summer') anime.season = ANIME_SEASON.SUMMER;
+    if (title.season === 'winter') anime.season = ANIME_SEASON.WINTER;
+
+    //* Mapper anime.type
+    if (title.type === 'ONA') anime.media = ANIME_MEDIA_TYPE.ONA;
+    if (title.type === 'OVA') anime.media = ANIME_MEDIA_TYPE.OVA;
+    if (title.type === 'film') anime.media = ANIME_MEDIA_TYPE.MOVIE;
+    if (title.type === 'serial') anime.media = ANIME_MEDIA_TYPE.TV;
+    if (title.type === 'special') anime.media = ANIME_MEDIA_TYPE.SPECIAL;
+
+    const doc = new AnimeModel(anime);
+    await doc.save();
+
+    Logger.info(`[UpdateModel]: TitleModel document migrated in AnimeModel. [uuid: ${anime.uuid}]`);
+
     touched += 1;
-    await anime.save();
   }
   //* =======================
 

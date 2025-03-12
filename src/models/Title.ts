@@ -2,14 +2,13 @@ import { HydratedDocument } from 'mongoose';
 import { convert as urlSlugConvert } from 'url-slug';
 
 import * as cfg from '~/config';
-import AnimeModelNew from '~/core/models/AnimeModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import getUTC from '~/utils/get-utc';
 import parseIMDBDate from '~/utils/parse-imdb-date';
 import puppeteer from 'puppeteer';
 import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
-import { Anime, AnimeAgeRatesOld, AnimeEpisode, AnimeEpisodeMeta, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleTypesOld } from '~/core/interfaces/AnimeIntf';
+import { AnimeAgeRatesOld, AnimeEpisode, AnimeEpisodeMeta, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleOld, TitleTypesOld } from '~/core/interfaces/AnimeIntf';
 import { AxiosError } from 'axios';
 import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IChangeEpMeta } from '~/controllers/title';
@@ -19,6 +18,7 @@ import { IUser } from '~/core/interfaces/UserIntf';
 import { Logger } from '~/services/LoggerService';
 import { Notify } from '~/services/NotifyService';
 import { TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { TitleModel } from '~/core/models/TitleModel';
 import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
 import { parseRoles } from './Role';
@@ -26,7 +26,7 @@ import { parseRoles } from './Role';
 
 
 interface ITitleServiceProps {
-  title: HydratedDocument<Anime>
+  title: HydratedDocument<TitleOld>
   TestMode?: boolean
 }
 
@@ -99,15 +99,10 @@ export interface IM_TitleServiceUploadPoster {
 const ERR_DUBBER_MISSMATCH = new E403('Dubber can not change episodes in other teams', 'title:dubber_missmatch');
 
 
-/** To create/patch/delete Dubber instance use DubberService */
-export const AnimeModel = AnimeModelNew;
-export const TitleModel = AnimeModelNew;
-
-
 
 /** Create/path/delete User instance */
 export class TitleService {
-  readonly title: HydratedDocument<Anime>;
+  readonly title: HydratedDocument<TitleOld>;
   readonly stack: string[] = [];
   readonly TestMode = cfg.TestMode;
 
@@ -117,7 +112,7 @@ export class TitleService {
     if (TestMode) this.TestMode = TestMode;
   }
 
-  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<Anime>> {
+  static async create({ names, ageRate, country, description, details, genres, season, status, studios, type, year, episodesCount, id, mal_id, poster, TEST_EPISODES }: ITitleCreate, TestMode?: boolean): Promise<HydratedDocument<TitleOld>> {
     const ID = TestMode && id ? id : createUUID();
     let code = urlSlugConvert(names?.eng ?? `Untitled ${ID}`, {
       camelCase: true,
@@ -137,9 +132,8 @@ export class TitleService {
 
 
 
-    const payload: Anime = {
+    const payload: TitleOld = {
       id: ID,
-      uuid: ID,
       code,
       names: {
         ukr: names?.ukr || `Тайтл без назви ${ID}`,
@@ -162,30 +156,12 @@ export class TitleService {
         mal_poll: null
       },
       mal_id: mal_id ?? null,
-      malId: mal_id ? +mal_id : null,
-      malSyncedAt: null,
-      broadcast: null,
-      genresNew: [],
-      media: 'unknown',
-      pictures: [],
-      rate: 'pg_13',
-      related: [],
-      score: {
-        imdb: null,
-        mal: null,
-        malScoredBy: null
-      },
-      seasonNew: 'winter',
-      slug: code,
-      statusNew: 'finished_airing',
-      studiosNew: [],
       season: season || 'winter',
       status: status || 'announcement',
       studios: studios || ['Fullkekw'],
       type: type || 'serial',
       updatedAt: getUTC().timestamp,
       year: year || getUTC().year,
-      posterAdapt: null,
     };
 
     const title = new TitleModel(payload);

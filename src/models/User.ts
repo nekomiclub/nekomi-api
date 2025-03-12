@@ -4,7 +4,7 @@ import * as cfg from '~/config';
 import DubberModel from '~/core/models/DubberModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import Role from './Role';
-import Title, { TitleModel } from './Title';
+import TitleModel from './Title';
 import UserModelNew from '~/core/models/UserModel';
 import getUTC from '~/utils/get-utc';
 import validator from 'validator';
@@ -316,7 +316,7 @@ export class UserService {
     const dubber = await DubberModel.findOne({ id: dubberID });
     if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
-    const title = await Title.findOne({ id: titleID });
+    const title = await TitleModel.findOne({ id: titleID });
     if (!title) throw new E404(`Title ${titleID} is not found`);
 
     const item = this.user.watchProgress.find(el => el.titleID === titleID);
@@ -383,7 +383,7 @@ export class UserService {
     const lib = this.user.libs.find(el => el.id === libID);
     if (!lib) throw new E404(`Lib ${libID} is not found`);
 
-    const title = await Title.findOne({ id: titleID });
+    const title = await TitleModel.findOne({ id: titleID });
     if (!title) throw new E404(`Title ${titleID} is not found`);
 
     if (!lib.titles.includes(title.id)) {
@@ -399,7 +399,7 @@ export class UserService {
     const lib = this.user.libs.find(el => el.id === libID);
     if (!lib) throw new E404(`Lib ${libID} is not found`);
 
-    const title = await Title.findOne({ id: titleID });
+    const title = await TitleModel.findOne({ id: titleID });
     if (!title) throw new E404(`Title ${titleID} is not found`);
 
     lib.titles = lib.titles.filter(el => el !== title.id);

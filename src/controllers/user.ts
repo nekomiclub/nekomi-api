@@ -4,6 +4,7 @@ import { AxiosError } from 'axios';
 import * as TokenService from '~/services/TokenService';
 
 import * as Role from '~/models/Role';
+import AnimeModel from '~/core/models/AnimeModel';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
 import Title from '~/models/Title';
@@ -266,7 +267,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const lib = user.libs.find(el => el.id === parseLib);
       if (!lib) throw new E404(`Lib ${parseLib} is not found`);
 
-      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
+      parsedLib = (await AnimeModel.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
     }
 
     // Fetch together room

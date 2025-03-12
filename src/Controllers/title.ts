@@ -3,10 +3,9 @@ import express from 'express';
 import CacheService from '~/services/CacheService';
 import DubberModel from '~/core/models/DubberModel';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
-import Title, { TitleModel, TitleService } from '~/models/Title';
 import User from '~/models/User';
 import getUTC from '~/utils/get-utc';
-import { Anime, AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '~/core/interfaces/AnimeIntf';
+import { AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleOld } from '~/core/interfaces/AnimeIntf';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
@@ -21,6 +20,8 @@ import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { TestMode, config } from '~/config';
 import { getMockData } from '~/utils/deprecated-utils';
 
+import TitleModel from '~/core/models/TitleModel';
+import { TitleService } from '~/models/Title';
 import { signCSRFToken } from '~/services/TokenService';
 import { updateSearch } from './root';
 
@@ -81,16 +82,16 @@ interface IUploadPoster {
   type: TPatchTitleFormDataType
 }
 
-interface ITitleWithMeta extends Anime {
+interface ITitleWithMeta extends TitleOld {
   videoURL: string
   backgroundURL: string
 }
 
 interface IHomeWrapped {
   featured: ITitleWithMeta[]
-  hightRated: Anime[]
-  popular: Anime[]
-  updatedRecently: Anime[]
+  hightRated: TitleOld[]
+  popular: TitleOld[]
+  updatedRecently: TitleOld[]
 }
 
 export interface IChangeEpMeta extends AnimeEpisodeMeta {
@@ -112,7 +113,7 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     const { query } = req.params as { query: string };
     const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
 
-    const title = await Title.findOne({ $or: [{ id: query }, { code: query }, { mal_id: query }] });
+    const title = await TitleModel.findOne({ $or: [{ id: query }, { code: query }, { mal_id: query }] });
     if (!title) throw new E404(`Title ${query} is not found`);
 
     let parsedDubbers: IDubber[] | undefined = undefined;
@@ -171,13 +172,13 @@ export async function getTitleQuery(req: express.Request, res: express.Response)
     //   Logger.info(`Title ${title.id} synced with hikka.io`);
     // }
 
-    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: new MongoDocumentDTO().anime({ document: title, details: !privateMode }), parsedDubbers });
+    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: new MongoDocumentDTO().title({ document: title, details: !privateMode }), parsedDubbers });
   });
 }
 
 export async function getTotal(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
-    const titles = await Title.find();
+    const titles = await TitleModel.find();
 
     const total = titles.length;
     const renewed = titles.filter(el => el.country !== 'Other').length;
@@ -195,7 +196,7 @@ export async function postTitle(req: express.Request, res: express.Response) {
 
     updateSearch('title');
 
-    return res.status(201).json({ message: 'New title created', id: title.id, title: new MongoDocumentDTO().anime({ document: title }) });
+    return res.status(201).json({ message: 'New title created', id: title.id, title: new MongoDocumentDTO().title({ document: title }) });
   });
 }
 
@@ -208,7 +209,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
     const { capabilities, id: userID, username } = req.nekomi.user!;
     const contentType = req.headers['content-type'] as 'multipart/form-data' | 'application/json';
 
-    const title = await Title.findOne({ id });
+    const title = await TitleModel.findOne({ id });
     if (!title) throw new E404(`Title ${id} is not found`);
 
     const user = (await User.findOne({ id: userID }))!;
@@ -382,7 +383,7 @@ export async function deleteTitle(req: express.Request, res: express.Response) {
       throw new ERR_MISSING_AUTHORIZATION();
     }
 
-    const title = await Title.findOne({ id });
+    const title = await TitleModel.findOne({ id });
     if (!title) throw new E404(`Title ${id} is not found`);
 
     const CSRF_DATA: IM_FkAuthorityVerify = {
@@ -440,20 +441,20 @@ export async function getHomeWrapped(req: express.Request, res: express.Response
         if (!title) throw new E404(`Title ${id} is not found in featured data`);
 
         HomeWrapped.featured.push({
-          ...new MongoDocumentDTO().anime({ document: title }),
+          ...new MongoDocumentDTO().title({ document: title }),
           backgroundURL,
           videoURL
         });
       }
 
       // Parse popular
-      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => new MongoDocumentDTO().anime({ document: el }));
+      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => new MongoDocumentDTO().title({ document: el }));
 
       // Fetch recently updated
-      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
+      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new MongoDocumentDTO().title({ document: el }));
 
       // Fetch hight rated
-      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().anime({ document: el }));
+      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().title({ document: el }));
 
       AnimeHomeWrappedCache.push({
         id: 'HomeWrapped',

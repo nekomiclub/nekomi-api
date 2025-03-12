@@ -4,7 +4,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
-export const AnimeModel = mongoose.model<Anime>('title', new Schema({
+export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   uuid: String,
   broadcast: Object,
   description: String,
@@ -12,7 +12,6 @@ export const AnimeModel = mongoose.model<Anime>('title', new Schema({
   episodes: Array,
   episodesCount: Number,
   episodesMeta: Array,
-  genresNew: Array,
   malId: Number,
   malSyncedAt: Number,
   media: String,
@@ -22,24 +21,14 @@ export const AnimeModel = mongoose.model<Anime>('title', new Schema({
   rate: String,
   related: Array,
   score: Object,
-  seasonNew: String,
   slug: String,
-  statusNew: String,
-  studiosNew: Array,
   updatedAt: Number,
   year: Number,
-  type: String,
   studios: Array,
   status: String,
   season: String,
-  rating: Object,
-  mal_id: String,
-  id: String,
   genres: Array,
-  country: String,
-  code: String,
-  ageRate: String,
-  posterAdapt: String
+  posterAdapt: String,
 }));
 
 

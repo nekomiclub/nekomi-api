@@ -1,7 +1,7 @@
+import AnimeModel from '~/core/models/AnimeModel';
 import CacheService from '~/services/CacheService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
-import TitleModel from '~/models/Title';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { Anime } from '~/core/interfaces/AnimeIntf';
@@ -59,7 +59,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       dubbedAnime = cached;
     } else {
-      const titles = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+      const titles = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
       const withDubbing = titles.filter(title => {
         return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
       });

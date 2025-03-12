@@ -1,10 +1,10 @@
 import Fuse, { FuseResult } from 'fuse.js';
 import express from 'express';
 
+import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from '~/core/services/DubberService';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
-import Title from '~/models/Title';
-import User from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import { Anime } from '~/core/interfaces/AnimeIntf';
 import { AxiosError } from 'axios';
 import { DevelopmentMode, config } from '~/config';
@@ -27,8 +27,8 @@ let UserSeacrh: Fuse<IUser>;
 export type TSearchEngine = 'dubber' | 'user' | 'title';
 /** Update Fuse instance */
 export async function updateSearch(specify?: TSearchEngine) {
-  const titles = await Title.find();
-  const users = await User.find();
+  const titles = await AnimeModel.find();
+  const users = await UserModel.find();
   const dubbers = await new DubberService().getAll();
 
   if (specify === undefined || specify === 'title') {
@@ -129,7 +129,7 @@ export async function getSearch(req: express.Request, res: express.Response) {
 
     if (getManyMode) {
       if (engines[0] === 'title') {
-        const titles = (await Title.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
+        const titles = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
 
         titles.forEach(el => {
           const result: ISearchExtended<FuseResult<Anime>> = {

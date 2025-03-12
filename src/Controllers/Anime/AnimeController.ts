@@ -2,7 +2,6 @@ import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
-import TitleModel from '~/models/Title';
 import { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_MEDIA_TYPES, ANIME_RATE, ANIME_RATES, ANIME_SEASONS, Anime, AnimeGenre, AnimeMedia, AnimeMetadata, AnimeRate, AnimeRelated, AnimeSeason } from '~/core/interfaces/AnimeIntf';
 import { AnimeMetadataMapper, AnimeRelatedMapper, DubberMetadataMapper } from '~/utils/data-mappers';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
@@ -30,10 +29,10 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
 
   if (q === '~all') {
     // Get all
-    animeResults = (await TitleModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
   } else if (q === '~wo-mal-id') {
     // Get all without mail id
-    animeResults = (await TitleModel.find({ mal_id: null })).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find({ malId: null })).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
   } else {
     animeResults = Search.search({ query: q, engine: 'anime', limit });
   }
@@ -132,10 +131,10 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
 
   // Fetch dubbers & related
   if (detailed && !metadataOnly) {
-    genres = anime.genresNew.map(slug => ANIME_GENRES[slug]);
+    genres = anime.genres.map(slug => ANIME_GENRES[slug]);
     rate = ANIME_RATES[anime.rate];
     media = ANIME_MEDIA_TYPES[anime.media];
-    season = ANIME_SEASONS[anime.seasonNew];
+    season = ANIME_SEASONS[anime.season];
 
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];

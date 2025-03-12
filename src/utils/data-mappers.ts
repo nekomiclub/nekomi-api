@@ -12,7 +12,7 @@ export function DubberMetadataMapper(dubber: IDubber): DubberMetadata {
 }
 
 export function AnimeMetadataMapper(anime: Anime): AnimeMetadata {
-  const genres = anime.genresNew.map(slug => ANIME_GENRES[slug]);
+  const genres = anime.genres.map(slug => ANIME_GENRES[slug]);
   const media = ANIME_MEDIA_TYPES[anime.media];
 
   return {
@@ -28,7 +28,7 @@ export function AnimeRelatedMapper(anime: Anime): AnimeRelated {
     uuid: anime.uuid,
     slug: anime.slug,
     episodesCount: anime.episodesCount,
-    genres: anime.genresNew.map(slug => ANIME_GENRES[slug]),
+    genres: anime.genres.map(slug => ANIME_GENRES[slug]),
     malScore: anime.score.mal,
     nameUkr: anime.names.ukr,
     posterURL: anime.poster

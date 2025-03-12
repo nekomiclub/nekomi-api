@@ -1,4 +1,4 @@
-import AnimeModel from '~/core/models/AnimeModel';
+import AnimeModel from '~/core/models/TitleModel';
 import express from 'express';
 import { E500 } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';

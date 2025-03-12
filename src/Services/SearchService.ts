@@ -1,6 +1,6 @@
+import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
-import TitleModel from '~/models/Title';
 import UserModel from '~/models/User';
 import { Anime } from '~/core/interfaces/AnimeIntf';
 import { E500, ERR_NOT_READY } from './ErrorService';
@@ -69,7 +69,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
+      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],

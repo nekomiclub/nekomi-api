@@ -5,7 +5,7 @@ process.argv.push('devMode');
 
 import IDubber from '~/core/interfaces/DubberIntf';
 import getUTC from '~/utils/get-utc';
-import { Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
 import { DocumentDTO } from '~/core/services/DTO';
 import { IUser } from '~/core/interfaces/UserIntf';
 import { config } from '~/config';
@@ -54,37 +54,24 @@ describe('DTOs', () => {
     const anime: Anime = {
       uuid: createUUID(),
       posterAdapt: null,
-      ageRate: 'PG-13',
-      code: '',
-      country: 'Other',
       description: '',
       details: null,
       episodes: [],
       episodesCount: 12,
       episodesMeta: [],
       genres: [],
-      id: '',
-      mal_id: null,
       names: {
         alt: [],
         eng: '',
         ukr: ''
       },
       poster: '',
-      rating: {
-        IMDB: 0,
-        mal: null,
-        mal_poll: null,
-        Animee: null
-      },
       season: 'spring',
-      status: 'announcement',
+      status: ANIME_STATUS.CURRENTLY_AIRING,
       studios: [],
-      type: 'ONA',
       updatedAt: 0,
       year: 2025,
       broadcast: null,
-      genresNew: [],
       malId: null,
       malSyncedAt: null,
       media: 'movie',
@@ -96,10 +83,7 @@ describe('DTOs', () => {
         mal: null,
         malScoredBy: null
       },
-      seasonNew: 'fall',
       slug: '',
-      statusNew: 'currently_airing',
-      studiosNew: []
     };
 
     const withDetails = new DocumentDTO().anime({ object: anime, details: true });

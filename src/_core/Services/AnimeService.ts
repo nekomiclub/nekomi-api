@@ -63,8 +63,8 @@ class AnimeModelControls implements AnimeModelControlsType {
 
       media: ANIME_MEDIA_TYPE.UNKNOWN,
       rate: ANIME_RATE.G,
-      seasonNew: ANIME_SEASON.SPRING,
-      statusNew: ANIME_STATUS.FINISHED_AIRING,
+      season: ANIME_SEASON.SPRING,
+      status: ANIME_STATUS.FINISHED_AIRING,
       year: getUTC().year,
       updatedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
@@ -77,31 +77,12 @@ class AnimeModelControls implements AnimeModelControlsType {
       malId: null,
       malSyncedAt: null,
 
-      studiosNew: [],
+      studios: [],
       related: [],
       pictures: [],
-      genresNew: [],
+      genres: [],
       episodes: [],
       episodesMeta: [],
-
-
-      //* DEPRECATED
-      id: uuid,
-      code: slug,
-      genres: [],
-      mal_id: null,
-      type: 'special',
-      studios: [],
-      status: 'out',
-      season: 'spring',
-      rating: {
-        IMDB: null,
-        Animee: null,
-        mal: null,
-        mal_poll: null
-      },
-      ageRate: 'G',
-      country: 'Other'
     };
 
     const document = new AnimeModel(instance);
@@ -213,12 +194,12 @@ export class AnimeService extends AnimeModelControls {
       this.document.score.mal = node.mean ?? this.document.score.mal;
       this.document.score.malScoredBy = node.num_scoring_users ?? this.document.score.malScoredBy;
       this.document.episodesCount = node.num_episodes ?? this.document.episodesCount;
-      this.document.studiosNew = node.studios ?? this.document.studiosNew;
+      this.document.studios = node.studios ?? this.document.studios;
 
       this.document.rate = node.rating ?? this.document.rate;
-      this.document.statusNew = node.status ?? this.document.statusNew;
+      this.document.status = node.status ?? this.document.status;
       this.document.media = node.media_type ?? this.document.media;
-      this.document.genresNew = MALGenres(node.genres) ?? this.document.genresNew;
+      this.document.genres = MALGenres(node.genres) ?? this.document.genres;
 
       this.document.broadcast = node.broadcast ? {
         day: node.broadcast.day_of_the_week,

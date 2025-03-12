@@ -132,8 +132,8 @@ const UpdateHandlers = [
       // TODO: remove after use
       if (ProductionMode) {
         Promise.all([
-          ANIME_MODEL_UPDATE.run(),
-          USER_MODEL_UPDATE.run(),
+          await ANIME_MODEL_UPDATE.run(),
+          await USER_MODEL_UPDATE.run(),
         ]);
       }
 

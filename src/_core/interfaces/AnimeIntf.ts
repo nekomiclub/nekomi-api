@@ -4,6 +4,7 @@ import { DayOfWeek } from '~/core/interfaces/types';
 
 export interface Anime {
   uuid: string
+  slug: string
   poster: string
   year: number
   episodesCount: number | null
@@ -24,26 +25,16 @@ export interface Anime {
     alt: string[]
   },
 
-  /** @since 2.1.0 */
   broadcast: AnimeBroadcast | null
-  /** @since 2.1.0 */
-  genresNew: AnimeGenreType[]
-  /** @since 2.1.0 */
+  genres: AnimeGenreType[]
   rate: AnimeRateType
-  /** @since 2.1.0 */
-  statusNew: AnimeStatusType
-  /** @since 2.1.0 */
-  seasonNew: AnimeSeasonType
-  /** @since 2.1.0 */
+  status: AnimeStatusType
+  season: AnimeSeasonType
   media: AnimeMediaType
-  /** @since 2.1.0 */
-  studiosNew: AnimeStudio[]
-  /** @since 2.1.0 */
+  studios: AnimeStudio[]
   malId: number | null
   /** MAL sync UTC-0 timestamp @since 2.1.0 */
   malSyncedAt: number | null
-  /** @since 2.1.0 */
-  slug: string
   /** Anime pictures URL's @since 2.1.0 */
   pictures: string[]
   /** Related animes ID's @since 2.1.0 */
@@ -57,47 +48,54 @@ export interface Anime {
     mal: number | null
     malScoredBy: number | null
   }
+}
+
+export interface TitleOld {
+  poster: string
+  year: number
+  episodesCount: number | null
+  description: string | null
+  details: string | null
+
+  /** UTC-0 timestamp */
+  updatedAt: number
+
+  /** @private */
+  episodes: AnimeEpisode[]
+  /** @private */
+  episodesMeta: AnimeEpisodeMeta[]
+
+  names: {
+    eng: string
+    ukr: string
+    alt: string[]
+  },
 
 
-
-  /** Code (url encoded eng name) @deprecated use slug instead */
   code: string
 
-  /** @deprecated */
   rating: {
-    /** @deprecated use score.imdb */
     IMDB: number | null
     /** @since 1.3.2
-     * @deprecated use score.mal
      */
     mal: number | null
     /** MAL rated by
      * @since 1.3.2
-     * @deprecated use score.malScoredBy
      */
     mal_poll: number | null
     /** @deprecated 1.3.2 */
     Animee: number | null
   }
 
-  /** @deprecated use uuid instead */
   id: string
-  /** @since 1.3.2 @deprecated use malId instead */
   mal_id: string | null
 
-  /** @deprecated */
   country: TTitleCountry
-  /** @deprecated use genresNew instead */
   genres: TAnimeGenre[]
-  /** @deprecated use rate instead */
   ageRate: TAnimeAgeRate
-  /** @deprecated use statusNew instead */
   status: TAnimeStatus
-  /** @deprecated use seasonNew instead */
   season: TAnimeSeason
-  /** @deprecated use media instead */
   type: TTitleType
-  /** @deprecated use studiosNew instead */
   studios: string[]
 }
 
