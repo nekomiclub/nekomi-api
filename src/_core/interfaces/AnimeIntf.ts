@@ -625,6 +625,7 @@ export type TTitleCountry = typeof TitleCountriesOld[number]
 
 
 
+/** @deprecated use Metadata instead */
 export interface AnimeMetadata {
   title: string
   description: string

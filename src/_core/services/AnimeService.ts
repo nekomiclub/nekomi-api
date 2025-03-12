@@ -1,5 +1,6 @@
 import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
+import Search from '~/services/SearchService';
 import axios from 'axios';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
@@ -52,7 +53,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       names: {
         ukr: nameEng,
         eng: nameEng,
-        alt: [`~draft-${uuid}`]
+        alt: []
       },
 
       score: {
@@ -88,6 +89,8 @@ class AnimeModelControls implements AnimeModelControlsType {
     const document = new AnimeModel(instance);
     await document.save();
 
+    await Search.update('anime');
+
     Logger.info(`[AnimeService]: New document has been created. [uuid: ${uuid}]`);
 
     return instance;
@@ -95,11 +98,13 @@ class AnimeModelControls implements AnimeModelControlsType {
 
   async deleteOne(uuid: string): Promise<void> {
     await AnimeModel.deleteOne({ uuid });
+    await Search.update('anime');
 
     Logger.info(`[AnimeService]: Single document has been deleted. [uuid: ${uuid}]`);
   }
 
   async deleteMany(uuid: string): Promise<void> {
+    await Search.update('anime');
     const details = await AnimeModel.deleteMany({ uuid });
 
     Logger.info(`[AnimeService]: Many (${details.deletedCount}) documents have been deleted. [uuid: ${uuid}]`);
@@ -165,7 +170,7 @@ export class AnimeService extends AnimeModelControls {
   /** Fetch details from myanimelist & save */
   async syncWithMyAnimeList() {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    if (this.anime.malId === undefined) return;
+    if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return;
 
     const API_ENDPONT = `https://api.myanimelist.net/v2`;
     const fields: (keyof MyAnimeListNode)[] = [
@@ -206,22 +211,24 @@ export class AnimeService extends AnimeModelControls {
         time: node.broadcast.start_time
       } : this.document.broadcast;
 
-      // this.document.related = [];
-      // for (const key in node.related_anime) {
-      //   const el = node.related_anime[key].node;
+      this.document.related = [];
+      for (const key in node.related_anime) {
+        const el = node.related_anime[key].node;
 
-      //   try {
-      //     const anime = await new AnimeService().getByQuery(el.id);
+        try {
+          const anime = await new AnimeService().getByQuery(el.id);
 
-      //     this.document.related.push(anime.uuid);
-      //   } catch (e) { continue; }
-      // }
+          this.document.related.push(anime.uuid);
+        } catch (e) { continue; }
+      }
 
       this.document.poster = this.document.poster.includes(config.DOMAIN.nekomi_media) ? this.document.poster : node.main_picture.large;
-
-
-
       this.document.malSyncedAt = getUTC().timestamp;
+
+      await this.save();
+      await Search.update('anime');
+
+      Logger.info(`[AnimeService]: Anime synced with myanimelist. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
     } catch (e) {
       return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
     }

@@ -267,7 +267,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const lib = user.libs.find(el => el.id === parseLib);
       if (!lib) throw new E404(`Lib ${parseLib} is not found`);
 
-      parsedLib = (await AnimeModel.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
+      parsedLib = (await AnimeModel.find({ uuid: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
     }
 
     // Fetch together room

@@ -125,6 +125,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         Logger.error(emsg);
       } else {
         if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
+        if (TestMode) Logger.error(`(TESTING) ${emsg}`);
       }
 
       return res.status(e.status).json({ ...e, date });
@@ -147,6 +148,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
           Logger.error(`${emsg}. URL: ${reqURL}`);
         } else {
           if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
+          if (TestMode) Logger.error(`(TESTING) ${emsg}`);
         }
       }
 
@@ -154,7 +156,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     } else {
       console.error(e);
 
-      const emsg = `[Uncaught]: Uncaught error occured. Behaivour reported`;
+      const emsg = `[Uncaught]: Uncaught error occured`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
       return res.status(500).json({ message: emsg, date });

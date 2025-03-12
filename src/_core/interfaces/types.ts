@@ -122,3 +122,10 @@ export interface MyAnimeListNode {
 
   related_anime?: MyAnimeListNode[]
 }
+
+export interface Metadata {
+  title: string
+  description: string
+  keywords: string[]
+  photo: string
+}

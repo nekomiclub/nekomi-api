@@ -5,7 +5,7 @@ import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/AnimeIntf';
 import AnimeService from '~/core/services/AnimeService';
 import createID from '~/utils/create-id';
 import request from 'supertest';
-import { AnimeGetAll, AnimeGetByQuery, AnimeGetSearch } from '~/controllers/Anime/AnimeController';
+import { AnimeGetAll, AnimeGetByQuery, AnimeGetSearch } from '~/controllers/Anime/AnimeControllerTypes';
 import { ERR_GENERIC } from '~/services/ErrorService';
 import { MockAccessCheck, MockCheckCSRF, testPurge } from '~/utils/testing';
 import { app } from '~/index';
@@ -30,15 +30,15 @@ describe('AnimeRouter', () => {
       anime = await new AnimeService().create({ nameEng: createID(12) });
     });
 
-    it('should search by query (search is not ready)', async () => {
-      const res = await request(app)
+    it('should search by query', async () => {
+      await request(app)
         .get('/anime/search')
         .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock]))
         .set(config.vars.csrfHeader, `~`)
         .query({
           q: anime?.uuid
         })
-        .expect(418);
+        .expect(200);
     });
 
     it('should return all documents (~all)', async () => {
@@ -51,9 +51,9 @@ describe('AnimeRouter', () => {
         })
         .expect(200);
 
-      const data = res.body as AnimeGetSearch;
+      const data = res.body.results as AnimeGetSearch;
 
-      expect(data.results.length).toBeGreaterThan(1);
+      expect(data.length).toBeGreaterThan(1);
     });
 
     it('should return only without mal id (~wo-mal-id)', async () => {
@@ -66,9 +66,9 @@ describe('AnimeRouter', () => {
         })
         .expect(200);
 
-      const data = res.body as AnimeGetSearch;
+      const data = res.body.results as AnimeGetSearch;
 
-      expect(data.results[0].malId).toBeNull();
+      expect(data[0].malId).toBeNull();
     });
   });
 

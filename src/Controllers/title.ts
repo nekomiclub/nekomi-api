@@ -1,29 +1,14 @@
 import express from 'express';
 
-import CacheService from '~/services/CacheService';
 import DubberModel from '~/core/models/DubberModel';
-import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import User from '~/models/User';
-import getUTC from '~/utils/get-utc';
-import { AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleOld } from '~/core/interfaces/AnimeIntf';
-import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
+import { AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '~/core/interfaces/AnimeIntf';
+import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { EpisodeQualities, TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { IDubber } from '~/core/interfaces/DubberIntf';
-import { IM_FkAuthorityVerify } from '~/interfaces/types';
-import { IUserWatchProgress } from '~/core/interfaces/UserIntf';
-import { Logger } from '~/services/LoggerService';
-import { MiddlewareService } from '~/services/MiddlewareService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
-import { TestMode, config } from '~/config';
-import { getMockData } from '~/utils/deprecated-utils';
 
 import TitleModel from '~/core/models/TitleModel';
 import { TitleService } from '~/models/Title';
-import { signCSRFToken } from '~/services/TokenService';
-import { updateSearch } from './root';
 
 
 
@@ -82,18 +67,6 @@ interface IUploadPoster {
   type: TPatchTitleFormDataType
 }
 
-interface ITitleWithMeta extends TitleOld {
-  videoURL: string
-  backgroundURL: string
-}
-
-interface IHomeWrapped {
-  featured: ITitleWithMeta[]
-  hightRated: TitleOld[]
-  popular: TitleOld[]
-  updatedRecently: TitleOld[]
-}
-
 export interface IChangeEpMeta extends AnimeEpisodeMeta {
   action: 'edit' | 'delete'
 }
@@ -102,103 +75,6 @@ type TPatchTitleFormDataType = 'change_poster' | 'upload_episode';
 
 
 
-export const AnimeHomeWrappedCache = new CacheService<IHomeWrapped>('AnimeHomeWrappedCache');
-
-
-
-export async function getTitleQuery(req: express.Request, res: express.Response) {
-  await HandleRequest(req, res, async () => {
-    const CSRFToken = req.header(config.vars.csrfHeader);
-
-    const { query } = req.params as { query: string };
-    const { detailed, parseDubbers } = req.query as { detailed?: string, parseDubbers?: boolean };
-
-    const title = await TitleModel.findOne({ $or: [{ id: query }, { code: query }, { mal_id: query }] });
-    if (!title) throw new E404(`Title ${query} is not found`);
-
-    let parsedDubbers: IDubber[] | undefined = undefined;
-    let privateMode = true;
-
-    // Check if client can get detailed data
-    if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: FullkekwAuthorityAPI_TokenVerify = {
-        origin: '',
-        verified: false
-      };
-
-      if (!TestMode) {
-        const data = await FullkekwAuthorityAPI.verifyToken({ token: CSRFToken });
-
-        DATA.origin = data.origin;
-        DATA.verified = data.verified;
-      } else {
-        const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
-
-        DATA.origin = data.origin;
-        DATA.verified = data.verified;
-      }
-
-      if (DATA.verified && DATA.origin === config.DOMAIN.nekomi) {
-        privateMode = !DATA.verified;
-      } else {
-        throw new ERR_ACCESS_REJECTED(`Can not get detailed title information due to token error`);
-      }
-    }
-
-    if (parseDubbers !== undefined && !privateMode) {
-      const dubberIDs: string[] = [];
-
-      title.episodes.forEach(el => !dubberIDs.includes(el.dubberID) ? dubberIDs.push(el.dubberID) : null);
-
-      parsedDubbers = (await DubberModel.find({ id: { $in: dubberIDs } })).map(dubber => new MongoDocumentDTO().dubber({ document: dubber, details: !privateMode }));
-    }
-
-    // TODO add sync with hikka.io
-    // // Sync with hikka.io if mal id is present
-    // if (title.mal_id && (
-    //   // Title is ongoing and must be synced every 3 days
-    //   (title.status === 'ongoing' && title.hikkaSyncedAt + (60000 * 24 * 3) < getUTC().timestamp) ||
-    //   // Title is not ongoing and must be synced every 21 days
-    //   (title.status !== 'ongoing' && title.hikkaSyncedAt + (60000 * 24 * 21) < getUTC().timestamp)
-    // )) {
-    //   //* Get slug
-    //   // https://api.hikka.io/integrations/mal/anime/{mal_id} 
-
-    //   //* Get full anime data
-    //   // https://api.hikka.io/anime/{slug}
-
-
-
-    //   Logger.info(`Title ${title.id} synced with hikka.io`);
-    // }
-
-    return res.status(200).json({ message: privateMode ? 'Title returned in private mode' : 'Title returned in detailed mode', title: new MongoDocumentDTO().title({ document: title, details: !privateMode }), parsedDubbers });
-  });
-}
-
-export async function getTotal(req: express.Request, res: express.Response) {
-  await HandleRequest(req, res, async () => {
-    const titles = await TitleModel.find();
-
-    const total = titles.length;
-    const renewed = titles.filter(el => el.country !== 'Other').length;
-
-    return res.status(200).json({ message: 'OK', total, renewed });
-  });
-}
-
-export async function postTitle(req: express.Request, res: express.Response) {
-  await HandleRequest(req, res, async () => {
-    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
-    const title = await TitleService.create({});
-
-    updateSearch('title');
-
-    return res.status(201).json({ message: 'New title created', id: title.id, title: new MongoDocumentDTO().title({ document: title }) });
-  });
-}
 
 export async function patchTitle(req: express.Request, res: express.Response) {
   await HandleRequest(req, res, async () => {
@@ -364,147 +240,5 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         user
       });
     }
-  });
-}
-
-export async function deleteTitle(req: express.Request, res: express.Response) {
-  await HandleRequest(req, res, async () => {
-    if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
-    const { id } = req.params as { id: string };
-    const { key } = req.query as { key?: string };
-    const { id: userID, username } = req.nekomi.user!;
-
-    if (!key) {
-      console.log(`-------- DELETE TITLE KEY ISSUED --------\nIssuer: ${userID}/${username}\nKey: ${signCSRFToken()}\n----------------`);
-      Logger.info(`[TitleController]: Title ${id} delete request by ${userID}/${username} detected. Delete token issued in server console`);
-
-      throw new ERR_MISSING_AUTHORIZATION();
-    }
-
-    const title = await TitleModel.findOne({ id });
-    if (!title) throw new E404(`Title ${id} is not found`);
-
-    const CSRF_DATA: IM_FkAuthorityVerify = {
-      origin: '',
-      verified: false
-    };
-
-    if (!TestMode) {
-      const data = await FullkekwAuthorityAPI.verifyToken({ token: key });
-
-      CSRF_DATA.verified = data.verified;
-      CSRF_DATA.origin = data.origin;
-    } else {
-      const { data } = getMockData<IM_FkAuthorityVerify>(req, 'FkAuthorityVerify');
-
-      CSRF_DATA.verified = data.verified;
-      CSRF_DATA.origin = data.origin;
-    }
-
-    const { origin, verified } = CSRF_DATA;
-
-    if (!verified || origin !== config.DOMAIN.nekomi_core) throw new ERR_ACCESS_REJECTED();
-
-    await TitleService.delete(id, `Title deleted by ${userID}/${username}`, 'one');
-
-    updateSearch('title');
-
-    return res.status(200).json({ message: 'Title deleted' });
-  });
-}
-
-export async function getHomeWrapped(req: express.Request, res: express.Response) {
-  await HandleRequest(req, res, async () => {
-    if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
-    let HomeWrapped: IHomeWrapped = {
-      featured: [],
-      hightRated: [],
-      popular: [],
-      updatedRecently: []
-    };
-
-    const cache = AnimeHomeWrappedCache.get({ id: 'HomeWrapped' });
-
-    if (cache) {
-      HomeWrapped = cache;
-    } else {
-      const titles = await TitleModel.find();
-
-      // Parse featured
-      for (const key in config.STATIC.HomeWrapped.featured) {
-        const { backgroundURL, id, videoURL } = config.STATIC.HomeWrapped.featured[key];
-
-        const title = await TitleModel.findOne({ id: id });
-        if (!title) throw new E404(`Title ${id} is not found in featured data`);
-
-        HomeWrapped.featured.push({
-          ...new MongoDocumentDTO().title({ document: title }),
-          backgroundURL,
-          videoURL
-        });
-      }
-
-      // Parse popular
-      HomeWrapped.popular = (await TitleModel.find({ id: { $in: config.STATIC.HomeWrapped.popular } })).map(el => new MongoDocumentDTO().title({ document: el }));
-
-      // Fetch recently updated
-      HomeWrapped.updatedRecently = titles.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20).map(el => new MongoDocumentDTO().title({ document: el }));
-
-      // Fetch hight rated
-      HomeWrapped.hightRated = titles.filter(el => el.rating.IMDB !== null).sort((a, b) => b.rating!.IMDB! - a.rating!.IMDB!).slice(0, 20).map(el => new MongoDocumentDTO().title({ document: el }));
-
-      AnimeHomeWrappedCache.push({
-        id: 'HomeWrapped',
-        createdAt: getUTC().timestamp,
-        data: HomeWrapped
-      });
-    }
-
-    const sessionToken = req.cookies[config.vars.sessionCookie];
-    const session: FullkekwUserAPI_TokenData = {
-      id: '',
-      avatar: '',
-      username: ''
-    };
-
-    let watchProgress: IUserWatchProgress[] | undefined = undefined;
-
-    // Parse user
-    if (sessionToken) {
-      if (!TestMode) {
-        const middleware = new MiddlewareService();
-
-        try {
-          const { user } = await middleware.checkAccess(sessionToken);
-
-          session.id = user.id;
-        } catch (e) {
-          // Ignore
-        }
-      } else {
-        const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
-
-        session.id = data.id;
-      }
-    }
-
-    // Get user if session valid
-    if (session.id) {
-      const user = await User.findOne({ id: session.id });
-      if (!user) return;
-
-      watchProgress = [];
-
-      HomeWrapped.featured.forEach(el => {
-        const wp = user.watchProgress.find(wp => wp.titleID === el.id);
-
-        if (wp) watchProgress!.push(wp);
-      });
-    }
-
-    return res.status(200).json({ message: 'OK', ...HomeWrapped, watchProgress });
   });
 }

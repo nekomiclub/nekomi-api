@@ -13,42 +13,30 @@ const AnimeRouter = express.Router();
 
 
 
-export const getHomeWrapped = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-];
-
-export const postTitle = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['titleAdd']),
-];
-
 export const patchTitleId = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['basic']),
   upload.single('file'),
 ];
 
-export const deleteTitleId = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['titleDelete']),
-];
-
 
 
 //* Generic
-AnimeRouter.get(`/all`, AnimeRoutes.GetAll);
+AnimeRouter.get([`/all`, '/total'], AnimeRoutes.GetAll);
 AnimeRouter.get(`/search`, AnimeRoutes.GetSearch);
+AnimeRouter.get('/featured', AnimeRoutes.GetFeatured);
 AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
 
+AnimeRouter.post('/', AnimeRoutes.PostAnime);
+AnimeRouter.post('/episode'); // TODO:
 
-AnimeRouter.get(['/total'], TitleController.getTotal); //* /total is deprecated
+AnimeRouter.put('/poster'); // TODO:
 
-AnimeRouter.get('/home_wrapped', getHomeWrapped, TitleController.getHomeWrapped);
-AnimeRouter.post('/', postTitle, TitleController.postTitle);
+AnimeRouter.patch('/:uuid', patchTitleId, TitleController.patchTitle);
 
-//! Must be below all endpoints
-AnimeRouter.patch('/:id', patchTitleId, TitleController.patchTitle);
-AnimeRouter.delete('/:id', deleteTitleId, TitleController.deleteTitle);
+AnimeRouter.delete('/episode'); // TODO:
+AnimeRouter.delete('/:uuid', AnimeRoutes.DeleteByUuid);
+
 
 
 

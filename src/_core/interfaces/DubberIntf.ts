@@ -60,14 +60,16 @@ export interface IDubberMember {
   memberSince: number
 }
 
-export interface DubberMetadata {
+/** @deprecated use DubberCompact instead */
+export type DubberMetadata = DubberCompact;
+
+export interface DubberCompact {
   id: string
   slug: string
   nameUkr: string
   nameEng: string
   avatarURL: string
 }
-
 
 
 export default IDubber;

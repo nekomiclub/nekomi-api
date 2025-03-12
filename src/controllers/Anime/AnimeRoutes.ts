@@ -1,5 +1,7 @@
-import AnimeController, { AnimeGetByQueryProps, AnimeGetSearchProps } from './AnimeController';
-import { CheckCSRF } from '~/middlewares';
+import AnimeController from './AnimeController';
+import createID from '~/utils/create-id';
+import { AnimeGetByQueryProps, AnimeGetSearchProps } from './AnimeControllerTypes';
+import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -18,13 +20,13 @@ const getSearch = HTTPEndpoint(async (req, res) => {
 
   const data = await AnimeController.GetSearch({ q });
 
-  return res.status(200).json({ message: 'ok', ...data });
+  return res.status(200).json({ message: 'ok', results: data });
 });
 
 /** @tested 2.1.0 */
 const GetSearch = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  query(['q']).notEmpty().isString(),
+  query(['q']).notEmpty(),
   getSearch,
 ];
 
@@ -40,6 +42,20 @@ const getAll = HTTPEndpoint(async (req, res) => {
 /** @tested 2.1.0 */
 const GetAll = [
   getAll,
+];
+
+
+
+//* ===================================== GET FEATURED
+const getFeatured = HTTPEndpoint(async (req, res) => {
+  const data = await AnimeController.GetFeatured();
+
+  return res.status(200).json({ message: 'ok', ...data });
+});
+
+const GetFeatured = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  getFeatured
 ];
 
 
@@ -73,10 +89,53 @@ const GetByQuery = [
 ];
 
 
+//* ===================================== POST ANIME
+const postAnime = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const nameEng = `untitled-${createID(4)}`;
+  const anime = await AnimeController.PostAnime({ nameEng });
+
+  return res.status(201).json({ message: 'ok', anime });
+});
+
+const PostAnime = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleAdd']),
+  postAnime,
+];
+
+
+
+
+//* ===================================== DELETE BY UUID
+const deleteByUuid = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const { uuid } = req.params as { uuid: string };
+
+  await AnimeController.DeleteByUuid({ uuid });
+
+  return res.status(204).json({ message: 'ok' });
+});
+
+const DeleteByUuid = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleAdd']),
+  deleteByUuid,
+];
+
 
 
 export default class AnimeRoutes {
-  static GetSearch = GetSearch;
   static GetAll = GetAll;
   static GetByQuery = GetByQuery;
+  static GetSearch = GetSearch;
+  static GetFeatured = GetFeatured;
+
+  static PostAnime = PostAnime;
+
+  static DeleteByUuid = DeleteByUuid;
 }
