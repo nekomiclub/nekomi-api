@@ -219,6 +219,22 @@ async function PostAnime({ nameEng }: AnimePostProps): Promise<Anime> {
 
 
 
+//* ===================================== POST EPISODE
+
+
+
+//* ===================================== PUT POSTER
+
+
+
+//* ===================================== PATCH BY UUID
+
+
+
+//* ===================================== DELETE EPISODE
+
+
+
 //* ===================================== DELETE BY UUID
 /**
  * Delete anime document

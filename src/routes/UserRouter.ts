@@ -58,26 +58,21 @@ export const userDeleteTogether = [
 
 
 
-
-//* Generic
 UserRouter.get(`/search`, UserRoutes.GetSearch);
+UserRouter.get(`/logout`, userLogout, UserController.getLogout);
+UserRouter.get(`/validate`, userValidate, UserController.getValidate);
+UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
+UserRouter.get(`/:query/lib/:libId`, UserRoutes.GetLib);
+UserRouter.get(`/:query/together/:roomId`, UserRoutes.GetTogetherRoom);
+UserRouter.get(`/:query`, UserRoutes.GetByQuery);
+
+UserRouter.post(`/signin`, userSignin, UserController.postSignin);
+UserRouter.post([`/link/telegram`, `/linkTelegram`], userLinkTelegram, UserController.postLinkTelegram); //* /linkTelegram is deprecated
+UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
+UserRouter.post('/together', userPostTogether, UserController.createTogetherRoom);
 
 UserRouter.patch([`/me`, '/:id', `/`], UserRoutes.PatchUser); //* / is deprecated
 
-
-
-//* ------------------ USER ROUTER ------------------
-UserRouter.get(`/:query`, UserController.getQuery);
-UserRouter.get(`/logout`, userLogout, UserController.getLogout);
-UserRouter.get(`/validate`, userValidate, UserController.getValidate);
-UserRouter.post(`/signin`, userSignin, UserController.postSignin);
-
-UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
-UserRouter.post([`/link/telegram`, `/linkTelegram`], userLinkTelegram, UserController.postLinkTelegram); //* /linkTelegram is deprecated
-UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
-
-UserRouter.post('/together', userPostTogether, UserController.createTogetherRoom);
-// UserRouter.patch('/together/:id', UserController.getQuery);
 UserRouter.delete('/together/:id', userDeleteTogether, UserController.deleteTogetherRoom);
 
 

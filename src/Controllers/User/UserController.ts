@@ -1,29 +1,21 @@
+import Anime from '~/core/interfaces/AnimeIntf';
+import AnimeModel from '~/core/models/AnimeModel';
 import Search from '~/services/SearchService';
-import UserModel from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { IUser, UserWatchProgress } from '~/core/interfaces/UserIntf';
+import { E404 } from '~/services/ErrorService';
+import { IUser, UserTogetherRoom } from '~/core/interfaces/UserIntf';
+import { Metadata } from '~/core/interfaces/types';
 import { NotifyService } from '~/services/NotifyService';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { UserGetByQuery, UserGetByQueryProps, UserGetLibProps, UserGetSearch, UserGetSearchProps, UserGetTogetherRoomProps, UserPatchProps } from './UserControllerTypes';
+import { parseRoles } from '~/models/Role';
 
 
 
 //* ===================================== GET SEARCH
-export interface IUserGetSearch {
-  /** Query ~all will return all users */
-  q: string
-
-  /** Parse user invitation data (can/not be invited, already member) for dubber id */
-  parseInvitationStatusFor?: string
-}
-
-export interface IUserGetSearchResult {
-  user: IUser
-
-  /** @requires parseInvitationStatusFor */
-  invitationStatus?: 'can_be_invited' | 'telegram_not_linked' | 'invite_pending' | 'others_member_already'
-}
-
-async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
+async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): Promise<UserGetSearch[]> {
   const limit = 15;
 
   let userResults: IUser[] = [];
@@ -35,10 +27,10 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
     userResults = Search.search({ query: q, engine: 'user', limit });
   }
 
-  const results: IUserGetSearchResult[] = [];
+  const results: UserGetSearch[] = [];
 
   userResults.forEach(user => {
-    let invitationStatus: IUserGetSearchResult['invitationStatus'] = undefined;
+    let invitationStatus: UserGetSearch['invitationStatus'] = undefined;
 
     // Parse invitation status
     if (parseInvitationStatusFor) {
@@ -63,25 +55,90 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
     });
   });
 
+  return results;
+}
+
+
+
+//* ===================================== GET BY QUERY
+/**
+ * Get user by query or session (*), parse capabilities or return only metadata
+ * 
+ * @see UserGetByQueryProps
+ * @returns UserGetByQuery
+ */
+async function GetByQuery({ query, metadataOnly, parseCapabilities, detailed }: UserGetByQueryProps): Promise<UserGetByQuery> {
+  let user = await new UserService().getByQuery(query, true);
+
+  let metadata: Metadata | undefined = undefined;
+  let capabilities: TRoleCapability[] | undefined = undefined;
+
+
+
+  if (metadataOnly) metadata = {
+    title: `@${user.username}`,
+    description: `Профіль користувача`,
+    keywords: [user.username],
+    photo: user.avatar
+  };
+
+  if (!metadataOnly && parseCapabilities) capabilities = await parseRoles(user.roles);
+
+  user = new DocumentDTO().user({ object: user, details: detailed });
+
+
+
   return {
-    status: 200,
-    message: 'ok',
-    results
+    user: metadataOnly ? undefined : user,
+
+    metadata,
+    capabilities,
   };
 }
 
 
 
-//* ===================================== PATCH BY ID
-export interface UserPatchProps {
-  id: string
+//* ===================================== GET LIB
+/**
+ * Get user lib animes
+ * 
+ * @see UserGetLibProps
+ * @returns Anime[]
+ */
+async function GetLib({ query, libId }: UserGetLibProps): Promise<Anime[]> {
+  const user = await new UserService().getByQuery(query, true);
+  const lib = user.libs.find(el => el.id === libId);
+  if (!lib) throw new E404(`Lib with id (${libId}) is not found`);
 
-  watchProgress?: UserWatchProgress
+  let animes: Anime[] = [];
 
-  /** Anime ID */
-  deleteWatchProgress?: string
+  if (lib.titles.length) {
+    animes = (await AnimeModel.find({ uuid: { $in: lib.titles } })).map(document => new MongoDocumentDTO().anime({ document }));
+  }
+
+  return animes;
 }
 
+
+
+//* ===================================== GET TOGETHER ROOM
+/**
+ * Get user watch together room
+ * 
+ * @see UserGetTogetherRoomProps
+ * @returns UserTogetherRoom
+ */
+async function GetTogetherRoom({ query, roomId }: UserGetTogetherRoomProps): Promise<UserTogetherRoom> {
+  const user = await new UserService().getByQuery(query, true);
+  const room = user.togetherRooms.find(el => el.id === roomId);
+  if (!room) throw new E404(`Together room with id (${roomId}) is not found`);
+
+  return room;
+}
+
+
+
+//* ===================================== PATCH BY ID
 export async function PatchById({ id, watchProgress, deleteWatchProgress }: UserPatchProps) {
   const userService = new UserService();
   await userService.init(id);
@@ -97,5 +154,9 @@ export async function PatchById({ id, watchProgress, deleteWatchProgress }: User
 
 export default class UserController {
   static GetSearch = GetSearch;
+  static GetByQuery = GetByQuery;
+  static GetLib = GetLib;
+  static GetTogetherRoom = GetTogetherRoom;
+
   static PatchById = PatchById;
 }
