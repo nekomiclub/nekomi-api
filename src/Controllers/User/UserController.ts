@@ -5,7 +5,7 @@ import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E404 } from '~/services/ErrorService';
-import { HydrateAnimeDocument } from '~/utils/hydrate-document';
+import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
 import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { IUser } from '~/core/interfaces/UserIntf';
 import { Metadata } from '~/core/interfaces/types';
@@ -77,12 +77,7 @@ async function GetByQuery({ query, metadataOnly, parseCapabilities, detailed }: 
 
 
 
-  if (metadataOnly) metadata = {
-    title: `@${user.username}`,
-    description: `Профіль користувача`,
-    keywords: [user.username],
-    photo: user.avatar
-  };
+  if (metadataOnly) metadata = UserMetadataMapper(user);
 
   if (!metadataOnly && parseCapabilities) capabilities = await parseRoles(user.roles);
 

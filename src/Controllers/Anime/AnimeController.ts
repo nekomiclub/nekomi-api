@@ -2,13 +2,15 @@ import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import CacheService from '~/services/CacheService';
 import DubberModel from '~/core/models/DubberModel';
+import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps } from './AnimeControllerTypes';
-import { AnimeMetadataMapper, AnimeRelatedMapper, DubberMetadataMapper } from '~/utils/data-mappers';
+import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
+import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { HydrateAnimeDocument } from '~/utils/hydrate-document';
+import { HydrateAnimeDocument } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -157,20 +159,22 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
   let related: AnimeGetByQuery['related'] = undefined;
   let dubbers: AnimeGetByQuery['dubbers'] = undefined;
   let metadata: AnimeGetByQuery['metadata'] = undefined;
+  let posterAdapt: AnimeGetByQuery['posterAdapt'] = undefined;
+  let nextBroadcast: AnimeGetByQuery['nextBroadcast'] = undefined;
 
 
 
   // Handle metadataOnly
   if (metadataOnly) metadata = AnimeMetadataMapper(anime);
 
-  // Fetch dubbers & related
+  // Fetch dubbers & related & next broadcast
   if (detailed && !metadataOnly) {
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
       if (dubberIds.length) {
-        const results = await DubberModel.find({ $or: dubberIds.map(el => { return { id: el }; }) });
-        dubbers = results.map(dubber => DubberMetadataMapper(new MongoDocumentDTO().dubber({ document: dubber })));
+        const results = await DubberModel.find({ id: { $in: dubberIds } });
+        dubbers = results.map(dubber => DubberCompactMapper(new MongoDocumentDTO().dubber({ document: dubber })));
       } else {
         dubbers = [];
       }
@@ -178,11 +182,46 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
 
     if (fetchRelated) {
       if (anime.related.length) {
-        const results = await AnimeModel.find({ $or: anime.related.map(el => { return { id: el }; }) });
-        related = results.map(anime => AnimeRelatedMapper(new MongoDocumentDTO().anime({ document: anime })));
+        const results = await AnimeModel.find({ uuid: { $in: anime.related } });
+        related = results.map(anime => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: anime })));
       } else {
         related = [];
       }
+    }
+
+    // TODO: && anime.status === ANIME_STATUS.CURRENTLY_AIRING
+    if (anime.broadcast) {
+      const dayIndex = DaysOfWeek.findIndex(el => el === anime.broadcast?.day);
+      const jstH = 23;
+      const jstM = 30;
+
+      const time = new Date();
+      const dayDiff = (dayIndex - getUTC().weekDay + 7) % 7;
+
+      time.setDate(getUTC().date + dayDiff);
+      time.setUTCHours(jstH - 9);
+      time.setUTCMinutes(jstM);
+      time.setUTCSeconds(0);
+      time.setMilliseconds(0);
+
+      nextBroadcast = +time;
+    }
+  }
+
+  // Fetch poster adapt
+  if (anime.posterAdapt) {
+    const dubber = dubbers?.find(el => el.id === anime.posterAdapt);
+
+    if (!dubber) {
+      // Fetch dubber
+      try {
+        const dubber = await new DubberService().getById(anime.posterAdapt);
+
+        posterAdapt = DubberCompactMapper(new DocumentDTO().dubber({ object: dubber }));
+      } catch (e) { Logger.fail(`[AnimeController]: Cannot find poster adapt dubber. [id: ${anime.posterAdapt}]`); }
+    } else {
+      // Get dubber from anime dubbing
+      posterAdapt = dubber;
     }
   }
 
@@ -198,6 +237,8 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
     dubbers,
     related,
     metadata,
+    posterAdapt,
+    nextBroadcast
   };
 }
 

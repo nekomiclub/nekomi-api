@@ -1,4 +1,4 @@
-import Anime, { AnimeRelated, HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import Anime, { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { Metadata } from '~/core/interfaces/types';
 
@@ -30,9 +30,13 @@ export interface AnimeGetByQueryProps {
 }
 
 export interface AnimeGetByQuery extends HydratedAnime {
-  related?: AnimeRelated[]
+  related?: HydratedAnime[]
   dubbers?: DubberCompact[]
   metadata?: Metadata
+  posterAdapt?: DubberCompact
+
+  /** UTC-0 timestamp of next planned broadcast */
+  nextBroadcast?: number
 }
 
 export interface AnimeGetSearchProps {

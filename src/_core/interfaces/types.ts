@@ -4,7 +4,8 @@ import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 /** Make single key in T optional */
 export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
-export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+export const DaysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+export type DayOfWeek = typeof DaysOfWeek[number];
 
 /** @deprecated use MockID instead */
 export type TMockID =

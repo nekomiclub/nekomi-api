@@ -1,7 +1,11 @@
-import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, AnimeMetadata, AnimeRelated } from '~/core/interfaces/AnimeIntf';
-import IDubber, { DubberMetadata } from '~/core/interfaces/DubberIntf';
+import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import IDubber, { DubberCompact } from '~/core/interfaces/DubberIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
+import { Metadata } from '~/core/interfaces/types';
 
-export function DubberMetadataMapper(dubber: IDubber): DubberMetadata {
+
+
+export function DubberCompactMapper(dubber: IDubber): DubberCompact {
   return {
     id: dubber.id,
     avatarURL: dubber.avatar,
@@ -11,7 +15,18 @@ export function DubberMetadataMapper(dubber: IDubber): DubberMetadata {
   };
 }
 
-export function AnimeMetadataMapper(anime: Anime): AnimeMetadata {
+
+
+export function DubberMetadataMapper(dubber: IDubber): Metadata {
+  return {
+    title: dubber.nameUkr,
+    description: dubber.description ?? 'Ця команда озвучує аніме на nekomi.club',
+    keywords: [dubber.nameUkr, dubber.nameEng],
+    photo: dubber.avatar
+  };
+}
+
+export function AnimeMetadataMapper(anime: Anime): Metadata {
   const genres = anime.genres.map(slug => ANIME_GENRES[slug]);
   const media = ANIME_MEDIA_TYPES[anime.media];
 
@@ -23,14 +38,24 @@ export function AnimeMetadataMapper(anime: Anime): AnimeMetadata {
   };
 }
 
-export function AnimeRelatedMapper(anime: Anime): AnimeRelated {
+export function UserMetadataMapper(user: IUser): Metadata {
   return {
-    uuid: anime.uuid,
-    slug: anime.slug,
-    episodesCount: anime.episodesCount,
+    title: `@${user.username}`,
+    description: `Профіль користувача`,
+    keywords: [user.username],
+    photo: user.avatar
+  };
+}
+
+
+
+export function HydrateAnimeDocument(anime: Anime): HydratedAnime {
+  return {
+    anime,
     genres: anime.genres.map(slug => ANIME_GENRES[slug]),
-    malScore: anime.score.mal,
-    nameUkr: anime.names.ukr,
-    posterURL: anime.poster
+    media: ANIME_MEDIA_TYPES[anime.media],
+    rate: ANIME_RATES[anime.rate],
+    season: ANIME_SEASONS[anime.season],
+    status: ANIME_STATUSES[anime.status]
   };
 }

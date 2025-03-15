@@ -55,6 +55,7 @@ export interface HydratedAnime {
   media: AnimeMedia
   rate: AnimeRate
   season: AnimeSeason
+  status: AnimeStatus
 }
 
 export interface TitleOld {
@@ -526,7 +527,7 @@ export const ANIME_STATUSES: Record<ANIME_STATUS, AnimeStatus> = {
   },
   [ANIME_STATUS.FINISHED_AIRING]: {
     slug: ANIME_STATUS.FINISHED_AIRING,
-    name: 'Вийшло',
+    name: 'Вийшов',
   }
 };
 
@@ -630,25 +631,6 @@ export const TitleCountriesOld = ['Japan', 'South Corea', 'China', 'Other'] as c
 /** @deprecated */
 export type TTitleCountry = typeof TitleCountriesOld[number]
 
-
-
-/** @deprecated use Metadata instead */
-export interface AnimeMetadata {
-  title: string
-  description: string
-  keywords: string[]
-  photo: string
-}
-
-export interface AnimeRelated {
-  uuid: Anime['uuid']
-  slug: Anime['slug']
-  posterURL: Anime['poster']
-  genres: AnimeGenre[]
-  malScore: Anime['score']['mal']
-  nameUkr: Anime['names']['ukr']
-  episodesCount: Anime['episodesCount']
-}
 
 
 

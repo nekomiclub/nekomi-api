@@ -60,9 +60,6 @@ export interface IDubberMember {
   memberSince: number
 }
 
-/** @deprecated use DubberCompact instead */
-export type DubberMetadata = DubberCompact;
-
 export interface DubberCompact {
   id: string
   slug: string

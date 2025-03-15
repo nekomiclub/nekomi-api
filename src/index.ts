@@ -151,7 +151,6 @@ const UpdateHandlers = [
       }, 21600000); // 21600000 // 6h
 
 
-
       // Poll site online
       setInterval(async () => {
         await WebSocketOnlinePoll();

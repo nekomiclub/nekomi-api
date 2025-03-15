@@ -7,8 +7,8 @@ import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps } from './DubberControllerTypes';
+import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { HydrateAnimeDocument } from '~/utils/hydrate-document';
 import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
@@ -87,12 +87,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
   // Send only metadata
   if (metadataOnly) {
-    metadata = {
-      title: dubber.nameUkr,
-      description: dubber.description ?? 'Ця команда озвучує аніме на nekomi.club',
-      keywords: [dubber.nameUkr, dubber.nameEng],
-      photo: dubber.avatar
-    };
+    metadata = DubberMetadataMapper(dubber);
 
     // @ts-ignore
     dubber = null;
