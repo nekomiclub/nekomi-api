@@ -1,7 +1,7 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
-import UserModel from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import { Anime } from '~/core/interfaces/AnimeIntf';
 import { E500, ERR_NOT_READY } from './ErrorService';
 import { IDubber } from '~/core/interfaces/DubberIntf';
@@ -11,15 +11,15 @@ import { MongoDocumentDTO } from '~/core/services/DTO';
 
 
 
-interface ISearchProps {
+interface SearchProps {
   query: string
-  engine: TSearchEngine
+  engine: SearchEngineType
 
   /** @default 10 */
   limit?: number
 }
 
-export type TSearchEngine = 'user' | 'dubber' | 'anime';
+export type SearchEngineType = 'user' | 'dubber' | 'anime';
 
 
 
@@ -39,7 +39,7 @@ class SearchService {
   }
 
   /** Update search engine */
-  async update(type: TSearchEngine) {
+  async update(type: SearchEngineType) {
     if (type === 'user') {
       const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
 
@@ -81,9 +81,9 @@ class SearchService {
     Logger.debug(`[SearchService]: Engine updated. [engine: ${type}]`);
   }
 
-  search({ limit, query, engine }: ISearchProps) {
+  search({ limit, query, engine }: SearchProps) {
     limit = limit ?? 10;
-    let SearchEngine;
+    let SearchEngine: Fuse<any>;
 
     if (engine === 'user') {
       if (!this.UserEngine) throw new ERR_NOT_READY();

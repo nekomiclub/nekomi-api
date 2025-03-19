@@ -19,7 +19,6 @@ import { Logger } from './services/LoggerService';
 import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
-import { updateSearch } from './controllers/root';
 
 
 
@@ -101,7 +100,6 @@ wss.on('listening', () => {
 
 //* HTTP server
 const UpdateHandlers = [
-  updateSearch(),
   removeUsersLinkTelegramToken(),
   Search.init(),
 ] as const;

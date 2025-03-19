@@ -1,4 +1,5 @@
 import * as RootController from '~/controllers/root';
+import GenericRoutes from '~/controllers/Generic/GenericRoutes';
 import express from 'express';
 import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
@@ -11,10 +12,6 @@ const upload = multer();
 const GenericRouter = express.Router();
 
 
-
-export const getSearch = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-];
 
 export const postUpload = [
   CheckCSRF([config.DOMAIN.nekomi]),
@@ -31,9 +28,8 @@ export const deleteUpload = [
 
 
 
-GenericRouter.get(['/', '/ping'], RootController.getPing);
+GenericRouter.get(['/', '/ping'], GenericRoutes.GetPing);
 
-GenericRouter.get('/search', getSearch, RootController.getSearch);
 GenericRouter.post('/upload', postUpload, RootController.postUpload);
 GenericRouter.delete('/upload/:id', deleteUpload, RootController.deleteUpload);
 

@@ -7,6 +7,7 @@ import * as Role from '~/models/Role';
 import AnimeModel from '~/core/models/AnimeModel';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
+import Search from '~/services/SearchService';
 import Title from '~/models/Title';
 import User, { UserModel, UserService } from '~/models/User';
 import { Anime } from '~/core/interfaces/AnimeIntf';
@@ -20,7 +21,6 @@ import { MongoDocumentDTO } from '~/core/services/DTO';
 import { ProductionMode, TestMode, config } from '~/config';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { getMockData } from '~/utils/deprecated-utils';
-import { updateSearch } from './root';
 
 
 
@@ -94,7 +94,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
       user = await UserService.create(DATA);
       isUserNew = true;
-      updateSearch('user');
+      Search.update('user');
     }
 
 
