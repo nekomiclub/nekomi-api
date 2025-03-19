@@ -25,3 +25,12 @@ export interface DubberGetOneByQuery {
   metadata?: Metadata
   parsedMembers?: User[]
 }
+
+export interface DubberGetSearchProps {
+  /** Query ~all will return all dubbers */
+  q: string
+}
+
+export interface DubberGetSearch {
+  results: IDubber[]
+}

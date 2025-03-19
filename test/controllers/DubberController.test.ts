@@ -172,7 +172,7 @@ describe('DubberController', () => {
       const { results } = await DubberController.GetSearch({ q: query });
 
       // At least one result must match dubber id
-      expect(results.some(el => el.dubber.id === DubberID1)).toBeTruthy();
+      expect(results.some(el => el.id === DubberID1)).toBeTruthy();
     });
 
     test(`Test all search`, async () => {

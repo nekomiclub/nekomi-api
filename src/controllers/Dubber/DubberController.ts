@@ -6,7 +6,7 @@ import User, { IUser } from '~/core/interfaces/UserIntf';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { DubberGetOneByQuery, DubberGetOneByQueryProps } from './DubberControllerTypes';
+import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
 import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
@@ -104,16 +104,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
 
 //* ===================================== GET SEARCH
-export interface IDubberGetSearch {
-  /** Query ~all will return all dubbers */
-  q: string
-}
-
-export interface IDubberGetSearchResult {
-  dubber: IDubber
-}
-
-async function GetSearch({ q }: IDubberGetSearch) {
+async function GetSearch({ q }: DubberGetSearchProps): Promise<DubberGetSearch> {
   const limit = 15;
 
   let dubberResults: IDubber[] = [];
@@ -125,19 +116,13 @@ async function GetSearch({ q }: IDubberGetSearch) {
     dubberResults = Search.search({ query: q, engine: 'dubber', limit });
   }
 
-  const results: IDubberGetSearchResult[] = [];
+  const results: IDubber[] = [];
 
   dubberResults.forEach(dubber => {
-    results.push({
-      dubber: new DocumentDTO().dubber({ object: dubber, details: false })
-    });
+    results.push(new DocumentDTO().dubber({ object: dubber }));
   });
 
-  return {
-    status: 200,
-    message: 'ok',
-    results
-  };
+  return { results };
 }
 
 

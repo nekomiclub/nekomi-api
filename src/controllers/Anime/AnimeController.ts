@@ -5,7 +5,7 @@ import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
 import { DaysOfWeek } from '~/core/interfaces/types';
@@ -52,6 +52,7 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
   const limit = 15;
 
   let animeResults: Anime[] = [];
+  let dubbedEpisodes: AnimeGetSearch['extended']['dubbedEpisodes'] = {};
 
   if (q === '~all') {
     // Get all
@@ -66,11 +67,25 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
   const results: HydratedAnime[] = [];
 
   animeResults.forEach(anime => {
+    let maxEp: number | null = 0;
+
+    if (anime.episodes?.length > 0) {
+      anime.episodes.forEach(ep => ep.order > Number(maxEp) ? maxEp = ep.order : null);
+    } else {
+      maxEp = null;
+    }
+
+    dubbedEpisodes[anime.uuid] = maxEp;
     results.push(HydrateAnimeDocument(new DocumentDTO().anime({ object: anime })));
   });
 
+
+
   return {
-    results
+    results,
+    extended: {
+      dubbedEpisodes
+    }
   };
 }
 
@@ -189,8 +204,7 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
       }
     }
 
-    // TODO: && anime.status === ANIME_STATUS.CURRENTLY_AIRING
-    if (anime.broadcast) {
+    if (anime.broadcast && anime.status === ANIME_STATUS.CURRENTLY_AIRING) {
       const dayIndex = DaysOfWeek.findIndex(el => el === anime.broadcast?.day);
       const jstH = 23;
       const jstM = 30;

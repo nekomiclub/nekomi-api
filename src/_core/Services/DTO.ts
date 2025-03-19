@@ -85,7 +85,10 @@ export class DocumentDTO {
   anime({ object, details }: IDocumentDTOProps<Anime>): Anime {
     const keys: (keyof Anime)[] = [
       'episodes',
-      'episodesMeta'
+      'episodesMeta',
+      'updatedAt',
+      'related',
+      'malSyncedAt'
     ];
 
     return this.DTO<Anime>(object, details ? [] : keys);

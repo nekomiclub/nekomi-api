@@ -49,6 +49,11 @@ export interface AnimeGetSearchProps {
 
 export interface AnimeGetSearch {
   results: HydratedAnime[]
+  extended: {
+    dubbedEpisodes: {
+      [id: string]: number | null
+    }
+  }
 }
 
 

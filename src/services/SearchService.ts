@@ -69,7 +69,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
+      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
