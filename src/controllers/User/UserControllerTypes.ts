@@ -1,4 +1,5 @@
 import User, { UserTogetherRoom, UserWatchProgress } from '~/core/interfaces/UserIntf';
+import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { Metadata } from '~/core/interfaces/types';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
@@ -24,15 +25,22 @@ export interface UserGetByQueryProps {
   /** Return only metadata */
   metadataOnly?: boolean
   parseCapabilities?: boolean
+  parseLibId?: string
+  parseTogetherRoomId?: string
   detailed?: boolean
 }
 
 export interface UserGetByQuery {
   /** Will be undefined with metadataOnly specified */
-  user?: User
+  user: User
 
   capabilities?: TRoleCapability[]
   metadata?: Metadata
+  parsedLib?: HydratedAnime[]
+  parsedTogetherRoom?: {
+    anime: HydratedAnime
+    dubbers: DubberCompact[]
+  }
 }
 
 export interface UserGetLibProps {

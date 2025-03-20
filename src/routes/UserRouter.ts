@@ -70,8 +70,6 @@ UserRouter.get(`/search`, UserRoutes.GetSearch);
 UserRouter.get(`/logout`, userLogout, UserController.getLogout);
 UserRouter.get(`/validate`, userValidate, UserController.getValidate);
 UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
-UserRouter.get(`/:query/lib/:libId`, UserRoutes.GetLib);
-UserRouter.get(`/:query/together/:roomId`, UserRoutes.GetTogetherRoom);
 UserRouter.get(`/:query`, UserRoutes.GetByQuery);
 
 UserRouter.post(`/signin`, userSignin, UserController.postSignin);
