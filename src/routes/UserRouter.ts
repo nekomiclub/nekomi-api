@@ -13,45 +13,53 @@ const UserRouter = express.Router();
 
 
 
-export const userLinkTelegram = [
+const userPatch = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+  upload.single('file'),
+  body('method')
+    .notEmpty().withMessage('Patch method must be provided')
+];
+
+const userLinkTelegram = [
   CheckCSRF([config.DOMAIN.nekomi_bot]),
   body(['animeeID', 'telegramID'])
     .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
 ];
 
-export const userLinkTelegramToken = [
+const userLinkTelegramToken = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['basic'])
 ];
 
-export const userLinkTelegramTokenVerify = [
+const userLinkTelegramTokenVerify = [
   CheckCSRF([config.DOMAIN.nekomi_bot]),
   body('token')
     .notEmpty().withMessage('Token can not be empty')
 ];
 
-export const userSignin = [
+const userSignin = [
   CheckCSRF([config.DOMAIN.nekomi]),
   body('session')
     .notEmpty().withMessage('Session can not be empty'),
 ];
 
-export const userLogout = [
+const userLogout = [
   CheckCSRF([config.DOMAIN.nekomi]),
 ];
 
-export const userValidate = [
+const userValidate = [
   CheckCSRF([config.DOMAIN.nekomi]),
 ];
 
-export const userPostTogether = [
+const userPostTogether = [
   body('titleId')
     .notEmpty().withMessage('Title id can not be empty'),
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['basic']),
 ];
 
-export const userDeleteTogether = [
+const userDeleteTogether = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['basic']),
 ];
@@ -71,7 +79,7 @@ UserRouter.post([`/link/telegram`, `/linkTelegram`], userLinkTelegram, UserContr
 UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
 UserRouter.post('/together', userPostTogether, UserController.createTogetherRoom);
 
-UserRouter.patch([`/me`, '/:id', `/`], UserRoutes.PatchUser); //* / is deprecated
+UserRouter.patch([`/me`, `/`], userPatch, UserController.patchUser); //* / is deprecated
 
 UserRouter.delete('/together/:id', userDeleteTogether, UserController.deleteTogetherRoom);
 

@@ -349,6 +349,13 @@ export class UserService {
     this.user.markModified('watchProgress');
   }
 
+  async removeWatchProgress({ animeId }: { animeId: string }) {
+    this.user.watchProgress = this.user.watchProgress.filter(el => el.titleID !== animeId);
+    this.user.markModified('watchProgress');
+
+    this.stack.push(`Watch progress for anime was deleted. [animeId: ${animeId}]`);
+  }
+
   //* ------------ TELEGRAM DATA
 
   /** Patch user telegram data

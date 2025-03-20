@@ -179,6 +179,21 @@ export class UserService extends UserModelControls {
 
 
 
+  //* ============== AVATAR
+
+
+
+  //* ============== BANNER 
+
+
+
+  //* ============== USERNAME
+
+
+
+  //* ============== TELEGRAM DATA
+
+  //* ============== WATCH PROGRESS
   /** Patch watch progress & increase total viewtime */
   async patchWatchProgress(props: UserPatchWatchProgressProps) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -222,6 +237,9 @@ export class UserService extends UserModelControls {
     this.stack.push(`Watch progress for anime was deleted. [animeId: ${animeId}]`);
   }
 
+
+
+  //* ============== STATISTICS
   async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: UserPatchStatistics) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
@@ -263,6 +281,22 @@ export class UserService extends UserModelControls {
 
     this.document.markModified('statistics');
   }
+
+
+
+  //* ============== LIBS
+
+
+
+  //* ============== SUBSCRIBES
+
+
+
+  //* ============== ROLES
+
+
+
+  //* ============== WATCH TOGETHER
 }
 
 

@@ -26,13 +26,13 @@ import { getMockData } from '~/utils/deprecated-utils';
 
 
 /** Type of patchUserMethods array */
-type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner'
+type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner' | 'removeWatchProgress'
 
 interface IPatchUserBody {
   /** Method */
   method: TPatchUserMethod
 
-  //* editFolderItem, patchWatchProgress methods
+  //* editFolderItem, patchWatchProgress, removeWatchProgress methods
   titleId?: string
 
   //* editFolderItem method
@@ -310,6 +310,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       editFolderItem,
       patchWatchProgress,
       upload_banner,
+      removeWatchProgress,
     };
 
     const handler = HANDLERS[method];
@@ -370,6 +371,13 @@ export async function patchUser(req: express.Request, res: express.Response) {
       if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
 
       await patcher.uploadBanner({ file });
+    }
+
+    async function removeWatchProgress() {
+      const { titleId } = req.body as { titleId: string };
+      if (!titleId) throw new ERR_INVALID_PAYLOAD();
+
+      await patcher.removeWatchProgress({ animeId: titleId });
     }
   });
 }
