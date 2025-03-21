@@ -124,6 +124,12 @@ class AnimeModelControls implements AnimeModelControlsType {
     return new MongoDocumentDTO().anime({ document, details });
   }
 
+  async safeGetByQuery(uuid: string, details?: boolean): Promise<Anime | null> {
+    try {
+      return await this.getById(uuid, details);
+    } catch (e) { return null; }
+  }
+
   async getByQuery(query: string, details?: boolean): Promise<Anime> {
     const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }, { malId: +query }, { mal_id: query }] });
     if (!document) throw new E404(`Anime by query (${query}) is not found`);

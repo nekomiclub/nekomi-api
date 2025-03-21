@@ -140,6 +140,12 @@ class UserModelControls implements TUserModelControls {
 
     return new MongoDocumentDTO().user({ document, details });
   }
+
+  async safeGetByQuery(query: string, details?: boolean): Promise<User | null> {
+    try {
+      return await this.getByQuery(query, details);
+    } catch (e) { return null; }
+  }
 }
 
 

@@ -87,6 +87,8 @@ export interface ServiceControls<CREATE, OUT_DOC> {
   getById(id: string, details?: boolean): Promise<OUT_DOC>
   /** Get document by slug, code, etc */
   getByQuery(query: string, details?: boolean): Promise<OUT_DOC>
+  /** Similar with getById, but will no throw an error if document is not found */
+  safeGetByQuery(query: string, details?: boolean): Promise<OUT_DOC | null>
   /** Get list of all documents */
   getAll(details?: boolean): Promise<OUT_DOC[]>
 }

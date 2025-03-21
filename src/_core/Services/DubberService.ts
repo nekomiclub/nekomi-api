@@ -182,6 +182,12 @@ class DubberModelControls implements TDubberModelControls {
 
     return new MongoDocumentDTO().dubber({ document, details });
   }
+
+  async safeGetByQuery(query: string, details?: boolean): Promise<IDubber | null> {
+    try {
+      return await this.getByQuery(query, details);
+    } catch (e) { return null; }
+  }
 }
 
 /** 

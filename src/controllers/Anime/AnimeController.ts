@@ -219,23 +219,27 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
       time.setMilliseconds(0);
 
       nextBroadcast = +time;
-    }
-  }
-
-  // Fetch poster adapt
-  if (anime.posterAdapt) {
-    const dubber = dubbers?.find(el => el.id === anime.posterAdapt);
-
-    if (!dubber) {
-      // Fetch dubber
-      try {
-        const dubber = await new DubberService().getById(anime.posterAdapt);
-
-        posterAdapt = DubberCompactMapper(new DocumentDTO().dubber({ object: dubber }));
-      } catch (e) { Logger.fail(`[AnimeController]: Cannot find poster adapt dubber. [id: ${anime.posterAdapt}]`); }
     } else {
-      // Get dubber from anime dubbing
-      posterAdapt = dubber;
+      nextBroadcast = null;
+    }
+
+    // Fetch poster adapt
+    if (anime.posterAdapt) {
+      const dubber = dubbers?.find(el => el.id === anime.posterAdapt);
+
+      if (!dubber) {
+        // Fetch dubber
+        try {
+          const dubber = await new DubberService().getById(anime.posterAdapt);
+
+          posterAdapt = DubberCompactMapper(new DocumentDTO().dubber({ object: dubber }));
+        } catch (e) { Logger.fail(`[AnimeController]: Cannot find poster adapt dubber. [id: ${anime.posterAdapt}]`); }
+      } else {
+        // Get dubber from anime dubbing
+        posterAdapt = dubber;
+      }
+    } else {
+      posterAdapt = null;
     }
   }
 

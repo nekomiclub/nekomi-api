@@ -15,6 +15,7 @@ const getPing = HTTPEndpoint(async (req, res) => {
   });
 });
 
+/** @tested 2.1.0 */
 const GetPing = [
   getPing
 ];

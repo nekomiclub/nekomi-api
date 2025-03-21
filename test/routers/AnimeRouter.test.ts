@@ -110,6 +110,8 @@ describe('AnimeRouter', () => {
       expect(data.media).not.toBeUndefined();
       expect(data.rate).not.toBeUndefined();
       expect(data.season).not.toBeUndefined();
+      expect(data.posterAdapt).not.toBeUndefined();
+      expect(data.nextBroadcast).not.toBeUndefined();
     });
 
     it(`should return anime document in private mode`, async () => {
@@ -153,7 +155,6 @@ describe('AnimeRouter', () => {
       expect(data.metadata).not.toBeUndefined();
     });
 
-
     it('should fetch dubbers & related', async () => {
       const res = await request(app)
         .get(`/anime/${anime?.uuid}`)
@@ -166,6 +167,51 @@ describe('AnimeRouter', () => {
 
       expect(data.dubbers).not.toBeUndefined();
       expect(data.related).not.toBeUndefined();
+    });
+  });
+
+  describe('GET /anime/featured', () => {
+    it('should return featured animes', async () => {
+      const { body } = await request(app)
+        .get('/anime/featured')
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock]))
+        .set(config.vars.csrfHeader, '~')
+        .expect(200);
+
+      expect(body.headliners).not.toBeUndefined();
+      expect(body.hot).not.toBeUndefined();
+      expect(body.updatedRecently).not.toBeUndefined();
+      expect(body.rated).not.toBeUndefined();
+    });
+  });
+
+  describe('POST /anime', () => {
+    it('should create', async () => {
+      const { body } = await request(app)
+        .post('/anime')
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(201);
+
+      expect(body.anime.uuid).toBeTruthy();
+    });
+  });
+
+  describe('DELETE /anime/:uuid', () => {
+    it('should delete', async () => {
+      const anime = await new AnimeService().create({ nameEng: createID(12) });
+
+      await request(app)
+        .delete(`/anime/${anime.uuid}`)
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(204);
+
+      const afterDeleteAnime = await new AnimeService().safeGetByQuery(anime.uuid);
+
+      expect(afterDeleteAnime).toBeNull();
     });
   });
 });

@@ -37,6 +37,7 @@ const hskey = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.clu
 const hscert = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
 const hschain = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
+// TODO: Prevent listen in test mode. Remove SSL cert
 export const wss = ProductionMode ? new WebSocketServer({
   server: https.createServer({
     key: hskey,
@@ -107,11 +108,16 @@ const UpdateHandlers = [
 (async function () {
   wss.on('connection', WebsocketRouter);
 
-  app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, async () => {
-    Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+  if (!TestMode) {
+    app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
+      Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+    });
+  }
 
-    try {
-      if (!TestMode) console.log(`
+
+
+  try {
+    if (!TestMode) console.log(`
   ----------------------------
   NEKOMI-API STARTED UP
 
@@ -124,39 +130,38 @@ const UpdateHandlers = [
     `);
 
 
-      // Callback body
-      Promise.all(UpdateHandlers);
+    // Callback body
+    Promise.all(UpdateHandlers);
 
-      // TODO: remove after use
-      if (ProductionMode) {
-        Promise.all([
-          await ANIME_MODEL_UPDATE.run(),
-          await USER_MODEL_UPDATE.run(),
-        ]);
-      }
-
-
-
-      // Update cache
-      setInterval(async () => {
-        try {
-          Logger.debug(`[System]: Updating cache...`);
-          await Promise.all(UpdateHandlers);
-          Logger.debug(`[System]: Cache updated`);
-        } catch (e) {
-          Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
-        }
-      }, 21600000); // 21600000 // 6h
-
-
-      // Poll site online
-      setInterval(async () => {
-        await WebSocketOnlinePoll();
-      }, 600000); // 600000 // 10m
-    } catch (e) {
-      Logger.error('[System]: An error occured in one of post-init handlers', e);
+    // TODO: remove after use
+    if (ProductionMode) {
+      Promise.all([
+        await ANIME_MODEL_UPDATE.run(),
+        await USER_MODEL_UPDATE.run(),
+      ]);
     }
-  });
+
+
+
+    // Update cache
+    setInterval(async () => {
+      try {
+        Logger.debug(`[System]: Updating cache...`);
+        await Promise.all(UpdateHandlers);
+        Logger.debug(`[System]: Cache updated`);
+      } catch (e) {
+        Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
+      }
+    }, 21600000); // 21600000 // 6h
+
+
+    // Poll site online
+    setInterval(async () => {
+      await WebSocketOnlinePoll();
+    }, 600000); // 600000 // 10m
+  } catch (e) {
+    Logger.error('[System]: An error occured in one of post-init handlers', e);
+  }
 })();
 
 app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {

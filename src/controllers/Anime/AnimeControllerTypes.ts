@@ -33,10 +33,10 @@ export interface AnimeGetByQuery extends HydratedAnime {
   related?: HydratedAnime[]
   dubbers?: DubberCompact[]
   metadata?: Metadata
-  posterAdapt?: DubberCompact
+  posterAdapt?: DubberCompact | null
 
   /** UTC-0 timestamp of next planned broadcast */
-  nextBroadcast?: number
+  nextBroadcast?: number | null
 }
 
 export interface AnimeGetSearchProps {

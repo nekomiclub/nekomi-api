@@ -53,6 +53,7 @@ const getFeatured = HTTPEndpoint(async (req, res) => {
   return res.status(200).json({ message: 'ok', ...data });
 });
 
+/** @tested 2.1.0 */
 const GetFeatured = [
   CheckCSRF([config.DOMAIN.nekomi]),
   getFeatured
@@ -100,6 +101,7 @@ const postAnime = HTTPEndpoint(async (req, res) => {
   return res.status(201).json({ message: 'ok', anime });
 });
 
+/** @tested 2.1.0 */
 const PostAnime = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['titleAdd']),
@@ -121,9 +123,10 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
   return res.status(204).json({ message: 'ok' });
 });
 
+/** @tested 2.1.0 */
 const DeleteByUuid = [
   CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['titleAdd']),
+  CheckAccess(['titleDelete']),
   deleteByUuid,
 ];
 
