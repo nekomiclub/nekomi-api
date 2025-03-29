@@ -30,7 +30,7 @@ AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
 AnimeRouter.post('/', AnimeRoutes.PostAnime);
 AnimeRouter.post('/episode'); // TODO:
 
-AnimeRouter.put('/poster'); // TODO:
+AnimeRouter.put('/poster', AnimeRoutes.PutPoster);
 
 AnimeRouter.patch('/:uuid', patchTitleId, TitleController.patchTitle);
 

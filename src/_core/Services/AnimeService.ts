@@ -9,13 +9,13 @@ import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
 import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
-import { TestMode, config } from '~/config';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
 import { parseRoles } from '~/models/Role';
@@ -654,7 +654,7 @@ export class AnimeService extends AnimeModelControls {
 
 
     // Remove old poster only if it is on nekomi and not default
-    const uploadsOrigin = TestMode ? '127.0.0.1' : config.DOMAIN.nekomi;
+    const uploadsOrigin = DevelopmentMode ? '127.0.0.1' : config.DOMAIN.nekomi;
     if (oldPosterURL.match(uploadsOrigin) && oldPosterURL !== config.vars.defaultPoster) {
       if (!TestMode) {
         try {

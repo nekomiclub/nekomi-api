@@ -6,7 +6,7 @@ import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps } from './AnimeControllerTypes';
+import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
@@ -281,6 +281,20 @@ async function PostAnime({ nameEng }: AnimePostProps): Promise<Anime> {
 
 
 //* ===================================== PUT POSTER
+/**
+ * Put poster
+ * 
+ * @see AnimePutPosterProps
+ * @return AnimePutPoster
+ */
+async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<AnimePutPoster> {
+  const animeService = new AnimeService();
+  await animeService.init(uuid);
+
+  const { url } = await animeService.putPoster(file, user);
+
+  return { url };
+}
 
 
 
@@ -311,6 +325,8 @@ export default class AnimeController {
   static GetFeatured = GetFeatured;
 
   static PostAnime = PostAnime;
+
+  static PutPoster = PutPoster;
 
   static DeleteByUuid = DeleteByUuid;
 }

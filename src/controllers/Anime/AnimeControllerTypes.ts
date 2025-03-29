@@ -1,4 +1,5 @@
 import Anime, { HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import User from '~/core/interfaces/UserIntf';
 import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { Metadata } from '~/core/interfaces/types';
 
@@ -75,4 +76,16 @@ export interface AnimePostProps {
 
 export interface AnimeDeleteByUuidProps {
   uuid: string
+}
+
+export interface AnimePutPosterProps {
+  file: Express.Multer.File
+  user: User
+
+  /** Anime uuid */
+  uuid: string
+}
+
+export interface AnimePutPoster {
+  url: string
 }
