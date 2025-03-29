@@ -29,6 +29,7 @@ export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   season: String,
   genres: Array,
   posterAdapt: String,
+  stopSync: Object
 }));
 
 

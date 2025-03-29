@@ -140,24 +140,27 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
       genres: [],
       malId: title.mal_id !== null ? +title.mal_id : null,
       malSyncedAt: 0,
-      media: 'unknown',
+      media: ANIME_MEDIA_TYPE.UNKNOWN,
       names: title.names,
       pictures: [],
       poster: title.poster,
       posterAdapt: null,
-      rate: 'g',
+      rate: ANIME_RATE.G,
       related: [],
       score: {
         imdb: title.rating.IMDB,
         mal: title.rating.mal,
         malScoredBy: title.rating.mal_poll
       },
-      season: 'fall',
+      season: ANIME_SEASON.FALL,
       slug: title.code,
-      status: 'currently_airing',
+      status: ANIME_STATUS.CURRENTLY_AIRING,
       studios: [],
       updatedAt: title.updatedAt,
-      year: title.year
+      year: title.year,
+      stopSync: {
+        mal: false
+      }
     };
 
     //* Mapper anime.genres

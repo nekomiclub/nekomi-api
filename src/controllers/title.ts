@@ -3,8 +3,8 @@ import express from 'express';
 import DubberModel from '~/core/models/DubberModel';
 import User from '~/models/User';
 import { AnimeEpisodeMeta, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType } from '~/core/interfaces/AnimeIntf';
+import { AnimeEpisodeQualityType, EpisodeQualities } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { E404, ERR_ACCESS_REJECTED, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
-import { EpisodeQualities, TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 
 import TitleModel from '~/core/models/TitleModel';
@@ -58,7 +58,7 @@ interface IUploadEpisode {
   type: TPatchTitleFormDataType
   order: number,
   dubberID: string
-  qualities: TEpisodeQuality[]
+  qualities: AnimeEpisodeQualityType[]
 }
 
 interface IUploadPoster {
@@ -104,7 +104,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
         return res.status(200).json({ message: 'Poster uploaded', id, posterURL });
       } else if (type === 'upload_episode') {
         const { dubberID } = req.body as IUploadEpisode;
-        let qualities = JSON.parse(req.body.qualities) as TEpisodeQuality[];
+        let qualities = JSON.parse(req.body.qualities) as AnimeEpisodeQualityType[];
         let { order } = req.body as IUploadEpisode;
 
         const dubber = await DubberModel.findOne({ id: dubberID });
@@ -119,7 +119,7 @@ export async function patchTitle(req: express.Request, res: express.Response) {
           if (isNaN(+el)) throw new ERR_TYPE_INVALID(`Quality ${el} is not a number`);
         });
 
-        let tmpQualities: TEpisodeQuality[] = [];
+        let tmpQualities: AnimeEpisodeQualityType[] = [];
 
         qualities.forEach(quality => {
           if (EpisodeQualities.includes(quality)) tmpQualities.push(quality);

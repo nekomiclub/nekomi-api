@@ -6,16 +6,14 @@
 
 /** Episode processing qualities */
 export const EpisodeQualities = [240, 480, 720, 1080, 2160] as const;
-export type TEpisodeQuality = typeof EpisodeQualities[number];
+export type AnimeEpisodeQualityType = typeof EpisodeQualities[number];
 
-export type TUploadType =
+export type NekomiUploadType =
   'photo/user/avatar'
   | 'photo/user/banner'
   | 'photo/title/poster'
   | 'photo/raw'
   | 'video/title/episode'
-  | 'video/srt'
-  | 'video/srt-temp'
 
 export interface NekomiUploadsAPI_UploadFile {
   id: string

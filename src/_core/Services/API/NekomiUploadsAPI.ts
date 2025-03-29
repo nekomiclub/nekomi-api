@@ -1,7 +1,7 @@
 import { $upload } from '~/services/HTTPService';
+import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploadsAPI_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { AxiosError } from 'axios';
 import { Logger } from '~/services/LoggerService';
-import { NekomiUploadsAPI_UploadFile, TEpisodeQuality, TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { config } from '~/config';
 
 
@@ -9,8 +9,8 @@ import { config } from '~/config';
 interface IUploadFileProps {
   file: Express.Multer.File
   uploadedById: string
-  type: TUploadType
-  qualities?: TEpisodeQuality[]
+  type: NekomiUploadType
+  qualities?: AnimeEpisodeQualityType[]
 }
 
 interface IDeleteUploadProps {

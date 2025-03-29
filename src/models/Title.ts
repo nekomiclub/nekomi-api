@@ -9,6 +9,7 @@ import puppeteer from 'puppeteer';
 import validator from 'validator';
 import { $upload } from '~/services/HTTPService';
 import { AnimeAgeRatesOld, AnimeEpisode, AnimeEpisodeMeta, AnimeGenresOld, AnimeSeasonsOld, AnimeStatusesOld, TAnimeAgeRate, TAnimeGenre, TAnimeSeason, TAnimeStatus, TTitleCountry, TTitleType, TitleCountriesOld, TitleOld, TitleTypesOld } from '~/core/interfaces/AnimeIntf';
+import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { AxiosError } from 'axios';
 import { E403, E404, E500, E503, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { IChangeEpMeta } from '~/controllers/title';
@@ -17,7 +18,6 @@ import { INotifyAiringStarted, INotifyNewEpisode } from '~/interfaces/types';
 import { IUser } from '~/core/interfaces/UserIntf';
 import { Logger } from '~/services/LoggerService';
 import { Notify } from '~/services/NotifyService';
-import { TEpisodeQuality } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { TitleModel } from '~/core/models/TitleModel';
 import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
@@ -73,7 +73,7 @@ interface IUploadEpisode {
   user: HydratedDocument<IUser>,
   dubber: HydratedDocument<IDubber>
   episodeOrder: number
-  qualities: TEpisodeQuality[]
+  qualities: AnimeEpisodeQualityType[]
 }
 
 interface IUploadPoster {

@@ -192,6 +192,18 @@ const VALIDATION = {
     MinimumLibNameLength: 3,
     MaximumLibNameLength: 32,
     MaximumIncreaseViewtime: 7200, // 2h
+  },
+
+  Anime: {
+    minYear: 2007,
+    maxYear: getUTC().year + 1,
+
+    maxNameLength: 320,
+    maxAltNamesLength: 7,
+    maxStudiosLength: 7,
+    maxEpisodesCount: 9999,
+    maxDescriptionLength: 2200,
+    maxDetailsLength: 500,
   }
 };
 

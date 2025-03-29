@@ -1,4 +1,4 @@
-import AnimeModel from '~/core/models/TitleModel';
+import AnimeModel from '~/core/models/AnimeModel';
 import express from 'express';
 import { E500 } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
@@ -50,9 +50,25 @@ export const GetCheckAccessMock = (req: express.Request) => getMock(req, MockID.
 
 
 export async function testPurge() {
-  const purgeRegex = /~test/gi;
+  const purgeRegex = /^~test/;
 
   await AnimeModel.deleteMany({ uuid: { $regex: purgeRegex } });
 
   Logger.info(`[Testing]: Testing documents were purged`);
+}
+
+/** Fail test suite */
+export const testfail = () => expect(true).toBeFalsy();
+
+/** Pass test suite */
+export const testpass = () => expect(true).toBeTruthy();
+
+/** Pass test only if passed function throws an error */
+export async function shouldfail(func: () => Promise<void>) {
+  try {
+    await func();
+    testfail();
+  } catch (e) {
+    testpass();
+  }
 }

@@ -302,6 +302,7 @@ export class UserService {
 
       this.stack.push(`Changed dubber team id (${this.user.statistics.dubber_team_member} > ${dubber_team_member})`);
       this.user.statistics.dubber_team_member = dubber_team_member;
+      this.user.statistics.dubberTeamMember = dubber_team_member;
     }
 
     this.user.markModified('statistics');

@@ -29,10 +29,10 @@ const ROUTER: { [TYPE in TWS_Request]?: TRouterFunction } = {
   site_connected,
   site_disconnected,
 
-  wt_connect,
-  wt_disconnect,
-  wt_message,
-  wt_sync,
+  // wt_connect,
+  // wt_disconnect,
+  // wt_message,
+  // wt_sync,
 };
 
 const PRIVATE_ROUTES: TWS_Type[] = [

@@ -5,7 +5,7 @@ import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
 import { DaysOfWeek } from '~/core/interfaces/types';
@@ -169,7 +169,7 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
   const anime = animeService.anime;
 
   // Sync with myanimelist
-  if (anime.malId !== null && getUTC().timestamp > Number(anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) await animeService.syncWithMyAnimeList();
+  await animeService.syncWithMyAnimeList();
 
   let related: AnimeGetByQuery['related'] = undefined;
   let dubbers: AnimeGetByQuery['dubbers'] = undefined;
@@ -204,7 +204,8 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
       }
     }
 
-    if (anime.broadcast && anime.status === ANIME_STATUS.CURRENTLY_AIRING) {
+    //! && anime.status === ANIME_STATUS.CURRENTLY_AIRING
+    if (anime.broadcast) {
       const dayIndex = DaysOfWeek.findIndex(el => el === anime.broadcast?.day);
       const jstH = 23;
       const jstM = 30;

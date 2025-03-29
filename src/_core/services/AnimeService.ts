@@ -1,11 +1,15 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeStudio } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
+import DubberService from './DubberService';
+import NekomiUploadsAPI from './API/NekomiUploadsAPI';
 import Search from '~/services/SearchService';
+import User from '~/core/interfaces/UserIntf';
 import axios from 'axios';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
-import { E400, E404, ERR_ALREADY_EXIST, ERR_NO_DOCUMENT } from '~/services/ErrorService';
+import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/mal-mappers';
@@ -14,11 +18,27 @@ import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { TestMode, config } from '~/config';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
+import { parseRoles } from '~/models/Role';
 
 
 
 interface AnimeCreateProps {
   nameEng: string
+
+  /** Save the document. @default true */
+  savedoc?: boolean
+}
+
+interface AnimePutPoster {
+  url: string
+
+  /** Testing flag that says that old poster has been deleted */
+  oldPosterRemoved?: boolean
+}
+
+interface AnimeDeleteEpisode {
+  /** Testing flag that says that episode has been deleted */
+  episodeDeleted?: boolean
 }
 
 type AnimeModelControlsType = ServiceControls<AnimeCreateProps, Anime>
@@ -30,9 +50,8 @@ export const ERR_NAME_LENGTH_INVALID = new E400(`English name must be between ${
 
 
 class AnimeModelControls implements AnimeModelControlsType {
-  async create(props: AnimeCreateProps): Promise<Anime> {
-    let { nameEng } = props;
-
+  async create({ nameEng, savedoc }: AnimeCreateProps): Promise<Anime> {
+    savedoc = savedoc ?? true;
     nameEng = trimString(nameEng);
 
     // Validate eng name length
@@ -62,6 +81,10 @@ class AnimeModelControls implements AnimeModelControlsType {
         malScoredBy: null
       },
 
+      stopSync: {
+        mal: false
+      },
+
       media: ANIME_MEDIA_TYPE.UNKNOWN,
       rate: ANIME_RATE.G,
       season: ANIME_SEASON.SPRING,
@@ -87,11 +110,16 @@ class AnimeModelControls implements AnimeModelControlsType {
     };
 
     const document = new AnimeModel(instance);
-    await document.save();
 
-    await Search.update('anime');
+    if (savedoc) {
+      await document.save();
 
-    Logger.info(`[AnimeService]: New document has been created. [uuid: ${uuid}]`);
+      await Search.update('anime');
+
+      Logger.info(`[AnimeService]: New document has been created. [uuid: ${uuid}]`);
+    } else {
+      Logger.info(`[AnimeService]: New document has been created, but not saved. [uuid: ${uuid}]`);
+    }
 
     return instance;
   }
@@ -141,8 +169,12 @@ class AnimeModelControls implements AnimeModelControlsType {
 
 
 export class AnimeService extends AnimeModelControls {
-  private document: HydratedDocument<Anime> | null = null;
+  /** TO GET ANIME OBJECT USE get.anime INSTEAD. THIS IS PRIVATE OBJECT */
+  readonly document: HydratedDocument<Anime> | null = null;
   private stack: string[] = [];
+
+  /** Anime validation config */
+  private _vl = config.VALIDATION.Anime;
 
 
 
@@ -150,6 +182,7 @@ export class AnimeService extends AnimeModelControls {
     const document = await AnimeModel.findOne({ $or: [{ uuid: query }, { slug: query }] }); // Hydrated document required, find by built-in method is not possible
     if (!document) throw new E404(`Document with query (${query}) is not found`);
 
+    // @ts-expect-error
     this.document = document;
   }
 
@@ -173,10 +206,329 @@ export class AnimeService extends AnimeModelControls {
 
 
 
-  /** Fetch details from myanimelist & save */
+  /**  
+   * Set malId. Value can be null
+   * 
+   * @tested 2.1.0 
+  */
+  async setMalId(malId: number | null) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('malId');
+
+    if (malId === null || malId < 0) {
+      this.stack.push(`MalID deleted`);
+
+      this.document.malId = null;
+
+      return;
+    }
+
+    this.stack.push(`Changed malId (${this.document.malId} > ${malId})`);
+
+    this.document.malId = malId;
+  }
+
+
+
+  /** 
+   * Set description. Zero-length value will set as null
+   * 
+   * @tested 2.1.0
+   */
+  async setDescription(description: string | null) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('description');
+
+    if (description === null || description.length === 0) {
+      this.stack.push(`Description removed`);
+
+      this.document.description = null;
+      return;
+    }
+
+    description = trimString(description);
+
+    if (!validator.isLength(description, { max: this._vl.maxDescriptionLength })) throw new ERR_LENGTH_INVALID(`Description length is too long`);
+
+    this.stack.push(`Description changed (${this.document.description?.length} > ${description.length})`);
+
+    this.document.description = description;
+  }
+
+
+
+  /** 
+   * Set details. Zero-length value will set as null
+   * 
+   * @tested 2.1.0
+   */
+  async setDetails(details: string | null) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('details');
+
+    if (details === null || details.length === 0) {
+      this.stack.push(`Details removed`);
+
+      this.document.details = null;
+      return;
+    }
+
+    details = trimString(details);
+
+    if (!validator.isLength(details, { max: this._vl.maxDetailsLength })) throw new ERR_LENGTH_INVALID(`Details length is too long`);
+
+    this.stack.push(`Details changed (${this.document.details?.length} > ${details.length})`);
+
+    this.document.details = details;
+  }
+
+
+
+  /**
+   * Set episodes count. Value 0 will set as null
+   * 
+   * @tested 2.1.0
+   */
+  async setEpisodesCount(episodesCount: number | null) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('episodesCount');
+
+    if (episodesCount === null || episodesCount <= 0) {
+      this.stack.push(`Episodes count deleted`);
+
+      this.document.episodesCount = null;
+
+      return;
+    }
+
+    if (episodesCount > this._vl.maxEpisodesCount) throw new ERR_LENGTH_INVALID(`Episodes count are too much`);
+
+    this.stack.push(`Episodes count changed (${this.document.episodesCount} > ${episodesCount})`);
+    this.document.episodesCount = episodesCount;
+  }
+
+
+
+  /**
+   * Set year
+   * 
+   * @tested 2.1.0
+   */
+  async setYear(year: number) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('year');
+
+    if (year < this._vl.minYear || year > this._vl.maxYear) throw new ERR_LENGTH_INVALID(`Year is out of range`);
+
+    this.stack.push(`Year changed (${this.document.year} > ${year})`);
+    this.document.year = year;
+  }
+
+
+
+  /**
+   * Should set rate
+   * 
+   * @tested 2.1.0
+   */
+  async setRate(rate: ANIME_RATE) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('rate');
+
+    this.stack.push(`Rate changed (${this.document.rate} > ${rate})`);
+    this.document.rate = rate;
+  }
+
+
+
+  /**
+   * Set status
+   * 
+   * @tested 2.1.0
+   */
+  async setStatus(status: ANIME_STATUS) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('status');
+
+    this.stack.push(`Status changed (${this.document.status} > ${status})`);
+    this.document.status = status;
+  }
+
+
+
+  /**
+   * Set season
+   * 
+   * @tested 2.1.0
+   */
+  async setSeason(season: ANIME_SEASON) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('season');
+
+    this.stack.push(`Season changed (${this.document.season} > ${season})`);
+    this.document.season = season;
+  }
+
+
+
+  /**
+   * Set media
+   * 
+   * @tested 2.1.0
+   */
+  async setMedia(media: ANIME_MEDIA_TYPE) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('media');
+
+    this.stack.push(`Media changed (${this.document.media} > ${media})`);
+    this.document.media = media;
+  }
+
+  /**
+   * Set names
+   * English name will also change the slug
+   */
+  async setNames({ alt, eng, ukr }: Partial<Anime['names']>) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('names');
+    this.document.markModified('slug');
+
+    if (eng !== undefined) {
+      eng = trimString(eng);
+      if (!validator.isLength(eng, { max: this._vl.maxNameLength })) throw new ERR_LENGTH_INVALID(`Eng name length is too large`);
+
+      this.stack.push(`Eng name changed (${this.document.names.eng} > ${eng})`);
+      this.document.names.eng = eng;
+
+      // Change slug
+      const slug = createSlug(eng);
+
+      this.stack.push(`Slug changed (${this.document.slug} > ${slug})`);
+      this.document.slug = slug;
+    }
+
+    if (ukr !== undefined) {
+      ukr = trimString(ukr);
+      if (!validator.isLength(ukr, { max: this._vl.maxNameLength })) throw new ERR_LENGTH_INVALID(`Ukr name length is too large`);
+
+      this.stack.push(`Ukr name changed (${this.document.names.ukr} > ${ukr})`);
+      this.document.names.ukr = ukr;
+    }
+
+    if (alt !== undefined) {
+      if (alt.length > this._vl.maxAltNamesLength) throw new ERR_LENGTH_INVALID(`Alt names length is too large`);
+
+      alt = alt.map(name => {
+        name = trimString(name);
+        if (!validator.isLength(name, { max: this._vl.maxNameLength })) throw new ERR_LENGTH_INVALID(`Alt name length is too large`);
+
+        return name;
+      });
+
+      this.stack.push(`Alt names changed (${this.document?.names.alt.length} > ${alt.length})`);
+      this.document.names.alt = alt;
+    }
+  }
+
+
+
+  /**
+   * Set stop sync flags
+   * 
+   * @todo
+   */
+  async setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
+    if (mal !== undefined) {
+
+    }
+
+    if (shikimori !== undefined) {
+
+    }
+  }
+
+
+
+
+  /** 
+   * Set poster adapted by dubber
+   */
+  async setPosterAdapt(dubberId: Anime['posterAdapt']) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('posterAdapt');
+
+    if (dubberId === null) {
+      this.stack.push(`Poster adapt removed`);
+      this.document.posterAdapt = null;
+
+      return;
+    }
+
+    await new DubberService().getById(dubberId);
+    this.stack.push(`Poster adapt changed (${this.document.posterAdapt} > ${dubberId})`);
+    this.document.posterAdapt = dubberId;
+  }
+
+
+
+  /**
+   * Set score
+   * 
+   * @todo
+   */
+  async setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
+    if (imdb !== undefined) {
+
+    }
+
+    if (mal !== undefined) {
+
+    }
+
+    if (malScoredBy !== undefined) {
+
+    }
+  }
+
+
+
+  /** 
+   * Set studios
+   * 
+   * @todo make it normal, with id's
+   */
+  async setStudios(studios: string[]) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('studios');
+
+    if (studios.length > config.VALIDATION.PatchTitle.maxStudioLength) throw new ERR_LENGTH_INVALID(`Studios are too many`);
+
+    const newStudios: AnimeStudio[] = studios.map(name => {
+      name = trimString(name);
+
+      if (!validator.isLength(name, { max: config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Studio ${name} length is too large`);
+
+      return {
+        id: '-1',
+        name
+      };
+    });
+
+
+    this.stack.push(`Studios changed (${this.document.studios.map(el => el.name).join(', ')} > ${newStudios.map(el => el.name).join(', ')})`);
+    this.document.studios = newStudios;
+  }
+
+
+
+  /** 
+   * Sync anime details with myanimelist
+   * Will save the document
+   */
   async syncWithMyAnimeList() {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return;
+    if (this.anime.stopSync?.mal === true || (typeof this.anime.stopSync.mal === 'number' && this.anime.stopSync.mal < getUTC().timestamp)) return; // Check if sync is not prevented
+    if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return; // Check if sync timed out
 
     const API_ENDPONT = `https://api.myanimelist.net/v2`;
     const fields: (keyof MyAnimeListNode)[] = [
@@ -238,6 +590,156 @@ export class AnimeService extends AnimeModelControls {
     } catch (e) {
       return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
     }
+  }
+
+
+
+  /**
+   * Sync anime photos with shikimori
+   * 
+   * @todo
+   */
+  async syncWithShikimori() {
+
+  }
+
+
+
+  /**
+   * Replace old poster with new one
+   * Will save the document
+   * 
+   * @access titleEdit
+   * @tested 2.1.0
+   */
+  async putPoster(file: Express.Multer.File, user: User): Promise<AnimePutPoster> {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const capabilities = await parseRoles(user.roles);
+    if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
+
+    const oldPosterId = NekomiUploadsAPI.getUploadIdFromURL(this.document.poster);
+    const oldPosterURL = this.document.poster;
+    let newUploadId: string | null = null;
+    let newUploadURL: string | null = null;
+
+
+
+    // Upload new poster
+    if (!TestMode) {
+      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
+
+      newUploadId = res.id;
+      newUploadURL = res.url;
+    } else {
+      newUploadId = createUUID();
+      newUploadURL = `${config.URL.nekomi_media}/${newUploadId}`;
+    }
+
+    const returnPayload: AnimePutPoster = {
+      url: newUploadURL
+    };
+
+
+
+    // Save new poster
+    this.stack.push(`Poster changed (id: ${oldPosterId} > ${newUploadId})`);
+    Logger.info(`[AnimeService/${this.document.uuid}]: Poster changed. [id: ${newUploadId}; by: ${user.id}]`);
+
+    this.document.poster = newUploadURL;
+    this.document.markModified('poster');
+
+    await this.save();
+
+
+
+    // Remove old poster only if it is on nekomi and not default
+    const uploadsOrigin = TestMode ? '127.0.0.1' : config.DOMAIN.nekomi;
+    if (oldPosterURL.match(uploadsOrigin) && oldPosterURL !== config.vars.defaultPoster) {
+      if (!TestMode) {
+        try {
+          await NekomiUploadsAPI.deleteUpload({ id: oldPosterId, deletedById: user.id });
+          Logger.info(`[AnimeSerivce/${this.document.uuid}]: Old anime poster removed. [id: ${oldPosterId}; by: ${user.id}]`);
+        } catch (e) {
+          Logger.fail(`[AnimeService/${this.document.uuid}]: Failed remove old anime poster. [id: ${oldPosterId}]`);
+        }
+      }
+
+      // Set flag that poster has been deleted
+      returnPayload.oldPosterRemoved = true;
+    }
+
+    return returnPayload;
+  }
+
+
+
+  /** 
+   * Upload new anime episode
+   * Dubber member can upload episode only in own dubbing
+   * Will save the document
+   * 
+   * @access seriesAdd
+   */
+  async uploadEpisode(file: Express.Multer.File, dubberId: string, order: number, qualities: AnimeEpisodeQualityType[], user: User) {
+    // if (!this.document) throw ERR_NO_DOCUMENT;
+
+    // const capabilities = await parseRoles(user.roles);
+    // if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+    // if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
+
+    // if (order > this._vl.maxEpisodesCount || order < 0) throw new E400(`Order is out of range`);
+    // if (this.document.episodes.some(el => el.dubberID === dubberId && el.order === order)) throw new ERR_ALREADY_EXIST(`Episode in this dub and order already exist`);
+
+    // const dubber = await new DubberService().getById(dubberId);
+
+    // if (!TestMode) {
+    //   const res = await NekomiUploadsAPI.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
+    // }
+  }
+
+
+
+  /**
+   * Delete exist anime episode
+   * Dubber member can delete episode only from own dubbing
+   * Will save the document
+   * 
+   * @access seriesDelete
+   */
+  async deleteEpisode(dubberId: string, order: number, user: User): Promise<AnimeDeleteEpisode> {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const capabilities = await parseRoles(user.roles);
+    if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot delete episodes from not own dubbing`);
+
+    const episode = this.document.episodes.find(el => el.dubberID === dubberId && el.order === order);
+    if (!episode) {
+      Logger.fail(`[AnimeService/${this.document.uuid}]: Cannot delete not exist episode`);
+
+      return {};
+    }
+
+    const uploadId = NekomiUploadsAPI.getUploadIdFromURL(episode.qualities.q1080);
+
+    if (!TestMode) {
+      await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
+    }
+
+    const msg = `Episode deleted. [id: ${uploadId}; dubberId: ${dubberId}; order: ${order}]`;
+
+    Logger.debug(`[AnimeService/${this.document.uuid}]: ${msg}`);
+    this.stack.push(msg);
+
+    this.document.episodes = this.document.episodes.filter(el => el.dubberID !== dubberId && el.order !== order);
+    this.document.markModified('episodes');
+
+    await this.save();
+
+    return {
+      episodeDeleted: true
+    };
   }
 }
 

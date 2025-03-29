@@ -23,6 +23,9 @@ interface UserCreateProps {
   /** Specifies if user was handled by fullkekw user api. Will pass some checks if true */
   byUserApi?: boolean
   DEV_ID?: string
+
+  /** Specifies if document will be saved. @default true */
+  savedoc?: boolean
 }
 
 interface UserLibFactoryProps {
@@ -59,7 +62,8 @@ export const ERR_VIEWTIME_INVALID = new E400(`Lib name must be between ${config.
 
 
 class UserModelControls implements TUserModelControls {
-  async create({ username, DEV_ID, avatar, byUserApi }: UserCreateProps): Promise<User> {
+  async create({ username, DEV_ID, avatar, byUserApi, savedoc }: UserCreateProps): Promise<User> {
+    savedoc = savedoc ?? true;
     username = createSlug(trimString(username));
 
     if (!byUserApi) {
@@ -99,9 +103,13 @@ class UserModelControls implements TUserModelControls {
     };
 
     const document = new UserModel(instance);
-    await document.save();
 
-    Logger.info(`[UserService]: New document was created. [id: ${id}]`);
+    if (savedoc) {
+      await document.save();
+      Logger.info(`[UserService]: New document was created. [id: ${id}]`);
+    } else {
+      Logger.warn(`[UserService]: New document was created but not saved. [id: ${id}]`);
+    }
 
     return instance;
   }

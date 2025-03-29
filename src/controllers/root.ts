@@ -3,7 +3,7 @@ import express from 'express';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import { AxiosError } from 'axios';
 import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '~/services/ErrorService';
-import { TUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { NekomiUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 
 
 
@@ -19,7 +19,7 @@ export async function postUpload(req: express.Request, res: express.Response) {
     const file = req.file;
     if (!file) throw new ERR_INVALID_PAYLOAD('File is not provided');
 
-    const { type } = req.body as { type: TUploadType };
+    const { type } = req.body as { type: NekomiUploadType };
 
     const UPLOAD_DATA: { url: string, id: string, srt_id?: string, frames?: number } = {
       url: '',

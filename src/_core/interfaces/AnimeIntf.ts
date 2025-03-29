@@ -10,42 +10,48 @@ export interface Anime {
   episodesCount: number | null
   description: string | null
   details: string | null
+  broadcast: AnimeBroadcast | null
+  genres: ANIME_GENRE[]
+  rate: ANIME_RATE
+  status: ANIME_STATUS
+  season: ANIME_SEASON
+  media: ANIME_MEDIA_TYPE
+  studios: AnimeStudio[]
+  malId: number | null
 
-  /** UTC-0 timestamp */
+  /** UTC timestamp @private */
   updatedAt: number
-
   /** @private */
   episodes: AnimeEpisode[]
   /** @private */
   episodesMeta: AnimeEpisodeMeta[]
-
-  names: {
-    eng: string
-    ukr: string
-    alt: string[]
-  },
-
-  broadcast: AnimeBroadcast | null
-  genres: AnimeGenreType[]
-  rate: AnimeRateType
-  status: AnimeStatusType
-  season: AnimeSeasonType
-  media: AnimeMediaType
-  studios: AnimeStudio[]
-  malId: number | null
-  /** MAL sync UTC-0 timestamp @since 2.1.0 */
+  /** MAL sync UTC timestamp @since 2.1.0 @private */
   malSyncedAt: number | null
-  /** Anime pictures URL's @since 2.1.0 */
+  /** Anime pictures URL's @since 2.1.0 @private */
   pictures: string[]
-  /** Related animes ID's @since 2.1.0 */
+  /** Related animes ID's @since 2.1.0 @private */
   related: string[]
   /** Poster adapted by dubber ID @since 2.1.0 */
   posterAdapt: string | null
+
+  /** Prevent services sync @since 2.1.0 @private */
+  stopSync: {
+    /** Prevent sync at all */
+    mal?: boolean
+    /** Prevent sync at all */
+    shikimori?: boolean
+  }
 
   score: {
     imdb: number | null
     mal: number | null
     malScoredBy: number | null
+  }
+
+  names: {
+    eng: string
+    ukr: string
+    alt: string[]
   }
 }
 
@@ -147,11 +153,11 @@ export interface AnimeStudio {
   name: string
 }
 
-export type AnimeGenre = KeyValueDescription<AnimeGenreType>
-export type AnimeRate = KeyValueDescription<AnimeRateType>;
-export type AnimeStatus = KeyValue<AnimeStatusType>;
-export type AnimeSeason = KeyValue<AnimeSeasonType>;
-export type AnimeMedia = KeyValue<AnimeMediaType>;
+export type AnimeGenre = KeyValueDescription<ANIME_GENRE>
+export type AnimeRate = KeyValueDescription<ANIME_RATE>;
+export type AnimeStatus = KeyValue<ANIME_STATUS>;
+export type AnimeSeason = KeyValue<ANIME_SEASON>;
+export type AnimeMedia = KeyValue<ANIME_MEDIA_TYPE>;
 
 
 
@@ -254,14 +260,6 @@ export enum ANIME_MEDIA_TYPE {
   ONA = 'ona',
   UNKNOWN = 'unknown',
 }
-
-
-
-export type AnimeGenreType = `${ANIME_GENRE}`;
-export type AnimeRateType = `${ANIME_RATE}`;
-export type AnimeStatusType = `${ANIME_STATUS}`;
-export type AnimeSeasonType = `${ANIME_SEASON}`;
-export type AnimeMediaType = `${ANIME_MEDIA_TYPE}`;
 
 
 

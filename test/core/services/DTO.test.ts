@@ -5,7 +5,7 @@ process.argv.push('devMode');
 
 import IDubber from '~/core/interfaces/DubberIntf';
 import getUTC from '~/utils/get-utc';
-import { ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
 import { DocumentDTO } from '~/core/services/DTO';
 import { IUser } from '~/core/interfaces/UserIntf';
 import { config } from '~/config';
@@ -66,7 +66,7 @@ describe('DTOs', () => {
         ukr: ''
       },
       poster: '',
-      season: 'spring',
+      season: ANIME_SEASON.FALL,
       status: ANIME_STATUS.CURRENTLY_AIRING,
       studios: [],
       updatedAt: 0,
@@ -74,9 +74,9 @@ describe('DTOs', () => {
       broadcast: null,
       malId: null,
       malSyncedAt: null,
-      media: 'movie',
+      media: ANIME_MEDIA_TYPE.MOVIE,
       pictures: [],
-      rate: 'g',
+      rate: ANIME_RATE.G,
       related: [],
       score: {
         imdb: null,
@@ -84,6 +84,9 @@ describe('DTOs', () => {
         malScoredBy: null
       },
       slug: '',
+      stopSync: {
+
+      }
     };
 
     const withDetails = new DocumentDTO().anime({ object: anime, details: true });
