@@ -6,7 +6,7 @@ import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { AnimeDeleteByUuidProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
+import { AnimeDeleteByUuidProps, AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostEpisode, AnimePostEpisodeProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
@@ -277,6 +277,20 @@ async function PostAnime({ nameEng }: AnimePostProps): Promise<Anime> {
 
 
 //* ===================================== POST EPISODE
+/**
+ * Upload episode
+ * 
+ * @see AnimePostEpisodeProps
+ * @returns AnimePostEpisode
+ */
+async function PostEpisode({ dubberId, file, order, user, uuid, qualities }: AnimePostEpisodeProps): Promise<AnimePostEpisode> {
+  const animeService = new AnimeService();
+  await animeService.init(uuid);
+
+  const { episode } = await animeService.uploadEpisode(file, { dubberId, order, qualities, user });
+
+  return { episode };
+}
 
 
 
@@ -291,7 +305,7 @@ async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<Ani
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
-  const { url } = await animeService.putPoster(file, user);
+  const { url } = await animeService.putPoster(file, { user });
 
   return { url };
 }
@@ -303,6 +317,17 @@ async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<Ani
 
 
 //* ===================================== DELETE EPISODE
+/**
+ * Delete dubbed episode
+ * 
+ * @see AnimeDeleteEpisodeProps
+ */
+async function DeleteEpisode({ dubberId, order, uuid, user }: AnimeDeleteEpisodeProps) {
+  const animeService = new AnimeService();
+  await animeService.init(uuid);
+
+  await animeService.deleteEpisode({ dubberId, order, user });
+}
 
 
 
@@ -325,8 +350,10 @@ export default class AnimeController {
   static GetFeatured = GetFeatured;
 
   static PostAnime = PostAnime;
+  static PostEpisode = PostEpisode;
 
   static PutPoster = PutPoster;
 
+  static DeleteEpisode = DeleteEpisode;
   static DeleteByUuid = DeleteByUuid;
 }

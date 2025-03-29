@@ -259,20 +259,20 @@ describe('AnimeService', () => {
     if (!RootUser || !DefaultUser) return testfail();
 
     // First upload
-    const firstData = await animeService.putPoster(TestFile, RootUser);
+    const firstData = await animeService.putPoster(TestFile, { user: RootUser });
 
     expect(firstData.url).toBeTruthy();
     expect(firstData.oldPosterRemoved).toBeFalsy(); // Default poster should not be removed
 
     // Second upload. Old poster should be removed
-    const secondData = await animeService.putPoster(TestFile, RootUser);
+    const secondData = await animeService.putPoster(TestFile, { user: RootUser });
 
     expect(secondData.url).toBeTruthy();
     expect(secondData.oldPosterRemoved).toBeTruthy(); // Not default poster should be removed
 
     // Throw error when user without titleEdit capability try to upload poster
     await shouldfail(async () => {
-      await animeService.putPoster(TestFile, DefaultUser!);
+      await animeService.putPoster(TestFile, { user: DefaultUser! });
     });
   });
 
@@ -286,6 +286,7 @@ describe('AnimeService', () => {
      * [todo] Root user (or with seriesAdd cap) can upload episodes
      * [todo] Dubber member cannot upload episodes in not own dub
      * [todo] Should sent airing_started & new_episode events
+     * [todo] Only admin can upload 4k
      */
 
 
@@ -327,18 +328,18 @@ describe('AnimeService', () => {
     });
 
     // First episode delete. Should delete episode
-    const firstDelete = await animeService.deleteEpisode(dubberId, order, RootUser);
+    const firstDelete = await animeService.deleteEpisode({ dubberId, order, user: RootUser });
 
     expect(animeService.anime.episodes.some(el => el.dubberID === dubberId && el.order === order)).toBeFalsy();
     expect(firstDelete.episodeDeleted).toBeTruthy();
 
     // Second episode delete. Should not found
-    const secondDelete = await animeService.deleteEpisode(dubberId, order, RootUser);
+    const secondDelete = await animeService.deleteEpisode({ dubberId, order, user: RootUser });
 
     expect(secondDelete.episodeDeleted).toBeFalsy();
 
     // Dubber team member can delete episode in own dub. Should not found
-    const dubberDelete = await animeService.deleteEpisode(dubberId, order, DubberMember);
+    const dubberDelete = await animeService.deleteEpisode({ dubberId, order, user: DubberMember });
 
     expect(dubberDelete.episodeDeleted).toBeFalsy();
 
@@ -346,12 +347,12 @@ describe('AnimeService', () => {
 
     // Throw error when dubber member try to delete not own episode
     await shouldfail(async () => {
-      await animeService.deleteEpisode(createUUID(), order, DubberMember!);
+      await animeService.deleteEpisode({ dubberId: createUUID(), order, user: DubberMember! });
     });
 
     // Throw error when user without seriesDelete capability try to delete episode
     await shouldfail(async () => {
-      await animeService.deleteEpisode(dubberId, order, DefaultUser!);
+      await animeService.deleteEpisode({ dubberId, order, user: DefaultUser! });
     });
   });
 });

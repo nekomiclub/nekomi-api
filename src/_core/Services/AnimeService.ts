@@ -1,4 +1,4 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploadsAPI';
@@ -12,10 +12,11 @@ import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI'
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
+import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
-import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
+import { Notify } from '~/services/NotifyService';
 import { createSlug } from '~/utils/create-slug';
 import { createUUID } from '~/utils/create-id';
 import { parseRoles } from '~/models/Role';
@@ -29,6 +30,10 @@ interface AnimeCreateProps {
   savedoc?: boolean
 }
 
+interface AnimePutPosterProps {
+  user: User
+}
+
 interface AnimePutPoster {
   url: string
 
@@ -39,6 +44,26 @@ interface AnimePutPoster {
 interface AnimeDeleteEpisode {
   /** Testing flag that says that episode has been deleted */
   episodeDeleted?: boolean
+}
+
+interface AnimeUploadEpisodeProps {
+  dubberId: string
+  order: number
+  qualities: AnimeEpisodeQualityType[]
+  user: User
+}
+
+interface AnimeUploadEpisode {
+  episode: AnimeEpisode
+
+  airingStartedNotifySent?: boolean
+  newEpisodeNotifySent?: boolean
+}
+
+interface AnimeDeleteEpisodeProps {
+  dubberId: string
+  order: number
+  user: User
 }
 
 type AnimeModelControlsType = ServiceControls<AnimeCreateProps, Anime>
@@ -612,7 +637,7 @@ export class AnimeService extends AnimeModelControls {
    * @access titleEdit
    * @tested 2.1.0
    */
-  async putPoster(file: Express.Multer.File, user: User): Promise<AnimePutPoster> {
+  async putPoster(file: Express.Multer.File, { user }: AnimePutPosterProps): Promise<AnimePutPoster> {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
@@ -681,21 +706,107 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @access seriesAdd
    */
-  async uploadEpisode(file: Express.Multer.File, dubberId: string, order: number, qualities: AnimeEpisodeQualityType[], user: User) {
-    // if (!this.document) throw ERR_NO_DOCUMENT;
+  async uploadEpisode(file: Express.Multer.File, { dubberId, order, qualities, user }: AnimeUploadEpisodeProps): Promise<AnimeUploadEpisode> {
+    if (!this.document) throw ERR_NO_DOCUMENT;
 
-    // const capabilities = await parseRoles(user.roles);
-    // if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
-    // if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
+    const capabilities = await parseRoles(user.roles);
+    if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
+    if (!capabilities.includes('root') && !capabilities.includes('admin') && qualities.includes(2160)) throw new E403(`Only admin can upload 4k anime`);
 
-    // if (order > this._vl.maxEpisodesCount || order < 0) throw new E400(`Order is out of range`);
-    // if (this.document.episodes.some(el => el.dubberID === dubberId && el.order === order)) throw new ERR_ALREADY_EXIST(`Episode in this dub and order already exist`);
+    if (order > this._vl.maxEpisodesCount || order < 0) throw new E400(`Order is out of range`);
+    if (this.document.episodes.some(el => el.dubberID === dubberId && el.order === order)) throw new ERR_ALREADY_EXIST(`Episode already exist`);
 
-    // const dubber = await new DubberService().getById(dubberId);
+    const dubber = await new DubberService().getById(dubberId);
 
-    // if (!TestMode) {
-    //   const res = await NekomiUploadsAPI.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
-    // }
+    let episodeId: string | null = null;
+    let episodeFrames: number | null = null;
+
+    // Upload episode
+    if (!TestMode) {
+      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
+
+      episodeId = res.id;
+      episodeFrames = res.frames ?? 0;
+    } else {
+      episodeId = createUUID();
+      episodeFrames = 12;
+    }
+
+    const episode: AnimeEpisode = {
+      order,
+      dubberID: dubberId,
+      frames: [],
+      qualities: {
+        q4k: qualities.includes(2160) ? `${config.URL.nekomi_media}/${episodeId}_q_2160` : null,
+        q1080: `${config.URL.nekomi_media}/${episodeId}`,
+        q720: qualities.includes(720) ? `${config.URL.nekomi_media}/${episodeId}_q_720` : null,
+        q480: qualities.includes(480) ? `${config.URL.nekomi_media}/${episodeId}_q_480` : null,
+        q240: qualities.includes(240) ? `${config.URL.nekomi_media}/${episodeId}_q_240` : null
+      }
+    };
+
+    // Set frames URLs
+    let i = 0;
+
+    while (i < episodeFrames) {
+      episode.frames.push(`${config.URL.nekomi_media}/${episodeId}_f_${i}`);
+      i++;
+    }
+
+    // Sort episodes in order
+    this.document.episodes.push(episode);
+    this.document.episodes.sort((a, b) => a.order - b.order);
+    this.document.markModified('episodes');
+
+    const msg = `Episode uploaded. [id: ${episodeId}; order: ${order}; dubberId: ${dubberId}]`;
+    this.stack.push(msg);
+    Logger.info(`[AnimeService/${this.document.uuid}]: ${msg}`);
+
+    const returnPayload: AnimeUploadEpisode = {
+      episode,
+    };
+
+    await this.save();
+
+    // Send notifications
+    try {
+      // Send new_episode
+      const notifyNewEpisodePayload: INotifyNewEpisode = {
+        dubberID: dubber.id,
+        episodeOrder: order,
+        titleID: this.document.uuid
+      };
+
+      if (!TestMode) {
+        Notify.broadcast({
+          event: 'new_episode',
+          payload: notifyNewEpisodePayload
+        });
+      }
+
+      returnPayload.newEpisodeNotifySent = true;
+
+      // Send airing_started
+      if (this.document.episodes.length === 1) {
+        const notifyAiringStartedPayload: INotifyAiringStarted = {
+          titleID: this.document.uuid
+        };
+
+        if (!TestMode) {
+          Notify.broadcast({
+            event: 'airing_started',
+            payload: notifyAiringStartedPayload
+          });
+        }
+
+        returnPayload.airingStartedNotifySent = true;
+      }
+    } catch (e) {
+      Logger.fail(`[AnimeService/${this.document.uuid}]: Sent notifications failed`, e);
+    }
+
+    return returnPayload;
   }
 
 
@@ -707,7 +818,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @access seriesDelete
    */
-  async deleteEpisode(dubberId: string, order: number, user: User): Promise<AnimeDeleteEpisode> {
+  async deleteEpisode({ dubberId, order, user }: AnimeDeleteEpisodeProps): Promise<AnimeDeleteEpisode> {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
@@ -723,6 +834,7 @@ export class AnimeService extends AnimeModelControls {
 
     const uploadId = NekomiUploadsAPI.getUploadIdFromURL(episode.qualities.q1080);
 
+    // Delete episode
     if (!TestMode) {
       await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
     }

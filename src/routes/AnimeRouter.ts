@@ -28,13 +28,13 @@ AnimeRouter.get('/featured', AnimeRoutes.GetFeatured);
 AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
 
 AnimeRouter.post('/', AnimeRoutes.PostAnime);
-AnimeRouter.post('/episode'); // TODO:
+AnimeRouter.post('/episode', AnimeRoutes.PostEpisode);
 
 AnimeRouter.put('/poster', AnimeRoutes.PutPoster);
 
 AnimeRouter.patch('/:uuid', patchTitleId, TitleController.patchTitle);
 
-AnimeRouter.delete('/episode'); // TODO:
+AnimeRouter.delete('/episode', AnimeRoutes.DeleteEpisode);
 AnimeRouter.delete('/:uuid', AnimeRoutes.DeleteByUuid);
 
 

@@ -8,6 +8,7 @@ import chalk from 'chalk';
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
+import { ZodError } from 'zod';
 
 
 
@@ -153,6 +154,10 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       }
 
       return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
+    } else if (e instanceof ZodError) {
+      if (DevelopmentMode && !TestMode) console.log(chalk.red(`Validation error`, e));
+
+      return res.status(400).json({ message: 'Invalid payload, match it with endpoint documentation.', code: ERR_GENERIC.INVALID_PAYLOAD, date });
     } else {
       console.error(e);
 

@@ -2,7 +2,7 @@ import AnimeController from './AnimeController';
 import UserService from '~/core/services/UserService';
 import createID from '~/utils/create-id';
 import multer from 'multer';
-import { AnimeGetByQueryProps, AnimeGetSearchProps, AnimePutPosterProps } from './AnimeControllerTypes';
+import { AnimeDeleteEpisodeProps, AnimeGetByQueryProps, AnimeGetSearchProps, AnimePostEpisodeProps, AnimePutPosterProps } from './AnimeControllerTypes';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
@@ -11,6 +11,7 @@ import { MiddlewareService } from '~/services/MiddlewareService';
 import { TestMode, config } from '~/config';
 import { body, param, query } from 'express-validator';
 import { parseObjectTypes } from '~/utils/parse-object-types';
+import { z } from 'zod';
 
 
 
@@ -116,6 +117,41 @@ const PostAnime = [
 
 
 
+//* ===================================== POST EPISODE
+const postEpisode = HTTPEndpoint(async (req, res) => {
+  let { uuid, qualities, order, dubberId } = req.body as AnimePostEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    qualities: z.number().array(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+  // @ts-ignore
+  qualities = JSON.parse(qualities).map(el => +el);
+
+  schema.parse({ uuid, qualities, order, dubberId });
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not specified`);
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+  const { episode } = await AnimeController.PostEpisode({ dubberId, file, order, qualities, user, uuid });
+
+  return res.status(201).json({ message: 'ok', episode });
+});
+
+const PostEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesAdd']),
+  upload.single('file'),
+  postEpisode,
+];
+
+
+
 //* ===================================== PUT POSTER
 const putPoster = HTTPEndpoint(async (req, res) => {
   const { uuid } = req.body as AnimePutPosterProps;
@@ -135,6 +171,35 @@ const PutPoster = [
   upload.single('file'),
   body('uuid').notEmpty().isString(), // Must be below multer middleware
   putPoster
+];
+
+
+
+//* ===================================== DELETE EPISODE
+const deleteEpisode = HTTPEndpoint(async (req, res) => {
+  let { dubberId, order, uuid } = req.body as AnimeDeleteEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+
+  schema.parse({ dubberId, order, uuid });
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+  await AnimeController.DeleteEpisode({ dubberId, order, user, uuid });
+
+  return res.status(200).json({ message: 'ok' });
+});
+
+const DeleteEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesDelete']),
+  upload.single('file'),
+  deleteEpisode
 ];
 
 
@@ -167,8 +232,10 @@ export default class AnimeRoutes {
   static GetFeatured = GetFeatured;
 
   static PostAnime = PostAnime;
+  static PostEpisode = PostEpisode;
 
   static PutPoster = PutPoster;
 
   static DeleteByUuid = DeleteByUuid;
+  static DeleteEpisode = DeleteEpisode;
 }

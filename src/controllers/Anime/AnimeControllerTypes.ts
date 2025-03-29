@@ -1,5 +1,6 @@
-import Anime, { HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import Anime, { AnimeEpisode, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import User from '~/core/interfaces/UserIntf';
+import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { Metadata } from '~/core/interfaces/types';
 
@@ -88,4 +89,24 @@ export interface AnimePutPosterProps {
 
 export interface AnimePutPoster {
   url: string
+}
+
+export interface AnimeDeleteEpisodeProps {
+  uuid: string
+  dubberId: string
+  order: number
+  user: User
+}
+
+export interface AnimePostEpisodeProps {
+  uuid: string
+  file: Express.Multer.File
+  user: User
+  order: number
+  dubberId: string
+  qualities: AnimeEpisodeQualityType[]
+}
+
+export interface AnimePostEpisode {
+  episode: AnimeEpisode
 }
