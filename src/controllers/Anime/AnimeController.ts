@@ -312,10 +312,6 @@ async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<Ani
 
 
 
-//* ===================================== PATCH BY UUID
-
-
-
 //* ===================================== DELETE EPISODE
 /**
  * Delete dubbed episode

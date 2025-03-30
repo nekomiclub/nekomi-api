@@ -86,7 +86,8 @@ describe('DTOs', () => {
       slug: '',
       stopSync: {
 
-      }
+      },
+      createdAt: 0
     };
 
     const withDetails = new DocumentDTO().anime({ object: anime, details: true });

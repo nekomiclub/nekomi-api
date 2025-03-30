@@ -87,9 +87,10 @@ export class DocumentDTO {
       'episodes',
       'episodesMeta',
       'updatedAt',
+      'createdAt',
       'related',
       'malSyncedAt',
-      'stopSync'
+      'stopSync',
     ];
 
     return this.DTO<Anime>(object, details ? [] : keys);

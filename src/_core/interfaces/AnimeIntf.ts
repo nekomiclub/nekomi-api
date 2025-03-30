@@ -21,6 +21,8 @@ export interface Anime {
 
   /** UTC timestamp @private */
   updatedAt: number
+  /** UTC timestamp @since 2.1.0 @private */
+  createdAt: number
   /** @private */
   episodes: AnimeEpisode[]
   /** @private */
@@ -71,7 +73,7 @@ export interface TitleOld {
   description: string | null
   details: string | null
 
-  /** UTC-0 timestamp */
+  /** UTC timestamp */
   updatedAt: number
 
   /** @private */

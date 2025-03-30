@@ -218,7 +218,7 @@ describe('AnimeService', () => {
 
   it('should set rate', async () => {
     // Set rate
-    await animeService.setRate(ANIME_RATE.RPLUS);
+    animeService.setRate(ANIME_RATE.RPLUS);
     expect(animeService.anime.rate).toBe(ANIME_RATE.RPLUS);
   });
 
@@ -226,7 +226,7 @@ describe('AnimeService', () => {
 
   it('should set status', async () => {
     // Set status
-    await animeService.setStatus(ANIME_STATUS.NOT_YET_AIRED);
+    animeService.setStatus(ANIME_STATUS.NOT_YET_AIRED);
     expect(animeService.anime.status).toBe(ANIME_STATUS.NOT_YET_AIRED);
   });
 
@@ -234,7 +234,7 @@ describe('AnimeService', () => {
 
   it('should set season', async () => {
     // Set season
-    await animeService.setSeason(ANIME_SEASON.SUMMER);
+    animeService.setSeason(ANIME_SEASON.SUMMER);
     expect(animeService.anime.season).toBe(ANIME_SEASON.SUMMER);
   });
 
@@ -242,7 +242,7 @@ describe('AnimeService', () => {
 
   it('should set media', async () => {
     // Set media
-    await animeService.setMedia(ANIME_MEDIA_TYPE.TV);
+    animeService.setMedia(ANIME_MEDIA_TYPE.TV);
     expect(animeService.anime.media).toBe(ANIME_MEDIA_TYPE.TV);
   });
 
@@ -304,6 +304,7 @@ describe('AnimeService', () => {
      * [+] Dubber member can delete episodes in own dubbing
      * [+] Dubber member cannot delete episodes not in own dub
      * [+] Default user cannot delete episode
+     * [todo] Should delete only one episode
      */
 
 

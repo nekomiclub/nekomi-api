@@ -26,7 +26,7 @@ const baseURL = config.URL.nekomi_uploads;
 /** @version 1.3.2 */
 export class NekomiUploadsAPI {
   static getUploadIdFromURL(url: string): string {
-    return new URL(url).pathname.replace('/', '');
+    return url.split('/')[url.split('/').length - 1];
   }
 
   static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps) {

@@ -1,23 +1,10 @@
 import express from 'express';
 
-import * as TitleController from '~/controllers/title';
 import AnimeRoutes from '~/controllers/Anime/AnimeRoutes';
-import multer from 'multer';
-import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { config } from '~/config';
 
 
 
-const upload = multer();
 const AnimeRouter = express.Router();
-
-
-
-export const patchTitleId = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-  upload.single('file'),
-];
 
 
 
@@ -32,7 +19,7 @@ AnimeRouter.post('/episode', AnimeRoutes.PostEpisode);
 
 AnimeRouter.put('/poster', AnimeRoutes.PutPoster);
 
-AnimeRouter.patch('/:uuid', patchTitleId, TitleController.patchTitle);
+AnimeRouter.patch('/', AnimeRoutes.PatchByUuid);
 
 AnimeRouter.delete('/episode', AnimeRoutes.DeleteEpisode);
 AnimeRouter.delete('/:uuid', AnimeRoutes.DeleteByUuid);

@@ -160,7 +160,8 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
       year: title.year,
       stopSync: {
         mal: false
-      }
+      },
+      createdAt: 0
     };
 
     //* Mapper anime.genres

@@ -1,16 +1,17 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploadsAPI';
 import Search from '~/services/SearchService';
 import User from '~/core/interfaces/UserIntf';
 import axios from 'axios';
+import createID, { createUUID } from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { DevelopmentMode, TestMode, config } from '~/config';
-import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
+import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
@@ -18,7 +19,6 @@ import { MALGenres } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
 import { Notify } from '~/services/NotifyService';
 import { createSlug } from '~/utils/create-slug';
-import { createUUID } from '~/utils/create-id';
 import { parseRoles } from '~/models/Role';
 
 
@@ -116,6 +116,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       status: ANIME_STATUS.FINISHED_AIRING,
       year: getUTC().year,
       updatedAt: getUTC().timestamp,
+      createdAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
 
       posterAdapt: null,
@@ -177,9 +178,9 @@ class AnimeModelControls implements AnimeModelControlsType {
     return new MongoDocumentDTO().anime({ document, details });
   }
 
-  async safeGetByQuery(uuid: string, details?: boolean): Promise<Anime | null> {
+  async safeGetByQuery(query: string, details?: boolean): Promise<Anime | null> {
     try {
-      return await this.getById(uuid, details);
+      return await this.getByQuery(query, details);
     } catch (e) { return null; }
   }
 
@@ -217,6 +218,9 @@ export class AnimeService extends AnimeModelControls {
   async save(): Promise<string[]> {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
+    this.document.updatedAt = getUTC().timestamp;
+    this.document.markModified('updatedAt');
+
     await this.document.save();
 
     Logger.debug(`[AnimeService]: Document patched. [uuid: ${this.document.uuid}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
@@ -236,7 +240,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0 
   */
-  async setMalId(malId: number | null) {
+  setMalId(malId: number | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('malId');
 
@@ -260,7 +264,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setDescription(description: string | null) {
+  setDescription(description: string | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('description');
 
@@ -287,7 +291,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setDetails(details: string | null) {
+  setDetails(details: string | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('details');
 
@@ -314,7 +318,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setEpisodesCount(episodesCount: number | null) {
+  setEpisodesCount(episodesCount: number | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('episodesCount');
 
@@ -339,7 +343,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setYear(year: number) {
+  setYear(year: number) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('year');
 
@@ -356,13 +360,10 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setRate(rate: ANIME_RATE) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('rate');
+  setRate = (rate: ANIME_RATE) => this.setTypedValue<ANIME_RATE>(rate, 'rate');
 
-    this.stack.push(`Rate changed (${this.document.rate} > ${rate})`);
-    this.document.rate = rate;
-  }
+  /** Parse string to rate type */
+  parseRate = (rate: string) => this.parseStringToType<ANIME_RATE>(rate, ANIME_RATE);
 
 
 
@@ -371,13 +372,10 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setStatus(status: ANIME_STATUS) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('status');
+  setStatus = (status: ANIME_STATUS) => this.setTypedValue<ANIME_STATUS>(status, 'status');
 
-    this.stack.push(`Status changed (${this.document.status} > ${status})`);
-    this.document.status = status;
-  }
+  /** Parse string to status type */
+  parseStatus = (status: string) => this.parseStringToType<ANIME_STATUS>(status, ANIME_STATUS);
 
 
 
@@ -386,13 +384,10 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setSeason(season: ANIME_SEASON) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('season');
+  setSeason = (season: ANIME_SEASON) => this.setTypedValue<ANIME_SEASON>(season, 'season');
 
-    this.stack.push(`Season changed (${this.document.season} > ${season})`);
-    this.document.season = season;
-  }
+  /** Parse string to season type */
+  parseSeason = (season: string) => this.parseStringToType<ANIME_SEASON>(season, ANIME_SEASON);
 
 
 
@@ -401,13 +396,12 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested 2.1.0
    */
-  async setMedia(media: ANIME_MEDIA_TYPE) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('media');
+  setMedia = (media: ANIME_MEDIA_TYPE) => this.setTypedValue<ANIME_MEDIA_TYPE>(media, 'media');
 
-    this.stack.push(`Media changed (${this.document.media} > ${media})`);
-    this.document.media = media;
-  }
+  /** Parse string to media type */
+  parseMedia = (media: string) => this.parseStringToType<ANIME_MEDIA_TYPE>(media, ANIME_MEDIA_TYPE);
+
+
 
   /**
    * Set names
@@ -426,7 +420,10 @@ export class AnimeService extends AnimeModelControls {
       this.document.names.eng = eng;
 
       // Change slug
-      const slug = createSlug(eng);
+      let slug = createSlug(eng);
+
+      const exist = await new AnimeService().safeGetByQuery(slug);
+      if (exist && exist.uuid !== this.document.uuid) slug += createID(3);
 
       this.stack.push(`Slug changed (${this.document.slug} > ${slug})`);
       this.document.slug = slug;
@@ -462,7 +459,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @todo
    */
-  async setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
+  setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
     if (mal !== undefined) {
 
     }
@@ -501,7 +498,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @todo
    */
-  async setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
+  setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
     if (imdb !== undefined) {
 
     }
@@ -542,6 +539,22 @@ export class AnimeService extends AnimeModelControls {
 
     this.stack.push(`Studios changed (${this.document.studios.map(el => el.name).join(', ')} > ${newStudios.map(el => el.name).join(', ')})`);
     this.document.studios = newStudios;
+  }
+
+
+
+  /** 
+   * Set genres
+   * To parse genres from string use parseGenres method
+   * 
+   * @todo
+   */
+  setGenres(genres: ANIME_GENRE[]) {
+
+  }
+
+  parseGenres(genres: string[]): ANIME_GENRE[] {
+    return [];
   }
 
 
@@ -827,7 +840,7 @@ export class AnimeService extends AnimeModelControls {
 
     const episode = this.document.episodes.find(el => el.dubberID === dubberId && el.order === order);
     if (!episode) {
-      Logger.fail(`[AnimeService/${this.document.uuid}]: Cannot delete not exist episode`);
+      if (DevelopmentMode) Logger.fail(`[AnimeService/${this.document.uuid}]: Cannot delete not exist episode`);
 
       return {};
     }
@@ -844,7 +857,7 @@ export class AnimeService extends AnimeModelControls {
     Logger.debug(`[AnimeService/${this.document.uuid}]: ${msg}`);
     this.stack.push(msg);
 
-    this.document.episodes = this.document.episodes.filter(el => el.dubberID !== dubberId && el.order !== order);
+    this.document.episodes = this.document.episodes.filter(el => !(el.dubberID === dubberId && el.order === order));
     this.document.markModified('episodes');
 
     await this.save();
@@ -852,6 +865,39 @@ export class AnimeService extends AnimeModelControls {
     return {
       episodeDeleted: true
     };
+  }
+
+
+
+  /** 
+   * Parse string value to enum type
+   * 
+   * @param value string value to be parsed
+   * @param list enum to parse
+   */
+  parseStringToType<E>(value: string, list: object): E {
+    for (const key in list) {
+      if (list[key] === value) return list[key];
+    }
+
+    throw new ERR_TYPE_INVALID(`Type (${value}) is invalid`);
+  }
+
+
+
+  /** 
+   * Set typed value (rate, media, etc)
+   * 
+   * @param value typed value
+   * @param key document key
+   */
+  private setTypedValue<T>(value: T, key: 'rate' | 'media' | 'season' | 'rate' | 'status') {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    this.document.markModified(key);
+
+    this.stack.push(`${key} changed (${this.document[key]} > ${value})`);
+    (this.document[key] as T) = value;
   }
 }
 
