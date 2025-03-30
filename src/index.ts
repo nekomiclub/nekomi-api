@@ -16,7 +16,7 @@ import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
-import { WebSocketOnlinePoll, WebsocketRouter } from './controllers/webSocket';
+import { WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
@@ -153,12 +153,6 @@ const UpdateHandlers = [
         Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
       }
     }, 21600000); // 21600000 // 6h
-
-
-    // Poll site online
-    setInterval(async () => {
-      await WebSocketOnlinePoll();
-    }, 600000); // 600000 // 10m
   } catch (e) {
     Logger.error('[System]: An error occured in one of post-init handlers', e);
   }
