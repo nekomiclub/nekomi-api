@@ -14,37 +14,4 @@ Inner data - stores at ```req.nekomi```. Contains some useful data from middlewa
 
 ------------------------------------------------------------------
 
-### Testing and mocking data
-Nekomi-core contains a lot of axios requests to other services, like fk-usapi or fk-authority. Tests must be standalone, so in test mode axios requests will be
-
-To test nekomi-core, you should run one process as ```npm run dev-test```, and second as ```npm run test```. In test mode, most routes will require X-Mock header, that contain mock data. You can see all mock 
-
-Mock example (may be changed in future, see one of tests to get real implementation of mock system)
-```ts
-const ACMock: IMock<IM_FkUsapiAuthRefresh> = {
-  id: 'FkUsapiAuthRefresh',
-  code: 200,
-  data: {
-    id: 'USER_ID',
-  }
-};
-
-const CSRFMock: IMock<IM_FkAuthorityVerify> = {
-  id: 'FkAuthorityVerify',
-  code: 200,
-  data: {
-    verified: true,
-    origin: 'ORIGIN'
-  }
-};
-
-
-// Request
-.set('Authorization', '_MOCKED') // Authorization will be mocked, but header must be present
-.set(config.vars.csrfHeader, '_MOCKED') // CSRF will be mocked, but header must be present
-.set(config.vars.mockHeader, JSON.stringify([ACMock, CSRFMock])) // Mocked data MUST be an array
-```
-
-------------------------------------------------------------------
-
 [HOME](../README.md)

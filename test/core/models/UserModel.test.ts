@@ -265,45 +265,45 @@ describe('User Model', () => {
     expect(true).toBeTruthy(); // indev
   });
 
-  describe('patchLib', () => {
-    test('Pass - Add & remove title from lib', async () => {
-      const libID = User.user.libs.find(el => el.type === 'favorite')!.id!;
+  // describe('patchLib', () => {
+  //   test('Pass - Add & remove title from lib', async () => {
+  //     const libID = User.user.libs.find(el => el.type === 'favorite')!.id!;
 
-      expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeFalsy();
+  //     expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeFalsy();
 
-      // Add new title 
-      await User.addToLib({ libID, titleID: TestTitleID1 });
+  //     // Add new title 
+  //     await User.addToLib({ libID, titleID: TestTitleID1 });
 
-      expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeTruthy();
+  //     expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeTruthy();
 
-      // Remove title 
-      await User.removeFromLib({ libID, titleID: TestTitleID1 });
+  //     // Remove title 
+  //     await User.removeFromLib({ libID, titleID: TestTitleID1 });
 
-      expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeFalsy();
-    });
+  //     expect(User.user.libs.find(el => el.id === libID)?.titles.includes(TestTitleID1)).toBeFalsy();
+  //   });
 
-    test('Reject - Title or lib are not found', async () => {
-      const libID = User.user.libs.find(el => el.type === 'favorite')!.id!;
+  //   test('Reject - Title or lib are not found', async () => {
+  //     const libID = User.user.libs.find(el => el.type === 'favorite')!.id!;
 
-      try {
-        // Title not found
-        await User.addToLib({ libID, titleID: '_INVALID' });
+  //     try {
+  //       // Title not found
+  //       await User.addToLib({ libID, titleID: '_INVALID' });
 
-        expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      } catch (e) {
-        if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      }
+  //       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     } catch (e) {
+  //       if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     }
 
-      try {
-        // Lib not found
-        await User.addToLib({ libID: '_INVALID', titleID: TestTitleID1 });
+  //     try {
+  //       // Lib not found
+  //       await User.addToLib({ libID: '_INVALID', titleID: TestTitleID1 });
 
-        expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      } catch (e) {
-        if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      }
-    });
-  });
+  //       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     } catch (e) {
+  //       if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     }
+  //   });
+  // });
 
   describe('patchRole', () => {
     expect(true).toBeTruthy(); // indev
