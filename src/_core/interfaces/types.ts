@@ -1,4 +1,4 @@
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, AnimeStudio } from './AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS } from './AnimeIntf';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 
 /** Make single key in T optional */
@@ -102,7 +102,10 @@ export interface MyAnimeListNode {
 
   media_type?: ANIME_MEDIA_TYPE
   num_episodes?: number
-  studios?: AnimeStudio[]
+  studios?: {
+    id: number
+    name: string
+  }[]
   rating?: ANIME_RATE
   status?: ANIME_STATUS
   genres?: {
@@ -123,7 +126,15 @@ export interface MyAnimeListNode {
     start_time: string
   }
 
-  related_anime?: MyAnimeListNode[]
+  related_anime?: {
+    node: MyAnimeListNode
+  }[],
+
+  alternative_titles?: {
+    en: string
+    ja: string
+    synonyms: string[]
+  }
 }
 
 export interface Metadata {

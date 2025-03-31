@@ -212,7 +212,7 @@ const patchByUuid = HTTPEndpoint(async (req, res) => {
   if (season !== undefined) animeService.setSeason(animeService.parseSeason(season));
   if (status !== undefined) animeService.setStatus(animeService.parseStatus(status));
   if (scoreMAL !== undefined || scoreIMDB !== undefined || malScoredBy !== undefined) animeService.setScore({ imdb: scoreIMDB, mal: scoreMAL, malScoredBy });
-  if (studios !== undefined) animeService.setStudios(studios);
+  if (studios !== undefined) animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
   if (year !== undefined) animeService.setYear(year);
 
 

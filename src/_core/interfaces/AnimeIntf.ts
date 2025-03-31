@@ -151,7 +151,7 @@ export interface AnimeBroadcast {
 }
 
 export interface AnimeStudio {
-  id: string
+  malId: number
   name: string
 }
 

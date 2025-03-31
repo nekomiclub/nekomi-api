@@ -1,7 +1,9 @@
-import { ANIME_GENRE } from '~/core/interfaces/AnimeIntf';
+import { ANIME_GENRE, AnimeStudio } from '~/core/interfaces/AnimeIntf';
 import { MyAnimeListNode } from '~/core/interfaces/types';
 
-export function MALGenres(input?: MyAnimeListNode['genres']) {
+
+
+export function MALGenres(input?: MyAnimeListNode['genres']): ANIME_GENRE[] {
   const genres: ANIME_GENRE[] = [];
 
   input?.forEach(genre => {
@@ -9,4 +11,13 @@ export function MALGenres(input?: MyAnimeListNode['genres']) {
   });
 
   return genres;
+}
+
+export function MALStudios(input: MyAnimeListNode['studios']): AnimeStudio[] {
+  return input?.map(studio => {
+    return {
+      malId: studio.id,
+      name: studio.name
+    };
+  }) ?? [];
 }

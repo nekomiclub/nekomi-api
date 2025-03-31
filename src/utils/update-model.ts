@@ -173,7 +173,7 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
     });
 
     //* Mapper anime.studios
-    anime.studios = title.studios.map(el => { return { id: '0', name: el }; });
+    anime.studios = title.studios.map(el => { return { malId: -1, name: el }; });
 
     //* Mapper anime.ageRate
     if (title.ageRate === 'G') anime.rate = ANIME_RATE.G;

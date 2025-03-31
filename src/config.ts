@@ -201,9 +201,12 @@ const VALIDATION = {
     maxNameLength: 320,
     maxAltNamesLength: 7,
     maxStudiosLength: 7,
+    maxGenresLength: 7,
     maxEpisodesCount: 9999,
     maxDescriptionLength: 2200,
     maxDetailsLength: 500,
+
+    maxScore: 10
   }
 };
 

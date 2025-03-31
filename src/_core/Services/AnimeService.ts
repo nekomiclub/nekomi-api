@@ -1,4 +1,4 @@
-import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploadsAPI';
@@ -15,7 +15,7 @@ import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_IN
 import { HydratedDocument } from 'mongoose';
 import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
-import { MALGenres } from '~/utils/mal-mappers';
+import { MALGenres, MALStudios } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
 import { Notify } from '~/services/NotifyService';
 import { createSlug } from '~/utils/create-slug';
@@ -494,44 +494,76 @@ export class AnimeService extends AnimeModelControls {
 
 
   /**
-   * Set score
-   * 
-   * @todo
+   * Set score & malScoredBy
+   * Score can be null
    */
   setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
-    if (imdb !== undefined) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('score');
 
+    if (imdb !== undefined) {
+      if (imdb === null || imdb === 0) {
+        this.document.score.imdb = null;
+        this.stack.push(`IMDB score removed`);
+
+        return;
+      }
+
+      if (imdb > this._vl.maxScore || imdb < 0) throw new ERR_LENGTH_INVALID(`IMDB score is out of range`);
+
+      this.stack.push(`IMDB score updated (${this.document.score.imdb} > ${imdb})`);
+      this.document.score.imdb = imdb;
     }
 
     if (mal !== undefined) {
+      if (mal === null || mal === 0) {
+        this.document.score.mal = null;
+        this.stack.push(`MAL score removed`);
 
+        return;
+      }
+
+      if (mal > this._vl.maxScore || mal < 0) throw new ERR_LENGTH_INVALID(`MAL score is out of range`);
+
+      this.stack.push(`MAL score updated (${this.document.score.mal} > ${mal})`);
+      this.document.score.mal = mal;
     }
 
     if (malScoredBy !== undefined) {
+      if (malScoredBy === null || malScoredBy === 0) {
+        this.document.score.malScoredBy = null;
+        this.stack.push(`MAL scored by removed`);
 
+        return;
+      }
+
+      this.stack.push(`MAL scored by updated (${this.document.score.malScoredBy} > ${malScoredBy})`);
+      this.document.score.malScoredBy = malScoredBy;
     }
   }
 
 
 
   /** 
-   * Set studios
+   * Set studios.
    * 
-   * @todo make it normal, with id's
+   * @todo fetch studio (?)
    */
-  async setStudios(studios: string[]) {
+  async setStudios(studios: AnimeStudio[]) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('studios');
 
     if (studios.length > config.VALIDATION.PatchTitle.maxStudioLength) throw new ERR_LENGTH_INVALID(`Studios are too many`);
 
-    const newStudios: AnimeStudio[] = studios.map(name => {
+    const newStudios: AnimeStudio[] = studios.map(el => {
+      let { malId, name } = el;
+
       name = trimString(name);
 
-      if (!validator.isLength(name, { max: config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Studio ${name} length is too large`);
+      if (!validator.isLength(name, { max: config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Studio ${name} length is too long`);
 
       return {
-        id: '-1',
+        malId,
         name
       };
     });
@@ -545,16 +577,63 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set genres
-   * To parse genres from string use parseGenres method
-   * 
-   * @todo
    */
   setGenres(genres: ANIME_GENRE[]) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('genres');
 
+    if (genres.length > this._vl.maxGenresLength) throw new ERR_LENGTH_INVALID(`Genres length is out of range`);
+
+    this.stack.push(`Genres changed (${this.anime.genres.join(', ')} > ${genres.join(', ')})`);
+    this.document.genres = genres;
   }
 
+  /** Parse genres from string array */
   parseGenres(genres: string[]): ANIME_GENRE[] {
-    return [];
+    const output: ANIME_GENRE[] = [];
+
+    genres.forEach(genre => {
+      const slug = createSlug(trimString(genre)).replaceAll('-', '_') as ANIME_GENRE;
+
+      if (Object.values(ANIME_GENRE).includes(slug)) output.push(slug);
+    });
+
+    return output;
+  }
+
+
+
+  /** 
+   * Set broadcast timing
+   */
+  setBroadcast(broadcast: AnimeBroadcast) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('studios');
+
+    this.stack.push(`Broadcast changed (${this.document.broadcast ? `${this.document.broadcast?.day} ${this.document.broadcast?.time}` : 'null'} > ${broadcast.day} ${broadcast.time})`);
+    this.document.broadcast = broadcast;
+  }
+
+
+
+  /**
+   * Find related anime's by mal ids
+   */
+  async setRelated(malIds: number[]) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('related');
+
+    try {
+      const documents = await AnimeModel.find({ malId: { $in: [-1, ...malIds] } });
+      if (!documents.length) return;
+
+      const related = documents.map(el => el.uuid);
+
+      this.stack.push(`Related changed (${this.document.related.join(', ')} > ${related.join(', ')})`);
+      this.document.related = related;
+    } catch (e) {
+      Logger.fail(`[AnimeService]: Cannot set related anime's`, e);
+    }
   }
 
 
@@ -562,11 +641,16 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Sync anime details with myanimelist
    * Will save the document
+   * 
+   * @param force will skip stopsync check
    */
-  async syncWithMyAnimeList() {
+  async syncWithMyAnimeList(force?: boolean) {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    if (this.anime.stopSync?.mal === true || (typeof this.anime.stopSync.mal === 'number' && this.anime.stopSync.mal < getUTC().timestamp)) return; // Check if sync is not prevented
-    if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return; // Check if sync timed out
+
+    if (!force) {
+      if (this.anime.stopSync?.mal) return; // Check if sync is not prevented
+      if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return; // Check if last sync timed out
+    }
 
     const API_ENDPONT = `https://api.myanimelist.net/v2`;
     const fields: (keyof MyAnimeListNode)[] = [
@@ -579,7 +663,8 @@ export class AnimeService extends AnimeModelControls {
       'related_anime',
       'rating',
       'num_scoring_users',
-      'mean'
+      'mean',
+      'alternative_titles'
     ];
 
     try {
@@ -592,34 +677,31 @@ export class AnimeService extends AnimeModelControls {
         }
       });
 
-      this.document.score.mal = node.mean ?? this.document.score.mal;
-      this.document.score.malScoredBy = node.num_scoring_users ?? this.document.score.malScoredBy;
-      this.document.episodesCount = node.num_episodes ?? this.document.episodesCount;
-      this.document.studios = node.studios ?? this.document.studios;
 
-      this.document.rate = node.rating ?? this.document.rate;
-      this.document.status = node.status ?? this.document.status;
-      this.document.media = node.media_type ?? this.document.media;
-      this.document.genres = MALGenres(node.genres) ?? this.document.genres;
 
-      this.document.broadcast = node.broadcast ? {
-        day: node.broadcast.day_of_the_week,
-        time: node.broadcast.start_time
-      } : this.document.broadcast;
+      if (node.alternative_titles?.en && this.document.names.eng !== node.alternative_titles?.en) this.setNames({ eng: node.alternative_titles?.en });
+      if (node.mean && node.mean !== this.document.score.mal) this.setScore({ mal: node.mean });
+      if (node.num_scoring_users && node.num_scoring_users !== this.document.score.malScoredBy) this.setScore({ malScoredBy: node.num_scoring_users });
+      if (node.num_episodes && node.num_episodes !== this.document.episodesCount) this.setEpisodesCount(node.num_episodes);
+      if (node.rating && node.rating !== this.document.rate) this.setRate(node.rating);
+      if (node.status && node.status !== this.document.status) this.setStatus(node.status);
+      if (node.media_type && node.media_type !== this.document.media) this.setMedia(node.media_type);
 
-      this.document.related = [];
-      for (const key in node.related_anime) {
-        const el = node.related_anime[key].node;
+      if (node.genres) this.setGenres(MALGenres(node.genres));
+      if (node.broadcast) this.setBroadcast({ day: node.broadcast.day_of_the_week, time: node.broadcast.start_time });
+      if (node.studios) await this.setStudios(MALStudios(node.studios));
+      if (node.related_anime) await this.setRelated(node.related_anime.map(el => el.node.id));
 
-        try {
-          const anime = await new AnimeService().getByQuery(el.id);
-
-          this.document.related.push(anime.uuid);
-        } catch (e) { continue; }
+      // Update poster
+      if (!this.document.poster.includes(config.DOMAIN.nekomi_media)) {
+        this.document.poster = node.main_picture.large;
+        this.document.markModified('poster');
       }
 
-      this.document.poster = this.document.poster.includes(config.DOMAIN.nekomi_media) ? this.document.poster : node.main_picture.large;
+
+
       this.document.malSyncedAt = getUTC().timestamp;
+      this.document.markModified('malSyncedAt');
 
       await this.save();
       await Search.update('anime');
