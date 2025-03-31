@@ -33,13 +33,7 @@ export interface User {
 export interface UserStatistics {
   isTelegramLinked: boolean
 
-  /** Dubber team ID in which user is member
-   * @deprecated use dubberTeamMember
-   */
   dubber_team_member: string | null
-
-  /** Dubber team ID in which user is member */
-  dubberTeamMember: string | null
 
   /** UTC-0 timestamp */
   accountCreated: number

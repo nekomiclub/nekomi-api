@@ -26,7 +26,6 @@ describe('DTOs', () => {
         dubber_team_member: '',
         isTelegramLinked: false,
         viewtime: 0,
-        dubberTeamMember: ''
       },
       subscribes: [],
       telegramData: null,

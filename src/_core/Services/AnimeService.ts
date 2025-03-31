@@ -806,7 +806,7 @@ export class AnimeService extends AnimeModelControls {
 
     const capabilities = await parseRoles(user.roles);
     if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
-    if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
+    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
     if (!capabilities.includes('root') && !capabilities.includes('admin') && qualities.includes(2160)) throw new E403(`Only admin can upload 4k anime`);
 
     if (order > this._vl.maxEpisodesCount || order < 0) throw new E400(`Order is out of range`);
@@ -918,7 +918,7 @@ export class AnimeService extends AnimeModelControls {
 
     const capabilities = await parseRoles(user.roles);
     if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new ERR_ACCESS_REJECTED();
-    if (!capabilities.includes('root') && user.statistics.dubberTeamMember !== dubberId) throw new E403(`User cannot delete episodes from not own dubbing`);
+    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot delete episodes from not own dubbing`);
 
     const episode = this.document.episodes.find(el => el.dubberID === dubberId && el.order === order);
     if (!episode) {

@@ -90,7 +90,6 @@ class UserModelControls implements TUserModelControls {
       telegramLinkToken: null,
       statistics: {
         accountCreated: getUTC().timestamp,
-        dubberTeamMember: null,
         dubber_team_member: null,
         isTelegramLinked: false,
         viewtime: 0,
@@ -270,10 +269,10 @@ export class UserService extends UserModelControls {
     }
 
     if (dubberTeamMember !== undefined) {
-      const prevTeam = this.user.statistics.dubberTeamMember;
+      const prevTeam = this.user.statistics.dubber_team_member;
 
       if (dubberTeamMember === null) {
-        this.user.statistics.dubberTeamMember = dubberTeamMember;
+        this.user.statistics.dubber_team_member = dubberTeamMember;
 
         this.stack.push(`Kicked from dubber team. [member: ${prevTeam} > ${dubberTeamMember}]`);
 
@@ -282,7 +281,7 @@ export class UserService extends UserModelControls {
 
       const dubber = await new DubberService().getById(dubberTeamMember, true);
 
-      this.user.statistics.dubberTeamMember = dubberTeamMember;
+      this.user.statistics.dubber_team_member = dubberTeamMember;
 
       this.stack.push(`Dubber team member changed. [member: ${prevTeam} > ${dubberTeamMember}]`);
     }

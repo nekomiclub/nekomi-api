@@ -236,9 +236,7 @@ export const USER_MODEL_UPDATE = new UpdateModel('UserModel', async () => {
   for (const key in users) {
     const user = users[key];
 
-    user.statistics.dubberTeamMember = user.statistics.dubber_team_member;
 
-    user.markModified('statistics');
 
     await user.save();
   }

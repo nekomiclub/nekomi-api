@@ -68,8 +68,7 @@ describe('AnimeService', () => {
 
     DubberMember = await new UserService().create({ username: createID(12), savedoc: false });
     DubberMember.roles = ['dubber_leader'];
-    DubberMember.statistics.dubberTeamMember = createUUID();
-    DubberMember.statistics.dubber_team_member = DubberMember.statistics.dubberTeamMember;
+    DubberMember.statistics.dubber_team_member = createUUID();
   });
 
 
@@ -311,7 +310,7 @@ describe('AnimeService', () => {
 
     if (!RootUser || !DefaultUser || !DubberMember) return testfail();
 
-    const dubberId = DubberMember.statistics.dubberTeamMember ?? '';
+    const dubberId = DubberMember.statistics.dubber_team_member ?? '';
     const order = 4;
 
     // Push exist episode
