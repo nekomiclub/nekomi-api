@@ -5,12 +5,12 @@ import * as TokenService from '~/services/TokenService';
 
 import * as Role from '~/models/Role';
 import AnimeModel from '~/core/models/AnimeModel';
+import AnimeService from '~/core/services/AnimeService';
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
 import Search from '~/services/SearchService';
-import Title from '~/models/Title';
 import User, { UserModel, UserService } from '~/models/User';
-import { Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
@@ -332,8 +332,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       const lib = patcher.user.libs.find(el => el.id === folderId);
       if (!lib) throw new E404(`Lib ${folderId} is not found`);
 
-      const title = await Title.findOne({ id: titleId });
-      if (!title) throw new E404(`Title ${titleId} is not found`);
+      const anime = await new AnimeService().getById(titleId, true);
 
       if (!lib.titles.includes(titleId)) {
         // Add title & event
@@ -344,8 +343,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
         // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
         if (
           lib.type === 'plans' &&
-          title.episodes.length === 0 &&
-          (title.status === 'announcement' || title.status === 'ongoing')
+          anime.episodes.length === 0 &&
+          (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
         ) await patcher.addSubscribe({ event: 'airing_started', key: titleId });
       } else {
         // Remove title & event

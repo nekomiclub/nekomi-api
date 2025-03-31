@@ -1,10 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import { TitleOld } from '~/core/interfaces/AnimeIntf';
 
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
-export const TitleModel = mongoose.model<TitleOld>('title', new Schema({
+export const TitleModel = mongoose.model('title', new Schema({
   description: String,
   details: String,
   episodes: Array,

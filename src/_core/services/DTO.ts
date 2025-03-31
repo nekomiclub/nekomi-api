@@ -1,4 +1,4 @@
-import { Anime, TitleOld } from '~/core/interfaces/AnimeIntf';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { HydratedDocument } from 'mongoose';
 import { IDubber } from '~/core/interfaces/DubberIntf';
 import { IUser } from '~/core/interfaces/UserIntf';
@@ -47,10 +47,6 @@ export class MongoDocumentDTO {
   anime({ document, details }: IMongoDTOProps<Anime>): Anime {
     return this.DTO<Anime>(new DocumentDTO().anime({ object: document.toObject(), details }));
   }
-
-  title({ document, details }: IMongoDTOProps<TitleOld>): TitleOld {
-    return this.DTO<TitleOld>(new DocumentDTO().title({ object: document.toObject(), details }));
-  }
 }
 
 export class DocumentDTO {
@@ -94,14 +90,5 @@ export class DocumentDTO {
     ];
 
     return this.DTO<Anime>(object, details ? [] : keys);
-  }
-
-  title({ object, details }: IDocumentDTOProps<TitleOld>): TitleOld {
-    const keys: (keyof TitleOld)[] = [
-      'episodes',
-      'episodesMeta'
-    ];
-
-    return this.DTO<TitleOld>(object, details ? [] : keys);
   }
 }

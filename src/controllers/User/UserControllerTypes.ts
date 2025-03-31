@@ -1,8 +1,9 @@
-import User, { UserTogetherRoom, UserWatchProgress } from '~/core/interfaces/UserIntf';
+import User, { UserTogetherRoom } from '~/core/interfaces/UserIntf';
 import { DubberCompact } from '~/core/interfaces/DubberIntf';
 import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import { Metadata } from '~/core/interfaces/types';
 import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { UserPatchWatchProgressProps } from '~/core/services/UserService';
 
 export interface UserGetSearchProps {
   /** Query ~all will return all users */
@@ -65,7 +66,7 @@ export interface UserGetTogetherRoom {
 export interface UserPatchProps {
   id: string
 
-  watchProgress?: UserWatchProgress
+  watchProgress?: UserPatchWatchProgressProps
 
   /** Anime ID */
   deleteWatchProgress?: string

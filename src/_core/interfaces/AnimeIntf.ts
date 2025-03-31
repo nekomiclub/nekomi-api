@@ -66,55 +66,6 @@ export interface HydratedAnime {
   status: AnimeStatus
 }
 
-export interface TitleOld {
-  poster: string
-  year: number
-  episodesCount: number | null
-  description: string | null
-  details: string | null
-
-  /** UTC timestamp */
-  updatedAt: number
-
-  /** @private */
-  episodes: AnimeEpisode[]
-  /** @private */
-  episodesMeta: AnimeEpisodeMeta[]
-
-  names: {
-    eng: string
-    ukr: string
-    alt: string[]
-  },
-
-
-  code: string
-
-  rating: {
-    IMDB: number | null
-    /** @since 1.3.2
-     */
-    mal: number | null
-    /** MAL rated by
-     * @since 1.3.2
-     */
-    mal_poll: number | null
-    /** @deprecated 1.3.2 */
-    Animee: number | null
-  }
-
-  id: string
-  mal_id: string | null
-
-  country: TTitleCountry
-  genres: TAnimeGenre[]
-  ageRate: TAnimeAgeRate
-  status: TAnimeStatus
-  season: TAnimeSeason
-  type: TTitleType
-  studios: string[]
-}
-
 export interface AnimeEpisode {
   dubberID: string
   order: number
@@ -576,61 +527,6 @@ export const ANIME_MEDIA_TYPES: Record<ANIME_MEDIA_TYPE, AnimeMedia> = {
     name: 'Невідомо',
   },
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/** Array of anime genres provided on nekomi.club @deprecated */
-export const AnimeGenresOld = ['chinese', '3D', 'shonen', 'shounenAi', 'seinen', 'shoujoAi', 'shoujo', 'comedy', 'romance', 'school', 'martial arts', 'vampires', 'military', 'harem', 'demons', 'detective', 'drama', 'games', 'historical', 'isekai', 'magic', 'mecha', 'music', 'parody', 'sliceOfLife', 'adventure', 'psychological', 'samurai', 'supernatural', 'sports', 'superpower', 'horror', 'sciFi', 'fantasy', 'action', 'ecchi', 'thriller', 'erotica', 'gourmet'] as const;
-/** @deprecated */
-export type TAnimeGenre = typeof AnimeGenresOld[number];
-
-/** Array of anime age ratings on nekomi.club
- * G - All Ages
- * PG - Children
- * PG-13 - Teens 13 or older
- * R17 - 17+ (violence & profanity)
- * R+ - Mild Nudity
- * Rx - Full nudity (not presented on nekomi.club, but?)
- * @deprecated
- */
-export const AnimeAgeRatesOld = ['G', 'PG', 'PG-13', 'R-17', 'R+', 'Rx'] as const;
-/** @deprecated */
-export type TAnimeAgeRate = typeof AnimeAgeRatesOld[number];
-
-/** Array of anime statuses @deprecated */
-export const AnimeStatusesOld = ['announcement', 'ongoing', 'out', 'delayed'] as const;
-/** @deprecated */
-export type TAnimeStatus = typeof AnimeStatusesOld[number]
-
-/** Array of anime streaming seasons @deprecated */
-export const AnimeSeasonsOld = ['summer', 'autumn', 'winter', 'spring'] as const;
-/** @deprecated */
-export type TAnimeSeason = typeof AnimeSeasonsOld[number]
-
-/** Array of title types @deprecated */
-export const TitleTypesOld = ['serial', 'ONA', 'OVA', 'film', 'special'] as const;
-/** @deprecated */
-export type TTitleType = typeof TitleTypesOld[number]
-
-/** Array of title contries @deprecated */
-export const TitleCountriesOld = ['Japan', 'South Corea', 'China', 'Other'] as const;
-/** @deprecated */
-export type TTitleCountry = typeof TitleCountriesOld[number]
-
 
 
 

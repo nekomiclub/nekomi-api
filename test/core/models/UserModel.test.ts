@@ -5,11 +5,12 @@ process.argv.push('devMode');
 
 import mongoose from 'mongoose';
 
+import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
+import createID from '~/utils/create-id';
 import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
 import { INTERNALS, config } from '~/config';
 import { TNotifyEvent } from '~/interfaces/types';
-import { TitleService } from '~/models/Title';
 import { UserService } from '~/models/User';
 
 
@@ -32,7 +33,7 @@ afterAll(() => {
 describe('User Model', () => {
   let User: UserService;
 
-  const TestTitleID1 = `test-models_user--T1`;
+  let TestTitleID1 = `test-models_user--T1`;
   const TestDubberID1 = `test-models_user--D1`;
   const TestDubberEng = `testmodelsuserda`;
 
@@ -50,9 +51,8 @@ describe('User Model', () => {
 
     await UserService.create({ id: TestID2, username: TestUS2 });
     await new DubberService({ TestMode: true }).create({ nameEng: TestDubberEng, DEV_ID: TestDubberID1, nameUkr: TestDubberID1 });
-    await TitleService.create({
-      id: TestTitleID1
-    }, true);
+    const anime = await new AnimeService().create({ nameEng: createID(6) });
+    TestTitleID1 = anime.uuid;
   });
 
   afterAll(async () => {
@@ -64,7 +64,7 @@ describe('User Model', () => {
     await UserService.delete(TestID2, 'Test purge', 'many');
 
     await new DubberService({ TestMode: true }).deleteMany(TestDubberID1);
-    await TitleService.delete(TestTitleID1, 'Test purge', 'many');
+    await new AnimeService().deleteMany(TestTitleID1);
   }
 
   describe('create', () => {

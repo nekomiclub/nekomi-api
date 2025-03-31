@@ -2,6 +2,7 @@ import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 
 import DubberModel from '~/core/models/DubberModel';
+import Search from '~/services/SearchService';
 import UserModel, { UserService } from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
@@ -392,6 +393,7 @@ export class DubberService extends DubberModelControls {
     this.stack.push(`user ${id} added to the team`);
     Logger.info(`[DubberService]: User has been added to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
 
+    await Search.update('user');
     await this.save();
   }
 
@@ -515,6 +517,7 @@ export class DubberService extends DubberModelControls {
     this.stack.push(`user ${id} deleted from the team`);
     Logger.info(`[DubberService]: User has been deleted from the team. [userId: ${id}; dubberId: ${this.document.id}]`);
 
+    await Search.update('user');
     await this.save();
   }
 
@@ -560,6 +563,7 @@ export class DubberService extends DubberModelControls {
     this.stack.push(`user ${id} invited to the team`);
     Logger.info(`[DubberService]: User has been invited to the dubber team. [userId: ${id}; dubberId: ${this.document.id}]`);
 
+    await Search.update('user');
     await this.save();
   }
 

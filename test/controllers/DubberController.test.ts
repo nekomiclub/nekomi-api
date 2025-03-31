@@ -15,12 +15,13 @@ it('deprecated', () => expect(true).toBeTruthy());
 
 process.argv.push('testMode');
 
+import AnimeService from '~/core/services/AnimeService';
 import DubberController from '~/controllers/Dubber/DubberController';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
+import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import { HTTPErrorConstructor } from '~/services/ErrorService';
-import { TitleService } from '~/models/Title';
 import { UserService } from '~/models/User';
 import { config } from '~/config';
 
@@ -43,6 +44,7 @@ describe('DubberController', () => {
   const GenericDubberService = new DubberService({ TestMode: true });
 
   const DubberID1 = `test-dubbercontroller--1`;
+  let AnimeID1 = `test-dubbercontroller--1`;
   const DubberUsernameA = `testdubbercontrollera`;
 
   const DubberID10 = `test-dubbercontroller--10`;
@@ -97,21 +99,23 @@ describe('DubberController', () => {
       TEST_IS_TELEGRAM_LINKED: true
     });
 
-    await TitleService.create({
-      id: DubberID1,
-      TEST_EPISODES: [{
-        dubberID: DubberID1,
-        frames: [],
-        order: 1,
-        qualities: {
-          q1080: '',
-          q240: null,
-          q480: null,
-          q4k: null,
-          q720: null
-        }
-      }]
-    }, true);
+    const animeService = new AnimeService();
+    const anime = await animeService.create({ nameEng: createID(6) });
+    await animeService.init(anime.uuid);
+    AnimeID1 = anime.uuid;
+
+    animeService.document!.episodes = [{
+      dubberID: DubberID1,
+      frames: [],
+      order: 1,
+      qualities: {
+        q1080: '',
+        q240: null,
+        q480: null,
+        q4k: null,
+        q720: null
+      }
+    }];
 
 
 
@@ -127,7 +131,7 @@ describe('DubberController', () => {
     await UserService.delete(DubberID1, 'test purge', 'many');
     await UserService.delete(DubberID11, 'test purge', 'many');
     await UserService.delete(DubberID12, 'test purge', 'many');
-    await TitleService.delete(DubberID1, 'test purge', 'many');
+    await new AnimeService().deleteMany(AnimeID1);
   }
 
 

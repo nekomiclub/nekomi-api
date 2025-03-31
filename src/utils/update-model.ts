@@ -132,17 +132,23 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
     const anime: Anime = {
       uuid: title.id,
       broadcast: null,
+      // @ts-ignore
       description: title.description,
+      // @ts-ignore
       details: title.details,
       episodes: title.episodes,
+      // @ts-ignore
       episodesCount: title.episodesCount,
       episodesMeta: title.episodesMeta,
       genres: [],
+      // @ts-ignore
       malId: title.mal_id !== null ? +title.mal_id : null,
       malSyncedAt: 0,
       media: ANIME_MEDIA_TYPE.UNKNOWN,
       names: title.names,
+      // @ts-ignore
       pictures: [],
+      // @ts-ignore
       poster: title.poster,
       posterAdapt: null,
       rate: ANIME_RATE.G,
@@ -153,10 +159,13 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('TitleModel', async () => {
         malScoredBy: title.rating.mal_poll
       },
       season: ANIME_SEASON.FALL,
+      // @ts-ignore
       slug: title.code,
       status: ANIME_STATUS.CURRENTLY_AIRING,
       studios: [],
+      // @ts-ignore
       updatedAt: title.updatedAt,
+      // @ts-ignore
       year: title.year,
       stopSync: {
         mal: false

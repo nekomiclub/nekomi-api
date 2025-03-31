@@ -1,10 +1,10 @@
 import { HydratedDocument } from 'mongoose';
 
 import * as cfg from '~/config';
+import AnimeService from '~/core/services/AnimeService';
 import DubberModel from '~/core/models/DubberModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
 import Role from './Role';
-import TitleModel from './Title';
 import UserModelNew from '~/core/models/UserModel';
 import getUTC from '~/utils/get-utc';
 import validator from 'validator';
@@ -317,15 +317,14 @@ export class UserService {
     const dubber = await DubberModel.findOne({ id: dubberID });
     if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
-    const title = await TitleModel.findOne({ id: titleID });
-    if (!title) throw new E404(`Title ${titleID} is not found`);
+    const anime = await new AnimeService().getById(titleID, true);
 
     const item = this.user.watchProgress.find(el => el.titleID === titleID);
 
     if (item) {
       // Patch exist
 
-      this.stack.push(`Watch progress for ${item.episodeOrder} in title ${title.id} changed (progress: ${item.progress}s > ${progress}s; ${item.episodeOrder !== episodeOrder ? `ep: ${item.episodeOrder} > ${episodeOrder};` : ''} ${item.dubberID !== dubberID ? `dubber: ${item.dubberID} > ${dubberID}` : ''})`);
+      this.stack.push(`Watch progress for ${item.episodeOrder} in anime ${anime.uuid} changed (progress: ${item.progress}s > ${progress}s; ${item.episodeOrder !== episodeOrder ? `ep: ${item.episodeOrder} > ${episodeOrder};` : ''} ${item.dubberID !== dubberID ? `dubber: ${item.dubberID} > ${dubberID}` : ''})`);
 
       item.dubberID = dubberID;
       item.episodeOrder = episodeOrder;
@@ -344,7 +343,7 @@ export class UserService {
       };
 
       this.user.watchProgress.push(item);
-      this.stack.push(`Added new watch progress item for ${episodeOrder} episode in title ${title.id} in dub ${dubber.id}`);
+      this.stack.push(`Added new watch progress item for ${episodeOrder} episode in title ${anime.uuid} in dub ${dubber.id}`);
     }
 
     this.user.markModified('watchProgress');
@@ -391,12 +390,11 @@ export class UserService {
     const lib = this.user.libs.find(el => el.id === libID);
     if (!lib) throw new E404(`Lib ${libID} is not found`);
 
-    const title = await TitleModel.findOne({ id: titleID });
-    if (!title) throw new E404(`Title ${titleID} is not found`);
+    const anime = await new AnimeService().getById(titleID, true);
 
-    if (!lib.titles.includes(title.id)) {
-      lib.titles.push(title.id);
-      this.stack.push(`Added title ${title.id} to lib ${lib.id}`);
+    if (!lib.titles.includes(anime.uuid)) {
+      lib.titles.push(anime.uuid);
+      this.stack.push(`Added title ${anime.uuid} to lib ${lib.id}`);
     }
 
     this.user.markModified('libs');
@@ -407,11 +405,10 @@ export class UserService {
     const lib = this.user.libs.find(el => el.id === libID);
     if (!lib) throw new E404(`Lib ${libID} is not found`);
 
-    const title = await TitleModel.findOne({ id: titleID });
-    if (!title) throw new E404(`Title ${titleID} is not found`);
+    const anime = await new AnimeService().getById(titleID, true);
 
-    lib.titles = lib.titles.filter(el => el !== title.id);
-    this.stack.push(`Removed title ${title.id} from lib ${lib.id}`);
+    lib.titles = lib.titles.filter(el => el !== anime.uuid);
+    this.stack.push(`Removed title ${anime.uuid} from lib ${lib.id}`);
 
     this.user.markModified('libs');
   }
@@ -476,8 +473,7 @@ export class UserService {
     const rooms = this.user.togetherRooms;
     if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
 
-    const title = await TitleModel.findOne({ id: titleId });
-    if (!title) throw new E404(`Title ${titleId} is not found`);
+    const anime = await new AnimeService().getById(titleId, true);
 
     const id = createID(6);
 
@@ -485,7 +481,7 @@ export class UserService {
       id,
       titleId,
       settings: {
-        name: title.names.ukr,
+        name: anime.names.ukr,
         accurateSync: false,
         password: null,
         usersCanControl: false

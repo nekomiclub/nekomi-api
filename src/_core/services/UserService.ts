@@ -52,7 +52,9 @@ interface UserPatchStatistics {
 
 
 type TUserModelControls = ServiceControls<UserCreateProps, User>
-type UserPatchWatchProgressProps = SinglePartial<UserWatchProgress, 'updatedAt'>;
+export type UserPatchWatchProgressProps = SinglePartial<{
+  viewtime: number
+} & UserWatchProgress, 'updatedAt'>;
 
 
 
@@ -211,7 +213,7 @@ export class UserService extends UserModelControls {
   /** Patch watch progress & increase total viewtime */
   async patchWatchProgress(props: UserPatchWatchProgressProps) {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    const { dubberID, episodeOrder, progress, titleID } = props;
+    const { dubberID, episodeOrder, progress, titleID, viewtime } = props;
 
     const anime = await new AnimeService().getById(titleID, true);
     const dubber = await new DubberService().getById(dubberID, true);
@@ -229,7 +231,7 @@ export class UserService extends UserModelControls {
     watchProgress.updatedAt = getUTC().timestamp;
 
     // Increase viewtime
-    await this.patchStatistics({ increaseViewtime: progress });
+    await this.patchStatistics({ increaseViewtime: viewtime });
 
     const details = `[animeId: ${titleID}; dubberId: ${dubberID}; episode: ${episodeOrder}; progress: ${progress}s]`;
 
