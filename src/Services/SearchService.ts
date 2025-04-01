@@ -1,32 +1,32 @@
-import DubberService from '~/core/Services/DubberService';
+import AnimeModel from '~/core/models/AnimeModel';
+import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
-import TitleModel from '~/Models/Title';
-import UserModel from '~/Models/User';
+import UserModel from '~/core/models/UserModel';
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/Interfaces/IDubber';
-import { ITitle } from '~/interfaces/ITitle';
-import { IUser } from '~/interfaces/IUser';
+import { IDubber } from '~/core/interfaces/DubberIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
+import { MongoDocumentDTO } from '~/core/services/DTO';
 
 
 
-interface ISearchProps {
+interface SearchProps {
   query: string
-  engine: TSearchEngine
+  engine: SearchEngineType
 
   /** @default 10 */
   limit?: number
 }
 
-export type TSearchEngine = 'user' | 'dubber' | 'anime';
+export type SearchEngineType = 'user' | 'dubber' | 'anime';
 
 
 
 class SearchService {
   private UserEngine: Fuse<IUser> | null = null;
   private DubberEngine: Fuse<IDubber> | null = null;
-  private AnimeEngine: Fuse<ITitle> | null = null;
+  private AnimeEngine: Fuse<Anime> | null = null;
 
 
 
@@ -39,7 +39,7 @@ class SearchService {
   }
 
   /** Update search engine */
-  async update(type: TSearchEngine) {
+  async update(type: SearchEngineType) {
     if (type === 'user') {
       const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
 
@@ -69,7 +69,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await TitleModel.find()).map(el => new MongoDocumentDTO().anime({ document: el }));
+      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
@@ -81,9 +81,9 @@ class SearchService {
     Logger.debug(`[SearchService]: Engine updated. [engine: ${type}]`);
   }
 
-  search({ limit, query, engine }: ISearchProps) {
+  search({ limit, query, engine }: SearchProps) {
     limit = limit ?? 10;
-    let SearchEngine;
+    let SearchEngine: Fuse<any>;
 
     if (engine === 'user') {
       if (!this.UserEngine) throw new ERR_NOT_READY();

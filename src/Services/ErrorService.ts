@@ -1,13 +1,14 @@
 import express from 'express';
-import ip from 'ip';
+import getUTC from '~/utils/get-utc';
 import { AxiosError } from 'axios';
-import { getUTC } from '../handlers/handler';
+
 import { validationResult } from 'express-validator';
 
 import chalk from 'chalk';
-import { DevelopmentMode, config } from '../config';
+import { DevelopmentMode, TestMode, config } from '~/config';
 import { Logger } from './LoggerService';
 import { TMiddlewareName } from './MiddlewareService';
+import { ZodError } from 'zod';
 
 
 
@@ -124,7 +125,8 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       if (e.status >= 500) {
         Logger.error(emsg);
       } else {
-        if (DevelopmentMode) console.log(chalk.red(emsg));
+        if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
+        if (TestMode) Logger.error(`(TESTING) ${emsg}`);
       }
 
       return res.status(e.status).json({ ...e, date });
@@ -133,7 +135,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       const code = e.response?.data.code || e.code || 'HTTP_ERROR';
       const message = e.response?.data.message || e.response?.data.msg || e.message || 'Message not provided';
 
-      const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll(ip.address(), 'local.addr')}`;
+      const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll('127.0.0.1', 'local.addr')}`;
 
       let reqURL = e.config?.url;
 
@@ -141,20 +143,25 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         const message = `[AXIOS/503]: Connection refused`;
         Logger.error(`[AXIOS/503]: Connection to ${reqURL} refused`);
 
-        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
+        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
       } else {
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
         } else {
-          if (DevelopmentMode) console.log(chalk.red(emsg));
+          if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
+          if (TestMode) Logger.error(`(TESTING) ${emsg}`);
         }
       }
 
-      return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll(ip.address(), 'local.addr'), date });
+      return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
+    } else if (e instanceof ZodError) {
+      if (DevelopmentMode && !TestMode) console.log(chalk.red(`Validation error`, e));
+
+      return res.status(400).json({ message: 'Invalid payload, match it with endpoint documentation.', code: ERR_GENERIC.INVALID_PAYLOAD, date });
     } else {
       console.error(e);
 
-      const emsg = `[Uncaught]: Uncaught error occured. Behaivour reported`;
+      const emsg = `[Uncaught]: Uncaught error occured`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
       return res.status(500).json({ message: emsg, date });
@@ -167,7 +174,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 //* --------------- DEFAULT EXCEPTIONS ---------------
 export class ERR_INVALID_PAYLOAD extends E400 {
   constructor(message?: string) {
-    super(message || 'Invalid payload. Match payload with endpoint documentation.', 'ERR_INVALID_PAYLOAD');
+    super(message || 'Invalid payload, match it with endpoint documentation.', ERR_GENERIC.INVALID_PAYLOAD);
   }
 }
 
@@ -195,9 +202,9 @@ export class ERR_NOT_READY extends E418 {
   }
 }
 
-export class ERR_MISSING_AUTHORIZATION extends E404 {
+export class ERR_MISSING_AUTHORIZATION extends E401 {
   constructor(message?: string) {
-    super(message || 'Authorization cookie/header is missing.', 'ERR_MISSING_AUTHORIZATION');
+    super(message || 'Authorization cookie/header is missing.', ERR_GENERIC.MISSING_AUTHORIZATION);
   }
 }
 
@@ -224,6 +231,8 @@ export enum ERR_GENERIC {
   USERNAME_LENGTH_INVALID = 'generic:username_length_invalid',
   USERNAME_NOT_LATIN = 'generic:username_not_latin',
   DESCRIPTION_LENGTH_INVALID = 'generic:description_length_invalid',
+  INVALID_PAYLOAD = 'generic:invalid_payload',
+  MISSING_AUTHORIZATION = 'generic:missing_authorization',
 }
 
 export const ERR_USERNAME_LENGTH_INVALID = new E400(`Username must be in range between ${config.VALIDATION.CreateUser.minNameLength} and ${config.VALIDATION.CreateUser.maxNameLength} symbols`, ERR_GENERIC.USERNAME_LENGTH_INVALID);

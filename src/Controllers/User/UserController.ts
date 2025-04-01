@@ -1,28 +1,21 @@
+import AnimeModel from '~/core/models/AnimeModel';
+import AnimeService from '~/core/services/AnimeService';
+import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
-import UserModel from '~/Models/User';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/Services/DTO';
-import { IUser } from '~/interfaces/IUser';
+import UserModel from '~/core/models/UserModel';
+import UserService from '~/core/services/UserService';
+import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
+import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
+import { E404 } from '~/services/ErrorService';
+import { IUser } from '~/core/interfaces/UserIntf';
 import { NotifyService } from '~/services/NotifyService';
+import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchProps } from './UserControllerTypes';
+import { parseRoles } from '~/models/Role';
 
 
 
 //* ===================================== GET SEARCH
-export interface IUserGetSearch {
-  /** Query ~all will return all users */
-  q: string
-
-  /** Parse user invitation data (can/not be invited, already member) for dubber id */
-  parseInvitationStatusFor?: string
-}
-
-export interface IUserGetSearchResult {
-  user: IUser
-
-  /** @requires parseInvitationStatusFor */
-  invitationStatus?: 'can_be_invited' | 'telegram_not_linked' | 'invite_pending' | 'others_member_already'
-}
-
-async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
+async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): Promise<UserGetSearch[]> {
   const limit = 15;
 
   let userResults: IUser[] = [];
@@ -34,10 +27,10 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
     userResults = Search.search({ query: q, engine: 'user', limit });
   }
 
-  const results: IUserGetSearchResult[] = [];
+  const results: UserGetSearch[] = [];
 
   userResults.forEach(user => {
-    let invitationStatus: IUserGetSearchResult['invitationStatus'] = undefined;
+    let invitationStatus: UserGetSearch['invitationStatus'] = undefined;
 
     // Parse invitation status
     if (parseInvitationStatusFor) {
@@ -62,11 +55,93 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
     });
   });
 
+  return results;
+}
+
+
+
+//* ===================================== GET BY QUERY
+/**
+ * Get user by query or session (*), parse capabilities or return only metadata
+ * 
+ * @see UserGetByQueryProps
+ * @returns UserGetByQuery
+ */
+async function GetByQuery({ query, metadataOnly, parseCapabilities, detailed, parseLibId, parseTogetherRoomId }: UserGetByQueryProps): Promise<UserGetByQuery> {
+  let user = await new UserService().getByQuery(query, true);
+
+  let metadata: UserGetByQuery['metadata'] | undefined = undefined;
+  let parsedLib: UserGetByQuery['parsedLib'] | undefined = undefined;
+  let parsedTogetherRoom: UserGetByQuery['parsedTogetherRoom'] | undefined = undefined;
+  let capabilities: UserGetByQuery['capabilities'] | undefined = undefined;
+
+
+
+  if (metadataOnly) metadata = UserMetadataMapper(user);
+
+  if (!metadataOnly) {
+    if (parseCapabilities) capabilities = await parseRoles(user.roles);
+
+    if (parseLibId) {
+      const lib = user.libs.find(el => el.id === parseLibId);
+      if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
+
+      parsedLib = [];
+
+      if (lib.titles.length) {
+        parsedLib = (await AnimeModel.find(
+          { uuid: { $in: lib.titles } }
+        )).map(document => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document })));
+      }
+    }
+
+    if (parseTogetherRoomId) {
+      const room = user.togetherRooms.find(el => el.id === parseTogetherRoomId);
+      if (!room) throw new E404(`Together room with id (${parseTogetherRoomId}) is not found`);
+
+      const anime = await new AnimeService().getById(room.titleId, true);
+      const dubbers = anime.episodes.length > 0 ? (await DubberModel.find({
+        id: {
+          $in: [...new Set(anime.episodes.map(el => el.dubberID))]
+        }
+      })).map(el => new MongoDocumentDTO().dubber({ document: el })) : [];
+
+      parsedTogetherRoom = {
+        anime: HydrateAnimeDocument(anime),
+        dubbers: dubbers.map(el => DubberCompactMapper(el))
+      };
+    }
+  }
+
+  user = new DocumentDTO().user({ object: user, details: detailed });
+
+  // @ts-expect-error Hide user when metadata only
+  if (metadataOnly) user = undefined;
+
+
+
   return {
-    status: 200,
-    message: 'ok',
-    results
+    user,
+
+    metadata,
+    capabilities,
+    parsedLib,
+    parsedTogetherRoom
   };
+}
+
+
+
+//* ===================================== PATCH BY ID
+/** @todo */
+export async function PatchById({ id, watchProgress, deleteWatchProgress }: UserPatchProps) {
+  const userService = new UserService();
+  await userService.init(id);
+
+  if (watchProgress) await userService.patchWatchProgress(watchProgress);
+  if (deleteWatchProgress) await userService.deleteWatchProgress({ animeId: deleteWatchProgress });
+
+  await userService.save();
 }
 
 
@@ -74,4 +149,7 @@ async function GetSearch({ q, parseInvitationStatusFor }: IUserGetSearch) {
 
 export default class UserController {
   static GetSearch = GetSearch;
+  static GetByQuery = GetByQuery;
+
+  static PatchById = PatchById;
 }

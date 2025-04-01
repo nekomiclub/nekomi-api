@@ -58,7 +58,7 @@ Data searched
 ```ts
 {
   msg: 'OK',
-  results: ISearchExtended<IDubber | ITitle | IUser>[]  
+  results: ISearchExtended<IDubber | Anime | IUser>[]  
   totalResults: number // Total matches
 }
 ```

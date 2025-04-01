@@ -29,7 +29,7 @@ Get title by query (id or code)
 ```ts
 {
   message: 'OK',
-  title: ITitle,
+  title: Anime,
   parsedDubbers?: IDubber[]
 }
 ```
@@ -78,7 +78,7 @@ Create new title instance
 {
   message: 'OK',
   id: string,
-  title: ITitle
+  title: Anime
 }
 ```
 
@@ -185,9 +185,9 @@ Get home wrapped titles. Return user watch progress on featured titles if sessio
 {
   msg: 'OK',
   featured: ITitleWithMediaMeta[],
-  popular: ITitle[],
-  updatedRecently: ITitle[],
-  hightRating: ITitle[],
+  popular: Anime[],
+  updatedRecently: Anime[],
+  hightRating: Anime[],
 }
 ```
 

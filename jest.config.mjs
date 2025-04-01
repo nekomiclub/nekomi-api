@@ -1,0 +1,22 @@
+/**
+ * JEST CONFIG  
+ * 
+ * @copyright fullkekw
+ * @version 07.03.2025
+*/
+
+export default {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  transformIgnorePatterns: [
+    'node_modules/(?!variables/.*)'
+  ],
+  testPathIgnorePatterns: [
+    'dist/'
+  ],
+  moduleNameMapper: {
+    '^~/core/(.*)$': '<rootDir>/src/_core/$1',
+    '^~/interfaces/(.*)$': '<rootDir>/src/_core/interfaces/$1',
+    '^~/(.*)$': '<rootDir>/src/$1'
+  }
+};

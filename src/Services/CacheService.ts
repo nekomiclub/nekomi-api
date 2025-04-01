@@ -1,6 +1,7 @@
+import getUTC from '~/utils/get-utc';
 import { DevelopmentMode } from '~/config';
 import { Logger } from './LoggerService';
-import { getUTC } from '~/handlers/handler';
+
 
 
 
@@ -32,7 +33,6 @@ export class CacheService<T = any> {
 
   get({ id }: { id: string }): T | undefined {
     const record = this.Cached.find(el => el.id === id);
-
     if (!record) return undefined;
 
     if (getUTC().timestamp > record.createdAt + (60000 * 60)) {

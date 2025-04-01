@@ -1,11 +1,11 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './Services/ErrorService';
-import { MiddlewareService } from './Services/MiddlewareService';
-import { TRoleCapability } from './Interfaces/IRoles';
+import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
+import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
+import { MiddlewareService } from './services/MiddlewareService';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
 import { TestMode, config } from './config';
-import { getMockData } from './handlers/mocks';
 
 
 const Middleware = new MiddlewareService();
@@ -19,14 +19,18 @@ const Middleware = new MiddlewareService();
 export function CheckAccess(capabilities: TRoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
-      const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
-      if (!token) throw new ERR_MISSING_AUTHORIZATION();
-
       req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];
       req.nekomi.middlewaresPassed.push('checkAccess');
 
+      const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
+      if (!token) throw new ERR_MISSING_AUTHORIZATION();
+
       try {
-        const { user, capabilities: userCaps } = await Middleware.checkAccess(token, capabilities, TestMode ? getMockData(req, 'FkUsapiAuthRefresh').data : undefined);
+        const { user, capabilities: userCaps } = await Middleware.checkAccess({
+          token,
+          capabilities,
+          mock: TestMode ? GetCheckAccessMock(req) : undefined
+        });
 
         req.nekomi.user = req.nekomi.user || {
           id: 'NULL',
@@ -64,7 +68,11 @@ export function CheckCSRF(origins?: string[]) {
       const token = req.header(config.vars.csrfHeader);
       if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
 
-      const origin = await Middleware.checkCSRF(token, origins, TestMode ? getMockData(req, 'FkAuthorityVerify').data : undefined);
+      const origin = await Middleware.checkCSRF({
+        token,
+        origins,
+        mock: TestMode ? GetCheckCSRFMock(req) : undefined
+      });
 
       return next();
     }, true);

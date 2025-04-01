@@ -1,37 +1,38 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import * as TokenService from '../Services/TokenService';
+import * as TokenService from '~/services/TokenService';
 
-import * as Role from '../Models/Role';
-import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
-import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
-import Title from '../Models/Title';
-import User, { UserModel, UserService } from '../Models/User';
-import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '../Services/ErrorService';
-import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
-import { IFullkekwUserAPI_TokenData } from '~/core/Interfaces/API/IFullkekwUserAPI';
-import { IM_FkAuthorityVerify } from '../Interfaces/IMocks';
-import { ITitle } from '../Interfaces/ITitle';
-import { IUserTogetherRoom } from '../Interfaces/IUser';
-import { Logger } from '../Services/LoggerService';
-import { MongoDocumentDTO } from '~/core/Services/DTO';
-import { ProductionMode, TestMode, config } from '../config';
-import { TRoleCapability } from '../Interfaces/IRoles';
-import { getMockData } from '../handlers/mocks';
-import { updateSearch } from './root';
+import * as Role from '~/models/Role';
+import AnimeModel from '~/core/models/AnimeModel';
+import AnimeService from '~/core/services/AnimeService';
+import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
+import Search from '~/services/SearchService';
+import User, { UserModel, UserService } from '~/models/User';
+import { ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
+import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { IM_FkAuthorityVerify } from '~/interfaces/types';
+import { IUserTogetherRoom } from '~/core/interfaces/UserIntf';
+import { Logger } from '~/services/LoggerService';
+import { MongoDocumentDTO } from '~/core/services/DTO';
+import { ProductionMode, TestMode, config } from '~/config';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { getMockData } from '~/utils/deprecated-utils';
 
 
 
 
 /** Type of patchUserMethods array */
-type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner'
+type TPatchUserMethod = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner' | 'removeWatchProgress'
 
 interface IPatchUserBody {
   /** Method */
   method: TPatchUserMethod
 
-  //* editFolderItem, patchWatchProgress methods
+  //* editFolderItem, patchWatchProgress, removeWatchProgress methods
   titleId?: string
 
   //* editFolderItem method
@@ -57,7 +58,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
     const { session } = req.body as { session: string };
 
     // @ts-expect-error Need empty object
-    const DATA: IFullkekwUserAPI_TokenData = {};
+    const DATA: FullkekwUserAPI_TokenData = {};
 
 
 
@@ -69,7 +70,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
       DATA.avatar = data.avatar;
       DATA.username = data.username;
     } else {
-      const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+      const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
       DATA.id = data.id;
       DATA.avatar = data.avatar;
@@ -93,7 +94,7 @@ export async function postSignin(req: express.Request, res: express.Response) {
 
       user = await UserService.create(DATA);
       isUserNew = true;
-      updateSearch('user');
+      Search.update('user');
     }
 
 
@@ -134,7 +135,7 @@ export async function getValidate(req: express.Request, res: express.Response) {
     if (!token) return res.status(202).json({ message: 'Session not provided' });
 
     // @ts-expect-error Need empty object
-    const session: IFullkekwUserAPI_TokenData = {};
+    const session: FullkekwUserAPI_TokenData = {};
 
     try {
       if (!TestMode) {
@@ -187,14 +188,14 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     let privateMode = true; // If private mode is true, client can not get some private information
     let parsedRoles: TRoleCapability[] | undefined = undefined;
-    let parsedLib: ITitle[] | undefined = undefined;
+    let parsedLib: Anime[] | undefined = undefined;
     let togetherRoom: IUserTogetherRoom | undefined = undefined;
 
 
 
     // Get user by session
     if (query === '*') {
-      const DATA: IFullkekwUserAPI_TokenData = {
+      const DATA: FullkekwUserAPI_TokenData = {
         avatar: '',
         id: '',
         username: ''
@@ -218,7 +219,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
           }
         }
       } else {
-        const { data } = getMockData<IFullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+        const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
         DATA.username = data.username;
       }
@@ -231,7 +232,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
 
     // Check if client can get detailed info
     if (detailed !== undefined && CSRFToken !== undefined) {
-      const DATA: IFullkekwAuthorityAPI_TokenVerify = {
+      const DATA: FullkekwAuthorityAPI_TokenVerify = {
         origin: '',
         verified: false
       };
@@ -266,7 +267,7 @@ export async function getQuery(req: express.Request, res: express.Response) {
       const lib = user.libs.find(el => el.id === parseLib);
       if (!lib) throw new E404(`Lib ${parseLib} is not found`);
 
-      parsedLib = (await Title.find({ id: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
+      parsedLib = (await AnimeModel.find({ uuid: { $in: lib.titles } })).map(title => new MongoDocumentDTO().anime({ document: title, details: !privateMode }));
     }
 
     // Fetch together room
@@ -309,6 +310,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       editFolderItem,
       patchWatchProgress,
       upload_banner,
+      removeWatchProgress,
     };
 
     const handler = HANDLERS[method];
@@ -330,8 +332,7 @@ export async function patchUser(req: express.Request, res: express.Response) {
       const lib = patcher.user.libs.find(el => el.id === folderId);
       if (!lib) throw new E404(`Lib ${folderId} is not found`);
 
-      const title = await Title.findOne({ id: titleId });
-      if (!title) throw new E404(`Title ${titleId} is not found`);
+      const anime = await new AnimeService().getById(titleId, true);
 
       if (!lib.titles.includes(titleId)) {
         // Add title & event
@@ -342,8 +343,8 @@ export async function patchUser(req: express.Request, res: express.Response) {
         // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
         if (
           lib.type === 'plans' &&
-          title.episodes.length === 0 &&
-          (title.status === 'announcement' || title.status === 'ongoing')
+          anime.episodes.length === 0 &&
+          (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
         ) await patcher.addSubscribe({ event: 'airing_started', key: titleId });
       } else {
         // Remove title & event
@@ -369,6 +370,13 @@ export async function patchUser(req: express.Request, res: express.Response) {
       if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
 
       await patcher.uploadBanner({ file });
+    }
+
+    async function removeWatchProgress() {
+      const { titleId } = req.body as { titleId: string };
+      if (!titleId) throw new ERR_INVALID_PAYLOAD();
+
+      await patcher.removeWatchProgress({ animeId: titleId });
     }
   });
 }

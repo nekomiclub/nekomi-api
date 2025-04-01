@@ -1,6 +1,8 @@
+import getUTC from '~/utils/get-utc';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { createStringID, getUTC } from '../handlers/handler';
+import { config } from '~/config';
+import { createID } from '~/utils/create-id';
+
 
 /** Decoded token interface */
 interface ITokenPayload<T = any> {
@@ -93,7 +95,7 @@ export class TokenService {
 
     switch (method) {
       case 'TelegramLink': {
-        token = createStringID(24);
+        token = createID(24);
         break;
       }
     }

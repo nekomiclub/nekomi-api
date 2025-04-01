@@ -1,13 +1,13 @@
 import { AxiosError } from 'axios';
 
-import DubberService from '~/core/Services/DubberService';
-import NekomiBotAPI from '~/core/Services/API/NekomiBotApi';
-import Title from '../Models/Title';
-import User, { UserModel, UserService } from '../Models/User';
-import { DevelopmentMode, config } from '../config';
+import AnimeService from '~/core/services/AnimeService';
+import DubberService from '~/core/services/DubberService';
+import NekomiBotAPI from '~/core/services/API/NekomiBotApi';
+import User, { UserService } from '~/models/User';
+import { DevelopmentMode, config } from '~/config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
-import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '../Interfaces/services/INotify';
-import { InlineKeyboardMarkup } from '~/core/Interfaces/API/INekomiBotAPI';
+import { IEventPayload, INotifyAiringStarted, INotifyDubberTell, INotifyNewEpisode, NOTIFY_EVENTS, TNotifyEvent } from '~/interfaces/types';
+import { InlineKeyboardMarkup } from '~/core/interfaces/API/NekomiBotAPI.intf';
 import { Logger } from './LoggerService';
 
 
@@ -62,51 +62,51 @@ export class NotifyService {
   async test(event: TNotifyEvent, { telegramId }: INotifyTestProps) {
     Logger.debug(`[Notify]: Testing ${event}...`);
 
-    if (event === 'new_episode') {
-      const title = await Title.findOne();
-      if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
+    // if (event === 'new_episode') {
+    //   const title = await Title.findOne();
+    //   if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
 
-      const payload: INotifyNewEpisode = {
-        titleID: title.id,
-        dubberID: title.episodes[0].dubberID,
-        episodeOrder: title.episodes[0].order,
-      };
+    //   const payload: INotifyNewEpisode = {
+    //     titleID: title.id,
+    //     dubberID: title.episodes[0].dubberID,
+    //     episodeOrder: title.episodes[0].order,
+    //   };
 
-      await this.broadcast({ event, payload });
-    }
+    //   await this.broadcast({ event, payload });
+    // }
 
-    if (event === 'airing_started') {
-      const title = await Title.findOne();
-      if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
+    // if (event === 'airing_started') {
+    //   const title = await Title.findOne();
+    //   if (!title) return Logger.fail(`[Notify]: Testing ${event} failed - Any title is not found`);
 
-      const payload: INotifyAiringStarted = {
-        titleID: title.id,
-      };
+    //   const payload: INotifyAiringStarted = {
+    //     titleID: title.id,
+    //   };
 
-      await this.broadcast({ event, payload });
-    }
+    //   await this.broadcast({ event, payload });
+    // }
 
-    if (
-      event === 'dubber_invite_pending'
-      || event === 'dubber_invite_accepted'
-      || event === 'dubber_invite_declined'
-      || event === 'dubber_member_excluded'
-    ) {
-      if (!telegramId) return Logger.fail(`[Notify]: Can not send notify due to telegramId missing`);
+    // if (
+    //   event === 'dubber_invite_pending'
+    //   || event === 'dubber_invite_accepted'
+    //   || event === 'dubber_invite_declined'
+    //   || event === 'dubber_member_excluded'
+    // ) {
+    //   if (!telegramId) return Logger.fail(`[Notify]: Can not send notify due to telegramId missing`);
 
-      const user = await UserModel.findOne({ telegramData: { id: telegramId } });
-      if (!user) return Logger.fail(`[Notify]: Can not find user with telegram id ${telegramId}`);
+    //   const user = await UserModel.findOne({ telegramData: { id: telegramId } });
+    //   if (!user) return Logger.fail(`[Notify]: Can not find user with telegram id ${telegramId}`);
 
-      const dubberService = new DubberService();
-      const dubber = (await dubberService.getAll())[0];
+    //   const dubberService = new DubberService();
+    //   const dubber = (await dubberService.getAll())[0];
 
-      const payload: INotifyDubberTell = {
-        userId: user.id,
-        dubberId: dubber.id
-      };
+    //   const payload: INotifyDubberTell = {
+    //     userId: user.id,
+    //     dubberId: dubber.id
+    //   };
 
-      await this.broadcast({ event, payload });
-    }
+    //   await this.broadcast({ event, payload });
+    // }
   }
 }
 
@@ -116,63 +116,61 @@ export class NotifyService {
 async function new_episode({ event, payload }: IEventPayload<INotifyNewEpisode>) {
   const { dubberID, episodeOrder, titleID } = payload;
 
-  const title = await Title.findOne({ id: titleID });
-  if (!title) throw new E404(`Title ${titleID} is not found`);
+  const anime = await new AnimeService().getById(titleID, true);
 
   const dubber = await new DubberService().getById(dubberID);
 
   const users = (await User.find({
-    subscribes: NotifyService.createEvent({ event, key: title.id })
-  })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === title.id));
+    subscribes: NotifyService.createEvent({ event, key: anime.uuid })
+  })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === anime.uuid));
 
   const audience = users.map(el => el.telegramData!.id!);
 
 
   await NekomiBotAPI.broadcast({
     audience,
-    message: `🆕 ${episodeOrder} серія в озвученні ${dubber.nameUkr} завантажена на nekomi.club!\n\n🎬 ${title.names.ukr} / ${title.names.eng}\n`,
-    photo: title.poster,
+    message: `🆕 ${episodeOrder} серія в озвученні ${dubber.nameUkr} завантажена на nekomi.club!\n\n🎬 ${anime.names.ukr} / ${anime.names.eng}\n`,
+    photo: anime.poster,
     replyMarkup: {
       inline_keyboard: [[{
         text: 'Дивитись 👉👉👉',
-        url: `${config.URL.nekomi_site}/w/${title.code}`
+        url: `${config.URL.nekomi_site}/w/${anime.slug}`
       }]]
     }
   });
 
-  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: title.id })}; audience: ${audience.join(', ')}]`);
+  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: anime.uuid })}; audience: ${audience.join(', ')}]`);
 
 }
 
 async function airing_started({ event, payload }: IEventPayload<INotifyAiringStarted>) {
   const { titleID } = payload;
 
-  const title = await Title.findOne({ id: titleID });
-  if (!title) throw new E404(`Title ${titleID} is not found`);
+  const anime = await new AnimeService().getById(titleID, true);
 
-  const users = (await User.find({ subscribes: NotifyService.createEvent({ event, key: title.id }) })).filter(el => el.statistics.isTelegramLinked);
+  const users = (await User.find({ subscribes: NotifyService.createEvent({ event, key: anime.uuid }) })).filter(el => el.statistics.isTelegramLinked);
   const audience = users.map(el => el.telegramData!.id!);
 
   await NekomiBotAPI.broadcast({
     audience,
-    message: `🎉 Почалась трансляція анонсованого аніме!\n\n🎬 ${title.names.ukr} / ${title.names.eng}`,
-    photo: title.poster,
+    message: `🎉 Почалась трансляція анонсованого аніме!\n\n🎬 ${anime.names.ukr} / ${anime.names.eng}`,
+    photo: anime.poster,
     replyMarkup: {
       inline_keyboard: [[{
         text: '📺 Дивитися',
-        url: `${config.URL.nekomi_site}/w/${title.code}`
+        url: `${config.URL.nekomi_site}/w/${anime.slug}`
       }]]
     }
   });
 
   users.forEach(async user => {
     const userService = new UserService({ user });
-    userService.removeSubscribe({ event, key: title.id });
+    userService.removeSubscribe({ event, key: anime.uuid });
 
     await user.save();
   });
 
-  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: title.id })}; audience: ${audience.join(', ')}]`);
+  Logger.debug(`[Notify]: Broadcasted. [event: ${NotifyService.createEvent({ event, key: anime.uuid })}; audience: ${audience.join(', ')}]`);
 }
 
 /** Handle dubber_invite accept & decline & invite, dubber_member_excluded */

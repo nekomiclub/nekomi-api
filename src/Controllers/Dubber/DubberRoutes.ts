@@ -1,12 +1,13 @@
-import DubberController, { IDubberDeleteMemberByIdProps, IDubberGetOneByQueryProps, IDubberGetSearch, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './DubberController';
+import DubberController, { IDubberDeleteMemberByIdProps, IDubberPatchMemberByIdProps, IDubberPatchSettingsProps, IDubberPostInviteSADProps, IDubberPutAvatarProps, IDubberPutBannerProps } from './DubberController';
 import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
+import { DubberGetOneByQueryProps, DubberGetSearchProps } from './DubberControllerTypes';
 import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { body, param, query } from 'express-validator';
 import { config } from '~/config';
-import { parseObjectTypes } from '~/handlers/handler';
+import { parseObjectTypes } from '~/utils/parse-object-types';
 
 
 
@@ -17,21 +18,24 @@ const upload = multer();
 
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
-  const { query } = parseObjectTypes<IDubberGetOneByQueryProps>(req.params);
-  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<IDubberGetOneByQueryProps>(req.query);
+  const { query } = parseObjectTypes<DubberGetOneByQueryProps>(req.params);
+  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<DubberGetOneByQueryProps>(req.query);
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   // Ensure that only client get detailed document
   if (detailed !== undefined && CSRFToken !== undefined) {
     const middleware = new MiddlewareService();
-    await middleware.checkCSRF(CSRFToken, [config.DOMAIN.nekomi]);
+    await middleware.checkCSRF({
+      token: CSRFToken,
+      origins: [config.DOMAIN.nekomi]
+    });
 
     detailed = true;
   }
 
   const data = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly });
 
-  return res.status(data.status).json(data);
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 const GetOne = [
@@ -44,11 +48,11 @@ const GetOne = [
 const getSearch = HTTPEndpoint(async (req, res) => {
   if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
 
-  const { q } = parseObjectTypes<IDubberGetSearch>(req.query);
+  const { q } = parseObjectTypes<DubberGetSearchProps>(req.query);
 
-  const { message, status, results } = await DubberController.GetSearch({ q });
+  const data = await DubberController.GetSearch({ q });
 
-  return res.status(status).json({ message, results });
+  return res.status(200).json({ message: 'ok', ...data });
 });
 
 const GetSearch = [

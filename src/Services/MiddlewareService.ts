@@ -1,19 +1,29 @@
-import * as cfg from '../config';
-
-import FullkekwAuthorityAPI from '~/core/Services/API/FullkekwAuthorityApi';
-import FullkekwUserAPI from '~/core/Services/API/FullkekwUserAPI';
-import User from '../Models/User';
+import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
+import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
+import User from '~/models/User';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { HydratedDocument } from 'mongoose';
-import { IM_FkAuthorityVerify, IM_FkUsapiAuthRefresh } from '../Interfaces/IMocks';
-import { IUser } from '../Interfaces/IUser';
-import { TRoleCapability } from '../Interfaces/IRoles';
-import { parseRoles } from '../Models/Role';
+import { IUser } from '~/core/interfaces/UserIntf';
+import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { TestMode } from '~/config';
+import { parseRoles } from '~/models/Role';
 
 
 
-interface Props {
-  TestMode?: boolean
+interface CheckAccessProps {
+  token: string
+
+  capabilities?: TRoleCapability[]
+  mock?: FullkekwUserAPI_Verify
+}
+
+interface CheckCSRFProps {
+  token: string
+
+  origins?: string[]
+  mock?: FullkekwAuthorityAPI_TokenVerify
 }
 
 export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
@@ -21,16 +31,6 @@ export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
 export class MiddlewareService {
-  private TestMode = cfg.TestMode;
-
-  constructor(props?: Props) {
-    if (props) {
-      const { TestMode } = props;
-
-      this.TestMode = TestMode !== undefined ? TestMode : cfg.TestMode;
-    }
-  }
-
   /** Check user authorization
    * If capabilities are not specified, will only parse authorization token
    * 
@@ -39,29 +39,29 @@ export class MiddlewareService {
    * 
    * @returns user
    */
-  async checkAccess(token: string, capabilities?: TRoleCapability[], mockData?: IM_FkUsapiAuthRefresh): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
+  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
     capabilities = capabilities !== undefined ? capabilities : [];
 
-    const DATA: IM_FkUsapiAuthRefresh = {
+    const DATA: CheckAccessProps['mock'] = {
       id: '',
       avatar: '',
       username: '',
       capabilities: []
     };
 
-    if (!this.TestMode) {
+    if (TestMode) {
+      if (!mock) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
+
+      DATA.id = mock.id;
+      DATA.capabilities = mock.capabilities;
+      DATA.username = mock.username;
+      DATA.avatar = mock.avatar;
+    } else {
       const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
 
       DATA.id = sessionData.id;
       DATA.username = sessionData.username;
       DATA.avatar = sessionData.avatar;
-    } else {
-      if (!mockData) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
-
-      DATA.id = mockData.id;
-      DATA.capabilities = mockData.capabilities;
-      DATA.username = mockData.username;
-      DATA.avatar = mockData.avatar;
     }
 
     const user = await User.findOne({ id: DATA.id });
@@ -72,7 +72,7 @@ export class MiddlewareService {
     //* Pass if no capabilities required
     if (!capabilities.length) return { user, capabilities: [] };
 
-    const caps = this.TestMode ? DATA.capabilities : await parseRoles(user.roles);
+    const caps = TestMode ? DATA.capabilities : await parseRoles(user.roles);
 
     //* Pass if user is root
     if (caps.includes('root')) return { user, capabilities: caps };
@@ -91,24 +91,24 @@ export class MiddlewareService {
    * 
    * @returns CSRF origin
    */
-  async checkCSRF(token: string, origins?: string[], mockData?: IM_FkAuthorityVerify): Promise<string> {
+  async checkCSRF({ token, origins, mock }: CheckCSRFProps): Promise<string> {
     origins = origins !== undefined ? origins : [];
 
-    const DATA: IM_FkAuthorityVerify = {
+    const DATA: CheckCSRFProps['mock'] = {
       origin: 'NULL',
       verified: false
     };
 
-    if (!this.TestMode) {
+    if (TestMode) {
+      if (!mock) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
+
+      DATA.origin = mock.origin;
+      DATA.verified = mock.verified;
+    } else {
       const data = await FullkekwAuthorityAPI.verifyToken({ token });
 
       DATA.origin = data.origin;
       DATA.verified = data.verified;
-    } else {
-      if (!mockData) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
-
-      DATA.origin = mockData.origin;
-      DATA.verified = mockData.verified;
     }
 
     if (!DATA.verified || (origins.length !== 0 && !origins.includes(DATA.origin))) {

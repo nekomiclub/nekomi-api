@@ -105,7 +105,7 @@ Parse user library
 {
   message: 'OK',
   user: IUser,
-  parsedLib: ITitle[]
+  parsedLib: Anime[]
 }
 ```
 

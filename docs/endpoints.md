@@ -1,4 +1,4 @@
-# ENDPOINTS
+# ENDPOINTS (deprecated)
 [HOME](../README.md)
 
 ---

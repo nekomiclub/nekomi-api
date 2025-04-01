@@ -1,7 +1,9 @@
 import chalk from 'chalk';
 import fs from 'fs';
+import getUTC from '~/utils/get-utc';
 import path from 'path';
-import { getUTC } from '../handlers/handler';
+import { TestMode } from '~/config';
+
 
 
 
@@ -47,22 +49,22 @@ class LoggerService {
 
     if (type === 'error' || type === 'fail') {
       this.prepend(log, this.LOG_ERROR_FILE);
-      console.log(chalk.red(`${parsedType} | ${logMessage}`));
+      if (!TestMode) console.log(chalk.red(`${parsedType} | ${logMessage}`));
     } else if (type === 'info') {
-      console.log(chalk.green(`${parsedType} | ${logMessage}`));
+      if (!TestMode) console.log(chalk.green(`${parsedType} | ${logMessage}`));
     } else if (type === 'debug' || type === 'trace') {
-      console.debug(chalk.grey(`${parsedType} | ${logMessage}`));
+      if (!TestMode) console.debug(chalk.grey(`${parsedType} | ${logMessage}`));
     } else if (type === 'warn') {
-      console.log(chalk.yellow(`${parsedType} | ${logMessage}`));
+      if (!TestMode) console.log(chalk.yellow(`${parsedType} | ${logMessage}`));
     } else if (type === 'suspicious') {
       null;
     } else {
-      console.log(`${chalk.bgRed(`(TYPE NOT SPECIFIED IN LOGGER SERVICE)`)} ${parsedType} | ${logMessage}`);
+      if (!TestMode) console.log(`${chalk.bgRed(`(TYPE NOT SPECIFIED IN LOGGER SERVICE)`)} ${parsedType} | ${logMessage}`);
     }
 
     if (type === 'suspicious') {
       this.prepend(log, this.LOG_SUSPICIOUS_FILE);
-      console.log(`${chalk.bgHex('#e74c3c').black('SUSPICIOUS')} ${chalk.yellow(`| ${logMessage}`)}`);
+      if (!TestMode) console.log(`${chalk.bgHex('#e74c3c').black('SUSPICIOUS')} ${chalk.yellow(`| ${logMessage}`)}`);
     }
   }
 

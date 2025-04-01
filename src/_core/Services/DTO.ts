@@ -1,7 +1,7 @@
+import { Anime } from '~/core/interfaces/AnimeIntf';
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '../Interfaces/IDubber';
-import { ITitle } from '~/interfaces/ITitle';
-import { IUser } from '~/interfaces/IUser';
+import { IDubber } from '~/core/interfaces/DubberIntf';
+import { IUser } from '~/core/interfaces/UserIntf';
 
 
 
@@ -44,8 +44,8 @@ export class MongoDocumentDTO {
     return this.DTO<IUser>(new DocumentDTO().user({ object: document.toObject(), details }));
   }
 
-  anime({ document, details }: IMongoDTOProps<ITitle>): ITitle {
-    return this.DTO<ITitle>(new DocumentDTO().anime({ object: document.toObject(), details }));
+  anime({ document, details }: IMongoDTOProps<Anime>): Anime {
+    return this.DTO<Anime>(new DocumentDTO().anime({ object: document.toObject(), details }));
   }
 }
 
@@ -78,12 +78,17 @@ export class DocumentDTO {
     return this.DTO<IUser>(object, details ? [] : keys);
   }
 
-  anime({ object, details }: IDocumentDTOProps<ITitle>): ITitle {
-    const keys: (keyof ITitle)[] = [
+  anime({ object, details }: IDocumentDTOProps<Anime>): Anime {
+    const keys: (keyof Anime)[] = [
       'episodes',
-      'episodesMeta'
+      'episodesMeta',
+      'updatedAt',
+      'createdAt',
+      'related',
+      'malSyncedAt',
+      'stopSync',
     ];
 
-    return this.DTO<ITitle>(object, details ? [] : keys);
+    return this.DTO<Anime>(object, details ? [] : keys);
   }
 }

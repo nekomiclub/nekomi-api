@@ -1,5 +1,5 @@
 import { $http } from '~/services/HTTPService';
-import { IFullkekwAuthorityAPI_TokenVerify } from '~/core/Interfaces/API/IFullkekwAuthorityAPI';
+import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -13,13 +13,13 @@ interface IVerifyTokenProps {
 
 const baseURL = config.URL.fullkekw_authority;
 
-/** @version 1.0.2 */
+/** @version 2.1.0 */
 export class FullkekwAuthorityAPI {
   static async verifyToken(payload: IVerifyTokenProps) {
     const url = `${baseURL}/verify`;
-    Logger.trace(`[FullkekwAuthorityAPI]: POST - ${url}`);
+    Logger.trace(`[FullkekwAuthorityAPI]: POST - ${url.replace(baseURL, '')}`);
 
-    const { data } = await $http.post<IFullkekwAuthorityAPI_TokenVerify>(url, payload);
+    const { data } = await $http.post<FullkekwAuthorityAPI_TokenVerify>(url, payload);
 
     return data;
   }

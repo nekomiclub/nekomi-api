@@ -1,6 +1,6 @@
 import { $upload } from '~/services/HTTPService';
+import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploadsAPI_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { AxiosError } from 'axios';
-import { INekomiUploadsAPI_UploadFile, TEpisodeQuality, TUploadType } from '~/core/Interfaces/API/INekomiUploadsAPI';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -9,8 +9,8 @@ import { config } from '~/config';
 interface IUploadFileProps {
   file: Express.Multer.File
   uploadedById: string
-  type: TUploadType
-  qualities?: TEpisodeQuality[]
+  type: NekomiUploadType
+  qualities?: AnimeEpisodeQualityType[]
 }
 
 interface IDeleteUploadProps {
@@ -26,7 +26,7 @@ const baseURL = config.URL.nekomi_uploads;
 /** @version 1.3.2 */
 export class NekomiUploadsAPI {
   static getUploadIdFromURL(url: string): string {
-    return new URL(url).pathname.replace('/', '');
+    return url.split('/')[url.split('/').length - 1];
   }
 
   static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps) {
@@ -43,9 +43,9 @@ export class NekomiUploadsAPI {
     if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
     const url = `${baseURL}/upload`;
-    Logger.trace(`[NekomiUploadsAPI]: POST - ${url}`);
+    Logger.trace(`[NekomiUploadsAPI]: POST - ${url.replace(baseURL, '')}`);
 
-    const { data } = await $upload.post<INekomiUploadsAPI_UploadFile>(url, formData);
+    const { data } = await $upload.post<NekomiUploadsAPI_UploadFile>(url, formData);
 
     Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
 
@@ -55,7 +55,7 @@ export class NekomiUploadsAPI {
   static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
     try {
       const url = `${baseURL}/upload/${id}`;
-      Logger.trace(`[NekomiUploadsAPI]: DELETE - ${url}`);
+      Logger.trace(`[NekomiUploadsAPI]: DELETE - ${url.replace(baseURL, '')}`);
 
       await $upload.delete(url, {
         params: {

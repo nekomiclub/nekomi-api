@@ -4,36 +4,21 @@ import cors, { CorsOptions } from 'cors';
 import express from 'express';
 import fs from 'fs';
 import https from 'https';
-import ip from 'ip';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws';
 
-import AnimeRouter from './Routers/AnimeRouter';
-import DubberRouter from './Routers/DubberRouter';
-import GenericRouter from './Routers/GenericRouter';
-import Search from './Services/SearchService';
-import UserRouter from './Routers/UserRouter';
-import { DevelopmentMode, INTERNALS, ProductionMode, config } from './config';
-import { Logger } from './Services/LoggerService';
-import { WebSocketOnlinePoll, WebsocketRouter } from './Controllers/webSocket';
-import { decodeToken } from './Services/TokenService';
-import { removeUsersLinkTelegramToken } from './handlers/handlers';
-import { updateSearch } from './Controllers/root';
-
-
-
-//* Prevent run production not on production machine
-if (ProductionMode && ip.address() !== config.vars.prodIP) {
-  Logger.error(`[Startup]: Startup denied for ${ip.address()} (IP does not match default production IP)`);
-
-  throw new Error(`
-    ----------------------------
-    NEKOMI-CORE STARTUP DENIED
-
-    Current IP (${ip.address()}) is not permitted to run production
-    ----------------------------
-  `);
-}
+import AnimeRouter from './routes/AnimeRouter';
+import DubberRouter from './routes/DubberRouter';
+import GenericRouter from './routes/GenericRouter';
+import Search from './services/SearchService';
+import UserRouter from './routes/UserRouter';
+import getRequestIP from './utils/get-request-ip';
+import { ANIME_MODEL_UPDATE } from './utils/update-model';
+import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
+import { Logger } from './services/LoggerService';
+import { WebsocketRouter } from './controllers/webSocket';
+import { decodeToken } from './services/TokenService';
+import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
 
 
@@ -42,7 +27,7 @@ mongoose.set('strictQuery', false);
 mongoose.connect(config.mongodbUrl, {
   retryWrites: true,
 }).catch(e => {
-  Logger.fail('[Startup/MongoDB]: MongoDB connection errored', e);
+  Logger.fail('[System]: MongoDB connection failed', e);
 });
 
 
@@ -52,6 +37,7 @@ const hskey = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.clu
 const hscert = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
 const hschain = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
 
+// TODO: Prevent listen in test mode. Remove SSL cert
 export const wss = ProductionMode ? new WebSocketServer({
   server: https.createServer({
     key: hskey,
@@ -69,8 +55,8 @@ const CORSOpt: CorsOptions = {
     `https://${config.DOMAIN.nekomi_auth}`,
     `https://${config.DOMAIN.nekomi_core}`,
 
-    !ProductionMode ? 'http://192.168.0.106:3001' : '_null',
-    !ProductionMode ? 'http://192.168.0.106:3000' : '_null',
+    !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
+    !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
   ].filter(el => el !== '_null'),
   credentials: true,
 };
@@ -89,7 +75,7 @@ app.options('*', cors(CORSOpt));
 
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const IP = getRequestIP(req.headers);
   const session = decodeToken(req.cookies[config.vars.sessionCookie] ?? '');
 
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
@@ -106,16 +92,15 @@ app.use('/user', UserRouter);
 app.use(['/title', '/anime'], AnimeRouter);
 app.use('/', GenericRouter);
 
-wss.on('error', e => { Logger.error(`[Websocket]: Websocker server error`, e); });
+wss.on('error', e => { Logger.error(`[System]: Websocket error occured`, e); });
 wss.on('listening', () => {
-  Logger.info(`[Startup]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
+  Logger.info(`[System]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
 });
 
 
 
 //* HTTP server
 const UpdateHandlers = [
-  updateSearch(),
   removeUsersLinkTelegramToken(),
   Search.init(),
 ] as const;
@@ -123,11 +108,16 @@ const UpdateHandlers = [
 (async function () {
   wss.on('connection', WebsocketRouter);
 
-  app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, async () => {
-    Logger.info(`[Startup]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+  if (!TestMode) {
+    app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
+      Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+    });
+  }
 
-    try {
-      console.log(`
+
+
+  try {
+    if (!TestMode) console.log(`
   ----------------------------
   NEKOMI-API STARTED UP
 
@@ -140,42 +130,49 @@ const UpdateHandlers = [
     `);
 
 
-      // Callback body
-      Promise.all(UpdateHandlers);
+    // Callback body
+    Promise.all(UpdateHandlers);
 
-
-
-      // Update cache
-      setInterval(async () => {
-        try {
-          Logger.debug(`[System]: Updating cache...`);
-          await Promise.all(UpdateHandlers);
-          Logger.debug(`[System]: Cache updated`);
-        } catch (e) {
-          Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
-        }
-      }, 21600000); // 21600000 // 6h
-
-
-
-      // Poll site online
-      setInterval(async () => {
-        await WebSocketOnlinePoll();
-      }, 600000); // 600000 // 10m
-    } catch (e) {
-      Logger.error('[Startup]: An error occured in one of post-init handlers', e);
+    // TODO: remove after use
+    if (ProductionMode) {
+      Promise.all([
+        await ANIME_MODEL_UPDATE.run(),
+      ]);
     }
-  });
+
+
+
+    // Update cache
+    setInterval(async () => {
+      try {
+        Logger.debug(`[System]: Updating cache...`);
+        await Promise.all(UpdateHandlers);
+        Logger.debug(`[System]: Cache updated`);
+      } catch (e) {
+        Logger.fail(`[System]: Cache does not updated due to unexpected error`, e);
+      }
+    }, 21600000); // 21600000 // 6h
+  } catch (e) {
+    Logger.error('[System]: An error occured in one of post-init handlers', e);
+  }
 })();
+
+app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {
+  const IP = getRequestIP(req.headers);
+
+  Logger.info(`[Request/${IP}]: Request has been rickrolled`);
+
+  return res.redirect(`https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley`);
+});
 
 
 
 //* 404 catcher. Writes suspicious logs
 app.all('*', (req: express.Request, res: express.Response) => {
-  const IP = req.headers['cf-connecting-ip'] as string || req.headers['x-forwarded-for'] as string || req.ip || '';
+  const IP = getRequestIP(req.headers);
 
   if (req.url !== '/') {
-    Logger.suspicious(`[NotFound/${IP}]: Request ${req.url} rejected as 404`);
+    Logger.suspicious(`[Request/${IP}]: ${req.method} - ${req.url} is not found`);
   }
 
   return res.status(404).json({ message: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });

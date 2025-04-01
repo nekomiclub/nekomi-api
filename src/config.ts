@@ -4,8 +4,9 @@ import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 
+import getUTC from './utils/get-utc';
+import preserveIP from './utils/preserve-ip';
 import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
-import { getUTC, preserveIP } from './handlers/handler';
 
 
 
@@ -56,6 +57,7 @@ const DOMAIN = {
 
 /** @deprecated */
 export const STATIC = {
+  /** @deprecated use AnimeFeatured */
   HomeWrapped: {
     featured: ProductionMode ? [{
       id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
@@ -77,6 +79,46 @@ export const STATIC = {
 
 
     popular: ProductionMode ? [
+      'f846581c-0c8c-4d73-84aa-76d5ed928453',
+      '89186167-012a-4f2f-baba-386506219499',
+      'd59f2791-06b7-4288-910b-2d63532529c7',
+      '185a03d1-43e6-40aa-87ee-604ace1ad872',
+      '0bb51720-4797-40c5-9898-e8b2aba90f27',
+      'd25f540d-c1a9-41b5-923f-d0eae93dce9b',
+      '3fd37e65-c7a5-415f-bb14-8fb248cfe3bb',
+      '9df91c38-1cb3-49ca-ae42-d43be59afe89',
+      'e395bd75-fa4e-4971-a175-84d6392ec8db',
+      'fa4b5af3-977d-4ca7-8e22-a65eb45ae061',
+      'a0993d0e-3088-4a79-b3b5-00b3104b2f74',
+      '354205aa-14e3-4b3c-8b72-6f96a1effdee',
+    ] : [
+      '627690b0-f0c1-490d-b50e-c5ace32cd563',
+      '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
+      'fc6868df-bd76-494e-840f-f7ff3dd67e2d'
+    ]
+  },
+
+  AnimeFeatured: {
+    headliners: ProductionMode ? [{
+      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+    }, {
+      id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
+      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+    }] : [{
+      id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
+      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+    }, {
+      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+    }],
+
+
+    hot: ProductionMode ? [
       'f846581c-0c8c-4d73-84aa-76d5ed928453',
       '89186167-012a-4f2f-baba-386506219499',
       'd59f2791-06b7-4288-910b-2d63532529c7',
@@ -146,6 +188,25 @@ const VALIDATION = {
     MaximumAvatarSize: 1048576,
     /** In bytes */
     MaximumBannerSize: 2097152,
+
+    MinimumLibNameLength: 3,
+    MaximumLibNameLength: 32,
+    MaximumIncreaseViewtime: 7200, // 2h
+  },
+
+  Anime: {
+    minYear: 2007,
+    maxYear: getUTC().year + 1,
+
+    maxNameLength: 320,
+    maxAltNamesLength: 7,
+    maxStudiosLength: 7,
+    maxGenresLength: 7,
+    maxEpisodesCount: 9999,
+    maxDescriptionLength: 2200,
+    maxDetailsLength: 500,
+
+    maxScore: 10
   }
 };
 
@@ -167,7 +228,8 @@ const URL = {
 };
 
 const env = {
-  CSRF: process.env['CSRF-Token']!
+  CSRF: process.env['CSRF-Token']!,
+  MALClientID: process.env['MAL-Client-ID']!,
 };
 
 const vars = {
@@ -186,11 +248,10 @@ const vars = {
   /** CSRF Token header name */
   csrfHeader: 'X-CSRF-Token',
 
-  /** Production IP */
-  prodIP: '192.168.0.107',
-
   /** CSRF token expiration */
   CSRF_EXPIRE: 180000,
+
+  MyAnimeListSyncTimeout: 432000000, // 5d | 432000000
 
   /** Default avatar */
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',
@@ -198,9 +259,21 @@ const vars = {
   /** Default banner */
   defaultBanner: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
 
-  /** Default poster */
+  /** Default anime poster */
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
 };
+
+/** Funny thing to rickroll some endpoints */
+const rickrollEndpoints: RegExp[] = [
+  /\/\.env(.+)?/gi,
+  /\/cgi-bin(.+)?/gi,
+  /\/login(.+)?/gi,
+  /\/dns-query(.+)?/gi,
+  /\/query(.+)?/gi,
+  /\/hello.world(.+)?/gi,
+  /\/geoserver(.+)?/gi,
+  /\/\.git(.+)?/gi,
+];
 
 
 
@@ -216,6 +289,7 @@ export const config = {
   VALIDATION,
   DOMAIN,
   STATIC,
+  rickrollEndpoints
 };
 
 
