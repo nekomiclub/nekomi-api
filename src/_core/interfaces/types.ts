@@ -93,21 +93,27 @@ export interface ServiceControls<CREATE, OUT_DOC> {
   getAll(details?: boolean): Promise<OUT_DOC[]>
 }
 
+/** {@link https://github.com/SuperMarcus/myanimelist-api-specification?tab=readme-ov-file#animeobject | specs} */
 export interface MyAnimeListNode {
   id: number
+  title: string
+
+  media_type?: ANIME_MEDIA_TYPE
+  num_episodes?: number
+  rating?: ANIME_RATE
+  status?: ANIME_STATUS
+  synopsis?: string
+
   main_picture: {
     medium: string
     large: string
   }
 
-  media_type?: ANIME_MEDIA_TYPE
-  num_episodes?: number
   studios?: {
     id: number
     name: string
   }[]
-  rating?: ANIME_RATE
-  status?: ANIME_STATUS
+
   genres?: {
     id: number
     name: string

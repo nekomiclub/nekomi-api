@@ -10,10 +10,11 @@ import { WebSocketServer } from 'ws';
 import AnimeRouter from './routes/AnimeRouter';
 import DubberRouter from './routes/DubberRouter';
 import GenericRouter from './routes/GenericRouter';
+import MALParser from './services/MALParser';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
 import getRequestIP from './utils/get-request-ip';
-import { ANIME_MODEL_UPDATE } from './utils/update-model';
+import { ANIME_SEASON } from './_core/interfaces/AnimeIntf';
 import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { WebsocketRouter } from './controllers/webSocket';
@@ -133,11 +134,8 @@ const UpdateHandlers = [
     // Callback body
     Promise.all(UpdateHandlers);
 
-    // TODO: remove after use
     if (ProductionMode) {
-      Promise.all([
-        await ANIME_MODEL_UPDATE.run(),
-      ]);
+      await MALParser.fetchSeasonal({ season: ANIME_SEASON.SPRING, year: 2025 });
     }
 
 
