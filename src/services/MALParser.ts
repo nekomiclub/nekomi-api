@@ -20,6 +20,7 @@ export default class MALParser {
     for (const key in data) {
       try {
         const node = data[key];
+        const title = node.alternative_titles?.en ?? node.title;
 
         const animeService = new AnimeService();
 
@@ -33,7 +34,6 @@ export default class MALParser {
           continue;
         }
 
-        const title = node.alternative_titles?.en ?? node.title;
         const anime = await animeService.create({ nameEng: title });
 
         await animeService.init(anime.uuid);
@@ -42,7 +42,8 @@ export default class MALParser {
 
         await animeService.setNames({
           ukr: title,
-          eng: title
+          eng: title,
+          alt: [node.title]
         });
 
         await animeService.save();

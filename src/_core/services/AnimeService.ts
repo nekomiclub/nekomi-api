@@ -205,7 +205,12 @@ export class AnimeService extends AnimeModelControls {
 
 
   async init(query: string) {
-    const document = await AnimeModel.findOne({ $or: [{ uuid: query }, { slug: query }] }); // Hydrated document required, find by built-in method is not possible
+    const queryArr = [{ uuid: query }, { slug: query }];
+
+    // @ts-ignore
+    if (!isNaN(+query)) queryArr.push({ malId: +query });
+
+    const document = await AnimeModel.findOne({ $or: queryArr }); // Hydrated document required, find by built-in method is not possible
     if (!document) throw new E404(`Document with query (${query}) is not found`);
 
     // @ts-expect-error
