@@ -225,7 +225,10 @@ export class AnimeService extends AnimeModelControls {
 
     Logger.debug(`[AnimeService]: Document patched. [uuid: ${this.document.uuid}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
-    return this.stack;
+    const stack = this.stack;
+    this.stack = [];
+
+    return stack;
   }
 
   get anime(): Anime {

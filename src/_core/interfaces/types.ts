@@ -95,19 +95,24 @@ export interface ServiceControls<CREATE, OUT_DOC> {
 
 export interface MyAnimeListNode {
   id: number
+  title: string
+
+  media_type?: ANIME_MEDIA_TYPE
+  num_episodes?: number
+  rating?: ANIME_RATE
+  status?: ANIME_STATUS
+  synopsis?: string
+
   main_picture: {
     medium: string
     large: string
   }
 
-  media_type?: ANIME_MEDIA_TYPE
-  num_episodes?: number
   studios?: {
     id: number
     name: string
   }[]
-  rating?: ANIME_RATE
-  status?: ANIME_STATUS
+
   genres?: {
     id: number
     name: string
