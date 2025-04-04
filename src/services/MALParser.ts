@@ -13,7 +13,7 @@ interface FetchSeasonalProps {
 
 
 export default class MALParser {
-  /** Parse myanimelist anime's */
+  /** Parse myanimelist anime's or force update exist */
   static async fetchSeasonal({ season, year }: FetchSeasonalProps) {
     const data = await MALAPI.getSeasonalAnime({ season, year });
 
@@ -25,6 +25,9 @@ export default class MALParser {
 
         const exist = await animeService.safeGetByQuery(`${node.id}`);
         if (exist) {
+          await animeService.init(`${node.id}`);
+          await animeService.syncWithMyAnimeList(true);
+
           Logger.debug(`[MALParser]: Anime already exist, so it will be skipped from fetch seasonal. [malId: ${node.id}]`);
 
           continue;

@@ -90,7 +90,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 //* Routing & handling
 app.use('/dubber', DubberRouter);
 app.use('/user', UserRouter);
-app.use(['/title', '/anime'], AnimeRouter);
+app.use('/anime', AnimeRouter);
 app.use('/', GenericRouter);
 
 wss.on('error', e => { Logger.error(`[System]: Websocket error occured`, e); });
