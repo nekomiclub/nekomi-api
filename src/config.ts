@@ -275,6 +275,8 @@ const rickrollEndpoints: RegExp[] = [
   /\/hello.world(.+)?/gi,
   /\/geoserver(.+)?/gi,
   /\/\.git(.+)?/gi,
+  /\/\phpMyAdmin(.+)?/gi,
+  /\/\resolve(.+)?/gi,
 ];
 
 
