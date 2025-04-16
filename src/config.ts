@@ -60,11 +60,15 @@ const STATIC = {
     headliners:
       ProductionMode
         ? [{
-          id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-          backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-          videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+          id: '3cf9bee6-fbbb-4950-b112-d27da97a8518', // Devil May Cry 2025
+          backgroundURL: 'https://media.nekomi.club/0fb3bd81-5deb-4e2c-8a73-be618b26053b',
+          videoURL: 'https://media.nekomi.club/b88ed577-a580-41a5-9089-2fb91c67a921'
         }, {
-          id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
+          id: 'f9666d0a-f24b-4d7f-bd47-5723d965f52f', // Lazarus
+          backgroundURL: 'https://media.nekomi.club/abfe8c6e-7fee-44a8-aed0-f9d7e38f3f05',
+          videoURL: 'https://media.nekomi.club/04b5044e-5f77-43a3-b6b4-b658f401b405'
+        }, {
+          id: 'f846581c-0c8c-4d73-84aa-76d5ed928453', // The apothecary diaries
           backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
           videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
         }]
@@ -73,10 +77,14 @@ const STATIC = {
           backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
           videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
         }, {
-          id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-          backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-          videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
-        }],
+          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
+          backgroundURL: 'https://media.nekomi.club/0fb3bd81-5deb-4e2c-8a73-be618b26053b',
+          videoURL: 'https://media.nekomi.club/b88ed577-a580-41a5-9089-2fb91c67a921'
+        }, {
+          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
+          backgroundURL: 'https://media.nekomi.club/abfe8c6e-7fee-44a8-aed0-f9d7e38f3f05',
+          videoURL: 'https://media.nekomi.club/04b5044e-5f77-43a3-b6b4-b658f401b405'
+        },],
 
 
     hot:
