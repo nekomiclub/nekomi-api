@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 
 
-export interface AnimeGetAll {
+export interface AnimeGetStats {
   total: number
 
   /** With malId and country */

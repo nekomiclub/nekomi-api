@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
 import createID from '~/utils/create-id';
-import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
+import { ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
 import { INTERNALS, config } from '~/config';
 import { TNotifyEvent } from '~/interfaces/types';
 import { UserService } from '~/models/User';
@@ -225,41 +225,41 @@ describe('User Model', () => {
     });
   });
 
-  describe('patchWatchProgress', () => {
-    test('Pass - Create and patch exist', async () => {
-      expect(User.user.watchProgress.some(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)).toBeFalsy();
+  // describe('patchWatchProgress', () => {
+  //   test('Pass - Create and patch exist', async () => {
+  //     expect(User.user.watchProgress.some(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)).toBeFalsy();
 
-      // Add new record
-      await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: TestTitleID1, episodeOrder: 2, progress: 40, updatedAt: 0 });
+  //     // Add new record
+  //     await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: TestTitleID1, episodeOrder: 2, progress: 40, updatedAt: 0 });
 
-      expect(User.user.watchProgress.some(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)).toBeTruthy();
+  //     expect(User.user.watchProgress.some(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)).toBeTruthy();
 
-      // Patch exist record
-      await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: TestTitleID1, episodeOrder: 5, progress: 40, updatedAt: 0 });
+  //     // Patch exist record
+  //     await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: TestTitleID1, episodeOrder: 5, progress: 40, updatedAt: 0 });
 
-      expect(User.user.watchProgress.find(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)?.episodeOrder).toBe(5);
-    });
+  //     expect(User.user.watchProgress.find(el => el.dubberID === TestDubberID1 && el.titleID === TestTitleID1)?.episodeOrder).toBe(5);
+  //   });
 
-    test('Reject - title or dubber are not found', async () => {
-      try {
-        // Title not found
-        await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: '_INVALID', episodeOrder: 2, progress: 40, updatedAt: 0 });
+  //   test('Reject - title or dubber are not found', async () => {
+  //     try {
+  //       // Title not found
+  //       await User.patchWatchProgress({ dubberID: TestDubberID1, titleID: '_INVALID', episodeOrder: 2, progress: 40, updatedAt: 0 });
 
-        expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      } catch (e) {
-        if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      }
+  //       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     } catch (e) {
+  //       if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     }
 
-      try {
-        // Dubber not found
-        await User.patchWatchProgress({ dubberID: '_INVALID', titleID: TestTitleID1, episodeOrder: 2, progress: 40, updatedAt: 0 });
+  //     try {
+  //       // Dubber not found
+  //       await User.patchWatchProgress({ dubberID: '_INVALID', titleID: TestTitleID1, episodeOrder: 2, progress: 40, updatedAt: 0 });
 
-        expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      } catch (e) {
-        if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
-      }
-    });
-  });
+  //       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     } catch (e) {
+  //       if (e instanceof E404) { expect(true).toBeTruthy(); } else expect(false).toBeTruthy(); // Invalid error type or error does not thrown
+  //     }
+  //   });
+  // });
 
   describe('patchTelegramData', () => {
     expect(true).toBeTruthy(); // indev

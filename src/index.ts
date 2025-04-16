@@ -120,7 +120,7 @@ const UpdateHandlers = [
   ----------------------------
   NEKOMI-API STARTED UP
 
-  Date: ${config.startedAt} UTC-0
+  Date: ${config.startedAt} UTC
   Commit: ${config.commit}
   Mode: ${config.startedMode}
   HTTP: http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port} ${DevelopmentMode ? '(port changed, see README.md)' : ''}

@@ -55,87 +55,52 @@ const DOMAIN = {
 
 
 
-/** @deprecated */
-export const STATIC = {
-  /** @deprecated use AnimeFeatured */
-  HomeWrapped: {
-    featured: ProductionMode ? [{
-      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
-    }, {
-      id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
-      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
-    }] : [{
-      id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
-    }, {
-      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
-    }],
-
-
-    popular: ProductionMode ? [
-      'f846581c-0c8c-4d73-84aa-76d5ed928453',
-      '89186167-012a-4f2f-baba-386506219499',
-      'd59f2791-06b7-4288-910b-2d63532529c7',
-      '185a03d1-43e6-40aa-87ee-604ace1ad872',
-      '0bb51720-4797-40c5-9898-e8b2aba90f27',
-      'd25f540d-c1a9-41b5-923f-d0eae93dce9b',
-      '3fd37e65-c7a5-415f-bb14-8fb248cfe3bb',
-      '9df91c38-1cb3-49ca-ae42-d43be59afe89',
-      'e395bd75-fa4e-4971-a175-84d6392ec8db',
-      'fa4b5af3-977d-4ca7-8e22-a65eb45ae061',
-      'a0993d0e-3088-4a79-b3b5-00b3104b2f74',
-      '354205aa-14e3-4b3c-8b72-6f96a1effdee',
-    ] : [
-      '627690b0-f0c1-490d-b50e-c5ace32cd563',
-      '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
-      'fc6868df-bd76-494e-840f-f7ff3dd67e2d'
-    ]
-  },
-
+const STATIC = {
   AnimeFeatured: {
-    headliners: ProductionMode ? [{
-      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
-    }, {
-      id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
-      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
-    }] : [{
-      id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-      backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-      videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
-    }, {
-      id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
-      backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
-      videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
-    }],
+    headliners:
+      ProductionMode
+        ? [{
+          id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+          backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+          videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+        }, {
+          id: 'f846581c-0c8c-4d73-84aa-76d5ed928453',
+          backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+          videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+        }]
+        : [{
+          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
+          backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
+          videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+        }, {
+          id: 'df5023cf-34d6-4672-9cae-84d0e1845138',
+          backgroundURL: 'https://media.nekomi.club/b1c045da-605f-46b9-be13-ffe391927f57',
+          videoURL: 'https://media.nekomi.club/4f609afb-c82f-4012-bec6-b987fade7d1f'
+        }],
 
 
-    hot: ProductionMode ? [
-      'f846581c-0c8c-4d73-84aa-76d5ed928453',
-      '89186167-012a-4f2f-baba-386506219499',
-      'd59f2791-06b7-4288-910b-2d63532529c7',
-      '185a03d1-43e6-40aa-87ee-604ace1ad872',
-      '0bb51720-4797-40c5-9898-e8b2aba90f27',
-      'd25f540d-c1a9-41b5-923f-d0eae93dce9b',
-      '3fd37e65-c7a5-415f-bb14-8fb248cfe3bb',
-      '9df91c38-1cb3-49ca-ae42-d43be59afe89',
-      'e395bd75-fa4e-4971-a175-84d6392ec8db',
-      'fa4b5af3-977d-4ca7-8e22-a65eb45ae061',
-      'a0993d0e-3088-4a79-b3b5-00b3104b2f74',
-      '354205aa-14e3-4b3c-8b72-6f96a1effdee',
-    ] : [
-      '627690b0-f0c1-490d-b50e-c5ace32cd563',
-      '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
-      'fc6868df-bd76-494e-840f-f7ff3dd67e2d'
-    ]
+    hot:
+      ProductionMode
+        ? [
+          '3cf9bee6-fbbb-4950-b112-d27da97a8518',
+          'f9666d0a-f24b-4d7f-bd47-5723d965f52f',
+          '6f3ffe87-3f22-4a70-b36b-d13dec3f5c40',
+          'f846581c-0c8c-4d73-84aa-76d5ed928453',
+          'ee050b75-2a7c-4142-98b0-945c2f3b9726',
+          '2eabab44-020e-4a22-bfff-1bf0096abd59',
+          '1c47303c-0a41-4dff-9c98-92f9bdc95824',
+          'fa1f686b-ab4f-4147-a748-1c797674f00f',
+          '42f1042a-a0fc-47d5-b1f1-40556fcdff6f',
+          '807fc8e2-b861-49cf-ba3b-7031d549a932',
+          'e3938803-9f07-40a8-b881-6362aee03c9f',
+          '895389f0-90d8-4b9c-9998-14c1453cae0e',
+          '6a720a3d-ad21-4b91-8e59-a7a90109368e',
+        ]
+        : [
+          '627690b0-f0c1-490d-b50e-c5ace32cd563',
+          '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
+          'fc6868df-bd76-494e-840f-f7ff3dd67e2d'
+        ]
   }
 };
 
