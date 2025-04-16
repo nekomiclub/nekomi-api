@@ -5,7 +5,7 @@ import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/AnimeIntf';
 import AnimeService from '~/core/services/AnimeService';
 import createID from '~/utils/create-id';
 import request from 'supertest';
-import { AnimeGetAll, AnimeGetByQuery, AnimeGetSearch } from '~/controllers/Anime/AnimeControllerTypes';
+import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
 import { ERR_GENERIC } from '~/services/ErrorService';
 import { MockAccessCheck, MockCheckCSRF, testPurge } from '~/utils/testing';
 import { app } from '~/index';
@@ -78,7 +78,7 @@ describe('AnimeRouter', () => {
         .get('/anime/all')
         .expect(200);
 
-      const data = res.body as AnimeGetAll;
+      const data = res.body as AnimeGetStats;
 
       expect(data.total).toBeGreaterThanOrEqual(data.updated);
       expect(data.updated).toBeGreaterThanOrEqual(data.fullfilled);

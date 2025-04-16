@@ -6,7 +6,7 @@ import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import getUTC from '~/utils/get-utc';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { AnimeDeleteByUuidProps, AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetAll, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimePostEpisode, AnimePostEpisodeProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
+import { AnimeDeleteByUuidProps, AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePostEpisode, AnimePostEpisodeProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
@@ -21,15 +21,15 @@ import { config } from '~/config';
 /**
  * Get all anime documents count, updated (where rate is not G and media type is not OVA) and fullfilled (updated with malId specified)
  * 
- * @returns AnimeGetAll
+ * @returns AnimeGetStats
  */
-async function GetAll(): Promise<AnimeGetAll> {
+async function GetStats(): Promise<AnimeGetStats> {
   const animeService = new AnimeService();
   const documents = await animeService.getAll();
 
   const total = documents.length;
   // All parsed anime documents by default were with G rate and OVA status
-  const updated = documents.filter(el => el.rate !== ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA);
+  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
   const fullfilled = updated.filter(el => el.malId !== null);
 
   return {
@@ -338,7 +338,7 @@ async function DeleteByUuid({ uuid }: AnimeDeleteByUuidProps): Promise<void> {
 
 
 export default class AnimeController {
-  static GetAll = GetAll;
+  static GetStats = GetStats;
   static GetByQuery = GetByQuery;
   static GetSearch = GetSearch;
   static GetFeatured = GetFeatured;

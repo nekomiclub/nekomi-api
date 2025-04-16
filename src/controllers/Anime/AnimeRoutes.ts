@@ -42,15 +42,15 @@ const GetSearch = [
 
 
 //* ===================================== GET ALL
-const getAll = HTTPEndpoint(async (req, res) => {
-  const data = await AnimeController.GetAll();
+const getStats = HTTPEndpoint(async (req, res) => {
+  const data = await AnimeController.GetStats();
 
   return res.status(200).json({ message: 'ok', ...data });
 });
 
 /** @tested 2.1.0 */
-const GetAll = [
-  getAll,
+const GetStats = [
+  getStats,
 ];
 
 
@@ -292,7 +292,7 @@ const DeleteByUuid = [
 
 
 export default class AnimeRoutes {
-  static GetAll = GetAll;
+  static GetStats = GetStats;
   static GetByQuery = GetByQuery;
   static GetSearch = GetSearch;
   static GetFeatured = GetFeatured;

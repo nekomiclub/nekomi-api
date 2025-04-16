@@ -9,7 +9,7 @@ const AnimeRouter = express.Router();
 
 
 //* Generic
-AnimeRouter.get([`/all`, '/total'], AnimeRoutes.GetAll);
+AnimeRouter.get([`/all`, '/total', '/stats'], AnimeRoutes.GetStats);
 AnimeRouter.get(`/search`, AnimeRoutes.GetSearch);
 AnimeRouter.get('/featured', AnimeRoutes.GetFeatured);
 AnimeRouter.get('/:query', AnimeRoutes.GetByQuery);
