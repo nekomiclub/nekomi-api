@@ -3,29 +3,23 @@ process.argv.push('devMode');
 
 
 
-import mongoose from 'mongoose';
 
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
 import createID from '~/utils/create-id';
+import mongoose from 'mongoose';
 import { ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
-import { INTERNALS, config } from '~/config';
 import { TNotifyEvent } from '~/interfaces/types';
 import { UserService } from '~/models/User';
+import { config } from '~/config';
 
 
 
 beforeAll(() => {
-  const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
-
   mongoose.set('strictQuery', false);
-  mongoose.connect(MONGO_URI, {
+  mongoose.connect(config.mongodbUrl, {
     retryWrites: true,
   });
-});
-
-afterAll(() => {
-  mongoose.disconnect();
 });
 
 

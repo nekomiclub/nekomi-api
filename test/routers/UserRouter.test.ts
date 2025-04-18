@@ -6,11 +6,6 @@ import { config } from '~/config';
 
 
 
-// beforeAll(testPurge);
-// afterAll(testPurge);
-
-
-
 describe('UserRouter', () => {
   const NekomiCSRFMock = MockCheckCSRF({ origin: config.DOMAIN.nekomi, verified: true });
   const RootAccessMock = MockAccessCheck({ id: config.vars.INTERNAL_ROOT_USER_ID, avatar: '~', capabilities: ['root'], username: '~' });

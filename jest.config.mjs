@@ -2,7 +2,7 @@
  * JEST CONFIG  
  * 
  * @copyright fullkekw
- * @version 07.03.2025
+ * @version 19.04.2025
 */
 
 export default {
@@ -18,5 +18,9 @@ export default {
     '^~/core/(.*)$': '<rootDir>/src/_core/$1',
     '^~/interfaces/(.*)$': '<rootDir>/src/_core/interfaces/$1',
     '^~/(.*)$': '<rootDir>/src/$1'
-  }
+  },
+  transform: {
+    '\\.(ts)$': 'ts-jest'
+  },
+  globalTeardown: '<rootDir>/test/globalTeardown.ts',
 };

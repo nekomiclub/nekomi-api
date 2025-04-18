@@ -19,10 +19,6 @@ beforeAll(() => {
   });
 });
 
-afterAll(() => {
-  mongoose.disconnect();
-});
-
 
 
 describe('DubberService', () => {

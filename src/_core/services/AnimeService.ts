@@ -83,10 +83,10 @@ class AnimeModelControls implements AnimeModelControlsType {
     if (!validator.isLength(nameEng, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
 
     const uuid = TestMode ? `~test-${createUUID()}` : createUUID();
-    const slug = createSlug(nameEng);
+    let slug = createSlug(nameEng);
 
     const exist = await AnimeModel.findOne({ slug });
-    if (exist) throw new ERR_ALREADY_EXIST();
+    if (exist) slug += `-${createID(3)}`; // Make unique slug if slug by name is occupied
 
 
 
@@ -178,17 +178,22 @@ class AnimeModelControls implements AnimeModelControlsType {
     return new MongoDocumentDTO().anime({ document, details });
   }
 
+  async getByQuery(query: string, details?: boolean): Promise<Anime> {
+    const queryArr = [{ uuid: query }, { slug: query }];
+
+    // @ts-expect-error Query can be stringified number, parse it if not NaN
+    if (!isNaN(+query)) queryArr.push({ malId: +query });
+
+    const document = await AnimeModel.findOne({ $or: queryArr });
+    if (!document) throw new E404(`Anime by query (${query}) is not found`);
+
+    return new MongoDocumentDTO().anime({ document, details });
+  }
+
   async safeGetByQuery(query: string, details?: boolean): Promise<Anime | null> {
     try {
       return await this.getByQuery(query, details);
     } catch (e) { return null; }
-  }
-
-  async getByQuery(query: string, details?: boolean): Promise<Anime> {
-    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }, { malId: +query }, { mal_id: query }] });
-    if (!document) throw new E404(`Anime by query (${query}) is not found`);
-
-    return new MongoDocumentDTO().anime({ document, details });
   }
 }
 
@@ -207,13 +212,13 @@ export class AnimeService extends AnimeModelControls {
   async init(query: string) {
     const queryArr = [{ uuid: query }, { slug: query }];
 
-    // @ts-ignore
+    // @ts-expect-error Query can be stringified number, parse it if not NaN
     if (!isNaN(+query)) queryArr.push({ malId: +query });
 
     const document = await AnimeModel.findOne({ $or: queryArr }); // Hydrated document required, find by built-in method is not possible
     if (!document) throw new E404(`Document with query (${query}) is not found`);
 
-    // @ts-expect-error
+    // @ts-expect-error Ignore readonly
     this.document = document;
   }
 
@@ -246,7 +251,7 @@ export class AnimeService extends AnimeModelControls {
   /**  
    * Set malId. Value can be null
    * 
-   * @tested 2.1.0 
+   * @tested  
   */
   setMalId(malId: number | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -270,7 +275,7 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set description. Zero-length value will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setDescription(description: string | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -297,7 +302,7 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set details. Zero-length value will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setDetails(details: string | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -324,7 +329,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set episodes count. Value 0 will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setEpisodesCount(episodesCount: number | null) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -349,7 +354,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set year
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setYear(year: number) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -366,7 +371,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Should set rate
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setRate = (rate: ANIME_RATE) => this.setTypedValue<ANIME_RATE>(rate, 'rate');
 
@@ -378,7 +383,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set status
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setStatus = (status: ANIME_STATUS) => this.setTypedValue<ANIME_STATUS>(status, 'status');
 
@@ -390,7 +395,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set season
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setSeason = (season: ANIME_SEASON) => this.setTypedValue<ANIME_SEASON>(season, 'season');
 
@@ -402,7 +407,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set media
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setMedia = (media: ANIME_MEDIA_TYPE) => this.setTypedValue<ANIME_MEDIA_TYPE>(media, 'media');
 
@@ -413,7 +418,9 @@ export class AnimeService extends AnimeModelControls {
 
   /**
    * Set names
-   * English name will also change the slug
+   * English name will change the slug
+   * 
+   * @tested
    */
   async setNames({ alt, eng, ukr }: Partial<Anime['names']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -431,7 +438,7 @@ export class AnimeService extends AnimeModelControls {
       let slug = createSlug(eng);
 
       const exist = await new AnimeService().safeGetByQuery(slug);
-      if (exist && exist.uuid !== this.document.uuid) slug += createID(3);
+      if (exist && exist.uuid !== this.document.uuid) slug += `-${createID(3)}`;
 
       this.stack.push(`Slug changed (${this.document.slug} > ${slug})`);
       this.document.slug = slug;
@@ -465,15 +472,22 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set stop sync flags
    * 
-   * @todo
+   * @tested
    */
   setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
-    if (mal !== undefined) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+    this.document.markModified('stopSync');
 
+    if (mal !== undefined) {
+      this.stack.push(`Mal StopSync changed (${this.document.stopSync.mal} > ${mal})`);
+
+      this.document.stopSync.mal = mal;
     }
 
     if (shikimori !== undefined) {
+      this.stack.push(`Shikimori StopSync changed (${this.document.stopSync.shikimori} > ${shikimori})`);
 
+      this.document.stopSync.shikimori = shikimori;
     }
   }
 
@@ -482,6 +496,8 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set poster adapted by dubber
+   * 
+   * @tested
    */
   async setPosterAdapt(dubberId: Anime['posterAdapt']) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -504,6 +520,8 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set score & malScoredBy
    * Score can be null
+   * 
+   * @tested
    */
   setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -555,7 +573,7 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set studios.
    * 
-   * @todo fetch studio (?)
+   * @tested
    */
   async setStudios(studios: AnimeStudio[]) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -585,6 +603,8 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set genres
+   * 
+   * @tested
    */
   setGenres(genres: ANIME_GENRE[]) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -613,10 +633,12 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set broadcast timing
+   * 
+   * @tested
    */
   setBroadcast(broadcast: AnimeBroadcast) {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('studios');
+    this.document.markModified('broadcast');
 
     this.stack.push(`Broadcast changed (${this.document.broadcast ? `${this.document.broadcast?.day} ${this.document.broadcast?.time}` : 'null'} > ${broadcast.day} ${broadcast.time})`);
     this.document.broadcast = broadcast;
@@ -625,23 +647,26 @@ export class AnimeService extends AnimeModelControls {
 
 
   /**
-   * Find related anime's by mal ids
+   * Find related anime documents by mal ids
+   * 
+   * @tested
    */
   async setRelated(malIds: number[]) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('related');
 
-    try {
-      const documents = await AnimeModel.find({ malId: { $in: [-1, ...malIds] } });
-      if (!documents.length) return;
+    if (!malIds.length) {
+      this.stack.push(`Related anime removed`);
+      this.document.related = [];
 
-      const related = documents.map(el => el.uuid);
-
-      this.stack.push(`Related changed (${this.document.related.join(', ')} > ${related.join(', ')})`);
-      this.document.related = related;
-    } catch (e) {
-      Logger.fail(`[AnimeService]: Cannot set related anime's`, e);
+      return;
     }
+
+    const documents = await AnimeModel.find({ malId: { $in: malIds } });
+    const related = documents.map(el => el.uuid);
+
+    this.stack.push(`Related changed (${this.document.related.join(', ')} > ${related.join(', ')})`);
+    this.document.related = related;
   }
 
 
@@ -651,14 +676,20 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
+   * @tested
    */
-  async syncWithMyAnimeList(force?: boolean) {
+  async syncWithMyAnimeList(force?: boolean): Promise<boolean> {
     if (!this.document) throw ERR_NO_DOCUMENT;
+    if (this.anime.malId === null) return false;
 
     if (!force) {
-      if (this.anime.stopSync?.mal) return; // Check if sync is not prevented
-      if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return; // Check if last sync timed out
+      if (this.anime.stopSync?.mal) return false; // Check if sync is not prevented
+      if (getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
     }
+
+    // Pass in test mode
+    if (TestMode) return true;
 
     const API_ENDPONT = `https://api.myanimelist.net/v2`;
     const fields: (keyof MyAnimeListNode)[] = [
@@ -715,8 +746,10 @@ export class AnimeService extends AnimeModelControls {
       await Search.update('anime');
 
       Logger.info(`[AnimeService]: Anime synced with myanimelist. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+      return true;
     } catch (e) {
-      return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
+      Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
+      return false;
     }
   }
 
@@ -738,7 +771,7 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access titleEdit
-   * @tested 2.1.0
+   * @tested 
    */
   async putPoster(file: Express.Multer.File, { user }: AnimePutPosterProps): Promise<AnimePutPoster> {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -808,6 +841,7 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access seriesAdd
+   * @todo test
    */
   async uploadEpisode(file: Express.Multer.File, { dubberId, order, qualities, user }: AnimeUploadEpisodeProps): Promise<AnimeUploadEpisode> {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -920,6 +954,7 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access seriesDelete
+   * @tested
    */
   async deleteEpisode({ dubberId, order, user }: AnimeDeleteEpisodeProps): Promise<AnimeDeleteEpisode> {
     if (!this.document) throw ERR_NO_DOCUMENT;

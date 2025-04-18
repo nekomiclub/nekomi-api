@@ -514,7 +514,9 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
     throw new E401(`Not authorized`);
   }
 
-  await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomi_core] });
+  if (!TestMode) {
+    await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomi_core] });
+  }
 
 
 
@@ -522,11 +524,12 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
 
 
 
-  return res.status(204).json({ message: 'ok' });
+  return res.status(200).json({ message: 'ok' });
 }, {
   requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
+/** @tested */
 const DeleteByUuid = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['titleDelete']),

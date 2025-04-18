@@ -4,16 +4,23 @@ process.argv.push('devMode');
 import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/AnimeIntf';
 import AnimeService from '~/core/services/AnimeService';
 import createID from '~/utils/create-id';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
 import { ERR_GENERIC } from '~/services/ErrorService';
-import { MockAccessCheck, MockCheckCSRF, testPurge } from '~/utils/testing';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing';
 import { app } from '~/index';
 import { config } from '~/config';
+import { signCSRFToken } from '~/services/TokenService';
 
 
-beforeAll(testPurge);
-afterAll(testPurge);
+
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+  mongoose.connect(config.mongodbUrl, {
+    retryWrites: true,
+  });
+});
 
 
 
@@ -72,10 +79,10 @@ describe('AnimeRouter', () => {
     });
   });
 
-  describe('GET /anime/all', () => {
+  describe('GET /anime/stats', () => {
     it('should return total/updated/fullfilled anime documents', async () => {
       const res = await request(app)
-        .get('/anime/all')
+        .get('/anime/stats')
         .expect(200);
 
       const data = res.body as AnimeGetStats;
@@ -200,18 +207,28 @@ describe('AnimeRouter', () => {
 
   describe('DELETE /anime/:uuid', () => {
     it('should delete', async () => {
-      // const anime = await new AnimeService().create({ nameEng: createID(12) });
+      const anime = await new AnimeService().create({ nameEng: createID(12) });
 
-      // await request(app)
-      //   .delete(`/anime/${anime.uuid}`)
-      //   .set(config.vars.csrfHeader, '~')
-      //   .set(`Cookie`, `${config.vars.sessionCookie}=~`)
-      //   .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
-      //   .expect(204);
+      await request(app)
+        .delete(`/anime/${anime.uuid}`)
+        .query(`token=${signCSRFToken()}`)
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(200);
 
-      // const afterDeleteAnime = await new AnimeService().safeGetByQuery(anime.uuid);
+      const afterDeleteAnime = await new AnimeService().safeGetByQuery(anime.uuid);
 
-      // expect(afterDeleteAnime).toBeNull();
+      expect(afterDeleteAnime).toBeNull();
+    });
+
+    it(`should reject`, async () => {
+      await request(app)
+        .delete(`/anime/SOME_ID`)
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(401);
     });
   });
 });

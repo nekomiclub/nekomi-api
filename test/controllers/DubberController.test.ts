@@ -5,14 +5,6 @@
 it('deprecated', () => expect(true).toBeTruthy());
 
 
-
-
-
-
-
-
-
-
 process.argv.push('testMode');
 
 import DubberController from '~/controllers/Dubber/DubberController';
@@ -30,10 +22,6 @@ beforeAll(() => {
   mongoose.connect(config.mongodbUrl, {
     retryWrites: true,
   });
-});
-
-afterAll(() => {
-  mongoose.disconnect();
 });
 
 

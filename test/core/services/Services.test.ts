@@ -6,26 +6,22 @@ process.argv.push('devMode');
 import User, { UserService } from '~/models/User';
 import mongoose from 'mongoose';
 import { E404, ERR_ACCESS_REJECTED } from '~/services/ErrorService';
-import { INTERNALS, config } from '~/config';
 import { MiddlewareService } from '~/services/MiddlewareService';
+import { config } from '~/config';
+
+
+
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+  mongoose.connect(config.mongodbUrl, {
+    retryWrites: true,
+  });
+});
 
 
 
 describe('Middleware Service', () => {
   const instance = new MiddlewareService();
-
-  beforeAll(() => {
-    const MONGO_URI = `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`;
-
-    mongoose.set('strictQuery', false);
-    mongoose.connect(MONGO_URI, {
-      retryWrites: true,
-    });
-  });
-
-  afterAll(() => {
-    mongoose.disconnect();
-  });
 
 
 

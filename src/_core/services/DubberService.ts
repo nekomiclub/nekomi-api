@@ -96,7 +96,7 @@ class DubberModelControls implements TDubberModelControls {
     if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
     if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_USERNAME_NOT_LATIN;
 
-    const id = this.TestMode && DEV_ID ? DEV_ID : createUUID();
+    const id = this.TestMode && DEV_ID ? DEV_ID : this.TestMode ? `~test-${createUUID()}` : createUUID();
     const createdAt = getUTC().timestamp;
     let slug = createSlug(nameEng);
 
