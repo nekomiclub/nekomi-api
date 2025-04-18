@@ -1,54 +1,44 @@
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/AnimeIntf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import CacheService from '~/services/CacheService';
 import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
+import UserService from '~/core/services/UserService';
+import createID from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { AnimeDeleteByUuidProps, AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePostEpisode, AnimePostEpisodeProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
-import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
+import multer from 'multer';
+import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePatchByUuidProps, AnimePatchByUuidSchema, AnimePostEpisode, AnimePostEpisodeProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
+import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
+import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { HydrateAnimeDocument } from '~/utils/data-mappers';
+import { E401, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
+import { GetCheckCSRFMock } from '~/utils/testing';
+import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
-import { config } from '~/config';
+import { MiddlewareService } from '~/services/MiddlewareService';
+import { TestMode, config } from '~/config';
+import { body, param, query } from 'express-validator';
+import { parseObjectTypes } from '~/utils/parse-object-types';
+import { signCSRFToken } from '~/services/TokenService';
+import { z } from 'zod';
 
 
 
-
-//* ===================================== GET ALL
-/**
- * Get all anime documents count, updated (where rate is not G and media type is not OVA) and fullfilled (updated with malId specified)
- * 
- * @returns AnimeGetStats
- */
-async function GetStats(): Promise<AnimeGetStats> {
-  const animeService = new AnimeService();
-  const documents = await animeService.getAll();
-
-  const total = documents.length;
-  // All parsed anime documents by default were with G rate and OVA status
-  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
-  const fullfilled = updated.filter(el => el.malId !== null);
-
-  return {
-    total,
-    updated: updated.length,
-    fullfilled: fullfilled.length
-  };
-}
+const upload = multer();
 
 
 
 //* ===================================== GET SEARCH
-/**
- * Search anime by uuid, slug or names
- * 
- * @see AnimeGetSearchProps
- * @returns AnimeGetSearch
- */
-async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
+const getSearch = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const { q } = parseObjectTypes<AnimeGetSearchProps>(req.query);
+
+
+
   const limit = 15;
 
   let animeResults: Anime[] = [];
@@ -81,13 +71,48 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
 
 
 
-  return {
+  const body: AnimeGetSearch = {
     results,
     extended: {
       dubbedEpisodes
     }
   };
-}
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested 2.1.0 */
+const GetSearch = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  query(['q']).notEmpty(),
+  getSearch,
+];
+
+
+
+//* ===================================== GET STATS
+const getStats = HTTPEndpoint(async (req, res) => {
+  const animeService = new AnimeService();
+  const documents = await animeService.getAll();
+
+  const total = documents.length;
+  // All parsed anime documents by default were with G rate and OVA status
+  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
+  const fullfilled = updated.filter(el => el.malId !== null);
+
+  const body: AnimeGetStats = {
+    total,
+    updated: updated.length,
+    fullfilled: fullfilled.length
+  };
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested 2.1.0 */
+const GetStats = [
+  getStats,
+];
 
 
 
@@ -95,12 +120,11 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
 const AnimeFeaturedCacheID = '~featured';
 const AnimeFeaturedCache = new CacheService<AnimeFeatured>('AnimeFeaturedCache');
 
-/**
- * Get featured anime list for home page
- * 
- * @returns AnimeFeatured
- */
-async function GetFeatured(): Promise<AnimeFeatured> {
+const getFeatured = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+
+
   const cache = AnimeFeaturedCache.get({ id: AnimeFeaturedCacheID });
   if (cache) return cache;
 
@@ -150,19 +174,40 @@ async function GetFeatured(): Promise<AnimeFeatured> {
     Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
   }
 
-  return featured;
-}
+
+
+  const body: AnimeFeatured = featured;
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested 2.1.0 */
+const GetFeatured = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  getFeatured
+];
 
 
 
 //* ===================================== GET BY QUERY
-/**
- * Get anime document by query (uuid, slug, malId). Parse genres & etc or return only metadata
- * 
- * @see AnimeGetByQueryProps
- * @returns AnimeGetByQuery
- */
-async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRelated }: AnimeGetByQueryProps): Promise<AnimeGetByQuery> {
+const getByQuery = HTTPEndpoint(async (req, res) => {
+  const { query } = parseObjectTypes<AnimeGetByQueryProps>(req.params);
+  const { metadataOnly, fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+  const CSRF_Token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
+  let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+
+  if (detailed) {
+    if (!CSRF_Token) throw new ERR_MISSING_AUTHORIZATION;
+
+    await new MiddlewareService().checkCSRF({
+      token: CSRF_Token,
+      origins: [config.DOMAIN.nekomi],
+      mock: TestMode ? GetCheckCSRFMock(req) : undefined
+    });
+  }
+
+
+
   const animeService = new AnimeService();
   await animeService.init(query);
 
@@ -249,7 +294,7 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
 
 
 
-  return {
+  const body: AnimeGetByQuery = {
     ...hydrated,
     dubbers,
     related,
@@ -257,83 +302,246 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
     posterAdapt,
     nextBroadcast
   };
-}
 
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested 2.1.0 */
+const GetByQuery = [
+  param('query').notEmpty(),
+  getByQuery,
+];
 
 
 //* ===================================== POST ANIME
-/** 
- * Create new anime document
- * 
- * @see AnimePostProps
- * @returns Anime
- */
-async function PostAnime({ nameEng }: AnimePostProps): Promise<Anime> {
-  return await new AnimeService().create({ nameEng });
-}
+const postAnime = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const nameEng = `untitled-${createID(4)}`;
+
+
+
+  const anime = await new AnimeService().create({ nameEng });
+
+
+
+  return res.status(201).json({ message: 'ok', anime });
+});
+
+/** @tested 2.1.0 */
+const PostAnime = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleAdd']),
+  postAnime,
+];
 
 
 
 //* ===================================== POST EPISODE
-/**
- * Upload episode
- * 
- * @see AnimePostEpisodeProps
- * @returns AnimePostEpisode
- */
-async function PostEpisode({ dubberId, file, order, user, uuid, qualities }: AnimePostEpisodeProps): Promise<AnimePostEpisode> {
+const postEpisode = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  let { uuid, qualities, order, dubberId } = req.body as AnimePostEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    qualities: z.number().array(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+  // @ts-ignore
+  qualities = JSON.parse(qualities).map(el => +el);
+
+  schema.parse({ uuid, qualities, order, dubberId });
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not specified`);
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   const { episode } = await animeService.uploadEpisode(file, { dubberId, order, qualities, user });
 
-  return { episode };
-}
+
+
+  const body: AnimePostEpisode = {
+    episode
+  };
+
+  return res.status(201).json({ message: 'ok', ...body });
+});
+
+const PostEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesAdd']),
+  upload.single('file'),
+  postEpisode,
+];
 
 
 
 //* ===================================== PUT POSTER
-/**
- * Put poster
- * 
- * @see AnimePutPosterProps
- * @return AnimePutPoster
- */
-async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<AnimePutPoster> {
+const putPoster = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const { uuid } = req.body as AnimePutPosterProps;
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not specified`);
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   const { url } = await animeService.putPoster(file, { user });
 
-  return { url };
-}
+
+
+  const body: AnimePutPoster = {
+    url
+  };
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+const PutPoster = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleEdit']),
+  upload.single('file'),
+  body('uuid').notEmpty().isString(), // Must be below multer middleware
+  putPoster
+];
+
+
+
+//* ===================================== PATCH BY UUID
+const patchByUuid = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  AnimePatchByUuidSchema.parse(req.body);
+
+  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year } = req.body as AnimePatchByUuidProps;
+
+  const animeService = new AnimeService();
+  await animeService.init(uuid);
+
+
+
+  // Patches
+  if (nameAlt?.length || nameEng !== undefined || nameUkr !== undefined) await animeService.setNames({ alt: nameAlt, eng: nameEng, ukr: nameUkr });
+  if (description !== undefined) animeService.setDescription(description);
+  if (details !== undefined) animeService.setDetails(details);
+  if (episodesCount !== undefined) animeService.setEpisodesCount(episodesCount);
+  if (genres !== undefined) animeService.setGenres(animeService.parseGenres(genres));
+  if (malId !== undefined) animeService.setMalId(malId);
+  if (posterAdapt !== undefined) await animeService.setPosterAdapt(posterAdapt);
+  if (media !== undefined) animeService.setMedia(animeService.parseMedia(media));
+  if (rate !== undefined) animeService.setRate(animeService.parseRate(rate));
+  if (season !== undefined) animeService.setSeason(animeService.parseSeason(season));
+  if (status !== undefined) animeService.setStatus(animeService.parseStatus(status));
+  if (scoreMAL !== undefined || scoreIMDB !== undefined || malScoredBy !== undefined) animeService.setScore({ imdb: scoreIMDB, mal: scoreMAL, malScoredBy });
+  if (studios !== undefined) animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
+  if (year !== undefined) animeService.setYear(year);
+
+
+
+  await animeService.save();
+
+  return res.status(200).json({ message: 'ok' });
+});
+
+const PatchByUuid = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleEdit']),
+  patchByUuid
+];
 
 
 
 //* ===================================== DELETE EPISODE
-/**
- * Delete dubbed episode
- * 
- * @see AnimeDeleteEpisodeProps
- */
-async function DeleteEpisode({ dubberId, order, uuid, user }: AnimeDeleteEpisodeProps) {
+const deleteEpisode = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  let { dubberId, order, uuid } = req.body as AnimeDeleteEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+
+  schema.parse({ dubberId, order, uuid });
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   await animeService.deleteEpisode({ dubberId, order, user });
-}
+
+
+
+  return res.status(200).json({ message: 'ok' });
+});
+
+const DeleteEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesDelete']),
+  deleteEpisode
+];
 
 
 
 //* ===================================== DELETE BY UUID
-/**
- * Delete anime document
- */
-async function DeleteByUuid({ uuid }: AnimeDeleteByUuidProps): Promise<void> {
+const deleteByUuid = HTTPEndpoint(async (req, res) => {
+  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
+  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
+
+  const { uuid } = req.params as { uuid: string };
+  const { token } = req.query as { token?: string };
+
+  if (!token) {
+    console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN START --`);
+    console.log(signCSRFToken());
+    console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN END --`);
+
+    throw new E401(`Not authorized`);
+  }
+
+  await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomi_core] });
+
+
+
   await new AnimeService().deleteOne(uuid);
-}
 
 
+
+  return res.status(204).json({ message: 'ok' });
+});
+
+const DeleteByUuid = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleDelete']),
+  deleteByUuid,
+];
 
 
 
@@ -348,6 +556,8 @@ export default class AnimeController {
 
   static PutPoster = PutPoster;
 
-  static DeleteEpisode = DeleteEpisode;
+  static PatchByUuid = PatchByUuid;
+
   static DeleteByUuid = DeleteByUuid;
+  static DeleteEpisode = DeleteEpisode;
 }
