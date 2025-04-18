@@ -14,7 +14,7 @@ import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { E401, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
+import { E401, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
@@ -33,8 +33,6 @@ const upload = multer();
 
 //* ===================================== GET SEARCH
 const getSearch = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   const { q } = parseObjectTypes<AnimeGetSearchProps>(req.query);
 
 
@@ -79,9 +77,11 @@ const getSearch = HTTPEndpoint(async (req, res) => {
   };
 
   return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkCSRF']
 });
 
-/** @tested 2.1.0 */
+/** @tested */
 const GetSearch = [
   CheckCSRF([config.DOMAIN.nekomi]),
   query(['q']).notEmpty(),
@@ -109,7 +109,7 @@ const getStats = HTTPEndpoint(async (req, res) => {
   return res.status(200).json({ message: 'ok', ...body });
 });
 
-/** @tested 2.1.0 */
+/** @tested */
 const GetStats = [
   getStats,
 ];
@@ -121,10 +121,6 @@ const AnimeFeaturedCacheID = '~featured';
 const AnimeFeaturedCache = new CacheService<AnimeFeatured>('AnimeFeaturedCache');
 
 const getFeatured = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
-
-
   const cache = AnimeFeaturedCache.get({ id: AnimeFeaturedCacheID });
   if (cache) return cache;
 
@@ -179,9 +175,11 @@ const getFeatured = HTTPEndpoint(async (req, res) => {
   const body: AnimeFeatured = featured;
 
   return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkCSRF']
 });
 
-/** @tested 2.1.0 */
+/** @tested */
 const GetFeatured = [
   CheckCSRF([config.DOMAIN.nekomi]),
   getFeatured
@@ -306,7 +304,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   return res.status(200).json({ message: 'ok', ...body });
 });
 
-/** @tested 2.1.0 */
+/** @tested */
 const GetByQuery = [
   param('query').notEmpty(),
   getByQuery,
@@ -315,21 +313,18 @@ const GetByQuery = [
 
 //* ===================================== POST ANIME
 const postAnime = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   const nameEng = `untitled-${createID(4)}`;
-
-
 
   const anime = await new AnimeService().create({ nameEng });
 
 
 
   return res.status(201).json({ message: 'ok', anime });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
-/** @tested 2.1.0 */
+/** @tested */
 const PostAnime = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['titleAdd']),
@@ -340,9 +335,6 @@ const PostAnime = [
 
 //* ===================================== POST EPISODE
 const postEpisode = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   let { uuid, qualities, order, dubberId } = req.body as AnimePostEpisodeProps;
 
   const schema = z.object({
@@ -377,6 +369,8 @@ const postEpisode = HTTPEndpoint(async (req, res) => {
   };
 
   return res.status(201).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
 const PostEpisode = [
@@ -390,9 +384,6 @@ const PostEpisode = [
 
 //* ===================================== PUT POSTER
 const putPoster = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   const { uuid } = req.body as AnimePutPosterProps;
 
   const file = req.file;
@@ -414,6 +405,8 @@ const putPoster = HTTPEndpoint(async (req, res) => {
   };
 
   return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
 const PutPoster = [
@@ -428,9 +421,6 @@ const PutPoster = [
 
 //* ===================================== PATCH BY UUID
 const patchByUuid = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   AnimePatchByUuidSchema.parse(req.body);
 
   const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year } = req.body as AnimePatchByUuidProps;
@@ -461,6 +451,8 @@ const patchByUuid = HTTPEndpoint(async (req, res) => {
   await animeService.save();
 
   return res.status(200).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
 const PatchByUuid = [
@@ -473,9 +465,6 @@ const PatchByUuid = [
 
 //* ===================================== DELETE EPISODE
 const deleteEpisode = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   let { dubberId, order, uuid } = req.body as AnimeDeleteEpisodeProps;
 
   const schema = z.object({
@@ -500,6 +489,8 @@ const deleteEpisode = HTTPEndpoint(async (req, res) => {
 
 
   return res.status(200).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
 const DeleteEpisode = [
@@ -512,9 +503,6 @@ const DeleteEpisode = [
 
 //* ===================================== DELETE BY UUID
 const deleteByUuid = HTTPEndpoint(async (req, res) => {
-  if (!req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);
-  if (!req.nekomi.middlewaresPassed?.includes('checkCSRF')) throw new ERR_MIDDLEWARE_REQUIRED(`checkCSRF`);
-
   const { uuid } = req.params as { uuid: string };
   const { token } = req.query as { token?: string };
 
@@ -535,6 +523,8 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
 
 
   return res.status(204).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
 
 const DeleteByUuid = [
@@ -542,6 +532,8 @@ const DeleteByUuid = [
   CheckAccess(['titleDelete']),
   deleteByUuid,
 ];
+
+
 
 
 
