@@ -1,3 +1,4 @@
+import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from './AnimeService';
 import DubberService from './DubberService';
 import User, { UserLib, UserWatchProgress } from '~/core/interfaces/UserIntf';
@@ -7,7 +8,7 @@ import createSlug from '~/utils/create-slug';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
 import validator from 'validator';
-import { DevelopmentMode, config } from '~/config';
+import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
@@ -75,7 +76,7 @@ class UserModelControls implements TUserModelControls {
       if (exist) throw new ERR_ALREADY_EXIST(`User with this username is already exist`);
     }
 
-    const id = DevelopmentMode ? DEV_ID ?? createUUID() : createUUID();
+    const id = DevelopmentMode && DEV_ID ? DEV_ID : TestMode ? `~test-${createUUID()}` : createUUID();
 
     const instance: User = {
       id,
@@ -164,13 +165,15 @@ class UserModelControls implements TUserModelControls {
  * This service must be initialized by calling @method init()
 */
 export class UserService extends UserModelControls {
-  private document: HydratedDocument<User> | null = null;
+  /** TO GET USER OBJECT USE get.user INSTEAD. THIS IS PRIVATE OBJECT */
+  readonly document: HydratedDocument<User> | null = null;
   private stack: string[] = [];
 
   async init(query: string) {
     const document = await UserModel.findOne({ $or: [{ id: query }, { username: query }] }); // Hydrated document required, find by built-in method is not possible
     if (!document) throw new E404(`Document ${query} is not found`);
 
+    // @ts-expect-error Ignore readonly
     this.document = document;
   }
 
@@ -300,6 +303,32 @@ export class UserService extends UserModelControls {
 
 
   //* ============== LIBS
+  /**
+   * Fix user lib anime documents, remove documents that are not exist
+   * Will save the document
+   * 
+   * @returns fixed lib
+   * @tested
+   */
+  async fixLibAnimeDocuments(libId: string): Promise<UserLib> {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const lib = this.document.libs.find(el => el.id === libId);
+    if (!lib) throw new E404(`Lib with id (${libId}) is npt found`);
+
+    const libDocs = (await AnimeModel.find({ uuid: { $in: lib.titles } }));
+
+    this.stack.push(`Fixed user lib anime documents (${lib.titles} > ${libDocs.length})`);
+    Logger.info(`[UserService]: Fixed user lib anime documents. [userId: ${this.document.id}; libId: ${lib.id}]`);
+
+    lib.titles = libDocs.map(el => el.uuid);
+
+    this.document.markModified('libs');
+
+    await this.save();
+
+    return lib;
+  }
 
 
 
