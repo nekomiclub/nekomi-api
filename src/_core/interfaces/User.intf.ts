@@ -20,7 +20,10 @@ export interface User {
   /** @private */
   telegramData: IUserTelegramData | null
 
-  /** @private */
+  /** 
+   * Access token to verify user telegram link request
+   * @private 
+   */
   telegramLinkToken: string | null
 
   /** Events subscribes

@@ -17,7 +17,7 @@ interface IRefreshAuthProps {
 
 const baseURL = config.URL.fullkekw_usapi;
 
-/** @version 2.0.0 */
+/** @version 2.1.1 */
 export default class FullkekwUserAPI {
   static async getUser({ id }: IGetUserProps) {
     const url = `${baseURL}/user/${id}`;

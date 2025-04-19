@@ -71,3 +71,27 @@ export interface UserPatchProps {
   /** Anime ID */
   deleteWatchProgress?: string
 }
+
+
+export type UserPatchMethodType = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner' | 'removeWatchProgress'
+
+export interface UserPatchProps {
+  /** Method */
+  method: UserPatchMethodType
+
+  //* editFolderItem, patchWatchProgress, removeWatchProgress methods
+  titleId?: string
+
+  //* editFolderItem method
+  folderId?: string
+
+  //* patchWatchProgress method
+  dubberID?: string
+  episodeOrder?: number
+
+  /** Session viewtime in seconds */
+  viewtime?: number
+
+  /** Current video progress in seconds */
+  progress?: number
+}

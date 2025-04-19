@@ -23,7 +23,7 @@ interface IDeleteUploadProps {
 
 const baseURL = config.URL.nekomi_uploads;
 
-/** @version 1.3.2 */
+/** @version 2.1.0 */
 export class NekomiUploadsAPI {
   static getUploadIdFromURL(url: string): string {
     return url.split('/')[url.split('/').length - 1];

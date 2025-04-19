@@ -1,85 +1,26 @@
-import * as UserController from '~/controllers/user';
-import UserRoutes from '~/controllers/User/UserRoutes';
+import UserController from '~/controllers/User/UserController';
 import express from 'express';
-import multer from 'multer';
-import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { body } from 'express-validator';
-import { config } from '~/config';
 
 
 
-const upload = multer();
 const UserRouter = express.Router();
 
 
 
-const userPatch = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-  upload.single('file'),
-  body('method')
-    .notEmpty().withMessage('Patch method must be provided')
-];
+UserRouter.get(`/search`, UserController.GetSearch);
+UserRouter.get(`/logout`, UserController.GetLogout);
+UserRouter.get(`/validate`, UserController.GetValidate);
+UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], UserController.GetLinkTelegramToken); //* /linkTelegram/token is deprecated
+UserRouter.get(`/:query`, UserController.GetByQuery);
 
-const userLinkTelegram = [
-  CheckCSRF([config.DOMAIN.nekomi_bot]),
-  body(['animeeID', 'telegramID'])
-    .notEmpty().withMessage('AnimeeID and TelegramID must be provided')
-];
+UserRouter.post(`/signin`, UserController.PostSignin);
+UserRouter.post([`/link/telegram`, `/linkTelegram`], UserController.PostLinkTelegram); //* /linkTelegram is deprecated
+UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], UserController.PostLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
+UserRouter.post('/together', UserController.PostCreateTogetherRoom);
 
-const userLinkTelegramToken = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic'])
-];
+UserRouter.patch([`/me`, `/`], UserController.PatchUser); //* / is deprecated
 
-const userLinkTelegramTokenVerify = [
-  CheckCSRF([config.DOMAIN.nekomi_bot]),
-  body('token')
-    .notEmpty().withMessage('Token can not be empty')
-];
-
-const userSignin = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  body('session')
-    .notEmpty().withMessage('Session can not be empty'),
-];
-
-const userLogout = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-];
-
-const userValidate = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-];
-
-const userPostTogether = [
-  body('titleId')
-    .notEmpty().withMessage('Title id can not be empty'),
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-];
-
-const userDeleteTogether = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-];
-
-
-
-UserRouter.get(`/search`, UserRoutes.GetSearch);
-UserRouter.get(`/logout`, userLogout, UserController.getLogout);
-UserRouter.get(`/validate`, userValidate, UserController.getValidate);
-UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], userLinkTelegramToken, UserController.getLinkTelegramToken); //* /linkTelegram/token is deprecated
-UserRouter.get(`/:query`, UserRoutes.GetByQuery);
-
-UserRouter.post(`/signin`, userSignin, UserController.postSignin);
-UserRouter.post([`/link/telegram`, `/linkTelegram`], userLinkTelegram, UserController.postLinkTelegram); //* /linkTelegram is deprecated
-UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], userLinkTelegramTokenVerify, UserController.postLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
-UserRouter.post('/together', userPostTogether, UserController.createTogetherRoom);
-
-UserRouter.patch([`/me`, `/`], userPatch, UserController.patchUser); //* / is deprecated
-
-UserRouter.delete('/together/:id', userDeleteTogether, UserController.deleteTogetherRoom);
+UserRouter.delete('/together/:id', UserController.DeleteTogetherRoom);
 
 
 

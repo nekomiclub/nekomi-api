@@ -13,7 +13,7 @@ interface IVerifyTokenProps {
 
 const baseURL = config.URL.fullkekw_authority;
 
-/** @version 2.1.0 */
+/** @version 2.1.1 */
 export class FullkekwAuthorityAPI {
   static async verifyToken(payload: IVerifyTokenProps) {
     const url = `${baseURL}/verify`;

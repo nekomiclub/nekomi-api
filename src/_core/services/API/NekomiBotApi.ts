@@ -7,7 +7,7 @@ import { config } from '~/config';
 
 const baseURL = config.URL.nekomi_bot;
 
-/** @version 2.0.3 */
+/** @version 2.1.0 */
 export class NekomiBotAPI {
   static async broadcast(payload: NekomiBot_PostBroadcast) {
     const url = `${baseURL}/broadcast`;
