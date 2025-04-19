@@ -1,6 +1,6 @@
-import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import IDubber, { DubberCompact } from '~/core/interfaces/DubberIntf';
-import { IUser } from '~/core/interfaces/UserIntf';
+import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, HydratedAnime } from '~/core/interfaces/Anime.intf';
+import IDubber, { DubberCompact } from '~/core/interfaces/Dubber.intf';
+import { IUser } from '~/core/interfaces/User.intf';
 import { Metadata } from '~/core/interfaces/types';
 
 

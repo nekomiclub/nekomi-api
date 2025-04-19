@@ -1,4 +1,4 @@
-import Role from '~/core/interfaces/RoleIntf';
+import Role from '~/core/interfaces/Role.intf';
 import mongoose, { Schema } from 'mongoose';
 
 

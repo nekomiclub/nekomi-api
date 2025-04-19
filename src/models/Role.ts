@@ -1,5 +1,5 @@
 import RoleModelNew from '~/core/models/RoleModel';
-import { IRole, TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { IRole, TRoleCapability } from '~/core/interfaces/Role.intf';
 import { Logger } from '~/services/LoggerService';
 
 

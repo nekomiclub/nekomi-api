@@ -3,11 +3,11 @@ process.argv.push('devMode');
 
 
 
-import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
-import User from '~/core/interfaces/UserIntf';
+import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
 import createID, { createUUID } from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';

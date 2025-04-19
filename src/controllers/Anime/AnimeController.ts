@@ -1,4 +1,4 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import CacheService from '~/services/CacheService';

@@ -1,4 +1,4 @@
-import { ANIME_GENRE, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import { ANIME_GENRE, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import { MyAnimeListNode } from '~/core/interfaces/types';
 
 

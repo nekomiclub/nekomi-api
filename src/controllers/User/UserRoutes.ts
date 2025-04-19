@@ -10,7 +10,7 @@ import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~
 import { E404, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
-import { IUser } from '~/core/interfaces/UserIntf';
+import { IUser } from '~/core/interfaces/User.intf';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NotifyService } from '~/services/NotifyService';
 import { TestMode, config } from '~/config';

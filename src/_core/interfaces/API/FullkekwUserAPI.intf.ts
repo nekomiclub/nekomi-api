@@ -2,7 +2,7 @@
 //! VERSION: 2.1.0
 //! --------------
 
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 
 
 

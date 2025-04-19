@@ -3,11 +3,11 @@ process.argv.push('devMode');
 
 
 
-import IDubber from '~/core/interfaces/DubberIntf';
+import IDubber from '~/core/interfaces/Dubber.intf';
 import getUTC from '~/utils/get-utc';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, Anime } from '~/core/interfaces/Anime.intf';
 import { DocumentDTO } from '~/core/services/DTO';
-import { IUser } from '~/core/interfaces/UserIntf';
+import { IUser } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
 import { createUUID } from '~/utils/create-id';
 

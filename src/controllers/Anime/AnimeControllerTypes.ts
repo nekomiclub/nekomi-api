@@ -1,7 +1,7 @@
-import Anime, { AnimeEpisode, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import User from '~/core/interfaces/UserIntf';
+import Anime, { AnimeEpisode, HydratedAnime } from '~/core/interfaces/Anime.intf';
+import User from '~/core/interfaces/User.intf';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { DubberCompact } from '~/core/interfaces/DubberIntf';
+import { DubberCompact } from '~/core/interfaces/Dubber.intf';
 import { Metadata } from '~/core/interfaces/types';
 import { z } from 'zod';
 

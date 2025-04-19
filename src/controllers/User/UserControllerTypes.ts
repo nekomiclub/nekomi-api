@@ -1,8 +1,8 @@
-import User, { UserTogetherRoom } from '~/core/interfaces/UserIntf';
-import { DubberCompact } from '~/core/interfaces/DubberIntf';
-import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
+import User, { UserTogetherRoom } from '~/core/interfaces/User.intf';
+import { DubberCompact } from '~/core/interfaces/Dubber.intf';
+import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 import { UserPatchWatchProgressProps } from '~/core/services/UserService';
 
 export interface UserGetSearchProps {

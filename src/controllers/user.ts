@@ -10,16 +10,16 @@ import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
 import Search from '~/services/SearchService';
 import User, { UserModel, UserService } from '~/models/User';
-import { ANIME_STATUS, Anime } from '~/core/interfaces/AnimeIntf';
+import { ANIME_STATUS, Anime } from '~/core/interfaces/Anime.intf';
 import { E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID, HandleRequest } from '~/services/ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { IM_FkAuthorityVerify } from '~/interfaces/types';
-import { IUserTogetherRoom } from '~/core/interfaces/UserIntf';
+import { IUserTogetherRoom } from '~/core/interfaces/User.intf';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
 import { ProductionMode, TestMode, config } from '~/config';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 import { getMockData } from '~/utils/deprecated-utils';
 
 

@@ -6,7 +6,7 @@ import Search from '~/services/SearchService';
 import UserModel, { UserService } from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { INotifyDubberTell } from '~/interfaces/types';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';

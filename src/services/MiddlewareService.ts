@@ -5,8 +5,8 @@ import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { HydratedDocument } from 'mongoose';
-import { IUser } from '~/core/interfaces/UserIntf';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { IUser } from '~/core/interfaces/User.intf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode } from '~/config';
 import { parseRoles } from '~/models/Role';
 

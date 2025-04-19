@@ -1,4 +1,4 @@
-import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeGenre } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import TitleModel from '~/core/models/TitleModel';
 import UserModel from '~/models/User';

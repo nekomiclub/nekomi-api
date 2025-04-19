@@ -1,4 +1,4 @@
-import User from '~/core/interfaces/UserIntf';
+import User from '~/core/interfaces/User.intf';
 import mongoose, { Schema } from 'mongoose';
 
 

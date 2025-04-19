@@ -1,7 +1,7 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from './AnimeService';
 import DubberService from './DubberService';
-import User, { UserLib, UserWatchProgress } from '~/core/interfaces/UserIntf';
+import User, { UserLib, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
 import createID, { createUUID } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
@@ -210,6 +210,8 @@ export class UserService extends UserModelControls {
 
 
   //* ============== TELEGRAM DATA
+
+
 
   //* ============== WATCH PROGRESS
   /** Patch watch progress & increase total viewtime */

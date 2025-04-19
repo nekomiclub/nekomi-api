@@ -1,5 +1,5 @@
 import AnimeService from '~/core/services/AnimeService';
-import { ANIME_SEASON } from '~/core/interfaces/AnimeIntf';
+import { ANIME_SEASON } from '~/core/interfaces/Anime.intf';
 import { Logger } from './LoggerService';
 import { MALAPI } from '~/core/services/API/MAL.api';
 

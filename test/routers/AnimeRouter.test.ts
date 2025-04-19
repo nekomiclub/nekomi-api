@@ -1,7 +1,7 @@
 process.argv.push('testMode');
 process.argv.push('devMode');
 
-import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/Anime.intf';
 import AnimeService from '~/core/services/AnimeService';
 import createID from '~/utils/create-id';
 import mongoose from 'mongoose';

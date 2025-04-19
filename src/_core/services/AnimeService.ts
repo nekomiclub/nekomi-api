@@ -1,9 +1,9 @@
-import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploadsAPI';
 import Search from '~/services/SearchService';
-import User from '~/core/interfaces/UserIntf';
+import User from '~/core/interfaces/User.intf';
 import axios from 'axios';
 import createID, { createUUID } from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';

@@ -1,5 +1,5 @@
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS } from './AnimeIntf';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS } from './Anime.intf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 
 /** Make single key in T optional */
 export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

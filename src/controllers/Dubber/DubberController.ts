@@ -2,15 +2,15 @@ import AnimeModel from '~/core/models/AnimeModel';
 import CacheService from '~/services/CacheService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
-import User, { IUser } from '~/core/interfaces/UserIntf';
+import User, { IUser } from '~/core/interfaces/User.intf';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
 import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
+import { HydratedAnime } from '~/core/interfaces/Anime.intf';
+import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
 import { Metadata } from '~/core/interfaces/types';
 

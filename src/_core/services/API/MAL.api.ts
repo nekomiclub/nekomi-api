@@ -1,5 +1,5 @@
 import { $mal } from '~/services/HTTPService';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON } from '~/core/interfaces/AnimeIntf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON } from '~/core/interfaces/Anime.intf';
 import { Logger } from '~/services/LoggerService';
 import { MyAnimeListNode } from '~/core/interfaces/types';
 import { config } from '~/config';

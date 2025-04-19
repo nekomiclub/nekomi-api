@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
 import { MiddlewareService } from './services/MiddlewareService';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { TRoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode, config } from './config';
 
 
