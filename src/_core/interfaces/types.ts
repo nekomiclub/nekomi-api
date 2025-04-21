@@ -143,6 +143,8 @@ export interface MyAnimeListNode {
   }
 }
 
+export type MyAnimeListNodeFieldType = keyof MyAnimeListNode;
+
 export interface Metadata {
   title: string
   description: string

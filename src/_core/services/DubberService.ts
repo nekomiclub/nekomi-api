@@ -10,7 +10,7 @@ import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dub
 import { INotifyDubberTell } from '~/interfaces/types';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
-import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
+import { NekomiUploadsAPI } from './API/NekomiUploads.api';
 import { Notify } from '~/services/NotifyService';
 import { ServiceControls } from '~/core/interfaces/types';
 import { TestMode, config } from '~/config';

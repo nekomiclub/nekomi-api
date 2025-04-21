@@ -1,6 +1,6 @@
 import express from 'express';
 
-import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
+import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
 import { AxiosError } from 'axios';
 import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '~/services/ErrorService';
 import { NekomiUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';

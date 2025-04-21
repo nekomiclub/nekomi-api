@@ -209,8 +209,9 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   const animeService = new AnimeService();
   await animeService.init(query);
 
-  // Sync with myanimelist
+  // Sync
   await animeService.syncWithMyAnimeList();
+
   const anime = animeService.anime;
 
   let related: AnimeGetByQuery['related'] = undefined;

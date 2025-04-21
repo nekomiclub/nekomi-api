@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import * as cfg from '~/config';
 import AnimeService from '~/core/services/AnimeService';
 import DubberModel from '~/core/models/DubberModel';
-import NekomiUploadsAPI from '~/core/services/API/NekomiUploadsAPI';
+import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
 import Role from './Role';
 import UserModelNew from '~/core/models/UserModel';
 import getUTC from '~/utils/get-utc';

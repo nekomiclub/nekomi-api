@@ -21,27 +21,36 @@ export interface Anime {
 
   /** UTC timestamp @private */
   updatedAt: number
-  /** UTC timestamp @since 2.1.0 @private */
+  /** UTC timestamp @private */
   createdAt: number
+  /** MAL sync UTC timestamp @private */
+  malSyncedAt: number | null
+  /** Shikimori sync UTC timestamp @since 2.1.1 @private */
+  shikimoriSyncedAt: number | null
+  /** AniDB sync UTC timestamp @since 2.1.1 @private */
+  anidbSyncedAt: number | null
+  /** hikka.io sync UTC timestamp @since 2.1.1 @private */
+  hikkaSyncedAt: number | null
+
   /** @private */
   episodes: AnimeEpisode[]
   /** @private */
   episodesMeta: AnimeEpisodeMeta[]
-  /** MAL sync UTC timestamp @since 2.1.0 @private */
-  malSyncedAt: number | null
-  /** Anime pictures URL's @since 2.1.0 @private */
+  /** Anime pictures URL's @private */
   pictures: string[]
-  /** Related animes ID's @since 2.1.0 @private */
+  /** Related animes ID's @private */
   related: string[]
-  /** Poster adapted by dubber ID @since 2.1.0 */
+  /** Poster adapted by dubber ID */
   posterAdapt: string | null
 
-  /** Prevent services sync @since 2.1.0 @private */
+  /** Prevent services sync @private */
   stopSync: {
-    /** Prevent sync at all */
     mal?: boolean
-    /** Prevent sync at all */
     shikimori?: boolean
+    /** @since 2.1.1 */
+    anidb?: boolean
+    /** @since 2.1.1 */
+    hikka?: boolean
   }
 
   score: {

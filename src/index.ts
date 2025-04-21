@@ -13,6 +13,7 @@ import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
 import getRequestIP from './utils/get-request-ip';
+import { ANIME_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { WebsocketRouter } from './controllers/webSocket';
@@ -111,6 +112,12 @@ const UpdateHandlers = [
     app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
       Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
     });
+  }
+
+
+  //! ONE-TIME HANDLER
+  if (ProductionMode) {
+    await ANIME_MODEL_UPDATE.run();
   }
 
 

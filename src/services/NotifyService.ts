@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
-import NekomiBotAPI from '~/core/services/API/NekomiBotApi';
+import NekomiBotAPI from '~/core/services/API/NekomiBot.api';
 import User, { UserService } from '~/models/User';
 import { DevelopmentMode, config } from '~/config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';

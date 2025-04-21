@@ -1,10 +1,9 @@
 import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DubberService from './DubberService';
-import NekomiUploadsAPI from './API/NekomiUploadsAPI';
+import NekomiUploadsAPI from './API/NekomiUploads.api';
 import Search from '~/services/SearchService';
 import User from '~/core/interfaces/User.intf';
-import axios from 'axios';
 import createID, { createUUID } from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
 import trimString from '~/utils/trim-string';
@@ -13,8 +12,9 @@ import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI'
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
+import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNodeFieldType, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
+import { MALAPI } from './API/MAL.api';
 import { MALGenres, MALStudios } from '~/utils/mal-mappers';
 import { MongoDocumentDTO } from './DTO';
 import { Notify } from '~/services/NotifyService';
@@ -107,7 +107,9 @@ class AnimeModelControls implements AnimeModelControlsType {
       },
 
       stopSync: {
-        mal: false
+        mal: false,
+        anidb: false,
+        shikimori: false
       },
 
       media: ANIME_MEDIA_TYPE.UNKNOWN,
@@ -117,6 +119,9 @@ class AnimeModelControls implements AnimeModelControlsType {
       year: getUTC().year,
       updatedAt: getUTC().timestamp,
       createdAt: getUTC().timestamp,
+      anidbSyncedAt: getUTC().timestamp,
+      hikkaSyncedAt: getUTC().timestamp,
+      shikimoriSyncedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
 
       posterAdapt: null,
@@ -474,7 +479,7 @@ export class AnimeService extends AnimeModelControls {
    * 
    * @tested
    */
-  setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
+  setStopSync({ mal, shikimori, anidb }: Partial<Anime['stopSync']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     this.document.markModified('stopSync');
 
@@ -488,6 +493,12 @@ export class AnimeService extends AnimeModelControls {
       this.stack.push(`Shikimori StopSync changed (${this.document.stopSync.shikimori} > ${shikimori})`);
 
       this.document.stopSync.shikimori = shikimori;
+    }
+
+    if (anidb !== undefined) {
+      this.stack.push(`AniDB StopSync changed (${this.document.stopSync.anidb} > ${anidb})`);
+
+      this.document.stopSync.anidb = anidb;
     }
   }
 
@@ -675,24 +686,26 @@ export class AnimeService extends AnimeModelControls {
    * Sync anime details with myanimelist
    * Will save the document
    * 
+   * @requires malId specified
+   * 
    * @param force will skip stopsync check
    * @returns parse state (parsed/not)
+   * 
    * @tested
    */
   async syncWithMyAnimeList(force?: boolean): Promise<boolean> {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    if (this.anime.malId === null) return false;
+    if (this.document.malId === null) return false;
 
     if (!force) {
-      if (this.anime.stopSync?.mal) return false; // Check if sync is not prevented
-      if (getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+      if (this.document.stopSync?.mal) return false; // Check if sync is not prevented
+      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
     }
 
     // Pass in test mode
     if (TestMode) return true;
 
-    const API_ENDPONT = `https://api.myanimelist.net/v2`;
-    const fields: (keyof MyAnimeListNode)[] = [
+    const fields: MyAnimeListNodeFieldType[] = [
       'broadcast',
       'genres',
       'media_type',
@@ -707,14 +720,7 @@ export class AnimeService extends AnimeModelControls {
     ];
 
     try {
-      const { data: node } = await axios.get<MyAnimeListNode>(`${API_ENDPONT}/anime/${this.anime.malId}`, {
-        headers: {
-          'X-MAL-CLIENT-ID': config.env.MALClientID
-        },
-        params: {
-          fields: fields.join(', ')
-        }
-      });
+      const node = await MALAPI.getAnime({ id: this.document.malId, fields });
 
 
 
@@ -756,12 +762,68 @@ export class AnimeService extends AnimeModelControls {
 
 
   /**
-   * Sync anime photos with shikimori
+   * Sync anime episode descriptions
+   * Will save the document
+   * 
+   * @requires malId specified
+   * 
+   * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
    * 
    * @todo
    */
-  async syncWithShikimori() {
+  async syncWithAniDB(force?: boolean): Promise<boolean> {
+    return false;
 
+    // if (!this.document) throw ERR_NO_DOCUMENT;
+    // if (this.document.malId === null) return false;
+
+    // if (!force) {
+    //   if (this.document.stopSync.anidb) return false; // Check if anidb sync not prevented
+    // }
+
+    // try {
+    //   Logger.info(`[AnimeService]: Anime synced with anidb. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+
+    //   return true;
+    // } catch (e) {
+    //   Logger.fail(`[AnimeService]: Cannot sync with anidb`, e);
+
+    //   return false;
+    // }
+  }
+
+
+
+  /**
+   * Sync anime photos with shikimori
+   * 
+   * @requires malId specified
+   * 
+   * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
+   * 
+   * @todo
+   */
+  async syncWithShikimori(force?: boolean): Promise<boolean> {
+    return false;
+
+    // if (!this.document) throw ERR_NO_DOCUMENT;
+    // if (this.document.malId === null) return false;
+
+    // if (!force) {
+    //   if (this.document.stopSync.shikimori) return false; // Check if shikimori sync not prevented
+    // }
+
+    // try {
+    //   Logger.info(`[AnimeService]: Anime synced with shikimori. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+
+    //   return true;
+    // } catch (e) {
+    //   Logger.fail(`[AnimeService]: Cannot sync with shikimori`, e);
+
+    //   return false;
+    // }
   }
 
 

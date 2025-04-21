@@ -1,10 +1,15 @@
 import { $mal } from '~/services/HTTPService';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON } from '~/core/interfaces/Anime.intf';
 import { Logger } from '~/services/LoggerService';
-import { MyAnimeListNode } from '~/core/interfaces/types';
+import { MyAnimeListNode, MyAnimeListNodeFieldType } from '~/core/interfaces/types';
 import { config } from '~/config';
 
 
+
+interface GetAnimeProps {
+  id: number
+  fields: MyAnimeListNodeFieldType[]
+}
 
 interface GetSeasonalAnimeProps {
   season: ANIME_SEASON
@@ -13,13 +18,29 @@ interface GetSeasonalAnimeProps {
 
 
 
+const baseURL = config.URL.MyanimelistAPI;
+
 export class MALAPI {
+  /** Fetch myanimelist anime */
+  static async getAnime({ id, fields }: GetAnimeProps): Promise<MyAnimeListNode> {
+    const url = `${baseURL}/anime/${id}`;
+    Logger.trace(`[MyAnimeListAPI]: GET - ${url.replace(baseURL, '')}`);
+
+    const { data } = await $mal.get<MyAnimeListNode>(`${baseURL}/anime/${id}`, {
+      params: {
+        fields: fields.join(', ')
+      }
+    });
+
+    return data;
+  }
+
   /** Fetch myanimelist seasonal anime. Will skip G, PG and Rx, Different media types from TV */
   static async getSeasonalAnime({ season, year }: GetSeasonalAnimeProps): Promise<MyAnimeListNode[]> {
-    const url = `${config.URL.MyanimelistAPI}/anime/season/${year}/${season}`;
-    Logger.trace(`[FullkekwAuthorityAPI]: GET - ${url.replace(config.URL.MyanimelistAPI, '')}`);
+    const url = `${baseURL}/anime/season/${year}/${season}`;
+    Logger.trace(`[MyAnimeListAPI]: GET - ${url.replace(baseURL, '')}`);
 
-    const fields: (keyof MyAnimeListNode)[] = [
+    const fields: MyAnimeListNodeFieldType[] = [
       'alternative_titles',
       'rating',
       'media_type',

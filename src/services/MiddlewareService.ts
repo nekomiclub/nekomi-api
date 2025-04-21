@@ -1,5 +1,5 @@
-import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthorityApi';
-import FullkekwUserAPI from '~/core/services/API/FullkekwUserAPI';
+import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthority.api';
+import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import User from '~/models/User';
 import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
