@@ -236,7 +236,28 @@ export class AnimeService extends AnimeModelControls {
     this.document.updatedAt = getUTC().timestamp;
     this.document.markModified('updatedAt');
 
-    await this.document.save();
+    try {
+      await this.document.save();
+    } catch (error) {
+      Logger.debug(`[AnimeService]: Cannot save the document. Retrying after 1 second...`);
+
+      await new Promise(res => {
+        setTimeout(() => {
+          res(1);
+        }, 1000);
+      });
+
+      try {
+        await this.document.save();
+      } catch (e) {
+        Logger.error(`[AnimeService]: Cannot save the document`, e);
+
+        const stack = this.stack;
+        this.stack = [];
+
+        return stack;
+      }
+    }
 
     Logger.debug(`[AnimeService]: Document patched. [uuid: ${this.document.uuid}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 

@@ -183,10 +183,32 @@ export class UserService extends UserModelControls {
   async save(): Promise<string[]> {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
-    await this.document.save();
+    try {
+      await this.document.save();
+    } catch (error) {
+      Logger.debug(`[UserService]: Cannot save the document. Retrying after 1 second...`);
+
+      await new Promise(res => {
+        setTimeout(() => {
+          res(1);
+        }, 1000);
+      });
+
+      try {
+        await this.document.save();
+      } catch (e) {
+        Logger.error(`[UserService]: Cannot save the document`, e);
+
+        const stack = this.stack;
+        this.stack = [];
+
+        return stack;
+      }
+    }
 
     Logger.debug(`[UserService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
+    this.stack = [];
     return this.stack;
   }
 
