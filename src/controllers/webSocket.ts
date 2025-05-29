@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import http from 'http';
 
 import { DevelopmentMode, config } from '~/config';
-import { E501, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, HTTPErrorConstructor } from '~/services/ErrorService';
+import { E401, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '~/services/ErrorService';
 import { IWS_Route, IWS_WTMessage, Message, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '~/interfaces/WebSocket';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
@@ -69,7 +69,7 @@ export async function WebsocketRouter(ws: WebSocketExtended, req: http.IncomingM
 
       // Check access
       if (PRIVATE_ROUTES.includes(parsed.type)) {
-        if (!parsed.Authorization) throw new ERR_MISSING_AUTHORIZATION();
+        if (!parsed.Authorization) throw new E401;
 
         const { user } = await middlewareService.checkAccess({
           token: parsed.Authorization

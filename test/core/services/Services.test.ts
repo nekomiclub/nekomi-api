@@ -5,7 +5,7 @@ process.argv.push('devMode');
 
 import User, { UserService } from '~/models/User';
 import mongoose from 'mongoose';
-import { E404, ERR_ACCESS_REJECTED } from '~/services/ErrorService';
+import { E403, E404 } from '~/services/ErrorService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { config } from '~/config';
 
@@ -121,7 +121,7 @@ describe('Middleware Service', () => {
           }
         });
       } catch (e) {
-        if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
+        if (e instanceof E403) return expect(true).toBeTruthy();
       }
 
       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -162,7 +162,7 @@ describe('Middleware Service', () => {
           }
         });
       } catch (e) {
-        if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
+        if (e instanceof E403) return expect(true).toBeTruthy();
       }
 
       expect(false).toBeTruthy(); // Invalid error type or error does not thrown
@@ -179,7 +179,7 @@ describe('Middleware Service', () => {
           }
         });
       } catch (e) {
-        if (e instanceof ERR_ACCESS_REJECTED) return expect(true).toBeTruthy();
+        if (e instanceof E403) return expect(true).toBeTruthy();
       }
 
       expect(false).toBeTruthy(); // Invalid error type or error does not thrown

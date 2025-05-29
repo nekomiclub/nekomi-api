@@ -11,7 +11,7 @@ import { AxiosError } from 'axios';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
-import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -110,7 +110,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   let { detailed, parseLibId, parseTogetherRoomId } = parseObjectTypes<UserGetByQueryProps>(req.query);
 
   if (detailed) {
-    if (!CSRFToken) throw new ERR_MISSING_AUTHORIZATION;
+    if (!CSRFToken) throw new E401;
 
     await new MiddlewareService().checkCSRF({
       token: CSRFToken,
@@ -121,7 +121,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   // Parse query from session
   if (query === '*') {
-    if (!SessionCookie) throw new ERR_MISSING_AUTHORIZATION;
+    if (!SessionCookie) throw new E401;
 
     query = decodeToken(SessionCookie).payload?.userId ?? query;
   }

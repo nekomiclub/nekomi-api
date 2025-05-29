@@ -1,7 +1,7 @@
 import express from 'express';
 import { AxiosError } from 'axios';
 
-import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
+import { E401, HandleRequest } from './services/ErrorService';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
 import { MiddlewareService } from './services/MiddlewareService';
 import { TRoleCapability } from '~/core/interfaces/Role.intf';
@@ -23,7 +23,7 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
       req.nekomi.middlewaresPassed.push('checkAccess');
 
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
-      if (!token) throw new ERR_MISSING_AUTHORIZATION();
+      if (!token) throw new E401;
 
       try {
         const { user, capabilities: userCaps } = await Middleware.checkAccess({
@@ -52,7 +52,7 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
       }
 
       return next();
-    }, true);
+    });
   };
 }
 
@@ -66,7 +66,7 @@ export function CheckCSRF(origins?: string[]) {
       req.nekomi.middlewaresPassed.push('checkCSRF');
 
       const token = req.header(config.vars.csrfHeader);
-      if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
+      if (!token) throw new E401('CSRF header is missing');
 
       const origin = await Middleware.checkCSRF({
         token,
@@ -75,6 +75,6 @@ export function CheckCSRF(origins?: string[]) {
       });
 
       return next();
-    }, true);
+    });
   };
 }

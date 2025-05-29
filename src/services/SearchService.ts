@@ -3,7 +3,7 @@ import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import UserModel from '~/core/models/UserModel';
 import { Anime } from '~/core/interfaces/Anime.intf';
-import { E500, ERR_NOT_READY } from './ErrorService';
+import { E500 } from './ErrorService';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { IUser } from '~/core/interfaces/User.intf';
 import { Logger } from './LoggerService';
@@ -86,13 +86,13 @@ class SearchService {
     let SearchEngine: Fuse<any>;
 
     if (engine === 'user') {
-      if (!this.UserEngine) throw new ERR_NOT_READY();
+      if (!this.UserEngine) throw new E500('Search not ready');
       SearchEngine = this.UserEngine;
     } else if (engine === 'dubber') {
-      if (!this.DubberEngine) throw new ERR_NOT_READY();
+      if (!this.DubberEngine) throw new E500('Search not ready');
       SearchEngine = this.DubberEngine;
     } else if (engine === 'anime') {
-      if (!this.AnimeEngine) throw new ERR_NOT_READY();
+      if (!this.AnimeEngine) throw new E500('Search not ready');
       SearchEngine = this.AnimeEngine;
     } else throw new E500(`[SearchService]: Can not search not exist engine - ${engine}`);
 

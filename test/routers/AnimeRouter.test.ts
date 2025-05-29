@@ -7,7 +7,7 @@ import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
-import { ERR_GENERIC } from '~/services/ErrorService';
+import { ERR } from '~/services/ErrorService';
 import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing';
 import { app } from '~/index';
 import { config } from '~/config';
@@ -140,7 +140,7 @@ describe('AnimeRouter', () => {
         .query({ detailed: true, fetchDubbers: true })
         .expect(401);
 
-      expect(res.body.code).toBe(ERR_GENERIC.MISSING_AUTHORIZATION);
+      expect(res.body.code).toBe(ERR.HTTP_UNAUTHORIZED);
     });
 
     it('should return only metadata', async () => {

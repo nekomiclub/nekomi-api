@@ -8,7 +8,7 @@ import getUTC from '~/utils/get-utc';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
 import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
-import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E403, E500, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
@@ -387,9 +387,9 @@ function ensureAccess({ role, user, member }: { role: TDubberMemberRole, user: I
   // Pass root or admin
   if (!user.capabilities.includes('root') && !user.capabilities.includes('admin')) {
     // Only team member can edit settings
-    if (!member) throw new ERR_ACCESS_REJECTED(`Can not edit settings of the team what you don't belong to`);
+    if (!member) throw new E403(`Cannot edit settings of the team that you don't belong to`);
     // Only leader can edit settings
-    if (member.role !== role) throw new ERR_ACCESS_REJECTED();
+    if (member.role !== role) throw new E403(`Only team leader can edit settings`);
   }
 }
 

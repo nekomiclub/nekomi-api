@@ -10,7 +10,7 @@ import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { DevelopmentMode, TestMode, config } from '~/config';
-import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E400, E403, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNodeFieldType, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
@@ -839,7 +839,7 @@ export class AnimeService extends AnimeModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new E403;
 
     const oldPosterId = NekomiUploadsAPI.getUploadIdFromURL(this.document.poster);
     const oldPosterURL = this.document.poster;
@@ -909,7 +909,7 @@ export class AnimeService extends AnimeModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new E403;
     if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
     if (!capabilities.includes('root') && !capabilities.includes('admin') && qualities.includes(2160)) throw new E403(`Only admin can upload 4k anime`);
 
@@ -1022,8 +1022,8 @@ export class AnimeService extends AnimeModelControls {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new ERR_ACCESS_REJECTED();
-    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot delete episodes from not own dubbing`);
+    if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new E403;
+    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`Cannot delete episodes from not own dubbing`);
 
     const episode = this.document.episodes.find(el => el.dubberID === dubberId && el.order === order);
     if (!episode) {

@@ -12,20 +12,60 @@ import { ZodError } from 'zod';
 
 
 
-export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
-export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
+export enum ERR {
+  HTTP_ERROR = 'http:error',
+  HTTP_BAD_REQUEST = 'http:bad_request',
+  HTTP_UNAUTHORIZED = 'http:unauthorized',
+  HTTP_FORBIDDEN = 'http:forbidden',
+  HTTP_NOT_FOUND = 'http:not_found',
+  HTTP_INTERNAL_ERROR = 'http:internal_error',
+  HTTP_NOT_IMPLEMENTED = 'http:not_implemented',
+  HTTP_BAD_GATEWAY = 'http:bad_gateway',
+  HTTP_NOT_AVAILABLE = 'http:not_available',
+
+  BASE_INVALID_PAYLOAD = 'base:invalid_payload',
+  BASE_MIDDLEWARE_REQUIRED = 'base:middleware_required',
+  BASE_TYPE_INVALID = 'base:type_invalid',
+  BASE_ALREADY_EXIST = 'base:already_exist',
+}
+
+export const ERRORS: Record<ERR, string> = {
+  [ERR.HTTP_ERROR]: 'An error occured while processing this request',
+  [ERR.HTTP_BAD_REQUEST]: 'Invalid data passed',
+  [ERR.HTTP_UNAUTHORIZED]: 'Authorization missed',
+  [ERR.HTTP_FORBIDDEN]: 'Access forbidden',
+  [ERR.HTTP_NOT_FOUND]: 'Content not found',
+  [ERR.HTTP_INTERNAL_ERROR]: 'Internal server error',
+  [ERR.HTTP_NOT_IMPLEMENTED]: 'Method not implemented yet',
+  [ERR.HTTP_BAD_GATEWAY]: 'An error occured while processing this request to another service',
+  [ERR.HTTP_NOT_AVAILABLE]: 'Something not available for now. Try again later',
+
+  [ERR.BASE_INVALID_PAYLOAD]: 'Payload not match requirements',
+  [ERR.BASE_MIDDLEWARE_REQUIRED]: 'Request does not pass throught required middleware and being rejected',
+  [ERR.BASE_TYPE_INVALID]: 'Some types are invalid',
+  [ERR.BASE_ALREADY_EXIST]: 'Something already exist',
+};
+
+
+type HTTPStatus = 400 | 401 | 403 | 404 | 500 | 501 | 502 | 503;
 
 
 
 export class HTTPErrorConstructor {
   message: string;
-  status: THTTPErrorCode;
-  code: string;
+  status: HTTPStatus;
+  code: ERR | string;
 
-  constructor({ message, status, code }: { message: string, status: THTTPErrorCode, code?: string }) {
-    this.message = message;
+  constructor({ message, status, code }: { message?: string, status: HTTPStatus, code?: ERR | string }) {
+    const emsg = code ? ERRORS[code] : undefined;
+    let result_message = '';
+
+    if (emsg?.length) result_message += emsg;
+    if (message?.length) result_message += ': ' + message;
+
+    this.message = result_message;
     this.status = status;
-    this.code = code || 'generic:http_error';
+    this.code = code ?? ERR.HTTP_ERROR;
   }
 }
 
@@ -33,75 +73,67 @@ export class HTTPErrorConstructor {
 
 /** HTTP_BAD_REQUEST */
 export class E400 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 400, code: code || 'generic:bad_request' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 400, code: code ?? ERR.HTTP_BAD_REQUEST });
   }
 }
 
 /** HTTP_NOT_AUTHORIZED */
 export class E401 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 401, code: code || 'generic:missing_authorization' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 401, code: code ?? ERR.HTTP_UNAUTHORIZED });
   }
 }
 
 /** HTTP_FORBIDDEN */
 export class E403 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 403, code: code || 'generic:forbidden' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 403, code: code ?? ERR.HTTP_FORBIDDEN });
   }
 }
 
 /** HTTP_NOT_FOUND */
 export class E404 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 404, code: code || 'generic:not_found' });
-  }
-}
-
-/** HTTP_TEAPOT */
-export class E418 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 418, code: code || 'generic:idk' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 404, code: code ?? ERR.HTTP_NOT_FOUND });
   }
 }
 
 /** HTTP_INTERNAL */
 export class E500 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 500, code: code || 'generic:server_error' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 500, code: code ?? ERR.HTTP_INTERNAL_ERROR });
   }
 }
 
 /** HTTP_NOT_IMPLEMENTED */
 export class E501 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 501, code: code || 'generic:method_not_implemented' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 501, code: code ?? ERR.HTTP_NOT_IMPLEMENTED });
   }
 }
 
 /** HTTP_BAD_GATEWAY */
 export class E502 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 502, code: code || 'generic:bad_gateway' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 502, code: code ?? ERR.HTTP_BAD_GATEWAY });
   }
 }
 
 /** HTTP_SERVICE_UNAVAILABLE */
 export class E503 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 503, code: code || 'generic:service_not_available' });
+  constructor(message?: string, code?: ERR | string) {
+    super({ message, status: 503, code: code ?? ERR.HTTP_NOT_AVAILABLE });
   }
 }
 
 
 
-/** Handle request errors like
+/** 
+ * Handle request errors like:
  * HTTPErrorConstructor, Axios, express-validator & uncaught
- * 
- * @param preventFullfilled prevent default fullfilled response
  */
-export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>, preventFullfilled?: boolean) {
+export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
     const validation = validationResult(req);
 
@@ -110,12 +142,6 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 
     // Run callback
     await cb(req, res);
-
-    if (!preventFullfilled) {
-      try {
-        res.status(204).json({ message: 'Request fullfilled' });
-      } catch (e) { null; }
-    }
   } catch (e) {
     const date = `${getUTC().fulldate} UTC-0 ${getUTC().time}.${String(getUTC().secs).padStart(2, '0')}`;
 
@@ -174,7 +200,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 //* --------------- DEFAULT EXCEPTIONS ---------------
 export class ERR_INVALID_PAYLOAD extends E400 {
   constructor(message?: string) {
-    super(message || 'Invalid payload, match it with endpoint documentation.', ERR_GENERIC.INVALID_PAYLOAD);
+    super(message || 'Invalid payload, match it with endpoint documentation.', 'ERR_INVAID_PAYLOAD');
   }
 }
 
@@ -196,27 +222,9 @@ export class ERR_LENGTH_INVALID extends E400 {
   }
 }
 
-export class ERR_NOT_READY extends E418 {
-  constructor(message?: string) {
-    super(message || 'Endpoint response is not ready yet, try in a few minutes.', 'ERR_NOT_READY');
-  }
-}
-
-export class ERR_MISSING_AUTHORIZATION extends E401 {
-  constructor(message?: string) {
-    super(message || 'Authorization cookie/header is missing.', ERR_GENERIC.MISSING_AUTHORIZATION);
-  }
-}
-
-export class ERR_ACCESS_REJECTED extends E403 {
-  constructor(message?: string) {
-    super(message || 'You are not allowed to have access for that.', 'ERR_ACCESS_REJECTED');
-  }
-}
-
 export class ERR_MIDDLEWARE_REQUIRED extends E500 {
   constructor(middleware: TMiddlewareName) {
-    super(`Request not passed throught ${middleware} middleware and being rejected`, 'ERR_MIDDLEWARE_REQUIRED');
+    super(`Request does not pass throught ${middleware} middleware and being rejected`, ERR.BASE_MIDDLEWARE_REQUIRED);
   }
 }
 

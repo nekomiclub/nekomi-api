@@ -14,7 +14,7 @@ import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { E401, ERR_INVALID_PAYLOAD, ERR_MISSING_AUTHORIZATION } from '~/services/ErrorService';
+import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
@@ -195,7 +195,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
 
   if (detailed) {
-    if (!CSRF_Token) throw new ERR_MISSING_AUTHORIZATION;
+    if (!CSRF_Token) throw new E401;
 
     await new MiddlewareService().checkCSRF({
       token: CSRF_Token,

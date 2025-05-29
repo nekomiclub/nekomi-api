@@ -1,7 +1,7 @@
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthority.api';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import User from '~/models/User';
-import { E404, E500, ERR_ACCESS_REJECTED } from './ErrorService';
+import { E403, E404, E500 } from './ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { HydratedDocument } from 'mongoose';
@@ -78,7 +78,7 @@ export class MiddlewareService {
     if (caps.includes('root')) return { user, capabilities: caps };
 
     capabilities.forEach(cap => {
-      if (!caps.includes(cap)) throw new ERR_ACCESS_REJECTED();
+      if (!caps.includes(cap)) throw new E403;
     });
 
     //* Pass if everything is ok
@@ -112,7 +112,7 @@ export class MiddlewareService {
     }
 
     if (!DATA.verified || (origins.length !== 0 && !origins.includes(DATA.origin))) {
-      throw new ERR_ACCESS_REJECTED('CSRF invalid');
+      throw new E403(`CSRF rejected`);
     }
 
     return DATA.origin;
