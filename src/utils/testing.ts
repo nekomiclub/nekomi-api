@@ -40,10 +40,10 @@ function getMock<T = any>(req: express.Request, id: MockID): T {
 
 
 export const MockCheckCSRF = (payload: FullkekwAuthorityAPI_TokenVerify) => createMock(MockID.CheckCSRF, payload);
-export const GetCheckCSRFMock = (req: express.Request) => getMock(req, MockID.CheckCSRF);
+export const GetCheckCSRFMock = (req: express.Request) => getMock<FullkekwAuthorityAPI_TokenVerify>(req, MockID.CheckCSRF);
 
 export const MockAccessCheck = (payload: FullkekwUserAPI_Verify) => createMock(MockID.CheckAccess, payload);
-export const GetCheckAccessMock = (req: express.Request) => getMock(req, MockID.CheckAccess);
+export const GetCheckAccessMock = (req: express.Request) => getMock<FullkekwUserAPI_Verify>(req, MockID.CheckAccess);
 
 
 

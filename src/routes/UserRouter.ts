@@ -9,7 +9,6 @@ const UserRouter = express.Router();
 
 UserRouter.get(`/search`, UserController.GetSearch);
 UserRouter.get(`/logout`, UserController.GetLogout);
-UserRouter.get(`/validate`, UserController.GetValidate);
 UserRouter.get([`/link/telegram/token`, `/linkTelegram/token`], UserController.GetLinkTelegramToken); //* /linkTelegram/token is deprecated
 UserRouter.get(`/:query`, UserController.GetByQuery);
 

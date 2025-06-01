@@ -28,5 +28,7 @@ export default async function () {
   await AnimeModel.deleteMany({ uuid: { $regex: purgeRegex } });
   await DubberModel.deleteMany({ id: { $regex: purgeRegex } });
 
-  console.log(`[Jest]: Test teardown`);
+  console.log(`[Jest]: =================================`);
+  console.log(`[Jest]: Test teardown. Documents with id that match ~test were purged`);
+  console.log(`[Jest]: =================================`);
 }

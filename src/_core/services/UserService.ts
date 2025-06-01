@@ -220,6 +220,17 @@ export class UserService extends UserModelControls {
 
 
   //* ============== AVATAR
+  /**
+   * Set new user avatar url
+   */
+  setAvatar(url: string) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    this.stack.push(`Avatar changed (${this.document.avatar} > ${url})`);
+    this.document.avatar = url;
+
+    this.document.markModified('avatar');
+  }
 
 
 
@@ -228,6 +239,19 @@ export class UserService extends UserModelControls {
 
 
   //* ============== USERNAME
+  /**
+   * Set new username
+   * 
+   * @param force Will skip any checks
+   */
+  async setUsername(username: string, force?: boolean) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    this.stack.push(`Username changed (${this.document.username} > ${username})`);
+    this.document.username = username;
+
+    this.document.markModified('username');
+  }
 
 
 

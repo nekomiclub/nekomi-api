@@ -5,7 +5,7 @@ export function getRequestIP(headers: IncomingHttpHeaders): string {
   return (
     headers['cf-connecting-ip'] ?? headers['CF-Connecting-IP']
     ?? headers['x-forwarded-for'] ?? headers['X-Forwarded-For']
-    ?? 'IP_UNDEFINED'
+    ?? '0.0.0.0'
   ) as string;
 }
 

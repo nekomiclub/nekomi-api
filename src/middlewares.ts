@@ -1,7 +1,6 @@
 import express from 'express';
-import { AxiosError } from 'axios';
 
-import { E401, HandleRequest } from './services/ErrorService';
+import { E401, ERR, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
 import { MiddlewareService } from './services/MiddlewareService';
 import { TRoleCapability } from '~/core/interfaces/Role.intf';
@@ -42,10 +41,8 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
         req.nekomi.user.username = user.username;
         req.nekomi.user.capabilities = userCaps;
       } catch (e) {
-        if (e instanceof AxiosError && (e.response?.status === 403 || e.response?.status === 400 || e.response?.status === 404)) {
-          const message = 'Your session has expired. Re-login in fullkekw';
-
-          return res.status(403).clearCookie(config.vars.sessionCookie).json({ message, msg: message, status: 403, code: 'ERR_SESSION_EXPIRED' });
+        if (e instanceof HTTPErrorConstructor && e.code === ERR.AUTH_SESSION_EXPIRED) {
+          res.clearCookie(config.vars.sessionCookie);
         }
 
         throw e;

@@ -27,6 +27,10 @@ export enum ERR {
   BASE_MIDDLEWARE_REQUIRED = 'base:middleware_required',
   BASE_TYPE_INVALID = 'base:type_invalid',
   BASE_ALREADY_EXIST = 'base:already_exist',
+  BASE_MOCK_UNDEFINED = 'base:mock_undefined',
+
+  AUTH_SESSION_EXPIRED = 'auth:session_expired',
+  AUTH_CSRF_INVALID = 'auth:csrf_invalid',
 }
 
 export const ERRORS: Record<ERR, string> = {
@@ -44,6 +48,10 @@ export const ERRORS: Record<ERR, string> = {
   [ERR.BASE_MIDDLEWARE_REQUIRED]: 'Request does not pass throught required middleware and being rejected',
   [ERR.BASE_TYPE_INVALID]: 'Some types are invalid',
   [ERR.BASE_ALREADY_EXIST]: 'Something already exist',
+  [ERR.BASE_MOCK_UNDEFINED]: 'Mock data was not passed into function',
+
+  [ERR.AUTH_SESSION_EXPIRED]: 'Your session has been expired. Re-login in fullkekw-sso',
+  [ERR.AUTH_CSRF_INVALID]: 'CSRF token invalid',
 };
 
 

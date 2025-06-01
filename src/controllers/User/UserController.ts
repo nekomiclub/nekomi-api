@@ -7,13 +7,12 @@ import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
 import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
-import { AxiosError } from 'axios';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
-import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E401, E404, ERR, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { GetCheckCSRFMock } from '~/utils/testing';
+import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { IUser } from '~/core/interfaces/User.intf';
 import { Logger } from '~/services/LoggerService';
@@ -98,6 +97,8 @@ const GetSearch = [
 /**
  * Get user by query or session (*), parse capabilities or return only metadata
  * 
+ * User with "*" query will session validity and return document with same user id
+ * 
  * @see UserGetByQueryProps
  * @returns UserGetByQuery
  */
@@ -108,6 +109,8 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   let { query } = parseObjectTypes<UserGetByQueryProps>(req.params);
   let { detailed, parseLibId, parseTogetherRoomId } = parseObjectTypes<UserGetByQueryProps>(req.query);
+
+
 
   if (detailed) {
     if (!CSRFToken) throw new E401;
@@ -123,7 +126,22 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   if (query === '*') {
     if (!SessionCookie) throw new E401;
 
-    query = decodeToken(SessionCookie).payload?.userId ?? query;
+    // Verify session
+    try {
+      await new MiddlewareService().checkAccess({ token: SessionCookie, mock: TestMode ? GetCheckAccessMock(req) : undefined });
+    } catch (e) {
+      if (e instanceof HTTPErrorConstructor && e.code === ERR.AUTH_SESSION_EXPIRED) {
+        res.clearCookie(config.vars.sessionCookie);
+      }
+
+      throw e;
+    }
+
+    if (!TestMode) {
+      query = decodeToken(SessionCookie).payload?.userId ?? query;
+    } else {
+      query = GetCheckAccessMock(req).id;
+    }
   }
 
   let user = await new UserService().getByQuery(query, true);
@@ -195,6 +213,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   return res.status(200).json({ message: 'ok', ...body });
 });
 
+/** @tested partially tested */
 const GetByQuery = [
   getByQuery
 ];
@@ -215,62 +234,6 @@ const GetLogout = [
   CheckCSRF([config.DOMAIN.nekomi]),
   getLogout
 ];
-
-
-
-//* ===================================== GET VALIDATE
-const getValidate = HTTPEndpoint(async (req, res) => {
-  const token = req.cookies[config.vars.sessionCookie];
-  if (!token) return res.status(202).json({ message: 'Session not provided' });
-
-  // @ts-expect-error Need empty object
-  const session: FullkekwUserAPI_TokenData = {};
-
-  try {
-    if (!TestMode) {
-      // Sync nekomi data with fullkekw user api
-      const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
-
-      session.id = data.id;
-      session.avatar = data.avatar;
-      session.username = data.username;
-    } else {
-      const { data } = getMockData(req, 'FkUsapiAuthRefresh');
-
-      session.id = data.id;
-      session.avatar = data.avatar;
-      session.username = data.username;
-    }
-  } catch (e) {
-    if (e instanceof AxiosError) {
-      if (e.code === 'ECONNREFUSED') throw e;
-
-      return res.status(401).clearCookie(config.vars.sessionCookie).json({ message: 'Session expired' });
-    } else {
-      throw e;
-    }
-  }
-
-  const user = await UserModel.findOne({ id: session.id });
-  if (!user) throw new E404(`User ${session.id} is not found. Create new nekomi account`);
-
-  const patch = new UserServiceOld({ user });
-
-  if (user.username !== session.username) await patch.patchUsername({ username: session.username, bypassValidation: true });
-  if (user.avatar !== session.avatar) await patch.patchAvatar({ url: session.avatar });
-
-  await patch.save();
-
-  return res.status(200).json({ message: 'Session continued' });
-}, {
-  requireMiddlewares: ['checkCSRF']
-});
-
-const GetValidate = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  getValidate
-];
-
 
 
 //* ===================================== GET LINK TELEGRAM TOKEN
@@ -299,64 +262,59 @@ const GetLinkTelegramToken = [
 
 //* ===================================== POST SIGNIN
 const postSignin = HTTPEndpoint(async (req, res) => {
-  const { session } = req.body as { session: string };
+  const { session: sessionToken } = req.body as { session: string };
 
   // @ts-expect-error Need empty object
-  const DATA: FullkekwUserAPI_TokenData = {};
+  const session: FullkekwUserAPI_TokenData = {};
 
 
 
   // Validate session
   if (!TestMode) {
-    const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: session });
+    const data = await FullkekwUserAPI.refreshAuth({ sessionCookie: sessionToken });
 
-    DATA.id = data.id;
-    DATA.avatar = data.avatar;
-    DATA.username = data.username;
+    session.id = data.id;
+    session.avatar = data.avatar;
+    session.username = data.username;
   } else {
     const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
 
-    DATA.id = data.id;
-    DATA.avatar = data.avatar;
-    DATA.username = data.username;
+    session.id = data.id;
+    session.avatar = data.avatar;
+    session.username = data.username;
   }
 
-  let user = await UserModel.findOne({ id: DATA.id });
-  let isUserNew = false;
-
-  if (user) {
-    // Sync nekomi data with fullkekw user api
-    const patch = new UserServiceOld({ user });
-
-    if (user.username !== DATA.username) { await patch.patchUsername({ username: DATA.username, bypassValidation: true }); await patch.save(); }
-    if (user.avatar !== DATA.avatar) { await patch.patchAvatar({ url: DATA.avatar }); await patch.save(); }
-
-    isUserNew = false;
-  } else {
-    // User is not found, create new
+  let user = await UserModel.findOne({ id: session.id });
+  if (!user) {
+    // User not found, create new
     Logger.info(`[UserController]: New user signed in, welcome!`);
 
-    user = await UserServiceOld.create(DATA);
-    isUserNew = true;
+    user = await UserServiceOld.create(session);
     Search.update('user');
   }
 
 
 
-  return res.status(isUserNew ? 201 : 200).cookie(config.vars.sessionCookie, session, {
+  return res.status(!user ? 201 : 200).cookie(config.vars.sessionCookie, sessionToken, {
     httpOnly: true,
     maxAge: config.vars.sessionCookieExpireOffset,
     domain: ProductionMode ? `.${config.DOMAIN.nekomi}` : undefined
   }).json({
     message: 'User signed in',
-    id: DATA.id,
-    username: DATA.username,
-    avatar: DATA.avatar
+    id: session.id,
+    username: session.username,
+    avatar: session.avatar
   });
 }, {
   requireMiddlewares: ['checkCSRF']
 });
 
+/**
+ * Singin user & assign nekomi session cookie
+ * 
+ * @requires {session: string} - session token
+ * @returns {id: string, username: string, avatar: string}
+ */
 const PostSignin = [
   CheckCSRF([config.DOMAIN.nekomi]),
   body('session').notEmpty(),
@@ -577,7 +535,6 @@ export default class UserController {
   static GetSearch = GetSearch;
   static GetByQuery = GetByQuery;
   static GetLogout = GetLogout;
-  static GetValidate = GetValidate;
   static GetLinkTelegramToken = GetLinkTelegramToken;
 
   static PostSignin = PostSignin;

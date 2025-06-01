@@ -1,11 +1,12 @@
 import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthority.api';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
-import User from '~/models/User';
-import { E403, E404, E500 } from './ErrorService';
+import User from '~/core/interfaces/User.intf';
+import UserService from '~/core/services/UserService';
+import { AxiosError } from 'axios';
+import { E401, E403, E500, ERR } from './ErrorService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { HydratedDocument } from 'mongoose';
-import { IUser } from '~/core/interfaces/User.intf';
+import { Logger } from './LoggerService';
 import { TRoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode } from '~/config';
 import { parseRoles } from '~/models/Role';
@@ -31,90 +32,122 @@ export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
 export class MiddlewareService {
-  /** Check user authorization
+  /** 
+   * Check user authorization
    * If capabilities are not specified, will only parse authorization token
+   * Will verify user authorization & fetch actual username / avatar
    * 
    * @param token Authorization token
    * @param capabilities Required capabilities. Will pass if user have every required capability or capabilities is not specified 
+   * @tested as part of GET /user
    * 
    * @returns user
    */
-  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: HydratedDocument<IUser>, capabilities: TRoleCapability[] }> {
-    capabilities = capabilities !== undefined ? capabilities : [];
+  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: User, capabilities: TRoleCapability[] }> {
+    capabilities = capabilities ?? [];
 
-    const DATA: CheckAccessProps['mock'] = {
+    const session: FullkekwUserAPI_Verify = {
       id: '',
       avatar: '',
       username: '',
       capabilities: []
     };
 
-    if (TestMode) {
-      if (!mock) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
 
-      DATA.id = mock.id;
-      DATA.capabilities = mock.capabilities;
-      DATA.username = mock.username;
-      DATA.avatar = mock.avatar;
+
+    if (!TestMode) {
+      try {
+        const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
+
+        session.id = sessionData.id;
+        session.username = sessionData.username;
+        session.avatar = sessionData.avatar;
+      } catch (e) {
+        if (e instanceof AxiosError && e.response?.data.code === 'session:not_exist') {
+          throw new E401('', ERR.AUTH_SESSION_EXPIRED);
+        }
+
+        throw e;
+      }
     } else {
-      const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
+      if (!mock) throw new E500(`at MiddlewareService/checkAccess`, ERR.BASE_MOCK_UNDEFINED);
 
-      DATA.id = sessionData.id;
-      DATA.username = sessionData.username;
-      DATA.avatar = sessionData.avatar;
+      session.id = mock.id;
+      session.capabilities = mock.capabilities;
+      session.username = mock.username;
+      session.avatar = mock.avatar;
     }
 
-    const user = await User.findOne({ id: DATA.id });
-    if (!user) throw new E404(`User ${DATA.id} is not found`);
+    const user = await new UserService().getById(session.id);
 
-    // TODO: Sync user username & avatar
+    // Sync with fullkekw-userapi
+    try {
+      if (user.avatar !== session.avatar || user.username !== session.username) {
+        const userService = new UserService();
+        await userService.init(user.id);
 
-    //* Pass if no capabilities required
+        if (user.avatar !== session.avatar) userService.setAvatar(session.avatar);
+        if (user.username !== session.username) await userService.setUsername(session.username);
+
+        Logger.info(`[MiddlewareService]: User synced with fullkekw-userapi`);
+
+        await userService.save();
+      }
+    } catch (e) {
+      Logger.fail(`[MiddlewareService]: Cannot sync user with fullkekw-userapi. [userId: ${session.id}]`, e);
+    }
+
+    // Pass if no capabilities required
     if (!capabilities.length) return { user, capabilities: [] };
 
-    const caps = TestMode ? DATA.capabilities : await parseRoles(user.roles);
+    const caps = TestMode ? session.capabilities : await parseRoles(user.roles);
 
-    //* Pass if user is root
+    // Pass if user is root
     if (caps.includes('root')) return { user, capabilities: caps };
 
     capabilities.forEach(cap => {
       if (!caps.includes(cap)) throw new E403;
     });
 
-    //* Pass if everything is ok
+    // Pass if everything is ok
     return { user, capabilities: caps };
   }
 
-  /** Check CSRF token
+
+
+  /** 
+   * Check CSRF token
+   * 
    * @param token CSRF token
    * @param origins Will check if token origin match one of specified origins, if empty will only verify
    * 
    * @returns CSRF origin
    */
   async checkCSRF({ token, origins, mock }: CheckCSRFProps): Promise<string> {
-    origins = origins !== undefined ? origins : [];
+    origins = origins ?? [];
 
-    const DATA: CheckCSRFProps['mock'] = {
-      origin: 'NULL',
+    const csrf: FullkekwAuthorityAPI_TokenVerify = {
+      origin: '',
       verified: false
     };
 
-    if (TestMode) {
-      if (!mock) throw new E500('CSRF MOCK DATA IS NOT SPECIFIED');
+    if (!TestMode) {
 
-      DATA.origin = mock.origin;
-      DATA.verified = mock.verified;
-    } else {
       const data = await FullkekwAuthorityAPI.verifyToken({ token });
 
-      DATA.origin = data.origin;
-      DATA.verified = data.verified;
+      csrf.origin = data.origin;
+      csrf.verified = data.verified;
+    } else {
+      if (!mock) throw new E500(`at MiddlewareService/checkCSRF`, ERR.BASE_MOCK_UNDEFINED);
+
+      csrf.origin = mock.origin;
+      csrf.verified = mock.verified;
     }
 
-    if (!DATA.verified || (origins.length !== 0 && !origins.includes(DATA.origin))) {
-      throw new E403(`CSRF rejected`);
+    if (!csrf.verified || (origins.length !== 0 && !origins.includes(csrf.origin))) {
+      throw new E403(``, ERR.AUTH_CSRF_INVALID);
     }
 
-    return DATA.origin;
+    return csrf.origin;
   }
 }
