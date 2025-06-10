@@ -108,7 +108,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   const SessionCookie = req.cookies[config.vars.sessionCookie];
 
   let { query } = parseObjectTypes<UserGetByQueryProps>(req.params);
-  let { detailed, parseLibId, parseTogetherRoomId } = parseObjectTypes<UserGetByQueryProps>(req.query);
+  let { detailed, parseLibId } = parseObjectTypes<UserGetByQueryProps>(req.query);
 
 
 
@@ -148,7 +148,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   let metadata: UserGetByQuery['metadata'] | undefined = undefined;
   let parsedLib: UserGetByQuery['parsedLib'] | undefined = undefined;
-  let parsedTogetherRoom: UserGetByQuery['parsedTogetherRoom'] | undefined = undefined;
   let capabilities: UserGetByQuery['capabilities'] | undefined = undefined;
 
 
@@ -178,23 +177,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
         userService.fixLibAnimeDocuments(lib.id);
       }
     }
-
-    // if (parseTogetherRoomId) {
-    //   const room = user.togetherRooms.find(el => el.id === parseTogetherRoomId);
-    //   if (!room) throw new E404(`Together room with id (${parseTogetherRoomId}) is not found`);
-
-    //   const anime = await new AnimeService().getById(room.titleId, true);
-    //   const dubbers = anime.episodes.length > 0 ? (await DubberModel.find({
-    //     id: {
-    //       $in: [...new Set(anime.episodes.map(el => el.dubberID))]
-    //     }
-    //   })).map(el => new MongoDocumentDTO().dubber({ document: el })) : [];
-
-    //   parsedTogetherRoom = {
-    //     anime: HydrateAnimeDocument(anime),
-    //     dubbers: dubbers.map(el => DubberCompactMapper(el))
-    //   };
-    // }
   }
 
   user = new DocumentDTO().user({ object: user, details: detailed });
@@ -206,8 +188,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     user,
     metadata,
     capabilities,
-    parsedLib,
-    parsedTogetherRoom
+    parsedLib
   };
 
   return res.status(200).json({ message: 'ok', ...body });
@@ -381,33 +362,6 @@ const PostLinkTelegramTokenVerify = [
 
 
 
-//* ===================================== POST CREATE TOGETRHER ROOM
-const postCreateTogetherRoom = HTTPEndpoint(async (req, res) => {
-  // const userId = req.nekomi.user?.id;
-  // const { titleId } = req.body as { titleId: string };
-
-  // const user = await UserModel.findOne({ id: userId });
-  // if (!user) throw new E404(`User ${userId} is not found`);
-
-  // const userService = new UserServiceOld({ user });
-
-  // const togetherRoomId = await userService.createTogetherRoom({ titleId });
-  // await userService.save();
-
-  // return res.status(200).json({ message: 'New together room created', id: togetherRoomId });
-}, {
-  requireMiddlewares: ['checkAccess', 'checkCSRF']
-});
-
-const PostCreateTogetherRoom = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-  body('titleId').notEmpty(),
-  postCreateTogetherRoom
-];
-
-
-
 //* ===================================== PATCH USER
 const patchUser = HTTPEndpoint(async (req, res) => {
   const { id } = req.nekomi.user!;
@@ -504,33 +458,6 @@ const PatchUser = [
 
 
 
-//* ===================================== DELETE TOGETHER ROOM
-const deleteTogetherRoom = HTTPEndpoint(async (req, res) => {
-  // const userId = req.nekomi.user?.id;
-  // const { id } = req.params as { id: string };
-
-  // const user = await UserModel.findOne({ id: userId });
-  // if (!user) throw new E404(`User ${userId} is not found`);
-
-  // const userService = new UserServiceOld({ user });
-
-  // await userService.removeTogetherRoom({ id });
-  // await userService.save();
-
-  // return res.status(200).json({ message: 'Together room deleted' });
-}, {
-  requireMiddlewares: ['checkAccess', 'checkCSRF']
-});
-
-const DeleteTogetherRoom = [
-  CheckCSRF([config.DOMAIN.nekomi]),
-  CheckAccess(['basic']),
-  deleteTogetherRoom,
-];
-
-
-
-
 export default class UserController {
   static GetSearch = GetSearch;
   static GetByQuery = GetByQuery;
@@ -540,9 +467,6 @@ export default class UserController {
   static PostSignin = PostSignin;
   static PostLinkTelegram = PostLinkTelegram;
   static PostLinkTelegramTokenVerify = PostLinkTelegramTokenVerify;
-  static PostCreateTogetherRoom = PostCreateTogetherRoom;
 
   static PatchUser = PatchUser;
-
-  static DeleteTogetherRoom = DeleteTogetherRoom;
 }

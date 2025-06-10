@@ -8,9 +8,7 @@
     "dev": "npx nodemon devMode",
     "start": "npx tsx ./src/index.ts prodMode",
     "test": "npx jest --silent /test --forceExit",
-    "build": "npm run cleanup && npx eslint . --fix && git add . && npx tsc",
-    "prepare": "npm run test && npm run build",
-    "cleanup": "npx rimraf dist .cache .dump"
+    "build": "npx eslint . --fix && npx tsc"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",

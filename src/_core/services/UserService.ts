@@ -384,10 +384,6 @@ export class UserService extends UserModelControls {
 
 
   //* ============== ROLES
-
-
-
-  //* ============== WATCH TOGETHER
 }
 
 

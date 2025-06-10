@@ -462,42 +462,6 @@ export class UserService {
 
     this.user.markModified('subscribes');
   }
-
-  // //* ------------ WATCH TOGETHER
-  // /** Create watch together room
-  //  * @returns room id
-  //  */
-  // async createTogetherRoom({ titleId }: ICreateTogetherRoom): Promise<string> {
-  //   const rooms = this.user.togetherRooms;
-  //   if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
-
-  //   const anime = await new AnimeService().getById(titleId, true);
-
-  //   const id = createID(6);
-
-  //   rooms.push({
-  //     id,
-  //     titleId,
-  //     settings: {
-  //       name: anime.names.ukr,
-  //       accurateSync: false,
-  //       password: null,
-  //       usersCanControl: false
-  //     },
-  //   });
-
-  //   this.user.markModified('togetherRooms');
-  //   this.stack.push(`New together room created with id ${id}`);
-
-  //   return id;
-  // }
-
-  // async removeTogetherRoom({ id }: { id: string }) {
-  //   if (!this.user.togetherRooms.some(el => el.id === id)) throw new E404(`Room ${id} not found`);
-
-  //   this.user.togetherRooms = this.user.togetherRooms.filter(el => el.id !== id);
-  //   this.stack.push(`Removed together room with id ${id}`);
-  // }
 }
 
 export default UserModel; 

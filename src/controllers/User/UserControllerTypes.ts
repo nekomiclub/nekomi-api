@@ -1,5 +1,4 @@
 import User from '~/core/interfaces/User.intf';
-import { DubberCompact } from '~/core/interfaces/Dubber.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
 import { TRoleCapability } from '~/core/interfaces/Role.intf';
@@ -27,7 +26,6 @@ export interface UserGetByQueryProps {
   metadataOnly?: boolean
   parseCapabilities?: boolean
   parseLibId?: string
-  parseTogetherRoomId?: string
   detailed?: boolean
 }
 
@@ -38,10 +36,6 @@ export interface UserGetByQuery {
   capabilities?: TRoleCapability[]
   metadata?: Metadata
   parsedLib?: HydratedAnime[]
-  parsedTogetherRoom?: {
-    anime: HydratedAnime
-    dubbers: DubberCompact[]
-  }
 }
 
 export interface UserGetLibProps {
