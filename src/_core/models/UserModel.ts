@@ -16,7 +16,6 @@ export const UserModel = mongoose.model<User>('user', new Schema({
   telegramData: Object,
   telegramLinkToken: String,
   banner: String,
-  togetherRooms: Array,
 }));
 
 export default UserModel;

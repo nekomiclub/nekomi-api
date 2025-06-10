@@ -9,7 +9,7 @@ import createID from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
 import mongoose from 'mongoose';
 import { DocumentDTO } from '~/core/services/DTO';
-import { IUser } from '~/core/interfaces/User.intf';
+import { User } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
 
 
@@ -26,7 +26,7 @@ beforeAll(() => {
 
 describe('DTOs', () => {
   test('User DTO', () => {
-    const user: IUser = {
+    const user: User = {
       avatar: '',
       banner: '',
       id: '',
@@ -41,7 +41,6 @@ describe('DTOs', () => {
       subscribes: [],
       telegramData: null,
       telegramLinkToken: null,
-      togetherRooms: [],
       username: '',
       watchProgress: []
     };

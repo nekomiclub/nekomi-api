@@ -1,4 +1,4 @@
-import User, { UserTogetherRoom } from '~/core/interfaces/User.intf';
+import User from '~/core/interfaces/User.intf';
 import { DubberCompact } from '~/core/interfaces/Dubber.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
@@ -59,7 +59,7 @@ export interface UserGetTogetherRoomProps {
 }
 
 export interface UserGetTogetherRoom {
-  room: UserTogetherRoom
+  room: void
   anime: HydratedAnime
 }
 

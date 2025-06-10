@@ -1,7 +1,8 @@
+import TogetherRoom from '~/core/interfaces/Together';
 import { Anime } from '~/core/interfaces/Anime.intf';
 import { HydratedDocument } from 'mongoose';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
-import { IUser } from '~/core/interfaces/User.intf';
+import { User } from '~/core/interfaces/User.intf';
 
 
 
@@ -40,12 +41,16 @@ export class MongoDocumentDTO {
     return this.DTO<IDubber>(new DocumentDTO().dubber({ object: document.toObject(), details }));
   }
 
-  user({ document, details }: IMongoDTOProps<IUser>): IUser {
-    return this.DTO<IUser>(new DocumentDTO().user({ object: document.toObject(), details }));
+  user({ document, details }: IMongoDTOProps<User>): User {
+    return this.DTO<User>(new DocumentDTO().user({ object: document.toObject(), details }));
   }
 
   anime({ document, details }: IMongoDTOProps<Anime>): Anime {
     return this.DTO<Anime>(new DocumentDTO().anime({ object: document.toObject(), details }));
+  }
+
+  together({ document, details }: IMongoDTOProps<TogetherRoom>): TogetherRoom {
+    return this.DTO<TogetherRoom>(new DocumentDTO().together({ object: document.toObject(), details }));
   }
 }
 
@@ -63,19 +68,18 @@ export class DocumentDTO {
     return this.DTO<IDubber>(object, details ? [] : keys);
   }
 
-  user({ object, details }: IDocumentDTOProps<IUser>): IUser {
-    const keys: (keyof IUser)[] = [
+  user({ object, details }: IDocumentDTOProps<User>): User {
+    const keys: (keyof User)[] = [
       'roles',
       'statistics',
       'libs',
       'watchProgress',
       'telegramLinkToken',
       'subscribes',
-      'togetherRooms',
       'telegramData'
     ];
 
-    return this.DTO<IUser>(object, details ? [] : keys);
+    return this.DTO<User>(object, details ? [] : keys);
   }
 
   anime({ object, details }: IDocumentDTOProps<Anime>): Anime {
@@ -90,5 +94,11 @@ export class DocumentDTO {
     ];
 
     return this.DTO<Anime>(object, details ? [] : keys);
+  }
+
+  together({ object, details }: IDocumentDTOProps<TogetherRoom>): TogetherRoom {
+    const keys: (keyof TogetherRoom)[] = [];
+
+    return this.DTO<TogetherRoom>(object, details ? [] : keys);
   }
 }

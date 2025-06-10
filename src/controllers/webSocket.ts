@@ -3,7 +3,7 @@ import http from 'http';
 
 import { DevelopmentMode, config } from '~/config';
 import { E401, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from '~/services/ErrorService';
-import { IWS_Route, IWS_WTMessage, Message, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '~/interfaces/WebSocket';
+import { IWS_Route, Message, Response, TWS_Group, TWS_Request, TWS_Type, WS_TYPES } from '~/interfaces/WebSocket';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { WebSocketExtended } from '~/interfaces/globals';
@@ -352,12 +352,12 @@ async function broadcast({ message, audience }: IBroadcastProps) {
   clients.forEach(client => {
     if (!client.nekomi || !client.nekomi.listener.includes(audience)) return;
 
-    if (audience === 'watch_together') {
-      const { payload } = message as Response<IWS_WTMessage>;
-      if (client.nekomi.wt?.roomId !== payload.roomId.split('__')[1]) return;
+    // if (audience === 'watch_together') {
+    //   const { payload } = message as Response<IWS_WTMessage>;
+    //   if (client.nekomi.wt?.roomId !== payload.roomId.split('__')[1]) return;
 
-      return client.send(JSON.stringify(message));
-    }
+    //   return client.send(JSON.stringify(message));
+    // }
 
     return client.send(JSON.stringify(message));
   });

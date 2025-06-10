@@ -85,7 +85,6 @@ class UserModelControls implements TUserModelControls {
       banner: config.vars.defaultBanner,
       roles: ['user'],
       watchProgress: [],
-      togetherRooms: [],
       subscribes: [],
       telegramData: null,
       telegramLinkToken: null,

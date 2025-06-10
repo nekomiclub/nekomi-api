@@ -162,7 +162,7 @@ export const USER_MODEL_UPDATE = new UpdateModel('UserModel', async () => {
   for (const key in users) {
     const user = users[key];
 
-
+    user.set('togetherRooms', undefined, { strict: false });
 
     await user.save();
   }

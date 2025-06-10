@@ -5,9 +5,9 @@ import UserModel from '~/core/models/UserModel';
 import { Anime } from '~/core/interfaces/Anime.intf';
 import { E500 } from './ErrorService';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
-import { IUser } from '~/core/interfaces/User.intf';
 import { Logger } from './LoggerService';
 import { MongoDocumentDTO } from '~/core/services/DTO';
+import { User } from '~/core/interfaces/User.intf';
 
 
 
@@ -24,7 +24,7 @@ export type SearchEngineType = 'user' | 'dubber' | 'anime';
 
 
 class SearchService {
-  private UserEngine: Fuse<IUser> | null = null;
+  private UserEngine: Fuse<User> | null = null;
   private DubberEngine: Fuse<IDubber> | null = null;
   private AnimeEngine: Fuse<Anime> | null = null;
 
@@ -43,7 +43,7 @@ class SearchService {
     if (type === 'user') {
       const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
 
-      const keys: (keyof IUser)[] = [
+      const keys: (keyof User)[] = [
         'id',
         'username',
       ];

@@ -2,7 +2,7 @@ import AnimeModel from '~/core/models/AnimeModel';
 import CacheService from '~/services/CacheService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
-import User, { IUser } from '~/core/interfaces/User.intf';
+import User from '~/core/interfaces/User.intf';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
@@ -18,7 +18,7 @@ import { Metadata } from '~/core/interfaces/types';
 
 
 export const DubberDubbedAnimeCache = new CacheService<HydratedAnime[]>('DubberDubbedAnimeCache');
-export const DubberParsedMembersCache = new CacheService<IUser[]>('DubberParsedMembersCache');
+export const DubberParsedMembersCache = new CacheService<User[]>('DubberParsedMembersCache');
 
 
 

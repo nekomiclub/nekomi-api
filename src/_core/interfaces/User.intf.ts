@@ -3,7 +3,6 @@ export interface User {
   username: string
   avatar: string
   banner: string
-  togetherRooms: UserTogetherRoom[]
 
   /** @private */
   statistics: UserStatistics
@@ -18,7 +17,7 @@ export interface User {
   watchProgress: UserWatchProgress[]
 
   /** @private */
-  telegramData: IUserTelegramData | null
+  telegramData: UserTelegramData | null
 
   /** 
    * Access token to verify user telegram link request
@@ -58,15 +57,15 @@ export interface UserWatchProgress {
   updatedAt: number
 }
 
-export interface IUserTelegramData {
+export interface UserTelegramData {
   id: number
 }
 
-export type TUserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
+export type UserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
 
 export interface UserLib {
   id: string
-  type: TUserLibType
+  type: UserLibType
 
   /** UTC-0 timestamp */
   createdAt: number
@@ -85,31 +84,6 @@ export interface UserLib {
   }
 }
 
-export interface UserTogetherRoom {
-  id: string
-  titleId: string
-  settings: {
-    name: string
-    password: string | null
-
-    usersCanControl: boolean
-    accurateSync: boolean
-  }
-}
 
 
-
-/** @deprecated use UserStatistics instead */
-export type IUserStatistics = UserStatistics;
-
-/** @deprecated use UserTogetherRoom instead */
-export type IUserTogetherRoom = UserTogetherRoom
-
-/** @deprecated use UserWatchProgress instead */
-export type IUserWatchProgress = UserWatchProgress;
-
-/** @deprecated use UserLib instead */
-export type IUserLib = UserLib;
-
-export type IUser = User;
 export default User;

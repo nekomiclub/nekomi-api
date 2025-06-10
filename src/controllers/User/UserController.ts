@@ -1,6 +1,5 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
-import DubberModel from '~/core/models/DubberModel';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import Search from '~/services/SearchService';
 import UserModel from '~/core/models/UserModel';
@@ -9,17 +8,17 @@ import multer from 'multer';
 import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
 import { E401, E404, ERR, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
-import { IUser } from '~/core/interfaces/User.intf';
+import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NotifyService } from '~/services/NotifyService';
 import { ProductionMode, TestMode, config } from '~/config';
 import { TokenService, decodeToken } from '~/services/TokenService';
+import { User } from '~/core/interfaces/User.intf';
 import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchMethodType, UserPatchProps } from './UserControllerTypes';
 import { UserService as UserServiceOld } from '~/models/User';
 import { body, query } from 'express-validator';
@@ -41,7 +40,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
 
   const limit = 15;
 
-  let userResults: IUser[] = [];
+  let userResults: User[] = [];
 
   if (q === '~all') {
     // Get all
@@ -179,22 +178,22 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       }
     }
 
-    if (parseTogetherRoomId) {
-      const room = user.togetherRooms.find(el => el.id === parseTogetherRoomId);
-      if (!room) throw new E404(`Together room with id (${parseTogetherRoomId}) is not found`);
+    // if (parseTogetherRoomId) {
+    //   const room = user.togetherRooms.find(el => el.id === parseTogetherRoomId);
+    //   if (!room) throw new E404(`Together room with id (${parseTogetherRoomId}) is not found`);
 
-      const anime = await new AnimeService().getById(room.titleId, true);
-      const dubbers = anime.episodes.length > 0 ? (await DubberModel.find({
-        id: {
-          $in: [...new Set(anime.episodes.map(el => el.dubberID))]
-        }
-      })).map(el => new MongoDocumentDTO().dubber({ document: el })) : [];
+    //   const anime = await new AnimeService().getById(room.titleId, true);
+    //   const dubbers = anime.episodes.length > 0 ? (await DubberModel.find({
+    //     id: {
+    //       $in: [...new Set(anime.episodes.map(el => el.dubberID))]
+    //     }
+    //   })).map(el => new MongoDocumentDTO().dubber({ document: el })) : [];
 
-      parsedTogetherRoom = {
-        anime: HydrateAnimeDocument(anime),
-        dubbers: dubbers.map(el => DubberCompactMapper(el))
-      };
-    }
+    //   parsedTogetherRoom = {
+    //     anime: HydrateAnimeDocument(anime),
+    //     dubbers: dubbers.map(el => DubberCompactMapper(el))
+    //   };
+    // }
   }
 
   user = new DocumentDTO().user({ object: user, details: detailed });
@@ -383,18 +382,18 @@ const PostLinkTelegramTokenVerify = [
 
 //* ===================================== POST CREATE TOGETRHER ROOM
 const postCreateTogetherRoom = HTTPEndpoint(async (req, res) => {
-  const userId = req.nekomi.user?.id;
-  const { titleId } = req.body as { titleId: string };
+  // const userId = req.nekomi.user?.id;
+  // const { titleId } = req.body as { titleId: string };
 
-  const user = await UserModel.findOne({ id: userId });
-  if (!user) throw new E404(`User ${userId} is not found`);
+  // const user = await UserModel.findOne({ id: userId });
+  // if (!user) throw new E404(`User ${userId} is not found`);
 
-  const userService = new UserServiceOld({ user });
+  // const userService = new UserServiceOld({ user });
 
-  const togetherRoomId = await userService.createTogetherRoom({ titleId });
-  await userService.save();
+  // const togetherRoomId = await userService.createTogetherRoom({ titleId });
+  // await userService.save();
 
-  return res.status(200).json({ message: 'New together room created', id: togetherRoomId });
+  // return res.status(200).json({ message: 'New together room created', id: togetherRoomId });
 }, {
   requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
@@ -506,18 +505,18 @@ const PatchUser = [
 
 //* ===================================== DELETE TOGETHER ROOM
 const deleteTogetherRoom = HTTPEndpoint(async (req, res) => {
-  const userId = req.nekomi.user?.id;
-  const { id } = req.params as { id: string };
+  // const userId = req.nekomi.user?.id;
+  // const { id } = req.params as { id: string };
 
-  const user = await UserModel.findOne({ id: userId });
-  if (!user) throw new E404(`User ${userId} is not found`);
+  // const user = await UserModel.findOne({ id: userId });
+  // if (!user) throw new E404(`User ${userId} is not found`);
 
-  const userService = new UserServiceOld({ user });
+  // const userService = new UserServiceOld({ user });
 
-  await userService.removeTogetherRoom({ id });
-  await userService.save();
+  // await userService.removeTogetherRoom({ id });
+  // await userService.save();
 
-  return res.status(200).json({ message: 'Together room deleted' });
+  // return res.status(200).json({ message: 'Together room deleted' });
 }, {
   requireMiddlewares: ['checkAccess', 'checkCSRF']
 });

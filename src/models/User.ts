@@ -9,17 +9,17 @@ import UserModelNew from '~/core/models/UserModel';
 import getUTC from '~/utils/get-utc';
 import validator from 'validator';
 import { AxiosError } from 'axios';
-import { E403, E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
-import { IUser, IUserLib, IUserStatistics, IUserTelegramData, IUserWatchProgress } from '~/core/interfaces/User.intf';
+import { E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { TNotifyEvent } from '~/interfaces/types';
+import { User, UserLib, UserStatistics, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
-import { createID, createUUID } from '~/utils/create-id';
+import { createUUID } from '~/utils/create-id';
 
 
 
 interface IUserServiceProps {
-  user: HydratedDocument<IUser>
+  user: HydratedDocument<User>
   TestMode?: boolean
 }
 
@@ -50,7 +50,7 @@ interface IPatchSubsribe {
   key: string
 }
 
-interface IPatchTelegramData extends Partial<IUserTelegramData> {
+interface IPatchTelegramData extends Partial<UserTelegramData> {
   /** Write telegramData to null */
   remove?: boolean
 }
@@ -68,7 +68,7 @@ export const UserModel = UserModelNew;
 
 /** Create/path/delete User instance */
 export class UserService {
-  readonly user: HydratedDocument<IUser>;
+  readonly user: HydratedDocument<User>;
   readonly stack: string[] = [];
   readonly TestMode: boolean = false;
 
@@ -79,14 +79,14 @@ export class UserService {
 
 
 
-  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode, TEST_DUBBER_TEAM_MEMBER }: IUserCreate): Promise<HydratedDocument<IUser>> {
+  static async create({ id, username, avatar, TEST_IS_TELEGRAM_LINKED, TestMode, TEST_DUBBER_TEAM_MEMBER }: IUserCreate): Promise<HydratedDocument<User>> {
     if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: cfg.config.VALIDATION.CreateUser.maxNameLength })) throw new ERR_LENGTH_INVALID(`Username length is not valid`);
     if (avatar !== undefined && !validator.isURL(avatar)) throw new ERR_INVALID_PAYLOAD(`Avatar is not URL`);
 
     const existUser = await UserModel.findOne({ $or: [{ id }, { username }] });
     if (existUser) throw new ERR_ALREADY_EXIST(`User with this id or username already exist`);
 
-    const libs: IUserLib[] = [
+    const libs: UserLib[] = [
       {
         createdAt: getUTC().timestamp,
         id: createUUID(),
@@ -143,7 +143,7 @@ export class UserService {
     const isTelegramLinked = TestMode && TEST_IS_TELEGRAM_LINKED ? TEST_IS_TELEGRAM_LINKED : false;
     const dubberTeamMember = TestMode && TEST_DUBBER_TEAM_MEMBER ? TEST_DUBBER_TEAM_MEMBER : null;
 
-    const payload: IUser = {
+    const payload: User = {
       id,
       username,
       avatar: avatar || config.vars.defaultAvatar,
@@ -156,7 +156,6 @@ export class UserService {
         viewtime: 0,
         dubber_team_member: dubberTeamMember,
       },
-      togetherRooms: [],
       subscribes: [],
       telegramData: null,
       telegramLinkToken: null,
@@ -280,7 +279,7 @@ export class UserService {
   /** Patch user statistics
    * @param viewtime will INCREASE CURRENT BY PROVIDED SECONDS
    */
-  async patchStatistics({ isTelegramLinked, viewtime, dubber_team_member }: Partial<IUserStatistics>) {
+  async patchStatistics({ isTelegramLinked, viewtime, dubber_team_member }: Partial<UserStatistics>) {
     if (isTelegramLinked !== undefined) {
       this.stack.push(`Changed isTelegramLinked (${this.user.statistics.isTelegramLinked} > ${isTelegramLinked})`);
       this.user.statistics.isTelegramLinked = isTelegramLinked;
@@ -312,7 +311,7 @@ export class UserService {
   /** Patch user watch progress
    * @param updatedAt is optional
    */
-  async patchWatchProgress({ dubberID, episodeOrder, progress, titleID }: IUserWatchProgress) {
+  async patchWatchProgress({ dubberID, episodeOrder, progress, titleID }: UserWatchProgress) {
     const dubber = await DubberModel.findOne({ id: dubberID });
     if (!dubber) throw new E404(`Dubber ${dubberID} is not found`);
 
@@ -333,7 +332,7 @@ export class UserService {
     } else {
       // Create new
 
-      const item: IUserWatchProgress = {
+      const item: UserWatchProgress = {
         dubberID,
         episodeOrder,
         progress,
@@ -464,41 +463,41 @@ export class UserService {
     this.user.markModified('subscribes');
   }
 
-  //* ------------ WATCH TOGETHER
-  /** Create watch together room
-   * @returns room id
-   */
-  async createTogetherRoom({ titleId }: ICreateTogetherRoom): Promise<string> {
-    const rooms = this.user.togetherRooms;
-    if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
+  // //* ------------ WATCH TOGETHER
+  // /** Create watch together room
+  //  * @returns room id
+  //  */
+  // async createTogetherRoom({ titleId }: ICreateTogetherRoom): Promise<string> {
+  //   const rooms = this.user.togetherRooms;
+  //   if (rooms.length > 5) throw new E403(`You have reached maximum ammount of together rooms (5)`);
 
-    const anime = await new AnimeService().getById(titleId, true);
+  //   const anime = await new AnimeService().getById(titleId, true);
 
-    const id = createID(6);
+  //   const id = createID(6);
 
-    rooms.push({
-      id,
-      titleId,
-      settings: {
-        name: anime.names.ukr,
-        accurateSync: false,
-        password: null,
-        usersCanControl: false
-      },
-    });
+  //   rooms.push({
+  //     id,
+  //     titleId,
+  //     settings: {
+  //       name: anime.names.ukr,
+  //       accurateSync: false,
+  //       password: null,
+  //       usersCanControl: false
+  //     },
+  //   });
 
-    this.user.markModified('togetherRooms');
-    this.stack.push(`New together room created with id ${id}`);
+  //   this.user.markModified('togetherRooms');
+  //   this.stack.push(`New together room created with id ${id}`);
 
-    return id;
-  }
+  //   return id;
+  // }
 
-  async removeTogetherRoom({ id }: { id: string }) {
-    if (!this.user.togetherRooms.some(el => el.id === id)) throw new E404(`Room ${id} not found`);
+  // async removeTogetherRoom({ id }: { id: string }) {
+  //   if (!this.user.togetherRooms.some(el => el.id === id)) throw new E404(`Room ${id} not found`);
 
-    this.user.togetherRooms = this.user.togetherRooms.filter(el => el.id !== id);
-    this.stack.push(`Removed together room with id ${id}`);
-  }
+  //   this.user.togetherRooms = this.user.togetherRooms.filter(el => el.id !== id);
+  //   this.stack.push(`Removed together room with id ${id}`);
+  // }
 }
 
 export default UserModel; 

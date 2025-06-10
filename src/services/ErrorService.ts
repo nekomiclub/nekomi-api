@@ -13,6 +13,7 @@ import { ZodError } from 'zod';
 
 
 export enum ERR {
+  // === HTTP ===
   HTTP_ERROR = 'http:error',
   HTTP_BAD_REQUEST = 'http:bad_request',
   HTTP_UNAUTHORIZED = 'http:unauthorized',
@@ -23,17 +24,21 @@ export enum ERR {
   HTTP_BAD_GATEWAY = 'http:bad_gateway',
   HTTP_NOT_AVAILABLE = 'http:not_available',
 
+  // === BASE ===
   BASE_INVALID_PAYLOAD = 'base:invalid_payload',
   BASE_MIDDLEWARE_REQUIRED = 'base:middleware_required',
   BASE_TYPE_INVALID = 'base:type_invalid',
   BASE_ALREADY_EXIST = 'base:already_exist',
   BASE_MOCK_UNDEFINED = 'base:mock_undefined',
+  BASE_NO_DOCUMENT = 'base:no_document',
 
+  // === AUTH ===
   AUTH_SESSION_EXPIRED = 'auth:session_expired',
   AUTH_CSRF_INVALID = 'auth:csrf_invalid',
 }
 
 export const ERRORS: Record<ERR, string> = {
+  // === HTTP ===
   [ERR.HTTP_ERROR]: 'An error occured while processing this request',
   [ERR.HTTP_BAD_REQUEST]: 'Invalid data passed',
   [ERR.HTTP_UNAUTHORIZED]: 'Authorization missed',
@@ -44,12 +49,15 @@ export const ERRORS: Record<ERR, string> = {
   [ERR.HTTP_BAD_GATEWAY]: 'An error occured while processing this request to another service',
   [ERR.HTTP_NOT_AVAILABLE]: 'Something not available for now. Try again later',
 
+  // === BASE ===
   [ERR.BASE_INVALID_PAYLOAD]: 'Payload not match requirements',
   [ERR.BASE_MIDDLEWARE_REQUIRED]: 'Request does not pass throught required middleware and being rejected',
   [ERR.BASE_TYPE_INVALID]: 'Some types are invalid',
   [ERR.BASE_ALREADY_EXIST]: 'Something already exist',
   [ERR.BASE_MOCK_UNDEFINED]: 'Mock data was not passed into function',
+  [ERR.BASE_NO_DOCUMENT]: 'HydratedDocument not passed into the Service contstructor',
 
+  // === AUTH ===
   [ERR.AUTH_SESSION_EXPIRED]: 'Your session has been expired. Re-login in fullkekw-sso',
   [ERR.AUTH_CSRF_INVALID]: 'CSRF token invalid',
 };
@@ -242,6 +250,14 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
 
 
 //* ========= GENERIC
+export const ERR_NO_DOCUMENT = new E500(``, ERR.BASE_NO_DOCUMENT);
+
+
+
+
+
+
+
 export enum ERR_GENERIC {
   LINK_INVALID = 'generic:link_invalid',
   USERNAME_LENGTH_INVALID = 'generic:username_length_invalid',
@@ -257,7 +273,6 @@ export const ERR_USERNAME_NOT_LATIN = new E400(`Username must contain only latin
 export const ERR_DESCRIPTION_LENGTH_INVALID = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols`, ERR_GENERIC.DESCRIPTION_LENGTH_INVALID);
 
 export const ERR_LINK_INVALID = new E400(`Link was parsed with error, domain is not valid or it's length is above 256 chars`, ERR_GENERIC.LINK_INVALID);
-export const ERR_NO_DOCUMENT = new E500(`No document is passed into the constructor`, 'generic:no_document');
 export const ERR_FILE_TOO_LARGE = new E400(`Uploaded file size is too large`, 'generic:file_too_large');
 
 
