@@ -1,6 +1,7 @@
 import express from 'express';
 
-import { E401, ERR, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
+import { E401, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
+import { ERROR } from './services/ErrorService';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
 import { MiddlewareService } from './services/MiddlewareService';
 import { TRoleCapability } from '~/core/interfaces/Role.intf';
@@ -41,7 +42,7 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
         req.nekomi.user.username = user.username;
         req.nekomi.user.capabilities = userCaps;
       } catch (e) {
-        if (e instanceof HTTPErrorConstructor && e.code === ERR.AUTH_SESSION_EXPIRED) {
+        if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) {
           res.clearCookie(config.vars.sessionCookie);
         }
 

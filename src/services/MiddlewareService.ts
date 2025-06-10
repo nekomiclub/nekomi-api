@@ -3,7 +3,8 @@ import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
 import { AxiosError } from 'axios';
-import { E401, E403, E500, ERR } from './ErrorService';
+import { E403 } from './ErrorService';
+import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_BASE_MOCK_UNDEFINED } from './Exceptions';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
@@ -64,13 +65,13 @@ export class MiddlewareService {
         session.avatar = sessionData.avatar;
       } catch (e) {
         if (e instanceof AxiosError && e.response?.data.code === 'session:not_exist') {
-          throw new E401('', ERR.AUTH_SESSION_EXPIRED);
+          throw ERROR_AUTH_SESSION_EXPIRED;
         }
 
         throw e;
       }
     } else {
-      if (!mock) throw new E500(`at MiddlewareService/checkAccess`, ERR.BASE_MOCK_UNDEFINED);
+      if (!mock) throw ERROR_BASE_MOCK_UNDEFINED;
 
       session.id = mock.id;
       session.capabilities = mock.capabilities;
@@ -138,15 +139,13 @@ export class MiddlewareService {
       csrf.origin = data.origin;
       csrf.verified = data.verified;
     } else {
-      if (!mock) throw new E500(`at MiddlewareService/checkCSRF`, ERR.BASE_MOCK_UNDEFINED);
+      if (!mock) throw ERROR_BASE_MOCK_UNDEFINED;
 
       csrf.origin = mock.origin;
       csrf.verified = mock.verified;
     }
 
-    if (!csrf.verified || (origins.length !== 0 && !origins.includes(csrf.origin))) {
-      throw new E403(``, ERR.AUTH_CSRF_INVALID);
-    }
+    if (!csrf.verified || (origins.length !== 0 && !origins.includes(csrf.origin))) throw ERROR_AUTH_CSRF_INVALID;
 
     return csrf.origin;
   }

@@ -3,7 +3,8 @@ import TogetherModel from '~/core/models/TogetherModel';
 import TogetherRoom from '~/core/interfaces/Together';
 import UserService from './UserService';
 import createID, { createUUID } from '~/utils/create-id';
-import { E404, E500, ERR } from '~/services/ErrorService';
+import { E404 } from '~/services/ErrorService';
+import { ERROR_BASE_NO_DOCUMENT } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MongoDocumentDTO } from './DTO';
@@ -124,7 +125,7 @@ export class TogetherService extends TogetherModelControls {
  * @returns current patch stack
  */
   async save(): Promise<string[]> {
-    if (!this.document) throw new E500(``, ERR.BASE_NO_DOCUMENT);
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     try {
       await this.document.save();
@@ -156,7 +157,7 @@ export class TogetherService extends TogetherModelControls {
   }
 
   get together(): TogetherRoom {
-    if (!this.document) throw new E500(``, ERR.BASE_NO_DOCUMENT);
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
     return new MongoDocumentDTO().together({ document: this.document, details: true });
   }
 }

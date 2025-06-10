@@ -8,7 +8,8 @@ import multer from 'multer';
 import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { E401, E404, ERR, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
+import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
+import { ERROR } from '~/services/ErrorService';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -129,7 +130,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     try {
       await new MiddlewareService().checkAccess({ token: SessionCookie, mock: TestMode ? GetCheckAccessMock(req) : undefined });
     } catch (e) {
-      if (e instanceof HTTPErrorConstructor && e.code === ERR.AUTH_SESSION_EXPIRED) {
+      if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) {
         res.clearCookie(config.vars.sessionCookie);
       }
 
