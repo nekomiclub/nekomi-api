@@ -1,4 +1,3 @@
-import TogetherRoom from '~/core/interfaces/Together';
 import { Anime } from '~/core/interfaces/Anime.intf';
 import { HydratedDocument } from 'mongoose';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
@@ -48,10 +47,6 @@ export class MongoDocumentDTO {
   anime({ document, details }: IMongoDTOProps<Anime>): Anime {
     return this.DTO<Anime>(new DocumentDTO().anime({ object: document.toObject(), details }));
   }
-
-  together({ document, details }: IMongoDTOProps<TogetherRoom>): TogetherRoom {
-    return this.DTO<TogetherRoom>(new DocumentDTO().together({ object: document.toObject(), details }));
-  }
 }
 
 export class DocumentDTO {
@@ -94,11 +89,5 @@ export class DocumentDTO {
     ];
 
     return this.DTO<Anime>(object, details ? [] : keys);
-  }
-
-  together({ object, details }: IDocumentDTOProps<TogetherRoom>): TogetherRoom {
-    const keys: (keyof TogetherRoom)[] = [];
-
-    return this.DTO<TogetherRoom>(object, details ? [] : keys);
   }
 }

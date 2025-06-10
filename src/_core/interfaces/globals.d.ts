@@ -1,8 +1,6 @@
-import { WebSocket } from 'ws';
 
 import { TMiddlewareName } from '~/services/MiddlewareService';
 import { TRoleCapability } from './IRoles';
-import { TWS_Group } from './IWebSocket';
 
 
 export interface IEXPRESS_REQ_NEKOMI_USER {
@@ -28,16 +26,4 @@ declare global {
       }
     }
   }
-}
-
-declare class WebSocketExtended extends WebSocket {
-  /** Socket internal data */
-  nekomi: {
-    user?: {
-      id: string
-    }
-
-    /** Event listener */
-    listener: TWS_Group[]
-  };
 }

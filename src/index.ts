@@ -2,10 +2,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
 import express from 'express';
-import fs from 'fs';
-import https from 'https';
 import mongoose from 'mongoose';
-import { WebSocketServer } from 'ws';
 
 import AnimeRouter from './routes/AnimeRouter';
 import DubberRouter from './routes/DubberRouter';
@@ -16,7 +13,6 @@ import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
-import { WebsocketRouter } from './controllers/webSocket';
 import { decodeToken } from './services/TokenService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
@@ -31,23 +27,6 @@ mongoose.connect(config.mongodbUrl, {
 });
 
 
-
-//* Setup websocket server
-const hskey = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/privkey.pem', 'utf8') : '';
-const hscert = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/cert.pem', 'utf8') : '';
-const hschain = ProductionMode ? fs.readFileSync('/etc/letsencrypt/live/nekomi.club/fullchain.pem', 'utf8') : '';
-
-// TODO: Prevent listen in test mode. Remove SSL cert
-export const wss = ProductionMode ? new WebSocketServer({
-  server: https.createServer({
-    key: hskey,
-    cert: hscert,
-    ca: [hschain],
-  }).listen(INTERNALS.ws_server.port, INTERNALS.ws_server.host)
-}) : new WebSocketServer({
-  host: INTERNALS.ws_server.host,
-  port: INTERNALS.ws_server.port,
-});
 
 const CORSOpt: CorsOptions = {
   origin: [
@@ -92,11 +71,6 @@ app.use('/user', UserRouter);
 app.use('/anime', AnimeRouter);
 app.use('/', GenericRouter);
 
-wss.on('error', e => { Logger.error(`[System]: Websocket error occured`, e); });
-wss.on('listening', () => {
-  Logger.info(`[System]: Websocket server started in ${config.startedMode} mode at ws://${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}`);
-});
-
 
 
 //* HTTP server
@@ -106,8 +80,6 @@ const UpdateHandlers = [
 ] as const;
 
 (async function () {
-  wss.on('connection', WebsocketRouter);
-
   if (!TestMode) {
     app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
       Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
