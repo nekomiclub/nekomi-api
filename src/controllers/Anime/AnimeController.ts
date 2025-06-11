@@ -2,6 +2,7 @@ import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import CacheService from '~/services/CacheService';
+import DocumentDTO from '~/core/services/DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
@@ -13,7 +14,6 @@ import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQuer
 import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/testing';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -44,10 +44,10 @@ const getSearch = HTTPEndpoint(async (req, res) => {
 
   if (q === '~all') {
     // Get all
-    animeResults = (await AnimeModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find()).slice(0, limit).map(doc => DocumentDTO.anime(doc, true));
   } else if (q === '~wo-mal-id') {
     // Get all without mail id
-    animeResults = (await AnimeModel.find({ malId: null })).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find({ malId: null })).slice(0, limit).map(doc => DocumentDTO.anime(doc, true));
   } else {
     animeResults = Search.search({ query: q, engine: 'anime', limit });
   }
@@ -64,7 +64,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
     }
 
     dubbedEpisodes[anime.uuid] = maxEp;
-    results.push(HydrateAnimeDocument(new DocumentDTO().anime({ object: anime })));
+    results.push(HydrateAnimeDocument(DocumentDTO.anime(anime)));
   });
 
 
@@ -149,17 +149,17 @@ const getFeatured = HTTPEndpoint(async (req, res) => {
     // Process hot
     featured.hot = (await AnimeModel.find(
       { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
-    )).map(el => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: el })));
+    )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     // Process recently updated
     featured.updatedRecently = animes.sort(
       (a, b) => b.updatedAt - a.updatedAt
-    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     // Process rated
     featured.rated = animes.filter(el => el.score.mal !== null).sort(
       (a, b) => b.score!.mal! - a.score!.mal!
-    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     AnimeFeaturedCache.push({
       id: AnimeFeaturedCacheID,
@@ -232,7 +232,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
       if (dubberIds.length) {
         const results = await DubberModel.find({ id: { $in: dubberIds } });
-        dubbers = results.map(dubber => DubberCompactMapper(new MongoDocumentDTO().dubber({ document: dubber })));
+        dubbers = results.map(doc => DubberCompactMapper(DocumentDTO.dubber(doc)));
       } else {
         dubbers = [];
       }
@@ -241,7 +241,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     if (fetchRelated) {
       if (anime.related.length) {
         const results = await AnimeModel.find({ uuid: { $in: anime.related } });
-        related = results.map(anime => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: anime })));
+        related = results.map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
       } else {
         related = [];
       }
@@ -275,7 +275,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
         try {
           const dubber = await new DubberService().getById(anime.posterAdapt);
 
-          posterAdapt = DubberCompactMapper(new DocumentDTO().dubber({ object: dubber }));
+          posterAdapt = DubberCompactMapper(DocumentDTO.dubber(dubber));
         } catch (e) { Logger.fail(`[AnimeController]: Cannot find poster adapt dubber. [id: ${anime.posterAdapt}]`); }
       } else {
         // Get dubber from anime dubbing
@@ -286,7 +286,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     }
   }
 
-  let hydrated = HydrateAnimeDocument(detailed ? anime : new DocumentDTO().anime({ object: anime }));
+  let hydrated = HydrateAnimeDocument(DocumentDTO.anime(anime, detailed));
 
   // @ts-expect-error Hide hydrated when metadata only
   if (metadataOnly) hydrated = undefined;

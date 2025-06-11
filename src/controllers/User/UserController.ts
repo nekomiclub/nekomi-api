@@ -1,5 +1,6 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
+import DocumentDTO from '~/core/services/DTOService';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import Search from '~/services/SearchService';
 import UserModel from '~/core/models/UserModel';
@@ -7,7 +8,6 @@ import UserService from '~/core/services/UserService';
 import multer from 'multer';
 import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
 import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
 import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
@@ -45,7 +45,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
 
   if (q === '~all') {
     // Get all
-    userResults = (await UserModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
+    userResults = (await UserModel.find()).slice(0, limit).map(doc => DocumentDTO.user(doc));
   } else {
     userResults = Search.search({ query: q, engine: 'user', limit });
   }
@@ -73,7 +73,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
     }
 
     results.push({
-      user: new DocumentDTO().user({ object: user }),
+      user: DocumentDTO.user(user),
       invitationStatus
     });
   });
@@ -166,7 +166,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       if (lib.titles.length) {
         parsedLib = (await AnimeModel.find(
           { uuid: { $in: lib.titles } }
-        )).map(document => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document })));
+        )).map(document => HydrateAnimeDocument(DocumentDTO.anime(document)));
       }
 
       // Check if every anime listed in user lib exist
@@ -179,7 +179,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     }
   }
 
-  user = new DocumentDTO().user({ object: user, details: detailed });
+  user = DocumentDTO.user(user, detailed);
 
   // @ts-expect-error Hide user when metadata only
   if (metadataOnly) user = undefined;

@@ -4,11 +4,11 @@ process.argv.push('devMode');
 
 
 import AnimeService from '~/core/services/AnimeService';
+import DocumentDTO from '~/core/services/DTOService';
 import IDubber from '~/core/interfaces/Dubber.intf';
 import createID from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
 import mongoose from 'mongoose';
-import { DocumentDTO } from '~/core/services/DTO';
 import { User } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
 
@@ -45,8 +45,8 @@ describe('DTOs', () => {
       watchProgress: []
     };
 
-    const withDetails = new DocumentDTO().user({ object: user, details: true });
-    const withoutDetails = new DocumentDTO().user({ object: user });
+    const withDetails = DocumentDTO.user(user, true);
+    const withoutDetails = DocumentDTO.user(user);
 
     // In detailed mode all props must be present
     expect(withDetails.libs).toBeTruthy();
@@ -62,8 +62,8 @@ describe('DTOs', () => {
   test('Anime DTO', async () => {
     const anime = await new AnimeService().create({ nameEng: createID(12), savedoc: false });
 
-    const withDetails = new DocumentDTO().anime({ object: anime, details: true });
-    const withoutDetails = new DocumentDTO().anime({ object: anime });
+    const withDetails = DocumentDTO.anime(anime, true);
+    const withoutDetails = DocumentDTO.anime(anime);
 
     // In detailed mode all props must be present
     expect(withDetails.episodes).toBeTruthy();
@@ -106,8 +106,8 @@ describe('DTOs', () => {
       code: ''
     };
 
-    const withDetails = new DocumentDTO().dubber({ object: dubber, details: true });
-    const withoutDetails = new DocumentDTO().dubber({ object: dubber });
+    const withDetails = DocumentDTO.dubber(dubber, true);
+    const withoutDetails = DocumentDTO.dubber(dubber);
 
     // In detailed mode all props must be present
     expect(withDetails.members).toBeTruthy();

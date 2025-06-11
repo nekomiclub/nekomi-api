@@ -1,6 +1,7 @@
 import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 
+import DocumentDTO from './DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
 import UserModel, { UserService } from '~/models/User';
@@ -9,7 +10,6 @@ import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_D
 import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { INotifyDubberTell } from '~/interfaces/types';
 import { Logger } from '~/services/LoggerService';
-import { MongoDocumentDTO } from './DTO';
 import { NekomiUploadsAPI } from './API/NekomiUploads.api';
 import { Notify } from '~/services/NotifyService';
 import { ServiceControls } from '~/core/interfaces/types';
@@ -164,7 +164,7 @@ class DubberModelControls implements TDubberModelControls {
   async getAll(details?: boolean): Promise<IDubber[]> {
     const total = await DubberModel.find();
     const list = total.map(document => {
-      return new MongoDocumentDTO().dubber({ document, details });
+      return DocumentDTO.dubber(document, details);
     });
 
     return list;
@@ -174,14 +174,14 @@ class DubberModelControls implements TDubberModelControls {
     const document = await DubberModel.findOne({ id });
     if (!document) throw new E404(`Dubber with id (${id}) is not found`);
 
-    return new MongoDocumentDTO().dubber({ document, details });
+    return DocumentDTO.dubber(document, details);
   }
 
   async getByQuery(query: string, details?: boolean): Promise<IDubber> {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }] });
     if (!document) throw new E404(`Dubber with query (${query}) is not found`);
 
-    return new MongoDocumentDTO().dubber({ document, details });
+    return DocumentDTO.dubber(document, details);
   }
 
   async safeGetByQuery(query: string, details?: boolean): Promise<IDubber | null> {
@@ -243,7 +243,7 @@ export class DubberService extends DubberModelControls {
 
   get dubber(): IDubber {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    return new MongoDocumentDTO().dubber({ document: this.document, details: true });
+    return DocumentDTO.dubber(this.document, true);
   }
 
 

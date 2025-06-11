@@ -1,5 +1,6 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from './AnimeService';
+import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
 import User, { UserLib, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
@@ -12,7 +13,6 @@ import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
-import { MongoDocumentDTO } from './DTO';
 import { ServiceControls, SinglePartial } from '~/core/interfaces/types';
 
 
@@ -130,7 +130,7 @@ class UserModelControls implements TUserModelControls {
   async getAll(details?: boolean): Promise<User[]> {
     const total = await UserModel.find();
     const list = total.map(document => {
-      return new MongoDocumentDTO().user({ document, details });
+      return DocumentDTO.user(document, details);
     });
 
     return list;
@@ -140,14 +140,14 @@ class UserModelControls implements TUserModelControls {
     const document = await UserModel.findOne({ id });
     if (!document) throw new E404(`User with id (${id}) is not found`);
 
-    return new MongoDocumentDTO().user({ document, details });
+    return DocumentDTO.user(document, details);
   }
 
   async getByQuery(query: string, details?: boolean): Promise<User> {
     const document = await UserModel.findOne({ $or: [{ id: query }, { username: query }] });
     if (!document) throw new E404(`User with query (${query}) is not found`);
 
-    return new MongoDocumentDTO().user({ document, details });
+    return DocumentDTO.user(document, details);
   }
 
   async safeGetByQuery(query: string, details?: boolean): Promise<User | null> {
@@ -213,7 +213,7 @@ export class UserService extends UserModelControls {
 
   get user(): User {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    return new MongoDocumentDTO().user({ document: this.document, details: true });
+    return DocumentDTO.user(this.document, true);
   }
 
 

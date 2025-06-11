@@ -1,4 +1,5 @@
 import AnimeModel from '~/core/models/AnimeModel';
+import DocumentDTO from '~/core/services/DTOService';
 import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import UserModel from '~/core/models/UserModel';
@@ -6,7 +7,6 @@ import { Anime } from '~/core/interfaces/Anime.intf';
 import { E500 } from './ErrorService';
 import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
 import { User } from '~/core/interfaces/User.intf';
 
 
@@ -41,7 +41,7 @@ class SearchService {
   /** Update search engine */
   async update(type: SearchEngineType) {
     if (type === 'user') {
-      const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
+      const list = (await UserModel.find()).map(doc => DocumentDTO.user(doc, true));
 
       const keys: (keyof User)[] = [
         'id',
@@ -69,7 +69,7 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+      const list = (await AnimeModel.find()).map(doc => DocumentDTO.anime(doc, true));
 
       this.AnimeEngine = new Fuse(list, {
         keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],

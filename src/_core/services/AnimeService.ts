@@ -1,5 +1,6 @@
 import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
+import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploads.api';
 import Search from '~/services/SearchService';
@@ -16,7 +17,6 @@ import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNodeFieldType, Serv
 import { Logger } from '~/services/LoggerService';
 import { MALAPI } from './API/MAL.api';
 import { MALGenres, MALStudios } from '~/utils/mal-mappers';
-import { MongoDocumentDTO } from './DTO';
 import { Notify } from '~/services/NotifyService';
 import { createSlug } from '~/utils/create-slug';
 import { parseRoles } from '~/models/Role';
@@ -171,7 +171,7 @@ class AnimeModelControls implements AnimeModelControlsType {
 
   async getAll(details?: boolean): Promise<Anime[]> {
     const total = await AnimeModel.find();
-    const list = total.map(document => new MongoDocumentDTO().anime({ document, details }));
+    const list = total.map(doc => DocumentDTO.anime(doc, details));
 
     return list;
   }
@@ -180,7 +180,7 @@ class AnimeModelControls implements AnimeModelControlsType {
     const document = await AnimeModel.findOne({ uuid });
     if (!document) throw new E404(`Anime by uuid (${uuid}) is not found`);
 
-    return new MongoDocumentDTO().anime({ document, details });
+    return DocumentDTO.anime(document, details);
   }
 
   async getByQuery(query: string, details?: boolean): Promise<Anime> {
@@ -192,7 +192,7 @@ class AnimeModelControls implements AnimeModelControlsType {
     const document = await AnimeModel.findOne({ $or: queryArr });
     if (!document) throw new E404(`Anime by query (${query}) is not found`);
 
-    return new MongoDocumentDTO().anime({ document, details });
+    return DocumentDTO.anime(document, details);
   }
 
   async safeGetByQuery(query: string, details?: boolean): Promise<Anime | null> {
@@ -269,7 +269,7 @@ export class AnimeService extends AnimeModelControls {
 
   get anime(): Anime {
     if (!this.document) throw ERR_NO_DOCUMENT;
-    return new MongoDocumentDTO().anime({ document: this.document, details: true });
+    return DocumentDTO.anime(this.document, true);
   }
 
 

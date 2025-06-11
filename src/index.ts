@@ -10,7 +10,7 @@ import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
 import getRequestIP from './utils/get-request-ip';
-import { ANIME_MODEL_UPDATE } from './utils/update-model';
+import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { decodeToken } from './services/TokenService';
@@ -106,6 +106,10 @@ const UpdateHandlers = [
   WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
   ----------------------------
     `);
+
+    if (ProductionMode) {
+      await USER_MODEL_UPDATE.run();
+    }
 
 
     // Callback body
