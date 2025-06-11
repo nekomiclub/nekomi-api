@@ -5,7 +5,7 @@ process.argv.push('devMode');
 
 import AnimeService from '~/core/services/AnimeService';
 import DocumentDTO from '~/core/services/DTOService';
-import IDubber from '~/core/interfaces/Dubber.intf';
+import Dubber from '~/core/interfaces/Dubber.intf';
 import createID from '~/utils/create-id';
 import getUTC from '~/utils/get-utc';
 import mongoose from 'mongoose';
@@ -75,7 +75,7 @@ describe('DTOs', () => {
   });
 
   test('Dubber DTO', () => {
-    const dubber: IDubber = {
+    const dubber: Dubber = {
       id: '',
       nameUkr: '',
       nameEng: '',

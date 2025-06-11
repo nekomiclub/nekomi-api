@@ -6,11 +6,11 @@ import Search from '~/services/SearchService';
 import User from '~/core/interfaces/User.intf';
 import UserModel from '~/models/User';
 import getUTC from '~/utils/get-utc';
+import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
 import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E403, E500, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/Dubber.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
 import { Metadata } from '~/core/interfaces/types';
 
@@ -31,7 +31,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 
   useCache = useCache ?? true;
 
-  let dubber: IDubber = DocumentDTO.dubber(dubberService.dubber);
+  let dubber: Dubber = DocumentDTO.dubber(dubberService.dubber);
   let dubbedHydratedAnimes: HydratedAnime[] | undefined = undefined;
   let parsedMembers: User[] | undefined = undefined;
   let metadata: Metadata | undefined = undefined;
@@ -107,7 +107,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 async function GetSearch({ q }: DubberGetSearchProps): Promise<DubberGetSearch> {
   const limit = 15;
 
-  let dubberResults: IDubber[] = [];
+  let dubberResults: Dubber[] = [];
 
   if (q === '~all') {
     // Get all
@@ -116,7 +116,7 @@ async function GetSearch({ q }: DubberGetSearchProps): Promise<DubberGetSearch> 
     dubberResults = Search.search({ query: q, engine: 'dubber', limit });
   }
 
-  const results: IDubber[] = [];
+  const results: Dubber[] = [];
 
   dubberResults.forEach(doc => {
     results.push(DocumentDTO.dubber(doc));
@@ -186,8 +186,8 @@ export interface IDubberPatchSettingsProps {
   nameUkr?: string
   nameEng?: string
   description?: string
-  supportLinks?: Partial<IDubber['support']>
-  socialLinks?: Partial<IDubber['socials']>
+  supportLinks?: Partial<Dubber['support']>
+  socialLinks?: Partial<Dubber['socials']>
 }
 
 async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLinks, supportLinks, currentUser }: IDubberPatchSettingsProps) {
@@ -207,14 +207,14 @@ async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLi
 
   if (typeof socialLinks === 'object') {
     for (const key in socialLinks) {
-      if (typeof socialLinks[key] === 'string') await dubberService.changeSocials({ key: key as keyof IDubber['socials'], value: socialLinks[key] });
+      if (typeof socialLinks[key] === 'string') await dubberService.changeSocials({ key: key as keyof Dubber['socials'], value: socialLinks[key] });
       else throw new ERR_TYPE_INVALID(`Social link for ${key} type is invalid`);
     }
   }
 
   if (typeof supportLinks === 'object') {
     for (const key in supportLinks) {
-      if (typeof supportLinks[key] === 'string') await dubberService.changeSupport({ key: key as keyof IDubber['support'], value: supportLinks[key] });
+      if (typeof supportLinks[key] === 'string') await dubberService.changeSupport({ key: key as keyof Dubber['support'], value: supportLinks[key] });
       else throw new ERR_TYPE_INVALID(`Support link for ${key} type is invalid`);
     }
   }
@@ -324,7 +324,7 @@ async function PostInviteDecline({ dubberId, userId }: IDubberPostInviteSADProps
 export interface IDubberPatchMemberByIdProps {
   dubberId: string
   userId: string
-  role?: TDubberMemberRole
+  role?: DubberRoleType
   currentUser: IEXPRESS_REQ_NEKOMI_USER
 }
 
@@ -383,7 +383,7 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
 
 
-function ensureAccess({ role, user, member }: { role: TDubberMemberRole, user: IEXPRESS_REQ_NEKOMI_USER, member?: IDubberMember }) {
+function ensureAccess({ role, user, member }: { role: DubberRoleType, user: IEXPRESS_REQ_NEKOMI_USER, member?: DubberMember }) {
   // Pass root or admin
   if (!user.capabilities.includes('root') && !user.capabilities.includes('admin')) {
     // Only team member can edit settings

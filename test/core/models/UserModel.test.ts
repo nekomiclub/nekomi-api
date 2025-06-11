@@ -9,7 +9,7 @@ import DubberService from '~/core/services/DubberService';
 import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import { ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
-import { TNotifyEvent } from '~/interfaces/types';
+import { NOTIFY_EVENT } from '~/services/NotifyService';
 import { UserService } from '~/models/User';
 import { config } from '~/config';
 
@@ -304,7 +304,7 @@ describe('User Model', () => {
   });
 
   test('patchSubscribes', async () => {
-    const event: TNotifyEvent = 'new_episode';
+    const event: NOTIFY_EVENT = NOTIFY_EVENT.NEW_EPISODE;
     const key = '12432142';
 
     expect(User.user.subscribes.includes(`${event}/${key}`)).toBeFalsy();

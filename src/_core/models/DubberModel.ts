@@ -1,8 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
-import { IDubber } from '~/core/interfaces/Dubber.intf';
+import { Dubber } from '~/core/interfaces/Dubber.intf';
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
-export const DubberModel = mongoose.model<IDubber>('dubber', new Schema({
+export const DubberModel = mongoose.model<Dubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,

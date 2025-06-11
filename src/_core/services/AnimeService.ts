@@ -13,11 +13,13 @@ import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI'
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E403, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
-import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNodeFieldType, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
 import { MALAPI } from './API/MAL.api';
 import { MALGenres, MALStudios } from '~/utils/mal-mappers';
-import { Notify } from '~/services/NotifyService';
+import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
+import { NOTIFY_EVENT, Notify } from '~/services/NotifyService';
+import { NotifyAiringStartedProps } from '~/services/NotifyService';
+import { NotifyNewEpisodeProps } from '~/services/NotifyService';
 import { createSlug } from '~/utils/create-slug';
 import { parseRoles } from '~/models/Role';
 
@@ -726,7 +728,7 @@ export class AnimeService extends AnimeModelControls {
     // Pass in test mode
     if (TestMode) return true;
 
-    const fields: MyAnimeListNodeFieldType[] = [
+    const fields: (keyof MyAnimeListNode)[] = [
       'broadcast',
       'genres',
       'media_type',
@@ -992,7 +994,7 @@ export class AnimeService extends AnimeModelControls {
     // Send notifications
     try {
       // Send new_episode
-      const notifyNewEpisodePayload: INotifyNewEpisode = {
+      const notifyNewEpisodePayload: NotifyNewEpisodeProps = {
         dubberID: dubber.id,
         episodeOrder: order,
         titleID: this.document.uuid
@@ -1000,7 +1002,7 @@ export class AnimeService extends AnimeModelControls {
 
       if (!TestMode) {
         Notify.broadcast({
-          event: 'new_episode',
+          event: NOTIFY_EVENT.NEW_EPISODE,
           payload: notifyNewEpisodePayload
         });
       }
@@ -1009,13 +1011,13 @@ export class AnimeService extends AnimeModelControls {
 
       // Send airing_started
       if (this.document.episodes.length === 1) {
-        const notifyAiringStartedPayload: INotifyAiringStarted = {
+        const notifyAiringStartedPayload: NotifyAiringStartedProps = {
           titleID: this.document.uuid
         };
 
         if (!TestMode) {
           Notify.broadcast({
-            event: 'airing_started',
+            event: NOTIFY_EVENT.AIRING_STARTED,
             payload: notifyAiringStartedPayload
           });
         }

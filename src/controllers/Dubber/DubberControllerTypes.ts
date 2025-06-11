@@ -1,4 +1,4 @@
-import IDubber from '~/core/interfaces/Dubber.intf';
+import Dubber from '~/core/interfaces/Dubber.intf';
 import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
@@ -19,7 +19,7 @@ export interface DubberGetOneByQueryProps {
 }
 
 export interface DubberGetOneByQuery {
-  dubber: IDubber
+  dubber: Dubber
 
   dubbedHydratedAnimes?: HydratedAnime[]
   metadata?: Metadata
@@ -32,5 +32,5 @@ export interface DubberGetSearchProps {
 }
 
 export interface DubberGetSearch {
-  results: IDubber[]
+  results: Dubber[]
 }

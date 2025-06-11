@@ -1,7 +1,7 @@
 import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
-import { TRoleCapability } from '~/core/interfaces/Role.intf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { UserPatchWatchProgressProps } from '~/core/services/UserService';
 
 export interface UserGetSearchProps {
@@ -33,7 +33,7 @@ export interface UserGetByQuery {
   /** Will be undefined with metadataOnly specified */
   user: User
 
-  capabilities?: TRoleCapability[]
+  capabilities?: RoleCapability[]
   metadata?: Metadata
   parsedLib?: HydratedAnime[]
 }

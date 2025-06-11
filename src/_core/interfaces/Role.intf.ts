@@ -3,7 +3,7 @@ export interface Role {
   id: string
   code: string
   title: string
-  capabilities: TRoleCapability[]
+  capabilities: RoleCapability[]
 }
 
 export const RoleCapabilities = [
@@ -31,7 +31,7 @@ export const RoleCapabilities = [
   'staffDeleteDubber'
 ] as const;
 
-export type TRoleCapability = typeof RoleCapabilities[number];
+export type RoleCapability = typeof RoleCapabilities[number];
 
 
 

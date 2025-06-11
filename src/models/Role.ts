@@ -1,5 +1,5 @@
 import RoleModelNew from '~/core/models/RoleModel';
-import { IRole, TRoleCapability } from '~/core/interfaces/Role.intf';
+import { IRole, RoleCapability } from '~/core/interfaces/Role.intf';
 import { Logger } from '~/services/LoggerService';
 
 
@@ -20,8 +20,8 @@ export async function createRole(payload: IRole) {
 }
 
 /** Parse user roles and return capabilities */
-export async function parseRoles(rolesArr: string[]): Promise<TRoleCapability[]> {
-  const caps: TRoleCapability[] = [];
+export async function parseRoles(rolesArr: string[]): Promise<RoleCapability[]> {
+  const caps: RoleCapability[] = [];
 
   const roles = await Role.find({
     code: {

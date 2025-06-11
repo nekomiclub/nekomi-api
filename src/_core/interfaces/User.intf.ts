@@ -25,9 +25,7 @@ export interface User {
    */
   telegramLinkToken: string | null
 
-  /** Events subscribes
-   * @see docs/features.md#user-subscribes
-   */
+  /** Events subscribes */
   subscribes: string[]
 }
 

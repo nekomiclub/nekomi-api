@@ -4,8 +4,8 @@ import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import UserModel from '~/core/models/UserModel';
 import { Anime } from '~/core/interfaces/Anime.intf';
+import { Dubber } from '~/core/interfaces/Dubber.intf';
 import { E500 } from './ErrorService';
-import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { Logger } from './LoggerService';
 import { User } from '~/core/interfaces/User.intf';
 
@@ -25,7 +25,7 @@ export type SearchEngineType = 'user' | 'dubber' | 'anime';
 
 class SearchService {
   private UserEngine: Fuse<User> | null = null;
-  private DubberEngine: Fuse<IDubber> | null = null;
+  private DubberEngine: Fuse<Dubber> | null = null;
   private AnimeEngine: Fuse<Anime> | null = null;
 
 
@@ -56,7 +56,7 @@ class SearchService {
     } else if (type === 'dubber') {
       const list = await new DubberService().getAll(true);
 
-      const keys: (keyof IDubber)[] = [
+      const keys: (keyof Dubber)[] = [
         'id',
         'slug',
         'nameEng',

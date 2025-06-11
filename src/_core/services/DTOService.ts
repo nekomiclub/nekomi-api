@@ -1,6 +1,6 @@
 import { Anime } from '~/core/interfaces/Anime.intf';
+import { Dubber } from '~/core/interfaces/Dubber.intf';
 import { HydratedDocument } from 'mongoose';
-import { IDubber } from '~/core/interfaces/Dubber.intf';
 import { User } from '~/core/interfaces/User.intf';
 
 
@@ -40,8 +40,8 @@ export default class DocumentDTO {
     return excludeKeys(object, exposed ? [] : keys);
   }
 
-  static dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
-    const keys: (keyof IDubber)[] = [
+  static dubber(object: HydratedDocument<Dubber> | Dubber, exposed?: boolean): Dubber {
+    const keys: (keyof Dubber)[] = [
       'members',
       'membersInvited',
     ];

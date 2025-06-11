@@ -8,7 +8,7 @@ import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_BASE_MOCK_UN
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
-import { TRoleCapability } from '~/core/interfaces/Role.intf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode } from '~/config';
 import { parseRoles } from '~/models/Role';
 
@@ -17,7 +17,7 @@ import { parseRoles } from '~/models/Role';
 interface CheckAccessProps {
   token: string
 
-  capabilities?: TRoleCapability[]
+  capabilities?: RoleCapability[]
   mock?: FullkekwUserAPI_Verify
 }
 
@@ -44,7 +44,7 @@ export class MiddlewareService {
    * 
    * @returns user
    */
-  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: User, capabilities: TRoleCapability[] }> {
+  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: User, capabilities: RoleCapability[] }> {
     capabilities = capabilities ?? [];
 
     const session: FullkekwUserAPI_Verify = {

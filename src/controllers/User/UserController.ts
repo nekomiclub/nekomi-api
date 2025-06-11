@@ -16,14 +16,13 @@ import { HTTPEndpoint } from '~/services/HTTPService';
 import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
-import { NotifyService } from '~/services/NotifyService';
+import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
 import { ProductionMode, TestMode, config } from '~/config';
 import { TokenService, decodeToken } from '~/services/TokenService';
 import { User } from '~/core/interfaces/User.intf';
 import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchMethodType, UserPatchProps } from './UserControllerTypes';
 import { UserService as UserServiceOld } from '~/models/User';
 import { body, query } from 'express-validator';
-import { getMockData } from '~/utils/deprecated-utils';
 import { parseObjectTypes } from '~/utils/parse-object-types';
 import { parseRoles } from '~/models/Role';
 
@@ -58,7 +57,7 @@ const getSearch = HTTPEndpoint(async (req, res) => {
     // Parse invitation status
     if (parseInvitationStatusFor) {
       const isTelegramNotLinked = !user.statistics.isTelegramLinked;
-      const isInvitePending = user.subscribes.includes(NotifyService.createEvent({ event: 'dubber_invite_pending', key: parseInvitationStatusFor }));
+      const isInvitePending = user.subscribes.includes(NotifyService.createEvent({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, key: parseInvitationStatusFor }));
       const isOthersMemberAlready = user.statistics.dubber_team_member;
 
       if (isTelegramNotLinked) {
@@ -258,7 +257,7 @@ const postSignin = HTTPEndpoint(async (req, res) => {
     session.avatar = data.avatar;
     session.username = data.username;
   } else {
-    const { data } = getMockData<FullkekwUserAPI_TokenData>(req, 'FkUsapiAuthRefresh');
+    const data = GetCheckAccessMock(req);
 
     session.id = data.id;
     session.avatar = data.avatar;
@@ -404,20 +403,20 @@ const patchUser = HTTPEndpoint(async (req, res) => {
       // Add title & event
       await patcher.addToLib({ libID: folderId, titleID: titleId });
 
-      if (lib.type === 'watching') await patcher.addSubscribe({ event: 'new_episode', key: titleId });
+      if (lib.type === 'watching') await patcher.addSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
 
       // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
       if (
         lib.type === 'plans' &&
         anime.episodes.length === 0 &&
         (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
-      ) await patcher.addSubscribe({ event: 'airing_started', key: titleId });
+      ) await patcher.addSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
     } else {
       // Remove title & event
       await patcher.removeFromLib({ libID: folderId, titleID: titleId });
 
-      if (lib.type === 'watching') await patcher.removeSubscribe({ event: 'new_episode', key: titleId });
-      if (lib.type === 'plans') await patcher.removeSubscribe({ event: 'airing_started', key: titleId });
+      if (lib.type === 'watching') await patcher.removeSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
+      if (lib.type === 'plans') await patcher.removeSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
     }
   }
 

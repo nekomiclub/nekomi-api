@@ -1,11 +1,11 @@
 import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, HydratedAnime } from '~/core/interfaces/Anime.intf';
-import IDubber, { DubberCompact } from '~/core/interfaces/Dubber.intf';
+import Dubber, { DubberCompact } from '~/core/interfaces/Dubber.intf';
 import { Metadata } from '~/core/interfaces/types';
 import { User } from '~/core/interfaces/User.intf';
 
 
 
-export function DubberCompactMapper(dubber: IDubber): DubberCompact {
+export function DubberCompactMapper(dubber: Dubber): DubberCompact {
   return {
     id: dubber.id,
     avatarURL: dubber.avatar,
@@ -17,7 +17,7 @@ export function DubberCompactMapper(dubber: IDubber): DubberCompact {
 
 
 
-export function DubberMetadataMapper(dubber: IDubber): Metadata {
+export function DubberMetadataMapper(dubber: Dubber): Metadata {
   return {
     title: dubber.nameUkr,
     description: dubber.description ?? 'Ця команда озвучує аніме на nekomi.club',

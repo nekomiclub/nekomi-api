@@ -1,14 +1,14 @@
 import { $mal } from '~/services/HTTPService';
 import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON } from '~/core/interfaces/Anime.intf';
 import { Logger } from '~/services/LoggerService';
-import { MyAnimeListNode, MyAnimeListNodeFieldType } from '~/core/interfaces/types';
+import { MyAnimeListNode } from '~/core/interfaces/types';
 import { config } from '~/config';
 
 
 
 interface GetAnimeProps {
   id: number
-  fields: MyAnimeListNodeFieldType[]
+  fields: (keyof MyAnimeListNode)[]
 }
 
 interface GetSeasonalAnimeProps {
@@ -40,7 +40,7 @@ export class MALAPI {
     const url = `${baseURL}/anime/season/${year}/${season}`;
     Logger.trace(`[MyAnimeListAPI]: GET - ${url.replace(baseURL, '')}`);
 
-    const fields: MyAnimeListNodeFieldType[] = [
+    const fields: (keyof MyAnimeListNode)[] = [
       'alternative_titles',
       'rating',
       'media_type',

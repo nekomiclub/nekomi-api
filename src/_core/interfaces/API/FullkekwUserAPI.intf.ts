@@ -1,4 +1,4 @@
-import { TRoleCapability } from '~/core/interfaces/Role.intf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
 
 
 
@@ -13,7 +13,7 @@ export interface FullkekwUserAPI_GetUser {
 
 export interface FullkekwUserAPI_Verify {
   id: string
-  capabilities: TRoleCapability[]
+  capabilities: RoleCapability[]
   username: string
   avatar: string
 }

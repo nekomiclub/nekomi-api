@@ -7,7 +7,7 @@ import DubberService from '~/core/services/DubberService';
 import UserModel, { UserService } from '~/models/User';
 import mongoose from 'mongoose';
 import { ERR_GENERIC, HTTPErrorConstructor } from '~/services/ErrorService';
-import { NotifyService } from '~/services/NotifyService';
+import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
 import { config } from '~/config';
 
 
@@ -274,7 +274,7 @@ describe('DubberService', () => {
       expect(dubberService.dubber.membersInvited.includes(MemberId1)).toBeTruthy();
 
       // Check if subscribe added
-      expect(user?.subscribes.includes(NotifyService.createEvent({ event: 'dubber_invite_pending', key: MemberId1 })));
+      expect(user?.subscribes.includes(NotifyService.createEvent({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, key: MemberId1 })));
     });
 
     test('Accept invite (memberAdd)', async () => {

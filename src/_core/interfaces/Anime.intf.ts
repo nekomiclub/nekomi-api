@@ -537,6 +537,4 @@ export const ANIME_MEDIA_TYPES: Record<ANIME_MEDIA_TYPE, AnimeMedia> = {
   },
 };
 
-
-
 export default Anime;

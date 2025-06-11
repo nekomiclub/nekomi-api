@@ -4,7 +4,7 @@ import { E401, HTTPErrorConstructor, HandleRequest } from './services/ErrorServi
 import { ERROR } from './services/ErrorService';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
 import { MiddlewareService } from './services/MiddlewareService';
-import { TRoleCapability } from '~/core/interfaces/Role.intf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode, config } from './config';
 
 
@@ -16,7 +16,7 @@ const Middleware = new MiddlewareService();
  * Will write user object in request nekomi data
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
-export function CheckAccess(capabilities: TRoleCapability[]) {
+export function CheckAccess(capabilities: RoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];
