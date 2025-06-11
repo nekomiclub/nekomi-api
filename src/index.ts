@@ -9,11 +9,11 @@ import DubberRouter from './routes/DubberRouter';
 import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
-import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { decodeToken } from './services/TokenService';
+import { getRequestIP } from './services/HTTPService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
 

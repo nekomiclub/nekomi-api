@@ -7,20 +7,19 @@ import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import UserService from '~/core/services/UserService';
-import createID from '~/utils/create-id';
-import getUTC from '~/utils/get-utc';
 import multer from 'multer';
 import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePatchByUuidProps, AnimePatchByUuidSchema, AnimePostEpisode, AnimePostEpisodeProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
 import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
-import { GetCheckCSRFMock } from '~/utils/testing';
+import { GetCheckCSRFMock } from '~/utils/testing-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { TestMode, config } from '~/config';
 import { body, param, query } from 'express-validator';
+import { createStringID, getUTC } from '~/utils/utils';
 import { parseObjectTypes } from '~/utils/parse-object-types';
 import { signCSRFToken } from '~/services/TokenService';
 import { z } from 'zod';
@@ -314,7 +313,7 @@ const GetByQuery = [
 
 //* ===================================== POST ANIME
 const postAnime = HTTPEndpoint(async (req, res) => {
-  const nameEng = `untitled-${createID(4)}`;
+  const nameEng = `untitled-${createStringID(4)}`;
 
   const anime = await new AnimeService().create({ nameEng });
 

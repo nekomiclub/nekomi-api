@@ -1,6 +1,6 @@
-import Anime, { ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, HydratedAnime } from '~/core/interfaces/Anime.intf';
+import Anime, { ANIME_GENRE, ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, AnimeStudio, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import Dubber, { DubberCompact } from '~/core/interfaces/Dubber.intf';
-import { Metadata } from '~/core/interfaces/types';
+import { Metadata, MyAnimeListNode } from '~/core/interfaces/types';
 import { User } from '~/core/interfaces/User.intf';
 
 
@@ -59,3 +59,29 @@ export function HydrateAnimeDocument(anime: Anime): HydratedAnime {
     status: ANIME_STATUSES[anime.status]
   };
 }
+
+
+
+/** Parse MyAnimeList genres into ANIME_GENRE[] */
+export function MALGenres(input?: MyAnimeListNode['genres']): ANIME_GENRE[] {
+  const genres: ANIME_GENRE[] = [];
+
+  input?.forEach(genre => {
+    if (Object.values(ANIME_GENRE).includes(genre.name.toLowerCase() as ANIME_GENRE)) genres.push(genre.name.toLowerCase() as ANIME_GENRE);
+  });
+
+  return genres;
+}
+
+
+
+/** Parse MyAnimeList studios into AnimeStudio[] */
+export function MALStudios(input: MyAnimeListNode['studios']): AnimeStudio[] {
+  return input?.map(studio => {
+    return {
+      malId: studio.id,
+      name: studio.name
+    };
+  }) ?? [];
+}
+

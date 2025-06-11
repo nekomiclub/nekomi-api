@@ -6,11 +6,11 @@ process.argv.push('devMode');
 import AnimeService from '~/core/services/AnimeService';
 import DocumentDTO from '~/core/services/DTOService';
 import Dubber from '~/core/interfaces/Dubber.intf';
-import createID from '~/utils/create-id';
-import getUTC from '~/utils/get-utc';
 import mongoose from 'mongoose';
 import { User } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
 
 
 
@@ -60,7 +60,7 @@ describe('DTOs', () => {
   });
 
   test('Anime DTO', async () => {
-    const anime = await new AnimeService().create({ nameEng: createID(12), savedoc: false });
+    const anime = await new AnimeService().create({ nameEng: createStringID(12), savedoc: false });
 
     const withDetails = DocumentDTO.anime(anime, true);
     const withoutDetails = DocumentDTO.anime(anime);

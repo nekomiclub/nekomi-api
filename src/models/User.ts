@@ -6,7 +6,6 @@ import DubberModel from '~/core/models/DubberModel';
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
 import Role from './Role';
 import UserModelNew from '~/core/models/UserModel';
-import getUTC from '~/utils/get-utc';
 import validator from 'validator';
 import { AxiosError } from 'axios';
 import { E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
@@ -14,7 +13,8 @@ import { Logger } from '~/services/LoggerService';
 import { NOTIFY_EVENT } from '~/services/NotifyService';
 import { User, UserLib, UserStatistics, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
 import { config } from '~/config';
-import { createUUID } from '~/utils/create-id';
+import { createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
 
 
 

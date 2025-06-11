@@ -2,12 +2,12 @@ process.argv.push('testMode');
 process.argv.push('devMode');
 
 import UserService from '~/core/services/UserService';
-import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import request from 'supertest';
-import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing-utils';
 import { app } from '~/index';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
 
 
 
@@ -29,7 +29,7 @@ describe('UserRouter', () => {
 
 
   beforeAll(async () => {
-    const user = await new UserService().create({ username: createID(12) });
+    const user = await new UserService().create({ username: createStringID(12) });
 
     await userService.init(user.id);
   });

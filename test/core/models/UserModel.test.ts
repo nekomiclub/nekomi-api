@@ -6,12 +6,12 @@ process.argv.push('devMode');
 
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
-import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import { ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
 import { NOTIFY_EVENT } from '~/services/NotifyService';
 import { UserService } from '~/models/User';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
 
 
 
@@ -45,7 +45,7 @@ describe('User Model', () => {
 
     await UserService.create({ id: TestID2, username: TestUS2 });
     await new DubberService({ TestMode: true }).create({ nameEng: TestDubberEng, DEV_ID: TestDubberID1, nameUkr: TestDubberID1 });
-    const anime = await new AnimeService().create({ nameEng: createID(6) });
+    const anime = await new AnimeService().create({ nameEng: createStringID(6) });
     TestTitleID1 = anime.uuid;
   });
 

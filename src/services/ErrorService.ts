@@ -1,6 +1,6 @@
 import express from 'express';
-import getUTC from '~/utils/get-utc';
 import { AxiosError } from 'axios';
+import { getUTC } from '~/utils/utils';
 
 import { validationResult } from 'express-validator';
 

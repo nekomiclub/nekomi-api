@@ -1,11 +1,11 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import UserModel from '~/models/User';
 import fs from 'fs';
-import getUTC from './get-utc';
 import path from 'path';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
+import { getUTC } from './utils';
 
 
 

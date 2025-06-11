@@ -5,9 +5,9 @@ process.argv.push('devMode');
 
 import AnimeModel from '~/core/models/AnimeModel';
 import UserService from '~/core/services/UserService';
-import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
 
 
 
@@ -27,7 +27,7 @@ describe('UserService', () => {
 
   // Initialize user service
   beforeAll(async () => {
-    const user = await userService.create({ username: createID(8) });
+    const user = await userService.create({ username: createStringID(8) });
     await userService.init(user.id);
   });
 

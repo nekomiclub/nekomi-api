@@ -9,13 +9,12 @@ import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
 import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
-import createID, { createUUID } from '~/utils/create-id';
-import getUTC from '~/utils/get-utc';
 import mongoose from 'mongoose';
-import trimString from '~/utils/trim-string';
 import { Readable } from 'stream';
 import { config } from '~/config';
-import { shouldfail, testfail, testpass } from '~/utils/testing';
+import { createStringID, createUUID, getUTC } from '~/utils/utils';
+import { shouldfail, testfail, testpass } from '~/utils/testing-utils';
+import { trimString } from '~/utils/utils';
 
 
 
@@ -56,15 +55,15 @@ describe('AnimeService', () => {
 
   // Initialize anime service
   beforeAll(async () => {
-    const anime = await animeService.create({ nameEng: createID(12) });
+    const anime = await animeService.create({ nameEng: createStringID(12) });
     await animeService.init(anime.uuid);
 
-    RootUser = await new UserService().create({ username: createID(12), savedoc: false });
+    RootUser = await new UserService().create({ username: createStringID(12), savedoc: false });
     RootUser.roles = ['root'];
 
-    DefaultUser = await new UserService().create({ username: createID(12), savedoc: false });
+    DefaultUser = await new UserService().create({ username: createStringID(12), savedoc: false });
 
-    DubberMember = await new UserService().create({ username: createID(12), savedoc: false });
+    DubberMember = await new UserService().create({ username: createStringID(12), savedoc: false });
     DubberMember.roles = ['dubber_leader'];
     DubberMember.statistics.dubber_team_member = createUUID();
   });
@@ -448,7 +447,7 @@ describe('AnimeService', () => {
    */
   it(`should set related`, async () => {
     // Prepare
-    const newAnime = await new AnimeService().create({ nameEng: createID(6) });
+    const newAnime = await new AnimeService().create({ nameEng: createStringID(6) });
     const newAnimeService = new AnimeService();
 
     await newAnimeService.init(newAnime.uuid);

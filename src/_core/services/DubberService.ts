@@ -5,7 +5,6 @@ import DocumentDTO from './DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
 import UserModel, { UserService } from '~/models/User';
-import getUTC from '~/utils/get-utc';
 import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
@@ -13,9 +12,11 @@ import { NOTIFY_EVENT, Notify, NotifyDubberTellProps } from '~/services/NotifySe
 import { NekomiUploadsAPI } from './API/NekomiUploads.api';
 import { ServiceControls } from '~/core/interfaces/types';
 import { TestMode, config } from '~/config';
-import { createID, createUUID } from '~/utils/create-id';
-import { createSlug } from '~/utils/create-slug';
-import { trimString } from '~/utils/trim-string';
+import { createSlug } from '~/utils/utils';
+import { createStringID } from '~/utils/utils';
+import { createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
+import { trimString } from '~/utils/utils';
 
 
 
@@ -100,7 +101,7 @@ class DubberModelControls implements TDubberModelControls {
     let slug = createSlug(nameEng);
 
     const exist = await DubberModel.findOne({ slug });
-    if (exist) slug = slug + `-${createID(3)}`;
+    if (exist) slug = slug + `-${createStringID(3)}`;
 
 
 
@@ -271,7 +272,7 @@ export class DubberService extends DubberModelControls {
       let slug = createSlug(nameEng);
 
       const exist = await DubberModel.findOne({ slug });
-      if (exist && exist.id !== this.document.id) slug = slug + `-${createID(3)}`;
+      if (exist && exist.id !== this.document.id) slug = slug + `-${createStringID(3)}`;
 
       this.stack.push(`nameEng: ${this.document.nameEng} > ${nameEng}`);
       this.stack.push(`slug: ${this.document.slug} > ${slug}`);

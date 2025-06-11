@@ -4,16 +4,15 @@ import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
 import User, { UserLib, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
-import createID, { createUUID } from '~/utils/create-id';
-import createSlug from '~/utils/create-slug';
-import getUTC from '~/utils/get-utc';
-import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { ServiceControls, SinglePartial } from '~/core/interfaces/types';
+import { createSlug, createStringID, createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
+import { trimString } from '~/utils/utils';
 
 
 
@@ -390,7 +389,7 @@ export class UserService extends UserModelControls {
 
 /** Create UserLib object */
 export function UserLibFactory({ name, type, hidden, immortal, titles, DEV_ID }: UserLibFactoryProps): UserLib {
-  let id = createID(8);
+  let id = createStringID(8);
 
   if (!validator.isLength(name, { min: config.VALIDATION.User.MinimumLibNameLength, max: config.VALIDATION.User.MaximumLibNameLength })) throw ERR_LIB_NAME_INVALID;
 

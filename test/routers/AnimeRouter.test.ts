@@ -3,14 +3,14 @@ process.argv.push('devMode');
 
 import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/Anime.intf';
 import AnimeService from '~/core/services/AnimeService';
-import createID from '~/utils/create-id';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
 import { ERROR } from '~/services/ErrorService';
-import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing-utils';
 import { app } from '~/index';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
 import { signCSRFToken } from '~/services/TokenService';
 
 
@@ -34,7 +34,7 @@ describe('AnimeRouter', () => {
     let anime: Anime | null = null;
 
     beforeAll(async () => {
-      anime = await new AnimeService().create({ nameEng: createID(12) });
+      anime = await new AnimeService().create({ nameEng: createStringID(12) });
     });
 
     it('should search by query', async () => {
@@ -97,7 +97,7 @@ describe('AnimeRouter', () => {
     let anime: Anime | null = null;
 
     beforeAll(async () => {
-      anime = await new AnimeService().create({ nameEng: createID(12) });
+      anime = await new AnimeService().create({ nameEng: createStringID(12) });
     });
 
     it(`should return anime document in detailed mode`, async () => {
@@ -207,7 +207,7 @@ describe('AnimeRouter', () => {
 
   describe('DELETE /anime/:uuid', () => {
     it('should delete', async () => {
-      const anime = await new AnimeService().create({ nameEng: createID(12) });
+      const anime = await new AnimeService().create({ nameEng: createStringID(12) });
 
       await request(app)
         .delete(`/anime/${anime.uuid}`)

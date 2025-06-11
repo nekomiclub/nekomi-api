@@ -5,9 +5,6 @@ import DubberService from './DubberService';
 import NekomiUploadsAPI from './API/NekomiUploads.api';
 import Search from '~/services/SearchService';
 import User from '~/core/interfaces/User.intf';
-import createID, { createUUID } from '~/utils/create-id';
-import getUTC from '~/utils/get-utc';
-import trimString from '~/utils/trim-string';
 import validator from 'validator';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { DevelopmentMode, TestMode, config } from '~/config';
@@ -15,13 +12,16 @@ import { E400, E403, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMEN
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MALAPI } from './API/MAL.api';
-import { MALGenres, MALStudios } from '~/utils/mal-mappers';
+import { MALGenres } from '~/utils/data-mappers';
+import { MALStudios } from '~/utils/data-mappers';
 import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { NOTIFY_EVENT, Notify } from '~/services/NotifyService';
 import { NotifyAiringStartedProps } from '~/services/NotifyService';
 import { NotifyNewEpisodeProps } from '~/services/NotifyService';
-import { createSlug } from '~/utils/create-slug';
+import { createSlug, createStringID, createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
 import { parseRoles } from '~/models/Role';
+import { trimString } from '~/utils/utils';
 
 
 
@@ -88,7 +88,7 @@ class AnimeModelControls implements AnimeModelControlsType {
     let slug = createSlug(nameEng);
 
     const exist = await AnimeModel.findOne({ slug });
-    if (exist) slug += `-${createID(3)}`; // Make unique slug if slug by name is occupied
+    if (exist) slug += `-${createStringID(3)}`; // Make unique slug if slug by name is occupied
 
 
 
@@ -466,7 +466,7 @@ export class AnimeService extends AnimeModelControls {
       let slug = createSlug(eng);
 
       const exist = await new AnimeService().safeGetByQuery(slug);
-      if (exist && exist.uuid !== this.document.uuid) slug += `-${createID(3)}`;
+      if (exist && exist.uuid !== this.document.uuid) slug += `-${createStringID(3)}`;
 
       this.stack.push(`Slug changed (${this.document.slug} > ${slug})`);
       this.document.slug = slug;

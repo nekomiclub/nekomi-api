@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 
-import getUTC from './utils/get-utc';
+import { getUTC } from './utils/utils';
 
 
 

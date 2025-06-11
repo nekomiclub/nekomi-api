@@ -1,6 +1,6 @@
 import axios from 'axios';
 import express from 'express';
-import http from 'http';
+import http, { IncomingHttpHeaders } from 'http';
 import https from 'https';
 import { ERR_MIDDLEWARE_REQUIRED, HandleRequest } from './ErrorService';
 
@@ -28,6 +28,15 @@ export const HTTPEndpoint = (callback: (req: express.Request, res: express.Respo
     });
   };
 };
+
+/** Get request IP from HTTP headers */
+export function getRequestIP(headers: IncomingHttpHeaders): string {
+  return (
+    headers['cf-connecting-ip'] ?? headers['CF-Connecting-IP']
+    ?? headers['x-forwarded-for'] ?? headers['X-Forwarded-For']
+    ?? '0.0.0.0'
+  ) as string;
+}
 
 
 
