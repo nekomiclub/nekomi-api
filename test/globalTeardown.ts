@@ -2,26 +2,28 @@
 
 import AnimeModel from '../src/_core/models/AnimeModel';
 import DubberModel from '../src/_core/models/DubberModel';
-import fs from 'fs';
 import mongoose from 'mongoose';
-import path from 'path';
+import { config as dotenvCfg } from 'dotenv';
 
 
-const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString());
 
-const INTERNALS = {
-  database: {
-    host: SERVICE_CONFIG.DATABASE!.host,
-    port: SERVICE_CONFIG.DATABASE!.port,
-    creds: SERVICE_CONFIG.SERVICES.nekomi_api.DATABASE!.development
-  }
+dotenvCfg();
+
+
+
+const env = {
+  DATABASE_HOST: String(process.env['DATABASE_HOST']),
+  DATABASE_PORT: Number(process.env['DATABASE_PORT']),
+  DATABASE_NAME: String(process.env['DATABASE_NAME']),
+  DATABASE_USR: String(process.env['DATABASE_USR']),
+  DATABASE_PWD: String(process.env['DATABASE_PWD']),
 };
 
 export default async function () {
   const purgeRegex = /^~test/;
 
   mongoose.set('strictQuery', false);
-  mongoose.connect(`mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`, {
+  mongoose.connect(`mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`, {
     retryWrites: true,
   });
 

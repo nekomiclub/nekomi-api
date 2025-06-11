@@ -11,7 +11,7 @@ import Search from './services/SearchService';
 import UserRouter from './routes/UserRouter';
 import getRequestIP from './utils/get-request-ip';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
-import { DevelopmentMode, INTERNALS, ProductionMode, TestMode, config } from './config';
+import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { Logger } from './services/LoggerService';
 import { decodeToken } from './services/TokenService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
@@ -31,8 +31,8 @@ mongoose.connect(config.mongodbUrl, {
 const CORSOpt: CorsOptions = {
   origin: [
     `https://${config.DOMAIN.nekomi}`,
-    `https://${config.DOMAIN.nekomi_auth}`,
-    `https://${config.DOMAIN.nekomi_core}`,
+    `https://${config.DOMAIN.nekomiAuth}`,
+    `https://${config.DOMAIN.nekomiApi}`,
 
     !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
     !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
@@ -81,8 +81,8 @@ const UpdateHandlers = [
 
 (async function () {
   if (!TestMode) {
-    app.listen(INTERNALS.http_server.port, INTERNALS.http_server.host, () => {
-      Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port}`);
+    app.listen(config.env.PORT, config.env.HOST, () => {
+      Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${config.env.HOST}:${config.env.PORT}`);
     });
   }
 
@@ -102,8 +102,7 @@ const UpdateHandlers = [
   Date: ${config.startedAt} UTC
   Commit: ${config.commit}
   Mode: ${config.startedMode}
-  HTTP: http://${INTERNALS.http_server.host}:${INTERNALS.http_server.port} ${DevelopmentMode ? '(port changed, see README.md)' : ''}
-  WS: ${INTERNALS.ws_server.host}:${INTERNALS.ws_server.port}
+  HTTP: http://${config.env.HOST}:${config.env.PORT} ${DevelopmentMode ? '(port changed, see README.md)' : ''}
   ----------------------------
     `);
 

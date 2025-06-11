@@ -327,7 +327,7 @@ const postLinkTelegram = HTTPEndpoint(async (req, res) => {
 });
 
 const PostLinkTelegram = [
-  CheckCSRF([config.DOMAIN.nekomi_bot]),
+  CheckCSRF([config.DOMAIN.nekomiBot]),
   body(['animeeID', 'telegramID']).notEmpty(),
   postLinkTelegram
 ];
@@ -354,7 +354,7 @@ const postLinkTelegramTokenVerify = HTTPEndpoint(async (req, res) => {
 });
 
 const PostLinkTelegramTokenVerify = [
-  CheckCSRF([config.DOMAIN.nekomi_bot]),
+  CheckCSRF([config.DOMAIN.nekomiBot]),
   body('token').notEmpty(),
   postLinkTelegramTokenVerify
 ];
