@@ -6,6 +6,7 @@ import DocumentDTO from '~/core/services/DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
+import TokenService from '~/services/TokenService';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
 import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePatchByUuidProps, AnimePatchByUuidSchema, AnimePostEpisode, AnimePostEpisodeProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
@@ -21,7 +22,6 @@ import { TestMode, config } from '~/config';
 import { body, param, query } from 'express-validator';
 import { createStringID, getUTC } from '~/utils/utils';
 import { parseObjectTypes } from '~/utils/parse-object-types';
-import { signCSRFToken } from '~/services/TokenService';
 import { z } from 'zod';
 
 
@@ -508,7 +508,7 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
 
   if (!token) {
     console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN START --`);
-    console.log(signCSRFToken());
+    console.log(TokenService.signCSRF());
     console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN END --`);
 
     throw new E401(`Not authorized`);

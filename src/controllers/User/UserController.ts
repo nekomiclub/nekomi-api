@@ -3,6 +3,7 @@ import AnimeService from '~/core/services/AnimeService';
 import DocumentDTO from '~/core/services/DTOService';
 import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
 import Search from '~/services/SearchService';
+import TokenService, { TOKEN_METHOD } from '~/services/TokenService';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
@@ -10,7 +11,7 @@ import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
-import { FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwUserAPI_Session, FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
@@ -18,7 +19,6 @@ import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
 import { ProductionMode, TestMode, config } from '~/config';
-import { TokenService, decodeToken } from '~/services/TokenService';
 import { User } from '~/core/interfaces/User.intf';
 import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchMethodType, UserPatchProps } from './UserControllerTypes';
 import { UserService as UserServiceOld } from '~/models/User';
@@ -137,7 +137,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     }
 
     if (!TestMode) {
-      query = decodeToken(SessionCookie).payload?.userId ?? query;
+      query = TokenService.decode<FullkekwUserAPI_Session>(SessionCookie).payload?.userId ?? query;
     } else {
       query = GetCheckAccessMock(req).id;
     }
@@ -222,7 +222,7 @@ const getLinkTelegramToken = HTTPEndpoint(async (req, res) => {
   if (user.statistics.isTelegramLinked) throw new ERR_ALREADY_EXIST('Account already linked');
 
   const patch = new UserServiceOld({ user });
-  const token = TokenService.signToken('TelegramLink');
+  const token = TokenService.sign(TOKEN_METHOD.TELEGRAM_LINK, {});
 
   await patch.patchTelegramLinkToken({ token });
   await patch.save();

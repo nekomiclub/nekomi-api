@@ -4,9 +4,9 @@ import http, { IncomingHttpHeaders } from 'http';
 import https from 'https';
 import { ERR_MIDDLEWARE_REQUIRED, HandleRequest } from './ErrorService';
 
+import TokenService from './TokenService';
 import { TMiddlewareName } from './MiddlewareService';
 import { config } from '~/config';
-import { signCSRFToken } from './TokenService';
 
 
 
@@ -61,13 +61,13 @@ export const $mal = axios.create({
 
 
 $http.interceptors.request.use(async cfg => {
-  cfg.headers[config.vars.csrfHeader] = signCSRFToken();
+  cfg.headers[config.vars.csrfHeader] = TokenService.signCSRF();
 
   return cfg;
 });
 
 $upload.interceptors.request.use(async cfg => {
-  cfg.headers[config.vars.csrfHeader] = signCSRFToken();
+  cfg.headers[config.vars.csrfHeader] = TokenService.signCSRF();
 
   return cfg;
 });

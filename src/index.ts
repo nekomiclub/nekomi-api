@@ -8,11 +8,12 @@ import AnimeRouter from './routes/AnimeRouter';
 import DubberRouter from './routes/DubberRouter';
 import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
+import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
+import { FullkekwUserAPI_Session } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
-import { decodeToken } from './services/TokenService';
 import { getRequestIP } from './services/HTTPService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
@@ -55,7 +56,7 @@ app.options('*', cors(CORSOpt));
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = getRequestIP(req.headers);
-  const session = decodeToken(req.cookies[config.vars.sessionCookie] ?? '');
+  const session = TokenService.decode<FullkekwUserAPI_Session>(req.cookies[config.vars.sessionCookie] ?? '');
 
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
   req.nekomi = req.nekomi !== undefined ? req.nekomi : {};

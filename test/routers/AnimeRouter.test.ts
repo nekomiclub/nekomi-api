@@ -3,6 +3,7 @@ process.argv.push('devMode');
 
 import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/Anime.intf';
 import AnimeService from '~/core/services/AnimeService';
+import TokenService from '~/services/TokenService';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
@@ -11,7 +12,6 @@ import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing-utils';
 import { app } from '~/index';
 import { config } from '~/config';
 import { createStringID } from '~/utils/utils';
-import { signCSRFToken } from '~/services/TokenService';
 
 
 
@@ -211,7 +211,7 @@ describe('AnimeRouter', () => {
 
       await request(app)
         .delete(`/anime/${anime.uuid}`)
-        .query(`token=${signCSRFToken()}`)
+        .query(`token=${TokenService.signCSRF()}`)
         .set(config.vars.csrfHeader, '~')
         .set(`Cookie`, `${config.vars.sessionCookie}=~`)
         .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))

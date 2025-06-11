@@ -23,3 +23,9 @@ export interface FullkekwUserAPI_TokenData {
   username: string
   avatar: string
 }
+
+export interface FullkekwUserAPI_Session {
+  userId: string
+  sessionId: string
+  timestamp: number
+}

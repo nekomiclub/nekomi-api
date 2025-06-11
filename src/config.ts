@@ -138,9 +138,6 @@ const VALIDATION = {
     minStudioLength: 3,
     maxStudioLength: 32,
   },
-  WatchTogether: {
-    textMessageLength: 256
-  },
 
 
   User: {
