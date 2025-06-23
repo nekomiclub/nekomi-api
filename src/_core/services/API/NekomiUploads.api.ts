@@ -1,6 +1,6 @@
 import { $upload } from '~/services/HTTPService';
 import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploadsAPI_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { AxiosError } from 'axios';
+import { HandleAPIErorr } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -22,6 +22,9 @@ interface IDeleteUploadProps {
 
 
 const baseURL = config.URL.nekomi_uploads;
+const APINAME = 'nekomi-uploads';
+
+
 
 /** @version 2.1.0 */
 export class NekomiUploadsAPI {
@@ -29,27 +32,31 @@ export class NekomiUploadsAPI {
     return url.split('/')[url.split('/').length - 1];
   }
 
-  static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps) {
-    const { buffer, originalname, mimetype } = file;
+  static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps): Promise<NekomiUploadsAPI_UploadFile> {
+    try {
+      const { buffer, originalname, mimetype } = file;
 
-    const formData = new FormData();
+      const formData = new FormData();
 
-    formData.append('file', new Blob([buffer], {
-      type: mimetype
-    }), originalname);
-    formData.set('uploadedBy', uploadedById);
-    formData.set('type', type);
+      formData.append('file', new Blob([buffer], {
+        type: mimetype
+      }), originalname);
+      formData.set('uploadedBy', uploadedById);
+      formData.set('type', type);
 
-    if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
+      if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
-    const url = `${baseURL}/upload`;
-    Logger.trace(`[NekomiUploadsAPI]: POST - ${url.replace(baseURL, '')}`);
+      const url = `${baseURL}/upload`;
+      Logger.trace(`[NekomiUploadsAPI]: POST - ${url.replace(baseURL, '')}`);
 
-    const { data } = await $upload.post<NekomiUploadsAPI_UploadFile>(url, formData);
+      const { data } = await $upload.post<NekomiUploadsAPI_UploadFile>(url, formData);
 
-    Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
+      Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
 
-    return data;
+      return data;
+    } catch (e) {
+      HandleAPIErorr(e, APINAME);
+    }
   }
 
   static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
@@ -66,10 +73,7 @@ export class NekomiUploadsAPI {
 
       Logger.debug(`[NekomiUploads]: Upload deleted. [id: ${id}; by: ${deletedById}]`);
     } catch (e) {
-      // Pass 404 error
-      if (e instanceof AxiosError && e.status === 404) return;
-
-      throw e;
+      HandleAPIErorr(e, APINAME);
     }
   }
 }

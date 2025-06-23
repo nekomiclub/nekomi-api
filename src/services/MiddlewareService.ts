@@ -88,7 +88,7 @@ export class MiddlewareService {
         await userService.init(user.id);
 
         if (user.avatar !== session.avatar) userService.setAvatar(session.avatar);
-        if (user.username !== session.username) await userService.setUsername(session.username);
+        if (user.username !== session.username) await userService.setUsername(session.username, true);
 
         Logger.info(`[MiddlewareService]: User synced with fullkekw-userapi`);
 

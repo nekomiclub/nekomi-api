@@ -1,27 +1,35 @@
 import { $http } from '~/services/HTTPService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { HandleAPIErorr } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
 
 
-interface IVerifyTokenProps {
+interface VerifyTokenProps {
   token: string
 }
 
 
 
 const baseURL = config.URL.fullkekw_authority;
+const APINAME = 'fullkekw-authority';
+
+
 
 /** @version 2.1.1 */
 export class FullkekwAuthorityAPI {
-  static async verifyToken(payload: IVerifyTokenProps) {
-    const url = `${baseURL}/verify`;
-    Logger.trace(`[FullkekwAuthorityAPI]: POST - ${url.replace(baseURL, '')}`);
+  static async verifyToken(payload: VerifyTokenProps) {
+    try {
+      const url = `${baseURL}/verify`;
+      Logger.trace(`[FullkekwAuthorityAPI]: POST - ${url.replace(baseURL, '')}`);
 
-    const { data } = await $http.post<FullkekwAuthorityAPI_TokenVerify>(url, payload);
+      const { data } = await $http.post<FullkekwAuthorityAPI_TokenVerify>(url, payload);
 
-    return data;
+      return data;
+    } catch (e) {
+      HandleAPIErorr(e, APINAME);
+    }
   }
 }
 

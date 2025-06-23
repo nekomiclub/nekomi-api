@@ -11,7 +11,7 @@ import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
-import { FullkekwUserAPI_Session, FullkekwUserAPI_TokenData } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwUserAPI_RefreshPayload, FullkekwUserAPI_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
@@ -137,7 +137,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
     }
 
     if (!TestMode) {
-      query = TokenService.decode<FullkekwUserAPI_Session>(SessionCookie).payload?.userId ?? query;
+      query = TokenService.decode<FullkekwUserAPI_SessionTokenPayload>(SessionCookie).payload?.userId ?? query;
     } else {
       query = GetCheckAccessMock(req).id;
     }
@@ -245,7 +245,7 @@ const postSignin = HTTPEndpoint(async (req, res) => {
   const { session: sessionToken } = req.body as { session: string };
 
   // @ts-expect-error Need empty object
-  const session: FullkekwUserAPI_TokenData = {};
+  const session: FullkekwUserAPI_RefreshPayload = {};
 
 
 

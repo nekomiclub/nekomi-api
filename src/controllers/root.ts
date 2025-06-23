@@ -1,8 +1,7 @@
 import express from 'express';
 
 import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
-import { AxiosError } from 'axios';
-import { E503, ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '~/services/ErrorService';
+import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '~/services/ErrorService';
 import { NekomiUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 
 
@@ -26,24 +25,12 @@ export async function postUpload(req: express.Request, res: express.Response) {
       id: '',
     };
 
-    try {
-      const postData = await NekomiUploadsAPI.uploadFile({ file, type, uploadedById: userID! });
+    const postData = await NekomiUploadsAPI.uploadFile({ file, type, uploadedById: userID! });
 
-      UPLOAD_DATA.url = postData.url;
-      UPLOAD_DATA.id = postData.id;
-      UPLOAD_DATA.frames = postData.frames;
-      UPLOAD_DATA.srt_id = postData.srt_id;
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        if (e.code === 'ECONNREFUSED') {
-          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
-        }
-
-        throw e;
-      } else {
-        throw e;
-      }
-    }
+    UPLOAD_DATA.url = postData.url;
+    UPLOAD_DATA.id = postData.id;
+    UPLOAD_DATA.frames = postData.frames;
+    UPLOAD_DATA.srt_id = postData.srt_id;
 
     return res.status(201).json({ message: `File with type ${type} uploaded`, ...UPLOAD_DATA });
   });
@@ -57,20 +44,8 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
     const { id } = req.params as { id: string };
     const userID = req.nekomi.user?.id;
 
-    try {
-      await NekomiUploadsAPI.deleteUpload({ id, deletedById: userID!, withChildren: true });
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        if (e.code === 'ECONNREFUSED') {
-          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
-        }
+    await NekomiUploadsAPI.deleteUpload({ id, deletedById: userID!, withChildren: true });
 
-        throw e;
-      } else {
-        throw e;
-      }
-    }
-
-    return res.status(201).json({ message: `Upload removed`, });
+    return res.status(200).json({ message: `Upload removed`, });
   });
 }

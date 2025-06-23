@@ -20,7 +20,7 @@ import { trimString } from '~/utils/utils';
 
 
 
-interface IDubberCreateProps {
+interface DubberCreateProps {
   nameUkr: string
   nameEng: string
 
@@ -31,61 +31,61 @@ interface IDubberCreateProps {
   TEST_MEMBERS_INVITED?: string[]
 }
 
-interface IDubberCRUDProps {
+interface DubberCRUDProps {
   TestMode?: boolean
 }
 
-interface IChangeName {
+interface ChangeName {
   nameEng?: string
   nameUkr?: string
 }
 
-interface IPatchLinks<K> {
+interface PatchLinks<K> {
   key: K,
   value: string | null
 }
 
-interface IMemberAdd {
+interface MemberAdd {
   id: string
   /** Check if user is invited in the team. @default true */
   checkInvitation?: boolean
 }
 
-interface IMemberInvite {
+interface MemberInvite {
   id: string
 }
 
-interface IMemberDelete {
+interface MemberDelete {
   id: string
   /** Check if user is invited in the team. @default true */
   declineInvite?: boolean
 }
 
-interface IMemberEdit {
+interface MemberEdit {
   id: string
 
   role?: DubberRoleType
 }
 
-interface IChangeAvatarBanner {
+interface ChangeAvatarBanner {
   file: Express.Multer.File
   userId: string
 }
 
-type TDubberModelControls = ServiceControls<IDubberCreateProps, Dubber>
+type DubberModelControlsType = ServiceControls<DubberCreateProps, Dubber>
 
 
 
-class DubberModelControls implements TDubberModelControls {
+class DubberModelControls implements DubberModelControlsType {
   readonly TestMode: boolean;
 
-  constructor(props?: IDubberCRUDProps) {
+  constructor(props?: DubberCRUDProps) {
     this.TestMode = props?.TestMode ?? TestMode;
   }
 
 
 
-  async create(props: IDubberCreateProps): Promise<Dubber> {
+  async create(props: DubberCreateProps): Promise<Dubber> {
     const { DEV_ID, TEST_MEMBERS, TEST_MEMBERS_INVITED } = props;
     let { nameUkr, nameEng } = props;
 
@@ -249,7 +249,7 @@ export class DubberService extends DubberModelControls {
 
 
   /** Changing nameEng will also change the slug */
-  async changeName({ nameEng, nameUkr }: IChangeName) {
+  async changeName({ nameEng, nameUkr }: ChangeName) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     if (nameUkr !== undefined) {
@@ -305,7 +305,7 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('description');
   }
 
-  async changeSocials({ key, value }: IPatchLinks<keyof Dubber['socials']>) {
+  async changeSocials({ key, value }: PatchLinks<keyof Dubber['socials']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
@@ -330,7 +330,7 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('socials');
   }
 
-  async changeSupport({ key, value }: IPatchLinks<keyof Dubber['support']>) {
+  async changeSupport({ key, value }: PatchLinks<keyof Dubber['support']>) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
@@ -360,7 +360,7 @@ export class DubberService extends DubberModelControls {
 
 
   /** Add member into the team. Will save the document and remove the invitation */
-  async memberAdd({ id, checkInvitation }: IMemberAdd) {
+  async memberAdd({ id, checkInvitation }: MemberAdd) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     checkInvitation = checkInvitation ?? true;
@@ -420,7 +420,7 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Edit team member */
-  async memberEdit({ id, role }: IMemberEdit) {
+  async memberEdit({ id, role }: MemberEdit) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const user = await UserModel.findOne({ id });
@@ -463,7 +463,7 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Delete member / invitation. Will save the document */
-  async memberDelete({ id, declineInvite }: IMemberDelete) {
+  async memberDelete({ id, declineInvite }: MemberDelete) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     declineInvite = declineInvite ?? true;
@@ -544,7 +544,7 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Invite member into the team. Will save the document */
-  async memberInvite({ id }: IMemberInvite) {
+  async memberInvite({ id }: MemberInvite) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     const user = await UserModel.findOne({ id });
@@ -592,7 +592,7 @@ export class DubberService extends DubberModelControls {
 
 
   /** Change dubber avatar. Will save the document */
-  async changeAvatar({ file, userId }: IChangeAvatarBanner) {
+  async changeAvatar({ file, userId }: ChangeAvatarBanner) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumAvatarSize) throw ERR_FILE_TOO_LARGE;
 
@@ -618,7 +618,7 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Change dubber banner. Will save the document */
-  async changeBanner({ file, userId }: IChangeAvatarBanner) {
+  async changeBanner({ file, userId }: ChangeAvatarBanner) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
 

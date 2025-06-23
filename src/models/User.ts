@@ -7,8 +7,7 @@ import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
 import Role from './Role';
 import UserModelNew from '~/core/models/UserModel';
 import validator from 'validator';
-import { AxiosError } from 'axios';
-import { E404, E503, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
+import { E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_LENGTH_INVALID } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { NOTIFY_EVENT } from '~/services/NotifyService';
 import { User, UserLib, UserStatistics, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
@@ -211,29 +210,17 @@ export class UserService {
       url: ''
     };
 
-    try {
-      // Upload banner
-      const uploadedById = this.user.id;
-      const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
-      UPLOAD_DATA.url = postData.url;
+    // Upload banner
+    const uploadedById = this.user.id;
+    const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
+    UPLOAD_DATA.url = postData.url;
 
-      // Remove previous banner if it not default
-      if (this.user.banner !== config.vars.defaultBanner) {
-        const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
-        const deletedById = this.user.id;
+    // Remove previous banner if it not default
+    if (this.user.banner !== config.vars.defaultBanner) {
+      const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
+      const deletedById = this.user.id;
 
-        await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById });
-      }
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        if (e.code === 'ECONNREFUSED') {
-          throw new E503('Nekomi-uploads is not available. Try in a few minutes');
-        }
-
-        throw e;
-      } else {
-        throw e;
-      }
+      await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById });
     }
 
     this.user.banner = UPLOAD_DATA.url;

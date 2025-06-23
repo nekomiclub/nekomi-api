@@ -2,13 +2,17 @@ import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from './AnimeService';
 import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
-import User, { UserLib, UserWatchProgress } from '~/core/interfaces/User.intf';
+import NekomiUploadsAPI from './API/NekomiUploads.api';
+import RoleModel from '~/core/models/RoleModel';
+import User, { UserLib, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
 import validator from 'validator';
 import { DevelopmentMode, TestMode, config } from '~/config';
-import { E400, E404, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT } from '~/services/ErrorService';
+import { E400, E404, ERR_NO_DOCUMENT } from '~/services/ErrorService';
+import { ERROR_ROLE_NOT_FOUND, ERROR_USER_LIB_NOT_FOUND, ERROR_USER_TGDATA_ID_MISS, ERROR_USER_TGTOKEN_ASSIGNED, ERROR_USER_USERNAME_INVALID, ERROR_USER_USERNAME_OCCUPIED } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
+import { NotifyEventPayload, NotifyService } from '~/services/NotifyService';
 import { ServiceControls, SinglePartial } from '~/core/interfaces/types';
 import { createSlug, createStringID, createUUID } from '~/utils/utils';
 import { getUTC } from '~/utils/utils';
@@ -41,7 +45,7 @@ interface UserLibFactoryProps {
   DEV_ID?: string
 }
 
-interface UserPatchStatistics {
+interface PatchUserStatisticProps {
   /** In seconds */
   increaseViewtime?: number
 
@@ -51,7 +55,7 @@ interface UserPatchStatistics {
 
 
 
-type TUserModelControls = ServiceControls<UserCreateProps, User>
+type UserModelControlsType = ServiceControls<UserCreateProps, User>
 export type UserPatchWatchProgressProps = SinglePartial<{
   viewtime: number
 } & UserWatchProgress, 'updatedAt'>;
@@ -59,28 +63,23 @@ export type UserPatchWatchProgressProps = SinglePartial<{
 
 
 export const ERR_LIB_NAME_INVALID = new E400(`Lib name must be between ${config.VALIDATION.User.MinimumLibNameLength} and ${config.VALIDATION.User.MaximumLibNameLength} symbols length`, 'user:lib_name_invalid');
-export const ERR_VIEWTIME_INVALID = new E400(`Lib name must be between ${config.VALIDATION.User.MinimumLibNameLength} and ${config.VALIDATION.User.MaximumLibNameLength} symbols length`, 'user:lib_name_invalid');
 
 
 
-class UserModelControls implements TUserModelControls {
+class UserModelControls implements UserModelControlsType {
   async create({ username, DEV_ID, avatar, byUserApi, savedoc }: UserCreateProps): Promise<User> {
     savedoc = savedoc ?? true;
     username = createSlug(trimString(username));
 
-    if (!byUserApi) {
-      if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_LENGTH_INVALID;
-
-      const exist = await UserModel.findOne({ username });
-      if (exist) throw new ERR_ALREADY_EXIST(`User with this username is already exist`);
-    }
+    if (!byUserApi) await this._validateUsername(username);
 
     const id = DevelopmentMode && DEV_ID ? DEV_ID : TestMode ? `~test-${createUUID()}` : createUUID();
+    avatar = avatar ?? config.vars.defaultAvatar;
 
     const instance: User = {
       id,
       username,
-      avatar: avatar ?? config.vars.defaultAvatar,
+      avatar,
       banner: config.vars.defaultBanner,
       roles: ['user'],
       watchProgress: [],
@@ -106,9 +105,9 @@ class UserModelControls implements TUserModelControls {
 
     if (savedoc) {
       await document.save();
-      Logger.info(`[UserService]: New document was created. [id: ${id}]`);
+      Logger.info(`[UserService]: New document created. [id: ${id}]`);
     } else {
-      Logger.warn(`[UserService]: New document was created but not saved. [id: ${id}]`);
+      Logger.warn(`[UserService]: New document created but not saved. [id: ${id}]`);
     }
 
     return instance;
@@ -117,13 +116,13 @@ class UserModelControls implements TUserModelControls {
   async deleteOne(id: string): Promise<void> {
     await UserModel.deleteOne({ id });
 
-    Logger.info(`[UserService]: Single document was deleted. [id: ${id}]`);
+    Logger.info(`[UserService]: Single document deleted. [id: ${id}]`);
   }
 
   async deleteMany(id: string): Promise<void> {
     const details = await UserModel.deleteMany({ id });
 
-    Logger.info(`[UserService]: Some document were deleted. [id: ${id}; count: ${details.deletedCount}]`);
+    Logger.info(`[UserService]: Multiple documents deleted. [id: ${id}; count: ${details.deletedCount}]`);
   }
 
   async getAll(details?: boolean): Promise<User[]> {
@@ -154,6 +153,19 @@ class UserModelControls implements TUserModelControls {
       return await this.getByQuery(query, details);
     } catch (e) { return null; }
   }
+
+
+
+  /** 
+   * Validate username
+   * Check if username unique
+   */
+  protected async _validateUsername(username: string) {
+    if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERROR_USER_USERNAME_INVALID;
+
+    const exist = await this.safeGetByQuery(username);
+    if (exist) throw ERROR_USER_USERNAME_OCCUPIED;
+  }
 }
 
 
@@ -175,34 +187,15 @@ export class UserService extends UserModelControls {
     this.document = document;
   }
 
-  /** Save the document
+  /** 
+   * Save the document
+   * 
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
-    try {
-      await this.document.save();
-    } catch (error) {
-      Logger.debug(`[UserService]: Cannot save the document. Retrying after 1 second...`);
-
-      await new Promise(res => {
-        setTimeout(() => {
-          res(1);
-        }, 1000);
-      });
-
-      try {
-        await this.document.save();
-      } catch (e) {
-        Logger.error(`[UserService]: Cannot save the document`, e);
-
-        const stack = this.stack;
-        this.stack = [];
-
-        return stack;
-      }
-    }
+    await this.document.save();
 
     Logger.debug(`[UserService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
@@ -217,9 +210,10 @@ export class UserService extends UserModelControls {
 
 
 
-  //* ============== AVATAR
   /**
    * Set new user avatar url
+   * 
+   * @todo test
    */
   setAvatar(url: string) {
     if (!this.document) throw ERR_NO_DOCUMENT;
@@ -232,18 +226,73 @@ export class UserService extends UserModelControls {
 
 
 
-  //* ============== BANNER 
+  /**
+   * Upload new banner
+   * Will save the document
+   * 
+   * @todo
+   */
+  async uploadBanner(file: Express.Multer.File) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    let bannerUrl: string;
+
+    // Upload banner
+    const uploadedById = this.document.id;
+    const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
+    bannerUrl = postData.url;
+
+    // Remove previous banner if current is not default
+    if (this.document.banner !== config.vars.defaultBanner) {
+      const uploadId = NekomiUploadsAPI.getUploadIdFromURL(this.document.banner);
+      const deletedById = this.document.id;
+
+      await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById });
+    }
+
+    this.stack.push(`New banner uploaded (${this.document.banner} > ${bannerUrl})`);
+
+    this.document.banner = bannerUrl;
+    this.document.markModified('banner');
+
+    await this.save();
+  }
 
 
 
-  //* ============== USERNAME
+  /**
+   * Set / remove telegram link token
+   * If token already assigned, will throw error
+   * 
+   * @todo
+   */
+  async setTelegramLinkToken(token: string | null) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    // Try to find this telegram token if it is not null
+    if (token !== null) {
+      const existUser = await UserModel.findOne({ telegramLinkToken: token, id: { $ne: this.document.id } });
+      if (existUser) throw ERROR_USER_TGTOKEN_ASSIGNED;
+    }
+
+    this.stack.push(`Telegram link token changed (${this.user.telegramLinkToken} > ${token})`);
+    this.user.telegramLinkToken = token;
+
+    this.document.markModified('telegramLinkToken');
+  }
+
+
+
   /**
    * Set new username
    * 
    * @param force Will skip any checks
+   * @todo test
    */
   async setUsername(username: string, force?: boolean) {
     if (!this.document) throw ERR_NO_DOCUMENT;
+
+    if (!force) await this._validateUsername(username);
 
     this.stack.push(`Username changed (${this.document.username} > ${username})`);
     this.document.username = username;
@@ -253,12 +302,11 @@ export class UserService extends UserModelControls {
 
 
 
-  //* ============== TELEGRAM DATA
-
-
-
-  //* ============== WATCH PROGRESS
-  /** Patch watch progress & increase total viewtime */
+  /** 
+   * Patch watch progress & increase total viewtime
+   * 
+   * @todo test
+   */
   async patchWatchProgress(props: UserPatchWatchProgressProps) {
     if (!this.document) throw ERR_NO_DOCUMENT;
     const { dubberID, episodeOrder, progress, titleID, viewtime } = props;
@@ -292,7 +340,14 @@ export class UserService extends UserModelControls {
     this.document.markModified('watchProgress');
   }
 
-  async deleteWatchProgress({ animeId }: { animeId: string }) {
+
+
+  /**
+   * Delete anime watch progress
+   * 
+   * @todo test
+   */
+  async deleteWatchProgress(animeId: string) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
     this.document.watchProgress = this.document.watchProgress.filter(el => el.titleID !== animeId);
@@ -303,43 +358,46 @@ export class UserService extends UserModelControls {
 
 
 
-  //* ============== STATISTICS
-  async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: UserPatchStatistics) {
+  /**
+   * Patch statistics
+   * 
+   * @todo test
+   */
+  async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: PatchUserStatisticProps) {
     if (!this.document) throw ERR_NO_DOCUMENT;
 
+    // Increase viewtime
     if (increaseViewtime !== undefined) {
       if (increaseViewtime > config.VALIDATION.User.MaximumIncreaseViewtime) increaseViewtime = config.VALIDATION.User.MaximumIncreaseViewtime;
 
       const prevViewtime = this.user.statistics.viewtime;
 
       this.user.statistics.viewtime += increaseViewtime;
-
       this.stack.push(`Viewtime increased. [by: ${increaseViewtime} (${prevViewtime} > ${prevViewtime + increaseViewtime})]`);
     }
 
+    // Dubber team member
     if (dubberTeamMember !== undefined) {
       const prevTeam = this.user.statistics.dubber_team_member;
 
       if (dubberTeamMember === null) {
         this.user.statistics.dubber_team_member = dubberTeamMember;
-
         this.stack.push(`Kicked from dubber team. [member: ${prevTeam} > ${dubberTeamMember}]`);
 
         return;
       }
 
-      const dubber = await new DubberService().getById(dubberTeamMember, true);
+      await new DubberService().getById(dubberTeamMember, true);
 
       this.user.statistics.dubber_team_member = dubberTeamMember;
-
       this.stack.push(`Dubber team member changed. [member: ${prevTeam} > ${dubberTeamMember}]`);
     }
 
+    // Link telegram
     if (isTelegramLinked !== undefined) {
       const prevStatus = this.user.statistics.isTelegramLinked;
 
       this.user.statistics.isTelegramLinked = isTelegramLinked;
-
       this.stack.push(`Telegram link status changed. [linked: ${prevStatus} > ${isTelegramLinked}]`);
     }
 
@@ -348,7 +406,173 @@ export class UserService extends UserModelControls {
 
 
 
-  //* ============== LIBS
+  /** 
+   * Patch telegram data
+   * 
+   * @param remove Purge data
+   * @todo
+   */
+  patchTelegramData({ id }: Partial<UserTelegramData>, remove?: boolean) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    if (remove) {
+      this.document.telegramData = null;
+
+      this.stack.push(`Telegram data purged`);
+      this.document.markModified('telegramData');
+
+      return;
+    }
+
+    if (!this.document.telegramData && !id) throw ERROR_USER_TGDATA_ID_MISS;
+
+    this.document.telegramData = this.document.telegramData ?? {
+      id: id!
+    };
+
+    if (id) {
+      this.document.telegramData.id = id;
+      this.stack.push(`Telegram data updated (${this.document.telegramData.id} > ${id})`);
+    }
+
+    this.document.markModified('telegramData');
+  }
+
+
+
+  /**
+   * Add anime in lib
+   * 
+   * @todo
+   */
+  async addInLib(libId: string, animeId: string) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    // Check if anime exist
+    await new AnimeService().getById(animeId);
+
+    const lib = this.document.libs.find(el => el.id === libId);
+    if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
+
+    // Skip if anime already in
+    if (lib.titles.includes(animeId)) return;
+
+    lib.titles.push(animeId);
+
+    this.document.markModified('libs');
+    this.stack.push(`Anime ${animeId} added in lib ${libId}`);
+
+  }
+
+
+
+  /**
+   * Remove anime from lib
+   * 
+   * @todo
+   */
+  removeFromLib(libId: string, animeId: string) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const lib = this.document.libs.find(el => el.id === libId);
+    if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
+
+    // Skip if lib does not include anime
+    if (!lib.titles.includes(animeId)) return;
+
+    lib.titles = lib.titles.filter(el => el !== animeId);
+
+    this.document.markModified('libs');
+    this.stack.push(`Anime ${animeId} removed from lib ${libId}`);
+  }
+
+
+
+  /** 
+   * Add role
+   * 
+   * @param slug ID or code
+   * @todo
+   */
+  async addRole(slug: string) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const role = await RoleModel.findOne({ $or: [{ code: slug }, { id: slug }] });
+    if (!role) throw ERROR_ROLE_NOT_FOUND;
+
+    // Skip if user already have this role
+    if (this.document.roles.includes(slug)) return;
+
+    this.document.roles.push(role.code);
+
+    this.document.markModified('roles');
+    this.stack.push(`Role added (${role.code})`);
+  }
+
+
+
+  /**
+   * Remove role
+   * 
+   * @param slug ID or code
+   * @todo
+   */
+  async removeRole(slug: string) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    // Skip if user roles does not include this
+    if (!this.document.roles.includes(slug)) return;
+
+    this.document.roles = this.document.roles.filter(el => el !== slug);
+
+    this.document.markModified('roles');
+    this.stack.push(`Role removed (${slug})`);
+  }
+
+
+
+  /**
+   * Add subscription
+   * 
+   * @todo
+   */
+  addSubscribe({ event, payload }: NotifyEventPayload<string>) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const subscription = NotifyService.createEvent({ event, key: payload });
+
+    // Skip if subscription already exist
+    if (this.document.subscribes.includes(subscription)) return;
+
+    this.document.subscribes.push(subscription);
+
+    this.document.markModified('subscribes');
+    this.stack.push(`Subscription added (${subscription})`);
+  }
+
+
+
+  /**
+   * Remove subscription
+   * 
+   * @todo
+   */
+  removeSubscribe({ event, payload }: NotifyEventPayload<string>) {
+    if (!this.document) throw ERR_NO_DOCUMENT;
+
+    const subscription = NotifyService.createEvent({ event, key: payload });
+
+    // Skip if subscription does not exist
+    if (!this.document.subscribes.includes(subscription)) return;
+
+    this.document.subscribes = this.document.subscribes.filter(el => el !== subscription);
+
+    this.document.markModified('subscribes');
+    this.stack.push(`Subscription removed (${subscription})`);
+  }
+
+
+
   /**
    * Fix user lib anime documents, remove documents that are not exist
    * Will save the document
@@ -375,14 +599,6 @@ export class UserService extends UserModelControls {
 
     return lib;
   }
-
-
-
-  //* ============== SUBSCRIBES
-
-
-
-  //* ============== ROLES
 }
 
 

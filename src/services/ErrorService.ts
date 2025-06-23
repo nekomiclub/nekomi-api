@@ -35,9 +35,26 @@ export enum ERROR {
 
 
 
+  // === ROLES ===
+  ROLE_NOT_FOUND = 'role:not_found',
+
+
+
   // === AUTH ===
   AUTH_SESSION_EXPIRED = 'auth:session_expired',
-  AUTH_CSRF_INVALID = 'auth:csrf_invalid'
+  AUTH_CSRF_INVALID = 'auth:csrf_invalid',
+
+
+
+  // === USER ===
+  USER_USERNAME_INVALID = 'user:username_invalid',
+  USER_USERNAME_OCCUPIED = 'user:username_occupied',
+
+  USER_LIB_NAME_INVALID = 'user:lib:name_invalid',
+  USER_LIB_NOT_FOUND = 'user:lib:not_found',
+
+  USER_TGTOKEN_ASSIGNED = 'user:telegram:token_already_assigned',
+  USER_TGDATA_ID_MISS = 'user:telegram:data_id_miss',
 }
 
 
@@ -158,7 +175,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         const message = `[AXIOS/503]: Connection refused`;
         Logger.error(`[AXIOS/503]: Connection to ${reqURL} refused`);
 
-        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
+        return res.status(503).json({ message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
       } else {
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
@@ -182,6 +199,15 @@ export async function HandleRequest(req: express.Request, res: express.Response,
       return res.status(500).json({ message: emsg, date });
     }
   }
+}
+
+/** Handle service ECONNREFUSED (503) error */
+export function HandleAPIErorr(e: unknown, apiname: string): never {
+  if (e instanceof AxiosError && e.code === 'ECONNREFUSED') {
+    throw new E503(`${apiname} is currently not available. Try again in a few minutes or send the report`);
+  }
+
+  throw e;
 }
 
 

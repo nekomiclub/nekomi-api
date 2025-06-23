@@ -18,13 +18,13 @@ export interface FullkekwUserAPI_Verify {
   avatar: string
 }
 
-export interface FullkekwUserAPI_TokenData {
+export interface FullkekwUserAPI_RefreshPayload {
   id: string
   username: string
   avatar: string
 }
 
-export interface FullkekwUserAPI_Session {
+export interface FullkekwUserAPI_SessionTokenPayload {
   userId: string
   sessionId: string
   timestamp: number
