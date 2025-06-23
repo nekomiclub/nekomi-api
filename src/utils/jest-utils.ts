@@ -1,8 +1,8 @@
 import express from 'express';
 import { ERROR, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR_BASE_MOCK_UNDEFINED } from '~/services/Exceptions';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { config } from '~/config';
 
 
@@ -40,11 +40,11 @@ function getMock<T = any>(req: express.Request, id: MockID): T {
 
 
 
-export const MockCheckCSRF = (payload: FullkekwAuthorityAPI_TokenVerify) => createMock(MockID.CheckCSRF, payload);
-export const GetCheckCSRFMock = (req: express.Request) => getMock<FullkekwAuthorityAPI_TokenVerify>(req, MockID.CheckCSRF);
+export const MockCheckCSRF = (payload: FullkekwAuthority_TokenVerify) => createMock(MockID.CheckCSRF, payload);
+export const GetCheckCSRFMock = (req: express.Request) => getMock<FullkekwAuthority_TokenVerify>(req, MockID.CheckCSRF);
 
-export const MockAccessCheck = (payload: FullkekwUserAPI_Verify) => createMock(MockID.CheckAccess, payload);
-export const GetCheckAccessMock = (req: express.Request) => getMock<FullkekwUserAPI_Verify>(req, MockID.CheckAccess);
+export const MockAccessCheck = (payload: FullkekwUser_Verify) => createMock(MockID.CheckAccess, payload);
+export const GetCheckAccessMock = (req: express.Request) => getMock<FullkekwUser_Verify>(req, MockID.CheckAccess);
 
 
 

@@ -12,11 +12,11 @@ const APINAME = 'nekomi-bot';
 
 
 /** @version 2.1.0 */
-export class NekomiBotAPI {
+export class NekomiBot {
   static async broadcast(payload: NekomiBot_PostBroadcast) {
     try {
       const url = `${baseURL}/broadcast`;
-      Logger.trace(`[NekomiBotAPI]: POST - ${url.replace(baseURL, '')}`);
+      Logger.trace(`[NekomiBot]: POST - ${url.replace(baseURL, '')}`);
 
       await $http.post(url, payload);
     } catch (e) {
@@ -27,4 +27,4 @@ export class NekomiBotAPI {
 
 
 
-export default NekomiBotAPI;
+export default NekomiBot;

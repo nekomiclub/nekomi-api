@@ -1,5 +1,5 @@
 import { $upload } from '~/services/HTTPService';
-import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploadsAPI_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
+import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploads_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { HandleAPIError } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
@@ -27,12 +27,12 @@ const APINAME = 'nekomi-uploads';
 
 
 /** @version 2.1.0 */
-export class NekomiUploadsAPI {
+export class NekomiUploads {
   static getUploadIdFromURL(url: string): string {
     return url.split('/')[url.split('/').length - 1];
   }
 
-  static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps): Promise<NekomiUploadsAPI_UploadFile> {
+  static async uploadFile({ file, uploadedById, type, qualities }: IUploadFileProps): Promise<NekomiUploads_UploadFile> {
     try {
       const { buffer, originalname, mimetype } = file;
 
@@ -49,7 +49,7 @@ export class NekomiUploadsAPI {
       const url = `${baseURL}/upload`;
       Logger.trace(`[NekomiUploads]: POST - ${url.replace(baseURL, '')}`);
 
-      const { data } = await $upload.post<NekomiUploadsAPI_UploadFile>(url, formData);
+      const { data } = await $upload.post<NekomiUploads_UploadFile>(url, formData);
 
       Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
 
@@ -80,4 +80,4 @@ export class NekomiUploadsAPI {
 
 
 
-export default NekomiUploadsAPI;
+export default NekomiUploads;

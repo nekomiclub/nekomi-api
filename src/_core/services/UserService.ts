@@ -2,7 +2,7 @@ import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from './AnimeService';
 import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
-import NekomiUploadsAPI from './API/NekomiUploads.api';
+import NekomiUploads from './API/NekomiUploads.api';
 import RoleModel from '~/core/models/RoleModel';
 import User, { UserLib, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
@@ -223,15 +223,15 @@ export class UserService extends UserModelControls {
 
     // Upload banner
     const uploadedById = this.document.id;
-    const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
+    const postData = await NekomiUploads.uploadFile({ file, type: 'photo/user/banner', uploadedById });
     bannerUrl = postData.url;
 
     // Remove previous banner if current is not default
     if (this.document.banner !== config.vars.defaultBanner) {
-      const uploadId = NekomiUploadsAPI.getUploadIdFromURL(this.document.banner);
+      const uploadId = NekomiUploads.getUploadIdFromURL(this.document.banner);
       const deletedById = this.document.id;
 
-      await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById });
+      await NekomiUploads.deleteUpload({ id: uploadId, deletedById });
     }
 
     this.stack.push(`New banner uploaded (${this.document.banner} > ${bannerUrl})`);

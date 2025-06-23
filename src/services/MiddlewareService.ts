@@ -1,12 +1,12 @@
-import FullkekwAuthorityAPI from '~/core/services/API/FullkekwAuthority.api';
-import FullkekwUserAPI from '~/core/services/API/FullkekwUser.api';
+import FullkekwAuthority from '~/core/services/API/FullkekwAuthority.api';
+import FullkekwUser from '~/core/services/API/FullkekwUser.api';
 import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
 import { AxiosError } from 'axios';
 import { E403 } from './ErrorService';
 import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_BASE_MOCK_UNDEFINED } from './Exceptions';
-import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
+import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode } from '~/config';
@@ -18,14 +18,14 @@ interface CheckAccessProps {
   token: string
 
   capabilities?: RoleCapability[]
-  mock?: FullkekwUserAPI_Verify
+  mock?: FullkekwUser_Verify
 }
 
 interface CheckCSRFProps {
   token: string
 
   origins?: string[]
-  mock?: FullkekwAuthorityAPI_TokenVerify
+  mock?: FullkekwAuthority_TokenVerify
 }
 
 export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
@@ -47,7 +47,7 @@ export class MiddlewareService {
   async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: User, capabilities: RoleCapability[] }> {
     capabilities = capabilities ?? [];
 
-    const session: FullkekwUserAPI_Verify = {
+    const session: FullkekwUser_Verify = {
       id: '',
       avatar: '',
       username: '',
@@ -58,7 +58,7 @@ export class MiddlewareService {
 
     if (!TestMode) {
       try {
-        const sessionData = await FullkekwUserAPI.refreshAuth({ sessionCookie: token });
+        const sessionData = await FullkekwUser.refreshAuth({ sessionCookie: token });
 
         session.id = sessionData.id;
         session.username = sessionData.username;
@@ -127,14 +127,14 @@ export class MiddlewareService {
   async checkCSRF({ token, origins, mock }: CheckCSRFProps): Promise<string> {
     origins = origins ?? [];
 
-    const csrf: FullkekwAuthorityAPI_TokenVerify = {
+    const csrf: FullkekwAuthority_TokenVerify = {
       origin: '',
       verified: false
     };
 
     if (!TestMode) {
 
-      const data = await FullkekwAuthorityAPI.verifyToken({ token });
+      const data = await FullkekwAuthority.verifyToken({ token });
 
       csrf.origin = data.origin;
       csrf.verified = data.verified;

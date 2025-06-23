@@ -2,7 +2,7 @@ import { RoleCapability } from '~/core/interfaces/Role.intf';
 
 
 
-export interface FullkekwUserAPI_GetUser {
+export interface FullkekwUser_GetUser {
   user: {
     id: string
     username: string
@@ -11,20 +11,20 @@ export interface FullkekwUserAPI_GetUser {
   }
 }
 
-export interface FullkekwUserAPI_Verify {
+export interface FullkekwUser_Verify {
   id: string
   capabilities: RoleCapability[]
   username: string
   avatar: string
 }
 
-export interface FullkekwUserAPI_RefreshPayload {
+export interface FullkekwUser_RefreshPayload {
   id: string
   username: string
   avatar: string
 }
 
-export interface FullkekwUserAPI_SessionTokenPayload {
+export interface FullkekwUser_SessionTokenPayload {
   userId: string
   sessionId: string
   timestamp: number

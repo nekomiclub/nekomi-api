@@ -2,7 +2,7 @@ import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_S
 import AnimeModel from '~/core/models/AnimeModel';
 import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
-import NekomiUploadsAPI from './API/NekomiUploads.api';
+import NekomiUploads from './API/NekomiUploads.api';
 import Search from '~/services/SearchService';
 import User from '~/core/interfaces/User.intf';
 import validator from 'validator';
@@ -13,9 +13,9 @@ import { ERROR_ANIME_NOT_FOUND } from '~/services/Exceptions';
 import { ERROR_BASE_NO_DOCUMENT } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
-import { MALAPI } from './API/MAL.api';
 import { MALGenres } from '~/utils/data-mappers';
 import { MALStudios } from '~/utils/data-mappers';
+import { MyAnimeList } from './API/MyAnimeList.api';
 import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { NOTIFY_EVENT, Notify } from '~/services/NotifyService';
 import { NotifyAiringStartedProps } from '~/services/NotifyService';
@@ -724,7 +724,7 @@ export class AnimeService extends AnimeModelControls {
     ];
 
     try {
-      const node = await MALAPI.getAnime({ id: this.document.malId, fields });
+      const node = await MyAnimeList.getAnime({ id: this.document.malId, fields });
 
 
 
@@ -845,7 +845,7 @@ export class AnimeService extends AnimeModelControls {
     const capabilities = await parseRoles(user.roles);
     if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new E403;
 
-    const oldPosterId = NekomiUploadsAPI.getUploadIdFromURL(this.document.poster);
+    const oldPosterId = NekomiUploads.getUploadIdFromURL(this.document.poster);
     const oldPosterURL = this.document.poster;
     let newUploadId: string | null = null;
     let newUploadURL: string | null = null;
@@ -854,7 +854,7 @@ export class AnimeService extends AnimeModelControls {
 
     // Upload new poster
     if (!TestMode) {
-      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
+      const res = await NekomiUploads.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
 
       newUploadId = res.id;
       newUploadURL = res.url;
@@ -885,7 +885,7 @@ export class AnimeService extends AnimeModelControls {
     if (oldPosterURL.match(uploadsOrigin) && oldPosterURL !== config.vars.defaultPoster) {
       if (!TestMode) {
         try {
-          await NekomiUploadsAPI.deleteUpload({ id: oldPosterId, deletedById: user.id });
+          await NekomiUploads.deleteUpload({ id: oldPosterId, deletedById: user.id });
           Logger.info(`[AnimeSerivce/${this.document.uuid}]: Old anime poster removed. [id: ${oldPosterId}; by: ${user.id}]`);
         } catch (e) {
           Logger.fail(`[AnimeService/${this.document.uuid}]: Failed remove old anime poster. [id: ${oldPosterId}]`);
@@ -927,7 +927,7 @@ export class AnimeService extends AnimeModelControls {
 
     // Upload episode
     if (!TestMode) {
-      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
+      const res = await NekomiUploads.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
 
       episodeId = res.id;
       episodeFrames = res.frames ?? 0;
@@ -1036,11 +1036,11 @@ export class AnimeService extends AnimeModelControls {
       return {};
     }
 
-    const uploadId = NekomiUploadsAPI.getUploadIdFromURL(episode.qualities.q1080);
+    const uploadId = NekomiUploads.getUploadIdFromURL(episode.qualities.q1080);
 
     // Delete episode
     if (!TestMode) {
-      await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
+      await NekomiUploads.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
     }
 
     const msg = `Episode deleted. [id: ${uploadId}; dubberId: ${dubberId}; order: ${order}]`;

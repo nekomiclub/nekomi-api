@@ -1,6 +1,6 @@
 import express from 'express';
 
-import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
+import NekomiUploads from '~/core/services/API/NekomiUploads.api';
 import { ERR_INVALID_PAYLOAD, ERR_MIDDLEWARE_REQUIRED, HandleRequest } from '~/services/ErrorService';
 import { NekomiUploadType } from '~/core/interfaces/API/NekomiUploadsAPI';
 
@@ -25,7 +25,7 @@ export async function postUpload(req: express.Request, res: express.Response) {
       id: '',
     };
 
-    const postData = await NekomiUploadsAPI.uploadFile({ file, type, uploadedById: userID! });
+    const postData = await NekomiUploads.uploadFile({ file, type, uploadedById: userID! });
 
     UPLOAD_DATA.url = postData.url;
     UPLOAD_DATA.id = postData.id;
@@ -44,7 +44,7 @@ export async function deleteUpload(req: express.Request, res: express.Response) 
     const { id } = req.params as { id: string };
     const userID = req.nekomi.user?.id;
 
-    await NekomiUploadsAPI.deleteUpload({ id, deletedById: userID!, withChildren: true });
+    await NekomiUploads.deleteUpload({ id, deletedById: userID!, withChildren: true });
 
     return res.status(200).json({ message: `Upload removed`, });
   });

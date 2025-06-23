@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import * as cfg from '~/config';
 import AnimeService from '~/core/services/AnimeService';
 import DubberModel from '~/core/models/DubberModel';
-import NekomiUploadsAPI from '~/core/services/API/NekomiUploads.api';
+import NekomiUploads from '~/core/services/API/NekomiUploads.api';
 import Role from './Role';
 import UserModelNew from '~/core/models/UserModel';
 import validator from 'validator';
@@ -212,7 +212,7 @@ export class UserService {
 
     // Upload banner
     const uploadedById = this.user.id;
-    const postData = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById });
+    const postData = await NekomiUploads.uploadFile({ file, type: 'photo/user/banner', uploadedById });
     UPLOAD_DATA.url = postData.url;
 
     // Remove previous banner if it not default
@@ -220,7 +220,7 @@ export class UserService {
       const uploadID = this.user.banner.split('/')[this.user.banner.split('/').length - 1];
       const deletedById = this.user.id;
 
-      await NekomiUploadsAPI.deleteUpload({ id: uploadID, deletedById });
+      await NekomiUploads.deleteUpload({ id: uploadID, deletedById });
     }
 
     this.user.banner = UPLOAD_DATA.url;

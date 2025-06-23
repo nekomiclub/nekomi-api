@@ -12,7 +12,7 @@ import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
 import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
-import { FullkekwUserAPI_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
+import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
 import { getRequestIP } from './services/HTTPService';
 import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
@@ -56,7 +56,7 @@ app.options('*', cors(CORSOpt));
 //* Trace requests & set nekomi internal object
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const IP = getRequestIP(req.headers);
-  const session = TokenService.decode<FullkekwUserAPI_SessionTokenPayload>(req.cookies[config.vars.sessionCookie] ?? '');
+  const session = TokenService.decode<FullkekwUser_SessionTokenPayload>(req.cookies[config.vars.sessionCookie] ?? '');
 
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
   req.nekomi = req.nekomi !== undefined ? req.nekomi : {};

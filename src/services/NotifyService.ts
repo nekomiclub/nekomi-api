@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
-import NekomiBotAPI from '~/core/services/API/NekomiBot.api';
+import NekomiBot from '~/core/services/API/NekomiBot.api';
 import User, { UserService } from '~/models/User';
 import { DevelopmentMode, config } from '~/config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
@@ -107,7 +107,7 @@ async function new_episode({ event, payload }: NotifyEventPayload<NotifyNewEpiso
   const audience = users.map(el => el.telegramData!.id!);
 
 
-  await NekomiBotAPI.broadcast({
+  await NekomiBot.broadcast({
     audience,
     message: `🆕 ${episodeOrder} серія в озвученні ${dubber.nameUkr} завантажена на nekomi.club!\n\n🎬 ${anime.names.ukr} / ${anime.names.eng}\n`,
     photo: anime.poster,
@@ -131,7 +131,7 @@ async function airing_started({ event, payload }: NotifyEventPayload<NotifyAirin
   const users = (await User.find({ subscribes: NotifyService.createEvent({ event, key: anime.uuid }) })).filter(el => el.statistics.isTelegramLinked);
   const audience = users.map(el => el.telegramData!.id!);
 
-  await NekomiBotAPI.broadcast({
+  await NekomiBot.broadcast({
     audience,
     message: `🎉 Почалась трансляція анонсованого аніме!\n\n🎬 ${anime.names.ukr} / ${anime.names.eng}`,
     photo: anime.poster,
@@ -187,7 +187,7 @@ async function HANDLER_dubber_tell({ event, payload }: NotifyEventPayload<Notify
     message = `😥 Тебе виключили з команди озвучення [${dubber.nameUkr}](${config.URL.nekomi_site}/dub/${dubber.slug}), і таке трапляється...`;
   }
 
-  await NekomiBotAPI.broadcast({
+  await NekomiBot.broadcast({
     audience,
     message,
     replyMarkup

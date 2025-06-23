@@ -9,7 +9,7 @@ export type NekomiUploadType =
   | 'photo/raw'
   | 'video/title/episode'
 
-export interface NekomiUploadsAPI_UploadFile {
+export interface NekomiUploads_UploadFile {
   id: string
   url: string
   srt_id?: string
