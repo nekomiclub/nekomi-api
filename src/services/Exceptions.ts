@@ -3,10 +3,10 @@ import { E400, E401, E403, E404, E500, ERROR } from './ErrorService';
 
 
 // === BASE ===
-export const ERROR_BASE_MIDDLEWARE_REQUIRED = new E500(`Request not passed throught required middleware and was rejected`, ERROR.BASE_MIDDLEWARE_REQUIRED);
-export const ERROR_BASE_MOCK_UNDEFINED = new E500(`Mock data not passed into the function`, ERROR.BASE_MOCK_UNDEFINED);
-export const ERROR_BASE_NO_DOCUMENT = new E500(`HydratedDocument not passed into the Service Contstructor`, ERROR.BASE_NO_DOCUMENT);
-export const ERROR_BASE_FILE_TOO_LARGE = new E400(`Uploaded file too large`, ERROR.BASE_FILE_TOO_LARGE);
+export const ERROR_MIDDLEWARE_REQUIRED = new E500(`Request not passed throught required middleware and was rejected`, ERROR.BASE_MIDDLEWARE_REQUIRED);
+export const ERROR_MOCK_UNDEFINED = new E500(`Mock data not passed into the function`, ERROR.BASE_MOCK_UNDEFINED);
+export const ERROR_NO_DOCUMENT = new E500(`HydratedDocument not passed into the Service Contstructor`, ERROR.BASE_NO_DOCUMENT);
+export const ERROR_FILE_TOO_LARGE = new E400(`Uploaded file too large`, ERROR.BASE_FILE_TOO_LARGE);
 
 
 
@@ -41,4 +41,10 @@ export const ERROR_USER_TGDATA_ID_MISS = new E500(`Cannot update user telegram d
 
 
 // === ANIME ===
-export const ERROR_ANIME_NOT_FOUND = new E500(`Anime not found`, ERROR.ANIME_NOT_FOUND);
+export const ERROR_ANIME_NOT_FOUND = new E404(`Anime not found`, ERROR.ANIME_NOT_FOUND);
+export const ERROR_ANIME_EPISODE_NOT_FOUND = new E404(`Anime episode not found`, ERROR.ANIME_EPISODE_NOT_FOUND);
+
+
+
+// === DUBBER ===
+export const ERROR_DUBBER_NOT_FOUND = new E404(`Dubber not found`, ERROR.DUBBER_NOT_FOUND);

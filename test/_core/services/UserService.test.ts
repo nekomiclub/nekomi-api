@@ -4,14 +4,16 @@ process.argv.push('devMode');
 
 
 import AnimeModel from '~/core/models/AnimeModel';
+import AnimeService from '~/core/services/AnimeService';
+import DubberModel from '~/core/models/DubberModel';
 import RoleModel from '~/core/models/RoleModel';
 import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
 import { ERROR } from '~/services/ErrorService';
 import { NOTIFY_EVENT, NotifyEventPayload } from '~/services/NotifyService';
+import { TestFile, shouldfail } from '~/utils/jest-utils';
 import { config } from '~/config';
 import { createStringID } from '~/utils/utils';
-import { shouldfail } from '~/utils/jest-utils';
 
 
 
@@ -26,6 +28,7 @@ beforeAll(() => {
 
 describe('UserService', () => {
   const userService = new UserService();
+  const animeService = new AnimeService();
 
 
 
@@ -33,6 +36,9 @@ describe('UserService', () => {
   beforeAll(async () => {
     const user = await userService.create({ username: createStringID(8) });
     await userService.init(user.id);
+
+    const anime = await animeService.create({ nameEng: createStringID(12) });
+    await animeService.init(anime.uuid);
   });
 
 
@@ -51,21 +57,45 @@ describe('UserService', () => {
 
 
   /**
-   * [todo] Must upload banner
-   * [todo] Must delete old banner if it is not default
+   * [+] Must upload banner
+   * [+] Must delete old banner if it is not default
    */
   it('should upload banner', async () => {
+    expect(userService.document?.banner).toBe(config.vars.defaultBanner);
 
+    const uploadPayload = await userService.uploadBanner(TestFile);
+    expect(uploadPayload.oldBannerRemoved).toBeFalsy();
+
+    const uploadPayload2 = await userService.uploadBanner(TestFile);
+    expect(uploadPayload2.oldBannerRemoved).toBeTruthy();
   });
 
 
 
   /**
-   * [todo] Must assign telegram link token
-   * [todo] Must throw an error is token already assigned
+   * [+] Must assign telegram link token
+   * [+] Must throw an error is token already assigned
    */
   it('should set telegram link token', async () => {
+    const token = 'tgtoken000';
 
+    await userService.setTelegramLinkToken(token);
+    expect(userService.document?.telegramLinkToken).toBe(token);
+
+    await userService.setTelegramLinkToken(null);
+    expect(userService.document?.telegramLinkToken).toBe(null);
+
+    // Token already assigned
+    shouldfail(async () => {
+      const newToken = 'tgtoken111';
+
+      const newUserService = new UserService();
+      const newUser = await newUserService.create({ username: 'hellobob' });
+      await newUserService.init(newUser.id);
+      await newUserService.setTelegramLinkToken(newToken);
+
+      await userService.setTelegramLinkToken(newToken);
+    }, ERROR.USER_TGTOKEN_ASSIGNED);
   });
 
 
@@ -84,43 +114,133 @@ describe('UserService', () => {
 
 
   /**
-   * [todo] Must update progress for exist record
-   * [todo] Must create new progress record if not exist
-   * [todo] Must increase total user viewtime
+   * [+] Must create new progress record if not exist
+   * [+] Must update progress for exist record
+   * [+] Must check that episode, dubber & anime exist
    */
   it('should patch watch progress', async () => {
+    const dubber = (await DubberModel.find())[0];
+    const anime = animeService.anime;
 
+    // Push anime episode
+    animeService.document!.episodes = [{ dubberID: dubber.id, frames: [], order: 12, qualities: { q1080: '', q240: '', q480: '', q4k: '', q720: ' ' } }];
+    animeService.document?.markModified('episodes');
+    await animeService.document?.save();
+
+    //* Create new record
+    await userService.patchWatchProgress({ dubberID: dubber.id, titleID: anime.uuid, episodeOrder: 12, progress: 42.12 });
+    expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubber.id)?.episodeOrder).toBe(12);
+
+    //* Update record
+    await userService.patchWatchProgress({ dubberID: dubber.id, titleID: anime.uuid, episodeOrder: 4, progress: 42.12 });
+    expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubber.id)?.episodeOrder).toBe(4);
+
+    // Anime does not exist
+    shouldfail(async () => {
+      await userService.patchWatchProgress({ dubberID: dubber.id, titleID: '_INVALID', episodeOrder: 42, progress: 42.12 });
+    }, ERROR.ANIME_NOT_FOUND);
+
+    // Dubber does not exist
+    shouldfail(async () => {
+      await userService.patchWatchProgress({ dubberID: '_INVALID', titleID: anime.uuid, episodeOrder: 42, progress: 42.12 });
+    }, ERROR.DUBBER_NOT_FOUND);
+
+    // Episode does not exist
+    shouldfail(async () => {
+      await userService.patchWatchProgress({ dubberID: dubber.id, titleID: anime.uuid, episodeOrder: 42, progress: 42.12 });
+    }, ERROR.ANIME_EPISODE_NOT_FOUND);
   });
 
 
 
   /**
-   * [todo] Must delete watch progress record
+   * [+] Must delete watch progress record
    */
   it('should delete watch progress', async () => {
+    const dubberId = '1212';
+    const anime = animeService.anime;
 
+    userService.document?.watchProgress.push({
+      dubberID: dubberId,
+      episodeOrder: 3,
+      progress: 42.12,
+      titleID: anime.uuid,
+      updatedAt: 0
+    });
+
+    expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubberId)).toBeTruthy();
+
+    userService.deleteWatchProgress(anime.uuid);
+    expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubberId)).toBeFalsy();
   });
 
 
 
   /**
-   * [todo] Must increase viewtime
-   * [todo] Must set dubber_team_member
-   * [todo] Must set isTelegramLinked
+   * [+] Must increase viewtime
+   * [+] Must limit increasing viewtime
+   * [+] Must set dubber_team_member
+   * [+] Must check if dubber exist in dubberTeamMember 
+   * [+] Must set isTelegramLinked
    */
   it('should patch statistics', async () => {
+    //* increase viewtime
+    await userService.patchStatistics({ increaseViewtime: 12 });
+    await userService.patchStatistics({ increaseViewtime: 12 });
 
+    expect(userService.document?.statistics.viewtime).toBe(24);
+
+    // increase max viewtime
+    await userService.patchStatistics({ increaseViewtime: config.VALIDATION.User.MaximumIncreaseViewtime + 10 }); // + 10 will be skipped
+
+    expect(userService.document?.statistics.viewtime).toBe(config.VALIDATION.User.MaximumIncreaseViewtime + 24);
+
+    //* dubber team member
+    const dubber = (await DubberModel.find())[0];
+
+    await userService.patchStatistics({ dubberTeamMember: dubber.id });
+
+    // invalid dubber
+    shouldfail(async () => {
+      await userService.patchStatistics({ dubberTeamMember: '_INVALID' });
+    }, ERROR.DUBBER_NOT_FOUND);
+
+    //* is telegram linked
+    await userService.patchStatistics({
+      isTelegramLinked: true
+    });
+
+    expect(userService.document?.statistics.isTelegramLinked).toBe(true);
   });
 
 
 
   /**
-   * [todo] Must patch telegram data & create if not exist
-   * [todo] Must remove telegram data
-   * [todo] Must throw an error is telegram data not exist & id is not provided
+   * [+] Must patch telegram data & create if not exist
+   * [+] Must remove telegram data
+   * [+] Must throw an error is telegram data not exist & id is not provided
    */
   it('should patch telegram data', async () => {
+    const id = 111;
 
+    //* Create telegram data
+    userService.patchTelegramData({ id });
+    expect(userService.document?.telegramData?.id).toBe(id);
+
+    //* Edit telegram data
+    const id2 = 222;
+
+    userService.patchTelegramData({ id: id2 });
+    expect(userService.document?.telegramData?.id).toBe(id2);
+
+    //* Remove telegram data
+    userService.patchTelegramData({}, true);
+    expect(userService.document?.telegramData).toBe(null);
+
+    // Cannot create telegram data due to id miss
+    shouldfail(async () => {
+      userService.patchTelegramData({});
+    }, ERROR.USER_TGDATA_ID_MISS);
   });
 
 

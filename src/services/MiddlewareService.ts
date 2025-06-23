@@ -4,7 +4,7 @@ import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
 import { AxiosError } from 'axios';
 import { E403 } from './ErrorService';
-import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_BASE_MOCK_UNDEFINED } from './Exceptions';
+import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_MOCK_UNDEFINED } from './Exceptions';
 import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
@@ -71,7 +71,7 @@ export class MiddlewareService {
         throw e;
       }
     } else {
-      if (!mock) throw ERROR_BASE_MOCK_UNDEFINED;
+      if (!mock) throw ERROR_MOCK_UNDEFINED;
 
       session.id = mock.id;
       session.capabilities = mock.capabilities;
@@ -139,7 +139,7 @@ export class MiddlewareService {
       csrf.origin = data.origin;
       csrf.verified = data.verified;
     } else {
-      if (!mock) throw ERROR_BASE_MOCK_UNDEFINED;
+      if (!mock) throw ERROR_MOCK_UNDEFINED;
 
       csrf.origin = mock.origin;
       csrf.verified = mock.verified;

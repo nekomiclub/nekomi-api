@@ -1,8 +1,9 @@
 import express from 'express';
 import { ERROR, HTTPErrorConstructor } from '~/services/ErrorService';
-import { ERROR_BASE_MOCK_UNDEFINED } from '~/services/Exceptions';
+import { ERROR_MOCK_UNDEFINED } from '~/services/Exceptions';
 import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { Readable } from 'stream';
 import { config } from '~/config';
 
 
@@ -16,6 +17,21 @@ export interface Mock<T = any> {
   id: MockID
   payload: T
 }
+
+
+
+export const TestFile: Express.Multer.File = {
+  buffer: new Buffer('123'),
+  destination: '/',
+  fieldname: 'file',
+  filename: '123',
+  mimetype: 'png',
+  originalname: '123',
+  path: '/',
+  size: 12341,
+  stream: new Readable(),
+  encoding: '123'
+};
 
 
 
@@ -33,7 +49,7 @@ function getMock<T = any>(req: express.Request, id: MockID): T {
   }
 
   const mock = mocks.find(el => el.id === id);
-  if (!mock) throw ERROR_BASE_MOCK_UNDEFINED;
+  if (!mock) throw ERROR_MOCK_UNDEFINED;
 
   return mock.payload;
 }

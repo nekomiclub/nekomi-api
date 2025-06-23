@@ -9,7 +9,7 @@ import UserModel from '~/core/models/UserModel';
 import validator from 'validator';
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E404 } from '~/services/ErrorService';
-import { ERROR_BASE_NO_DOCUMENT } from '~/services/Exceptions';
+import { ERROR_ANIME_EPISODE_NOT_FOUND, ERROR_NO_DOCUMENT } from '~/services/Exceptions';
 import { ERROR_ROLE_NOT_FOUND, ERROR_USER_LIB_NOT_FOUND, ERROR_USER_TGDATA_ID_MISS, ERROR_USER_TGTOKEN_ASSIGNED } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
@@ -45,11 +45,18 @@ interface UserLibFactoryProps {
 }
 
 interface PatchUserStatisticProps {
-  /** In seconds */
-  increaseViewtime?: number
-
   isTelegramLinked?: boolean
   dubberTeamMember?: string | null
+
+  /** In seconds */
+  increaseViewtime?: number
+}
+
+interface UploadBanner {
+  bannerUrl: string
+
+  /** Test flag that defines if banner been removed */
+  oldBannerRemoved?: boolean
 }
 
 
@@ -177,7 +184,7 @@ export class UserService extends UserModelControls {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     await this.document.save();
 
@@ -188,7 +195,7 @@ export class UserService extends UserModelControls {
   }
 
   get user(): User {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     return DocumentDTO.user(this.document, true);
   }
 
@@ -200,7 +207,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   setAvatar(url: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     this.stack.push(`Avatar changed (${this.document.avatar} > ${url})`);
     this.document.avatar = url;
@@ -213,33 +220,45 @@ export class UserService extends UserModelControls {
   /**
    * Upload new banner
    * 
+   * @returns UploadBanner
    * @savedoc
-   * @todo
+   * @tested
    */
-  async uploadBanner(file: Express.Multer.File) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+  async uploadBanner(file: Express.Multer.File): Promise<UploadBanner> {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
-    let bannerUrl: string;
+    const payload: UploadBanner = {
+      bannerUrl: config.vars.defaultBanner
+    };
 
     // Upload banner
     const uploadedById = this.document.id;
-    const postData = await NekomiUploads.uploadFile({ file, type: 'photo/user/banner', uploadedById });
-    bannerUrl = postData.url;
+
+    if (!TestMode) {
+      const postData = await NekomiUploads.uploadFile({ file, type: 'photo/user/banner', uploadedById });
+      payload.bannerUrl = postData.url;
+    } else {
+      payload.bannerUrl = `${config.URL.nekomi_media}/${createUUID()}`;
+    }
 
     // Remove previous banner if current is not default
     if (this.document.banner !== config.vars.defaultBanner) {
       const uploadId = NekomiUploads.getUploadIdFromURL(this.document.banner);
       const deletedById = this.document.id;
 
-      await NekomiUploads.deleteUpload({ id: uploadId, deletedById });
+      if (!TestMode) await NekomiUploads.deleteUpload({ id: uploadId, deletedById });
+
+      payload.oldBannerRemoved = true;
     }
 
-    this.stack.push(`New banner uploaded (${this.document.banner} > ${bannerUrl})`);
+    this.stack.push(`New banner uploaded (${this.document.banner} > ${payload.bannerUrl})`);
 
-    this.document.banner = bannerUrl;
+    this.document.banner = payload.bannerUrl;
     this.document.markModified('banner');
 
     await this.save();
+
+    return payload;
   }
 
 
@@ -248,10 +267,10 @@ export class UserService extends UserModelControls {
    * Set / remove telegram link token
    * If token already assigned, will throw error
    * 
-   * @todo
+   * @tested
    */
   async setTelegramLinkToken(token: string | null) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Try to find this telegram token if it is not null
     if (token !== null) {
@@ -259,8 +278,8 @@ export class UserService extends UserModelControls {
       if (existUser) throw ERROR_USER_TGTOKEN_ASSIGNED;
     }
 
-    this.stack.push(`Telegram link token changed (${this.user.telegramLinkToken} > ${token})`);
-    this.user.telegramLinkToken = token;
+    this.stack.push(`Telegram link token changed (${this.document.telegramLinkToken} > ${token})`);
+    this.document.telegramLinkToken = token;
 
     this.document.markModified('telegramLinkToken');
   }
@@ -273,7 +292,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   setUsername(username: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     this.stack.push(`Username changed (${this.document.username} > ${username})`);
     this.document.username = username;
@@ -284,36 +303,32 @@ export class UserService extends UserModelControls {
 
 
   /** 
-   * Patch watch progress & increase total viewtime
+   * Patch watch progress record
    * 
-   * @todo test
+   * @tested
    */
-  async patchWatchProgress(props: UserPatchWatchProgressProps) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
-    const { dubberID, episodeOrder, progress, titleID, viewtime } = props;
+  async patchWatchProgress(wp: Omit<UserWatchProgress, 'updatedAt'>) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    const { dubberID, episodeOrder, progress, titleID } = wp;
 
+    await new DubberService().getById(dubberID); // Ensure that dubber exist
     const anime = await new AnimeService().getById(titleID, true);
-    const dubber = await new DubberService().getById(dubberID, true);
 
     const episode = anime.episodes.find(el => el.dubberID === dubberID);
-    if (!episode) throw new E404(`Anime episode is not found in this dub`);
+    if (!episode) throw ERROR_ANIME_EPISODE_NOT_FOUND;
 
-    const exist = this.document.watchProgress.find(el => el.titleID === titleID);
-    let watchProgress = exist ?? { ...props };
+    const existRecord = this.document.watchProgress.find(el => el.titleID === titleID);
+    const record: UserWatchProgress = existRecord ?? { ...wp, updatedAt: 0 };
 
-    watchProgress.dubberID = dubberID;
-    watchProgress.episodeOrder = episodeOrder;
-    watchProgress.progress = progress;
-
-    watchProgress.updatedAt = getUTC().timestamp;
-
-    // Increase viewtime
-    await this.patchStatistics({ increaseViewtime: viewtime });
+    record.dubberID = dubberID;
+    record.episodeOrder = episodeOrder;
+    record.progress = progress;
+    record.updatedAt = getUTC().timestamp;
 
     const details = `[animeId: ${titleID}; dubberId: ${dubberID}; episode: ${episodeOrder}; progress: ${progress}s]`;
 
-    if (!exist) {
-      this.document.watchProgress.push(watchProgress as UserWatchProgress);
+    if (!existRecord) {
+      this.document.watchProgress.push(record);
 
       this.stack.push(`Created new watch progress record. ${details}`);
     } else this.stack.push(`Updated watch progress record. ${details}`);
@@ -324,12 +339,12 @@ export class UserService extends UserModelControls {
 
 
   /**
-   * Delete anime watch progress
+   * Delete watch progress record
    * 
-   * @todo test
+   * @tested
    */
-  async deleteWatchProgress(animeId: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+  deleteWatchProgress(animeId: string) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Skip if not exist
     if (!this.document.watchProgress.some(el => el.titleID === animeId)) return;
@@ -345,19 +360,19 @@ export class UserService extends UserModelControls {
   /**
    * Patch statistics
    * 
-   * @todo test
+   * @tested
    */
   async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: PatchUserStatisticProps) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Increase viewtime
     if (increaseViewtime !== undefined) {
       if (increaseViewtime > config.VALIDATION.User.MaximumIncreaseViewtime) increaseViewtime = config.VALIDATION.User.MaximumIncreaseViewtime;
 
-      const prevViewtime = this.user.statistics.viewtime;
+      const prevViewtime = this.document.statistics.viewtime;
 
-      this.user.statistics.viewtime += increaseViewtime;
-      this.stack.push(`Viewtime increased. [by: ${increaseViewtime} (${prevViewtime} > ${prevViewtime + increaseViewtime})]`);
+      this.document.statistics.viewtime += increaseViewtime;
+      this.stack.push(`Viewtime increased. [by: ${increaseViewtime} (${prevViewtime} > ${this.document.statistics.viewtime})]`);
     }
 
     // Dubber team member
@@ -365,7 +380,7 @@ export class UserService extends UserModelControls {
       const prevTeam = this.user.statistics.dubber_team_member;
 
       if (dubberTeamMember === null) {
-        this.user.statistics.dubber_team_member = dubberTeamMember;
+        this.document.statistics.dubber_team_member = dubberTeamMember;
         this.stack.push(`Kicked from dubber team. [member: ${prevTeam} > ${dubberTeamMember}]`);
 
         return;
@@ -373,15 +388,15 @@ export class UserService extends UserModelControls {
 
       await new DubberService().getById(dubberTeamMember);
 
-      this.user.statistics.dubber_team_member = dubberTeamMember;
+      this.document.statistics.dubber_team_member = dubberTeamMember;
       this.stack.push(`Dubber team member changed. [member: ${prevTeam} > ${dubberTeamMember}]`);
     }
 
     // Link telegram
     if (isTelegramLinked !== undefined) {
-      const prevStatus = this.user.statistics.isTelegramLinked;
+      const prevStatus = this.document.statistics.isTelegramLinked;
 
-      this.user.statistics.isTelegramLinked = isTelegramLinked;
+      this.document.statistics.isTelegramLinked = isTelegramLinked;
       this.stack.push(`Telegram link status changed. [linked: ${prevStatus} > ${isTelegramLinked}]`);
     }
 
@@ -394,10 +409,10 @@ export class UserService extends UserModelControls {
    * Patch telegram data
    * 
    * @param remove Purge data
-   * @todo
+   * @tested
    */
   patchTelegramData({ id }: Partial<UserTelegramData>, remove?: boolean) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     if (remove) {
       this.document.telegramData = null;
@@ -430,7 +445,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   async addInLib(libId: string, animeId: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Check if anime exist
     await new AnimeService().getById(animeId);
@@ -456,7 +471,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   removeFromLib(libId: string, animeId: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const lib = this.document.libs.find(el => el.id === libId);
     if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
@@ -479,7 +494,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   async addRole(slug: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const role = await RoleModel.findOne({ $or: [{ code: slug }, { id: slug }] });
     if (!role) throw ERROR_ROLE_NOT_FOUND;
@@ -502,7 +517,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   async removeRole(slug: string) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const role = await RoleModel.findOne({ $or: [{ code: slug }, { id: slug }] });
     if (!role) throw ERROR_ROLE_NOT_FOUND;
@@ -525,7 +540,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   addSubscribe({ event, payload }: NotifyEventPayload<string>): string {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const subscription = NotifyService.createEvent({ event, key: payload });
 
@@ -548,7 +563,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   removeSubscribe({ event, payload }: NotifyEventPayload<string>) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const subscription = NotifyService.createEvent({ event, key: payload });
 
@@ -571,7 +586,7 @@ export class UserService extends UserModelControls {
    * @tested
    */
   async fixLibAnimeDocuments(libId: string): Promise<UserLib> {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const lib = this.document.libs.find(el => el.id === libId);
     if (!lib) throw new E404(`Lib with id (${libId}) is npt found`);

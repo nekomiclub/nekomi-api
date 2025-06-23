@@ -59,7 +59,13 @@ export enum ERROR {
 
 
   // === ANIME ===
-  ANIME_NOT_FOUND = 'anime:not_found'
+  ANIME_NOT_FOUND = 'anime:not_found',
+  ANIME_EPISODE_NOT_FOUND = 'anime:episode:not_found',
+
+
+
+  // === ROLE ===
+  DUBBER_NOT_FOUND = 'dubber:not_found',
 }
 
 

@@ -7,7 +7,7 @@ import Search from '~/services/SearchService';
 import UserModel, { UserService } from '~/models/User';
 import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
-import { ERROR_BASE_NO_DOCUMENT } from '~/services/Exceptions';
+import { ERROR_DUBBER_NOT_FOUND, ERROR_NO_DOCUMENT } from '~/services/Exceptions';
 import { Logger } from '~/services/LoggerService';
 import { NOTIFY_EVENT, Notify, NotifyDubberTellProps } from '~/services/NotifyService';
 import { NekomiUploads } from './API/NekomiUploads.api';
@@ -173,14 +173,14 @@ class DubberModelControls implements DubberModelControlsType {
 
   async getById(id: string, details?: boolean): Promise<Dubber> {
     const document = await DubberModel.findOne({ id });
-    if (!document) throw new E404(`Dubber with id (${id}) is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
     return DocumentDTO.dubber(document, details);
   }
 
   async getByQuery(query: string, details?: boolean): Promise<Dubber> {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }] });
-    if (!document) throw new E404(`Dubber with query (${query}) is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
     return DocumentDTO.dubber(document, details);
   }
@@ -202,7 +202,7 @@ export class DubberService extends DubberModelControls {
 
   async init(query: string) {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }, { code: query }] }); // Hydrated document required, find by built-in method is not possible
-    if (!document) throw new E404(`Document ${query} is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
     this.document = document;
   }
@@ -211,7 +211,7 @@ export class DubberService extends DubberModelControls {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     try {
       await this.document.save();
@@ -243,7 +243,7 @@ export class DubberService extends DubberModelControls {
   }
 
   get dubber(): Dubber {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     return DocumentDTO.dubber(this.document, true);
   }
 
@@ -251,7 +251,7 @@ export class DubberService extends DubberModelControls {
 
   /** Changing nameEng will also change the slug */
   async changeName({ nameEng, nameUkr }: ChangeName) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     if (nameUkr !== undefined) {
       nameUkr = trimString(nameUkr);
@@ -289,7 +289,7 @@ export class DubberService extends DubberModelControls {
   }
 
   async changeDescription(description: string | null) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     if (description?.length) {
       description = trimString(description);
@@ -307,7 +307,7 @@ export class DubberService extends DubberModelControls {
   }
 
   async changeSocials({ key, value }: PatchLinks<keyof Dubber['socials']>) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
     if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
@@ -332,7 +332,7 @@ export class DubberService extends DubberModelControls {
   }
 
   async changeSupport({ key, value }: PatchLinks<keyof Dubber['support']>) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
     if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
@@ -362,7 +362,7 @@ export class DubberService extends DubberModelControls {
 
   /** Add member into the team. Will save the document and remove the invitation */
   async memberAdd({ id, checkInvitation }: MemberAdd) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     checkInvitation = checkInvitation ?? true;
 
@@ -422,7 +422,7 @@ export class DubberService extends DubberModelControls {
 
   /** Edit team member */
   async memberEdit({ id, role }: MemberEdit) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
@@ -465,7 +465,7 @@ export class DubberService extends DubberModelControls {
 
   /** Delete member / invitation. Will save the document */
   async memberDelete({ id, declineInvite }: MemberDelete) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     declineInvite = declineInvite ?? true;
 
@@ -546,7 +546,7 @@ export class DubberService extends DubberModelControls {
 
   /** Invite member into the team. Will save the document */
   async memberInvite({ id }: MemberInvite) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const user = await UserModel.findOne({ id });
     if (!user) throw new E404(`User ${id} is not found`);
@@ -594,7 +594,7 @@ export class DubberService extends DubberModelControls {
 
   /** Change dubber avatar. Will save the document */
   async changeAvatar({ file, userId }: ChangeAvatarBanner) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumAvatarSize) throw ERR_FILE_TOO_LARGE;
 
     const prevAvatarId = NekomiUploads.getUploadIdFromURL(this.document.avatar);
@@ -620,7 +620,7 @@ export class DubberService extends DubberModelControls {
 
   /** Change dubber banner. Will save the document */
   async changeBanner({ file, userId }: ChangeAvatarBanner) {
-    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
 
     const prevBannerId = NekomiUploads.getUploadIdFromURL(this.document.banner);

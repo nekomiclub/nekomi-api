@@ -28,10 +28,10 @@ const baseURL = 'https://api.myanimelist.net/v2';
 export class MyAnimeList {
   /** Fetch myanimelist anime */
   static async getAnime({ id, fields }: GetAnimeProps): Promise<MyAnimeListNode> {
-    const url = `${baseURL}/anime/${id}`;
-    Logger.trace(`[MyAnimeList]: GET - ${url.replace(baseURL, '')}`);
+    const url = `/anime/${id}`;
+    Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
 
-    const { data } = await $mal.get<MyAnimeListNode>(`${baseURL}/anime/${id}`, {
+    const { data } = await $mal.get<MyAnimeListNode>(url, {
       params: {
         fields: fields.join(', ')
       }
@@ -42,8 +42,8 @@ export class MyAnimeList {
 
   /** Fetch myanimelist seasonal anime. Will skip G, PG and Rx, Different media types from TV */
   static async getSeasonalAnime({ season, year }: GetSeasonalAnimeProps): Promise<MyAnimeListNode[]> {
-    const url = `${baseURL}/anime/season/${year}/${season}`;
-    Logger.trace(`[MyAnimeList]: GET - ${url.replace(baseURL, '')}`);
+    const url = `/anime/season/${year}/${season}`;
+    Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
 
     const fields: (keyof MyAnimeListNode)[] = [
       'alternative_titles',
@@ -52,7 +52,7 @@ export class MyAnimeList {
       'synopsis'
     ];
 
-    const { data } = await $mal.get<{ data: { node: MyAnimeListNode }[] }>(`/anime/season/${year}/${season}`, {
+    const { data } = await $mal.get<{ data: { node: MyAnimeListNode }[] }>(url, {
       params: {
         limit: 70,
         sort: 'anime_num_list_users',
