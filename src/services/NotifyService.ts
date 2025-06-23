@@ -3,7 +3,8 @@ import { AxiosError } from 'axios';
 import AnimeService from '~/core/services/AnimeService';
 import DubberService from '~/core/services/DubberService';
 import NekomiBot from '~/core/services/API/NekomiBot.api';
-import User, { UserService } from '~/models/User';
+import UserModel from '~/core/models/UserModel';
+import UserService from '~/core/services/UserService';
 import { DevelopmentMode, config } from '~/config';
 import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
 import { InlineKeyboardMarkup } from '~/core/interfaces/API/NekomiBotAPI.intf';
@@ -100,7 +101,7 @@ async function new_episode({ event, payload }: NotifyEventPayload<NotifyNewEpiso
 
   const dubber = await new DubberService().getById(dubberID);
 
-  const users = (await User.find({
+  const users = (await UserModel.find({
     subscribes: NotifyService.createEvent({ event, key: anime.uuid })
   })).filter(el => el.statistics.isTelegramLinked && el.watchProgress.some(el => el.dubberID === dubberID && el.titleID === anime.uuid));
 
@@ -128,7 +129,7 @@ async function airing_started({ event, payload }: NotifyEventPayload<NotifyAirin
 
   const anime = await new AnimeService().getById(titleID, true);
 
-  const users = (await User.find({ subscribes: NotifyService.createEvent({ event, key: anime.uuid }) })).filter(el => el.statistics.isTelegramLinked);
+  const users = (await UserModel.find({ subscribes: NotifyService.createEvent({ event, key: anime.uuid }) })).filter(el => el.statistics.isTelegramLinked);
   const audience = users.map(el => el.telegramData!.id!);
 
   await NekomiBot.broadcast({
@@ -144,8 +145,10 @@ async function airing_started({ event, payload }: NotifyEventPayload<NotifyAirin
   });
 
   users.forEach(async user => {
-    const userService = new UserService({ user });
-    userService.removeSubscribe({ event, key: anime.uuid });
+    const userService = new UserService();
+    await userService.init(user.id);
+
+    userService.removeSubscribe({ event, payload: anime.uuid });
 
     await user.save();
   });
@@ -159,7 +162,7 @@ async function HANDLER_dubber_tell({ event, payload }: NotifyEventPayload<Notify
 
   const dubber = await new DubberService().getById(dubberId);
 
-  const user = await User.findOne({ id: userId });
+  const user = await UserModel.findOne({ id: userId });
   if (!user) throw new E404(`User ${userId} is not found`);
 
   const audience = [user.telegramData!.id!];

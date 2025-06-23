@@ -23,12 +23,15 @@ import { trimString } from '~/utils/utils';
 
 interface UserCreateProps {
   username: string
-  avatar?: string
 
-  DEV_ID?: string
+  id?: string
+  avatar?: string
+  dubberTeamMember?: string
+  isTelegramLinked?: boolean
 
   /** Specifies if document will be saved. @default true */
   savedoc?: boolean
+
 }
 
 interface UserLibFactoryProps {
@@ -73,11 +76,11 @@ export const ERR_LIB_NAME_INVALID = new E400(`Lib name must be between ${config.
 
 
 class UserModelControls implements UserModelControlsType {
-  async create({ username, DEV_ID, avatar, savedoc }: UserCreateProps): Promise<User> {
+  async create({ username, avatar, savedoc, dubberTeamMember, isTelegramLinked, id: forceId }: UserCreateProps): Promise<User> {
     savedoc = savedoc ?? true;
     username = createSlug(trimString(username));
 
-    const id = DevelopmentMode && DEV_ID ? DEV_ID : TestMode ? `~test-${createUUID()}` : createUUID();
+    const id = forceId ? forceId : TestMode ? `~test-${createUUID()}` : createUUID();
     avatar = avatar ?? config.vars.defaultAvatar;
 
     const instance: User = {
@@ -92,8 +95,8 @@ class UserModelControls implements UserModelControlsType {
       telegramLinkToken: null,
       statistics: {
         accountCreated: getUTC().timestamp,
-        dubber_team_member: null,
-        isTelegramLinked: false,
+        dubber_team_member: TestMode && dubberTeamMember ? dubberTeamMember : null,
+        isTelegramLinked: TestMode && isTelegramLinked !== undefined ? isTelegramLinked : false,
         viewtime: 0,
       },
       libs: [
@@ -170,12 +173,14 @@ export class UserService extends UserModelControls {
   readonly document: HydratedDocument<User> | null = null;
   private stack: string[] = [];
 
-  async init(query: string) {
+  async init(query: string): Promise<User> {
     const document = await UserModel.findOne({ $or: [{ id: query }, { username: query }] }); // Hydrated document required, find by built-in method is not possible
     if (!document) throw new E404(`Document ${query} is not found`);
 
     // @ts-expect-error Ignore readonly
     this.document = document;
+
+    return this.user;
   }
 
   /** 
@@ -309,6 +314,8 @@ export class UserService extends UserModelControls {
    */
   async patchWatchProgress(wp: Omit<UserWatchProgress, 'updatedAt'>) {
     if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('watchProgress');
+
     const { dubberID, episodeOrder, progress, titleID } = wp;
 
     await new DubberService().getById(dubberID); // Ensure that dubber exist
@@ -332,8 +339,6 @@ export class UserService extends UserModelControls {
 
       this.stack.push(`Created new watch progress record. ${details}`);
     } else this.stack.push(`Updated watch progress record. ${details}`);
-
-    this.document.markModified('watchProgress');
   }
 
 
@@ -364,6 +369,7 @@ export class UserService extends UserModelControls {
    */
   async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: PatchUserStatisticProps) {
     if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('statistics');
 
     // Increase viewtime
     if (increaseViewtime !== undefined) {
@@ -380,7 +386,7 @@ export class UserService extends UserModelControls {
       const prevTeam = this.user.statistics.dubber_team_member;
 
       if (dubberTeamMember === null) {
-        this.document.statistics.dubber_team_member = dubberTeamMember;
+        this.document.statistics.dubber_team_member = null;
         this.stack.push(`Kicked from dubber team. [member: ${prevTeam} > ${dubberTeamMember}]`);
 
         return;
@@ -399,8 +405,6 @@ export class UserService extends UserModelControls {
       this.document.statistics.isTelegramLinked = isTelegramLinked;
       this.stack.push(`Telegram link status changed. [linked: ${prevStatus} > ${isTelegramLinked}]`);
     }
-
-    this.document.markModified('statistics');
   }
 
 

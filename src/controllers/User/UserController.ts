@@ -1,5 +1,4 @@
 import AnimeModel from '~/core/models/AnimeModel';
-import AnimeService from '~/core/services/AnimeService';
 import DocumentDTO from '~/core/services/DTOService';
 import FullkekwUser from '~/core/services/API/FullkekwUser.api';
 import Search from '~/services/SearchService';
@@ -7,9 +6,8 @@ import TokenService, { TOKEN_METHOD } from '~/services/TokenService';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
-import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
+import { E401, E404, ERR_ALREADY_EXIST, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
 import { FullkekwUser_RefreshPayload, FullkekwUser_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
@@ -20,8 +18,7 @@ import { MiddlewareService } from '~/services/MiddlewareService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
 import { ProductionMode, TestMode, config } from '~/config';
 import { User } from '~/core/interfaces/User.intf';
-import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchMethodType, UserPatchProps } from './UserControllerTypes';
-import { UserService as UserServiceOld } from '~/models/User';
+import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps } from './UserControllerTypes';
 import { body, query } from 'express-validator';
 import { parseObjectTypes } from '~/utils/parse-object-types';
 import { parseRoles } from '~/models/Role';
@@ -218,14 +215,15 @@ const GetLogout = [
 
 //* ===================================== GET LINK TELEGRAM TOKEN
 const getLinkTelegramToken = HTTPEndpoint(async (req, res) => {
-  const user = (await UserModel.findOne({ id: req.nekomi.user?.id }))!;
+  const userService = new UserService();
+  const user = await userService.init(req.nekomi.user?.id ?? '');
+
   if (user.statistics.isTelegramLinked) throw new ERR_ALREADY_EXIST('Account already linked');
 
-  const patch = new UserServiceOld({ user });
   const token = TokenService.sign(TOKEN_METHOD.TELEGRAM_LINK, {});
 
-  await patch.patchTelegramLinkToken({ token });
-  await patch.save();
+  await userService.setTelegramLinkToken(token);
+  await userService.save();
 
   return res.status(200).json({ message: 'Telegram link token issued', token });
 }, {
@@ -243,6 +241,8 @@ const GetLinkTelegramToken = [
 //* ===================================== POST SIGNIN
 const postSignin = HTTPEndpoint(async (req, res) => {
   const { session: sessionToken } = req.body as { session: string };
+
+  const userService = new UserService();
 
   // @ts-expect-error Need empty object
   const session: FullkekwUser_RefreshPayload = {};
@@ -264,13 +264,15 @@ const postSignin = HTTPEndpoint(async (req, res) => {
     session.username = data.username;
   }
 
-  let user = await UserModel.findOne({ id: session.id });
+  const user = await userService.safeGetByQuery(session.id);
+
   if (!user) {
     // User not found, create new
-    Logger.info(`[UserController]: New user signed in, welcome!`);
+    await userService.create({ username: session.username, avatar: session.avatar, id: session.id });
 
-    user = await UserServiceOld.create(session);
     Search.update('user');
+
+    Logger.info(`[UserController]: New user signed in, welcome!`);
   }
 
 
@@ -305,21 +307,19 @@ const PostSignin = [
 
 //* ===================================== POST LINK TELEGRAM
 const postLinkTelegram = HTTPEndpoint(async (req, res) => {
-  const { animeeID, telegramID } = req.body as { animeeID: string, telegramID: number };
+  const { animeeID: nekomiId, telegramID } = req.body as { animeeID: string, telegramID: number };
 
-  const user = await UserModel.findOne({ id: animeeID });
-  if (!user) throw new E404(`User ${animeeID} is not found`);
+  const userService = new UserService();
+  const user = await userService.init(nekomiId);
 
   const userWithThisTelegramID = await UserModel.findOne({ 'telegramData.id': telegramID });
   if (user.statistics.isTelegramLinked || userWithThisTelegramID) throw new ERR_ALREADY_EXIST('This Telegram ID already linked');
 
-  const patch = new UserServiceOld({ user });
+  await userService.patchStatistics({ isTelegramLinked: true });
+  userService.patchTelegramData({ id: telegramID });
+  await userService.save();
 
-  await patch.patchStatistics({ isTelegramLinked: true });
-  await patch.patchTelegramData({ id: telegramID });
-  await patch.save();
-
-  Logger.info(`[UserController]: User ${animeeID} linked telegram with id ${telegramID}`);
+  Logger.info(`[UserController]: User ${nekomiId} linked telegram with id ${telegramID}`);
 
   return res.status(200).json({ message: 'Account linked', username: user.username });
 }, {
@@ -341,10 +341,11 @@ const postLinkTelegramTokenVerify = HTTPEndpoint(async (req, res) => {
   const user = await UserModel.findOne({ telegramLinkToken: token });
   if (!user) throw new E404('User with this telegram link token is not found');
 
-  const patch = new UserServiceOld({ user });
+  const userService = new UserService();
+  await userService.init(user.id);
 
-  await patch.patchTelegramLinkToken({ token: null });
-  await patch.save();
+  await userService.setTelegramLinkToken(null);
+  await userService.save();
 
   Logger.info(`[UserController]: Telegram link token verified and revoked for ${user.id}`);
 
@@ -363,86 +364,86 @@ const PostLinkTelegramTokenVerify = [
 
 //* ===================================== PATCH USER
 const patchUser = HTTPEndpoint(async (req, res) => {
-  const { id } = req.nekomi.user!;
-  const { method } = req.body as UserPatchProps;
+  // const { id } = req.nekomi.user!;
+  // const { method } = req.body as UserPatchProps;
 
 
 
-  const user = (await UserModel.findOne({ id }))!;
+  // const user = (await UserModel.findOne({ id }))!;
 
-  const patcher = new UserServiceOld({ user });
-  const HANDLERS: { [type in UserPatchMethodType]: () => Promise<void> } = {
-    editFolderItem,
-    patchWatchProgress,
-    upload_banner,
-    removeWatchProgress,
-  };
+  // const patcher = new UserServiceOld({ user });
+  // const HANDLERS: { [type in UserPatchMethodType]: () => Promise<void> } = {
+  //   editFolderItem,
+  //   patchWatchProgress,
+  //   upload_banner,
+  //   removeWatchProgress,
+  // };
 
-  const handler = HANDLERS[method];
-  if (!handler) throw new ERR_INVALID_PAYLOAD(`Method ${method} is invalid`);
+  // const handler = HANDLERS[method];
+  // if (!handler) throw new ERR_INVALID_PAYLOAD(`Method ${method} is invalid`);
 
-  await handler();
-  await patcher.save();
-
-
-
-  return res.status(200).json({ message: 'User modified', stack: patcher.stack.join('\n') });
+  // await handler();
+  // await patcher.save();
 
 
 
-  async function editFolderItem() {
-    const { folderId, titleId } = req.body as UserPatchProps;
-    if (!folderId || !titleId) throw new ERR_INVALID_PAYLOAD();
+  // return res.status(200).json({ message: 'User modified', stack: patcher.stack.join('\n') });
 
-    const lib = patcher.user.libs.find(el => el.id === folderId);
-    if (!lib) throw new E404(`Lib ${folderId} is not found`);
 
-    const anime = await new AnimeService().getById(titleId, true);
 
-    if (!lib.titles.includes(titleId)) {
-      // Add title & event
-      await patcher.addToLib({ libID: folderId, titleID: titleId });
+  // async function editFolderItem() {
+  //   const { folderId, titleId } = req.body as UserPatchProps;
+  //   if (!folderId || !titleId) throw new ERR_INVALID_PAYLOAD();
 
-      if (lib.type === 'watching') await patcher.addSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
+  //   const lib = patcher.user.libs.find(el => el.id === folderId);
+  //   if (!lib) throw new E404(`Lib ${folderId} is not found`);
 
-      // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
-      if (
-        lib.type === 'plans' &&
-        anime.episodes.length === 0 &&
-        (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
-      ) await patcher.addSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
-    } else {
-      // Remove title & event
-      await patcher.removeFromLib({ libID: folderId, titleID: titleId });
+  //   const anime = await new AnimeService().getById(titleId, true);
 
-      if (lib.type === 'watching') await patcher.removeSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
-      if (lib.type === 'plans') await patcher.removeSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
-    }
-  }
+  //   if (!lib.titles.includes(titleId)) {
+  //     // Add title & event
+  //     await patcher.addToLib({ libID: folderId, titleID: titleId });
 
-  async function patchWatchProgress() {
-    const { progress, titleId, episodeOrder, dubberID, viewtime } = req.body as UserPatchProps;
+  //     if (lib.type === 'watching') await patcher.addSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
 
-    if (!titleId || !dubberID || viewtime === undefined || progress === undefined || episodeOrder === undefined) throw new ERR_INVALID_PAYLOAD();
-    if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new ERR_TYPE_INVALID('Viewtime, episodeOrder and progress can not be NaN');
+  //     // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
+  //     if (
+  //       lib.type === 'plans' &&
+  //       anime.episodes.length === 0 &&
+  //       (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
+  //     ) await patcher.addSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
+  //   } else {
+  //     // Remove title & event
+  //     await patcher.removeFromLib({ libID: folderId, titleID: titleId });
 
-    await patcher.patchWatchProgress({ dubberID, titleID: titleId, episodeOrder, progress, updatedAt: 0 });
-    await patcher.patchStatistics({ viewtime });
-  }
+  //     if (lib.type === 'watching') await patcher.removeSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
+  //     if (lib.type === 'plans') await patcher.removeSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
+  //   }
+  // }
 
-  async function upload_banner() {
-    const file = req.file;
-    if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
+  // async function patchWatchProgress() {
+  //   const { progress, titleId, episodeOrder, dubberID, viewtime } = req.body as UserPatchProps;
 
-    await patcher.uploadBanner({ file });
-  }
+  //   if (!titleId || !dubberID || viewtime === undefined || progress === undefined || episodeOrder === undefined) throw new ERR_INVALID_PAYLOAD();
+  //   if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new ERR_TYPE_INVALID('Viewtime, episodeOrder and progress can not be NaN');
 
-  async function removeWatchProgress() {
-    const { titleId } = req.body as { titleId: string };
-    if (!titleId) throw new ERR_INVALID_PAYLOAD();
+  //   await patcher.patchWatchProgress({ dubberID, titleID: titleId, episodeOrder, progress, updatedAt: 0 });
+  //   await patcher.patchStatistics({ viewtime });
+  // }
 
-    await patcher.removeWatchProgress({ animeId: titleId });
-  }
+  // async function upload_banner() {
+  //   const file = req.file;
+  //   if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
+
+  //   await patcher.uploadBanner({ file });
+  // }
+
+  // async function removeWatchProgress() {
+  //   const { titleId } = req.body as { titleId: string };
+  //   if (!titleId) throw new ERR_INVALID_PAYLOAD();
+
+  //   await patcher.removeWatchProgress({ animeId: titleId });
+  // }
 }, {
   requireMiddlewares: ['checkAccess', 'checkCSRF']
 });

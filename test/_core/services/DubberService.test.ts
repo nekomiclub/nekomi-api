@@ -4,7 +4,8 @@ process.argv.push('devMode');
 
 
 import DubberService from '~/core/services/DubberService';
-import UserModel, { UserService } from '~/models/User';
+import UserModel from '~/core/models/UserModel';
+import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
 import { ERR_GENERIC, HTTPErrorConstructor } from '~/services/ErrorService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
@@ -22,6 +23,8 @@ beforeAll(() => {
 
 
 describe('DubberService', () => {
+  const userService = new UserService();
+
   // CRUD
   const CrudId1 = `dubber-testcrud--1`;
   const CrudSlug1 = `dubber-testslug-a`;
@@ -53,11 +56,10 @@ describe('DubberService', () => {
       DEV_ID: MemberId1
     });
 
-    await UserService.create({
+    await userService.create({
       id: MemberId1,
       username: 'fsdsdfsdfsdfsdf',
-      TestMode: true,
-      TEST_IS_TELEGRAM_LINKED: true
+      isTelegramLinked: true
     });
   });
 
@@ -69,7 +71,7 @@ describe('DubberService', () => {
     await dubberService.deleteMany(CrudId1);
     await dubberService.deleteMany(PatchId1);
     await dubberService.deleteMany(MemberId1);
-    await UserService.delete(MemberId1);
+    await userService.deleteMany(MemberId1);
   }
 
 
@@ -267,8 +269,7 @@ describe('DubberService', () => {
 
     test('Invite', async () => {
       await dubberService.memberInvite({ id: MemberId1 });
-
-      const user = await UserModel.findOne({ id: MemberId1 });
+      const user = await userService.safeGetByQuery(MemberId1, true);
 
       // Check if user added to members invited
       expect(dubberService.dubber.membersInvited.includes(MemberId1)).toBeTruthy();
@@ -279,8 +280,7 @@ describe('DubberService', () => {
 
     test('Accept invite (memberAdd)', async () => {
       await dubberService.memberAdd({ id: MemberId1 });
-
-      const user = await UserModel.findOne({ id: MemberId1 });
+      const user = await userService.safeGetByQuery(MemberId1, true);
 
       // Dubber team member must be saved in stats
       expect(user?.statistics.dubber_team_member).toBe(MemberId1);
@@ -309,8 +309,7 @@ describe('DubberService', () => {
 
     test('Exclude member', async () => {
       await dubberService.memberDelete({ id: MemberId1, declineInvite: false });
-
-      const user = await UserModel.findOne({ id: MemberId1 });
+      const user = await userService.safeGetByQuery(MemberId1, true);
 
       // Dubber team member must be null
       expect(user?.statistics.dubber_team_member).toBeNull();

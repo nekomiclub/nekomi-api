@@ -9,9 +9,9 @@ process.argv.push('testMode');
 import DubberController from '~/controllers/Dubber/DubberController';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
+import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
 import { HTTPErrorConstructor } from '~/services/ErrorService';
-import { UserService } from '~/models/User';
 import { config } from '~/config';
 
 
@@ -26,6 +26,7 @@ beforeAll(() => {
 
 
 describe('DubberController', () => {
+  const userService = new UserService();
   const GenericDubberService = new DubberService({ TestMode: true });
 
   const DubberID1 = `test-dubbercontroller--1`;
@@ -62,27 +63,23 @@ describe('DubberController', () => {
       TEST_MEMBERS_INVITED: [DubberID1, DubberID12]
     });
 
-    await UserService.create({
+    await userService.create({
       id: DubberID1,
       username: DubberUsernameA,
-      TestMode: true,
-      TEST_DUBBER_TEAM_MEMBER: DubberID1
+      dubberTeamMember: DubberID1
     });
 
-    await UserService.create({
+    await userService.create({
       id: DubberID11,
       username: DubberUsernameC,
-      TestMode: true,
-      TEST_IS_TELEGRAM_LINKED: true
+      isTelegramLinked: true
     });
 
-    await UserService.create({
+    await userService.create({
       id: DubberID12,
       username: DubberUsernameD,
-      TestMode: true,
-      TEST_IS_TELEGRAM_LINKED: true
+      isTelegramLinked: true
     });
-
 
     await Search.update('dubber');
   });
@@ -93,9 +90,9 @@ describe('DubberController', () => {
 
   async function purge() {
     await GenericDubberService.deleteMany(DubberID1);
-    await UserService.delete(DubberID1, 'test purge', 'many');
-    await UserService.delete(DubberID11, 'test purge', 'many');
-    await UserService.delete(DubberID12, 'test purge', 'many');
+    await userService.deleteMany(DubberID1);
+    await userService.deleteMany(DubberID11);
+    await userService.deleteMany(DubberID12);
   }
 
 

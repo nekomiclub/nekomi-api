@@ -1,4 +1,4 @@
-import User from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import { Logger } from '~/services/LoggerService';
 
 
@@ -8,7 +8,7 @@ import { Logger } from '~/services/LoggerService';
  * @deprecated must be refactored out of that file
  */
 export async function removeUsersLinkTelegramToken() {
-  const users = await User.find({ telegramLinkToken: { $ne: null } });
+  const users = await UserModel.find({ telegramLinkToken: { $ne: null } });
 
   if (!users.length) return;
 

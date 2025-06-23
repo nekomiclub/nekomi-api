@@ -3,7 +3,7 @@ process.argv.push('devMode');
 
 
 
-import User, { UserService } from '~/models/User';
+import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
 import { E403, E404 } from '~/services/ErrorService';
 import { MiddlewareService } from '~/services/MiddlewareService';
@@ -31,22 +31,12 @@ describe('Middleware Service', () => {
     const TestID1_username = 'testservicesu1';
 
     beforeAll(async () => {
-      await purge();
-
-      await UserService.create({
-        avatar: 'http://example.com',
+      const userService = new UserService();
+      await userService.create({
         username: TestID1_username,
         id: TestID1
       });
     });
-
-    afterAll(async () => {
-      await purge();
-    });
-
-    async function purge() {
-      await User.deleteMany({ id: TestID1 });
-    }
 
 
 

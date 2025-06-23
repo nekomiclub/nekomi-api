@@ -4,7 +4,7 @@ import DocumentDTO from '~/core/services/DTOService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import User from '~/core/interfaces/User.intf';
-import UserModel from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
 import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';

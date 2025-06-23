@@ -1,5 +1,5 @@
 import AnimeModel from '~/core/models/AnimeModel';
-import UserModel from '~/models/User';
+import UserModel from '~/core/models/UserModel';
 import fs from 'fs';
 import path from 'path';
 import { HydratedDocument } from 'mongoose';
