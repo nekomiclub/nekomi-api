@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
 import { ERROR } from '~/services/ErrorService';
-import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing-utils';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/jest-utils';
 import { app } from '~/index';
 import { config } from '~/config';
 import { createStringID } from '~/utils/utils';

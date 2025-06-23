@@ -2,7 +2,7 @@ import express from 'express';
 
 import { E401, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
 import { ERROR } from './services/ErrorService';
-import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing-utils';
+import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/jest-utils';
 import { MiddlewareService } from './services/MiddlewareService';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode, config } from './config';

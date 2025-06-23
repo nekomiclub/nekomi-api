@@ -55,6 +55,11 @@ export enum ERROR {
 
   USER_TGTOKEN_ASSIGNED = 'user:telegram:token_already_assigned',
   USER_TGDATA_ID_MISS = 'user:telegram:data_id_miss',
+
+
+
+  // === ANIME ===
+  ANIME_NOT_FOUND = 'anime:not_found'
 }
 
 
@@ -202,9 +207,9 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 }
 
 /** Handle service ECONNREFUSED (503) error */
-export function HandleAPIErorr(e: unknown, apiname: string): never {
+export function HandleAPIError(e: unknown, apiname: string): never {
   if (e instanceof AxiosError && e.code === 'ECONNREFUSED') {
-    throw new E503(`${apiname} is currently not available. Try again in a few minutes or send the report`);
+    throw new E503(`${apiname} is currently not available. Try again in a few minutes or send a report`);
   }
 
   throw e;
@@ -267,15 +272,6 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
     super(`Request does not pass throught ${middleware} middleware and being rejected`, ERROR.BASE_MIDDLEWARE_REQUIRED);
   }
 }
-
-
-
-
-
-
-//* ========= GENERIC
-export const ERR_NO_DOCUMENT = new E500(``, ERROR.BASE_NO_DOCUMENT);
-
 
 
 

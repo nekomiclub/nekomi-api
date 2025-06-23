@@ -12,7 +12,7 @@ import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { E401, E404, ERR_ALREADY_EXIST, ERR_INVALID_PAYLOAD, ERR_TYPE_INVALID, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
 import { FullkekwUserAPI_RefreshPayload, FullkekwUserAPI_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/testing-utils';
+import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';

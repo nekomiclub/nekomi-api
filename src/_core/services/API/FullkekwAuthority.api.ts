@@ -1,6 +1,6 @@
 import { $http } from '~/services/HTTPService';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
-import { HandleAPIErorr } from '~/services/ErrorService';
+import { HandleAPIError } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -28,7 +28,7 @@ export class FullkekwAuthorityAPI {
 
       return data;
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 }

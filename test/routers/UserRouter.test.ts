@@ -4,7 +4,7 @@ process.argv.push('devMode');
 import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
 import request from 'supertest';
-import { MockAccessCheck, MockCheckCSRF } from '~/utils/testing-utils';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/jest-utils';
 import { app } from '~/index';
 import { config } from '~/config';
 import { createStringID } from '~/utils/utils';

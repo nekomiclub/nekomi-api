@@ -1,6 +1,6 @@
 import { $upload } from '~/services/HTTPService';
 import { AnimeEpisodeQualityType, NekomiUploadType, NekomiUploadsAPI_UploadFile } from '~/core/interfaces/API/NekomiUploadsAPI';
-import { HandleAPIErorr } from '~/services/ErrorService';
+import { HandleAPIError } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -47,7 +47,7 @@ export class NekomiUploadsAPI {
       if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
       const url = `${baseURL}/upload`;
-      Logger.trace(`[NekomiUploadsAPI]: POST - ${url.replace(baseURL, '')}`);
+      Logger.trace(`[NekomiUploads]: POST - ${url.replace(baseURL, '')}`);
 
       const { data } = await $upload.post<NekomiUploadsAPI_UploadFile>(url, formData);
 
@@ -55,14 +55,14 @@ export class NekomiUploadsAPI {
 
       return data;
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 
   static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
     try {
       const url = `${baseURL}/upload/${id}`;
-      Logger.trace(`[NekomiUploadsAPI]: DELETE - ${url.replace(baseURL, '')}`);
+      Logger.trace(`[NekomiUploads]: DELETE - ${url.replace(baseURL, '')}`);
 
       await $upload.delete(url, {
         params: {
@@ -73,7 +73,7 @@ export class NekomiUploadsAPI {
 
       Logger.debug(`[NekomiUploads]: Upload deleted. [id: ${id}; by: ${deletedById}]`);
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 }

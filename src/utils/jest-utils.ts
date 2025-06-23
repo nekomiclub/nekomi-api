@@ -1,4 +1,5 @@
 import express from 'express';
+import { ERROR, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR_BASE_MOCK_UNDEFINED } from '~/services/Exceptions';
 import { FullkekwAuthorityAPI_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUserAPI_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
@@ -54,11 +55,14 @@ export const testfail = () => expect('FAIL TEST SUITE').toBeFalsy();
 export const testpass = () => expect('PASS TEST SUITE').toBeTruthy();
 
 /** Pass test only if passed function throws an error */
-export async function shouldfail(func: () => Promise<void> | void) {
+export async function shouldfail(func: () => Promise<void> | void, code?: ERROR) {
   try {
     await func();
     testfail();
   } catch (e) {
-    testpass();
+    if (code !== undefined && e instanceof HTTPErrorConstructor) {
+      if (e.code === code) testpass();
+      else throw new Error(`Invalid error code recieved: ${e.code} (expected: ${code})`);
+    } else testpass();
   }
 }

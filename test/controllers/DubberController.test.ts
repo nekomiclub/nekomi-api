@@ -1,8 +1,7 @@
-/**
- * @fileoverview CONTROLLER TESTS ARE DEPRECATED AND MUST BE REFACTORED INTO Router TESTS 
-*/
+//! === DEPRECATED
+//! === DEPRECATED
+//! === DEPRECATED
 
-it('deprecated', () => expect(true).toBeTruthy());
 
 
 process.argv.push('testMode');

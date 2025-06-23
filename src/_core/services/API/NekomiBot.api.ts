@@ -1,5 +1,5 @@
 import { $http } from '~/services/HTTPService';
-import { HandleAPIErorr } from '~/services/ErrorService';
+import { HandleAPIError } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { NekomiBot_PostBroadcast } from '~/core/interfaces/API/NekomiBotAPI.intf';
 import { config } from '~/config';
@@ -20,7 +20,7 @@ export class NekomiBotAPI {
 
       await $http.post(url, payload);
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 }

@@ -13,7 +13,7 @@ import mongoose from 'mongoose';
 import { Readable } from 'stream';
 import { config } from '~/config';
 import { createStringID, createUUID, getUTC } from '~/utils/utils';
-import { shouldfail, testfail, testpass } from '~/utils/testing-utils';
+import { shouldfail, testfail, testpass } from '~/utils/jest-utils';
 import { trimString } from '~/utils/utils';
 
 

@@ -14,7 +14,7 @@ import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
 import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
-import { GetCheckCSRFMock } from '~/utils/testing-utils';
+import { GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';

@@ -1,6 +1,6 @@
 import { $http } from '~/services/HTTPService';
 import { FullkekwUserAPI_GetUser, FullkekwUserAPI_RefreshPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { HandleAPIErorr } from '~/services/ErrorService';
+import { HandleAPIError } from '~/services/ErrorService';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -32,7 +32,7 @@ export default class FullkekwUserAPI {
 
       return data;
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 
@@ -50,7 +50,7 @@ export default class FullkekwUserAPI {
 
       return data;
     } catch (e) {
-      HandleAPIErorr(e, APINAME);
+      HandleAPIError(e, APINAME);
     }
   }
 }

@@ -8,8 +8,9 @@ import User, { UserLib, UserTelegramData, UserWatchProgress } from '~/core/inter
 import UserModel from '~/core/models/UserModel';
 import validator from 'validator';
 import { DevelopmentMode, TestMode, config } from '~/config';
-import { E400, E404, ERR_NO_DOCUMENT } from '~/services/ErrorService';
-import { ERROR_ROLE_NOT_FOUND, ERROR_USER_LIB_NOT_FOUND, ERROR_USER_TGDATA_ID_MISS, ERROR_USER_TGTOKEN_ASSIGNED, ERROR_USER_USERNAME_INVALID, ERROR_USER_USERNAME_OCCUPIED } from '~/services/Exceptions';
+import { E400, E404 } from '~/services/ErrorService';
+import { ERROR_BASE_NO_DOCUMENT } from '~/services/Exceptions';
+import { ERROR_ROLE_NOT_FOUND, ERROR_USER_LIB_NOT_FOUND, ERROR_USER_TGDATA_ID_MISS, ERROR_USER_TGTOKEN_ASSIGNED } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { NotifyEventPayload, NotifyService } from '~/services/NotifyService';
@@ -24,8 +25,6 @@ interface UserCreateProps {
   username: string
   avatar?: string
 
-  /** Specifies if user was handled by fullkekw user api. Will pass some checks if true */
-  byUserApi?: boolean
   DEV_ID?: string
 
   /** Specifies if document will be saved. @default true */
@@ -67,11 +66,9 @@ export const ERR_LIB_NAME_INVALID = new E400(`Lib name must be between ${config.
 
 
 class UserModelControls implements UserModelControlsType {
-  async create({ username, DEV_ID, avatar, byUserApi, savedoc }: UserCreateProps): Promise<User> {
+  async create({ username, DEV_ID, avatar, savedoc }: UserCreateProps): Promise<User> {
     savedoc = savedoc ?? true;
     username = createSlug(trimString(username));
-
-    if (!byUserApi) await this._validateUsername(username);
 
     const id = DevelopmentMode && DEV_ID ? DEV_ID : TestMode ? `~test-${createUUID()}` : createUUID();
     avatar = avatar ?? config.vars.defaultAvatar;
@@ -153,19 +150,6 @@ class UserModelControls implements UserModelControlsType {
       return await this.getByQuery(query, details);
     } catch (e) { return null; }
   }
-
-
-
-  /** 
-   * Validate username
-   * Check if username unique
-   */
-  protected async _validateUsername(username: string) {
-    if (!validator.isLength(username, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERROR_USER_USERNAME_INVALID;
-
-    const exist = await this.safeGetByQuery(username);
-    if (exist) throw ERROR_USER_USERNAME_OCCUPIED;
-  }
 }
 
 
@@ -193,7 +177,7 @@ export class UserService extends UserModelControls {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     await this.document.save();
 
@@ -204,7 +188,7 @@ export class UserService extends UserModelControls {
   }
 
   get user(): User {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
     return DocumentDTO.user(this.document, true);
   }
 
@@ -213,10 +197,10 @@ export class UserService extends UserModelControls {
   /**
    * Set new user avatar url
    * 
-   * @todo test
+   * @tested
    */
   setAvatar(url: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     this.stack.push(`Avatar changed (${this.document.avatar} > ${url})`);
     this.document.avatar = url;
@@ -228,12 +212,12 @@ export class UserService extends UserModelControls {
 
   /**
    * Upload new banner
-   * Will save the document
    * 
+   * @savedoc
    * @todo
    */
   async uploadBanner(file: Express.Multer.File) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     let bannerUrl: string;
 
@@ -267,7 +251,7 @@ export class UserService extends UserModelControls {
    * @todo
    */
   async setTelegramLinkToken(token: string | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     // Try to find this telegram token if it is not null
     if (token !== null) {
@@ -286,13 +270,10 @@ export class UserService extends UserModelControls {
   /**
    * Set new username
    * 
-   * @param force Will skip any checks
-   * @todo test
+   * @tested
    */
-  async setUsername(username: string, force?: boolean) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-
-    if (!force) await this._validateUsername(username);
+  setUsername(username: string) {
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     this.stack.push(`Username changed (${this.document.username} > ${username})`);
     this.document.username = username;
@@ -308,7 +289,7 @@ export class UserService extends UserModelControls {
    * @todo test
    */
   async patchWatchProgress(props: UserPatchWatchProgressProps) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
     const { dubberID, episodeOrder, progress, titleID, viewtime } = props;
 
     const anime = await new AnimeService().getById(titleID, true);
@@ -348,7 +329,10 @@ export class UserService extends UserModelControls {
    * @todo test
    */
   async deleteWatchProgress(animeId: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
+
+    // Skip if not exist
+    if (!this.document.watchProgress.some(el => el.titleID === animeId)) return;
 
     this.document.watchProgress = this.document.watchProgress.filter(el => el.titleID !== animeId);
     this.document.markModified('watchProgress');
@@ -364,7 +348,7 @@ export class UserService extends UserModelControls {
    * @todo test
    */
   async patchStatistics({ increaseViewtime, dubberTeamMember, isTelegramLinked }: PatchUserStatisticProps) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     // Increase viewtime
     if (increaseViewtime !== undefined) {
@@ -387,7 +371,7 @@ export class UserService extends UserModelControls {
         return;
       }
 
-      await new DubberService().getById(dubberTeamMember, true);
+      await new DubberService().getById(dubberTeamMember);
 
       this.user.statistics.dubber_team_member = dubberTeamMember;
       this.stack.push(`Dubber team member changed. [member: ${prevTeam} > ${dubberTeamMember}]`);
@@ -413,7 +397,7 @@ export class UserService extends UserModelControls {
    * @todo
    */
   patchTelegramData({ id }: Partial<UserTelegramData>, remove?: boolean) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     if (remove) {
       this.document.telegramData = null;
@@ -443,10 +427,10 @@ export class UserService extends UserModelControls {
   /**
    * Add anime in lib
    * 
-   * @todo
+   * @tested
    */
   async addInLib(libId: string, animeId: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     // Check if anime exist
     await new AnimeService().getById(animeId);
@@ -469,10 +453,10 @@ export class UserService extends UserModelControls {
   /**
    * Remove anime from lib
    * 
-   * @todo
+   * @tested
    */
   removeFromLib(libId: string, animeId: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     const lib = this.document.libs.find(el => el.id === libId);
     if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
@@ -491,11 +475,11 @@ export class UserService extends UserModelControls {
   /** 
    * Add role
    * 
-   * @param slug ID or code
-   * @todo
+   * @param slug id or code
+   * @tested
    */
   async addRole(slug: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     const role = await RoleModel.findOne({ $or: [{ code: slug }, { id: slug }] });
     if (!role) throw ERROR_ROLE_NOT_FOUND;
@@ -514,16 +498,19 @@ export class UserService extends UserModelControls {
   /**
    * Remove role
    * 
-   * @param slug ID or code
-   * @todo
+   * @param slug id or code
+   * @tested
    */
   async removeRole(slug: string) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
-    // Skip if user roles does not include this
-    if (!this.document.roles.includes(slug)) return;
+    const role = await RoleModel.findOne({ $or: [{ code: slug }, { id: slug }] });
+    if (!role) throw ERROR_ROLE_NOT_FOUND;
 
-    this.document.roles = this.document.roles.filter(el => el !== slug);
+    // Skip if user does not have this role
+    if (!this.document.roles.includes(role.code)) return;
+
+    this.document.roles = this.document.roles.filter(el => el !== role.code);
 
     this.document.markModified('roles');
     this.stack.push(`Role removed (${slug})`);
@@ -534,20 +521,23 @@ export class UserService extends UserModelControls {
   /**
    * Add subscription
    * 
-   * @todo
+   * @returns subscription
+   * @tested
    */
-  addSubscribe({ event, payload }: NotifyEventPayload<string>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  addSubscribe({ event, payload }: NotifyEventPayload<string>): string {
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     const subscription = NotifyService.createEvent({ event, key: payload });
 
     // Skip if subscription already exist
-    if (this.document.subscribes.includes(subscription)) return;
+    if (this.document.subscribes.includes(subscription)) return subscription;
 
     this.document.subscribes.push(subscription);
 
     this.document.markModified('subscribes');
     this.stack.push(`Subscription added (${subscription})`);
+
+    return subscription;
   }
 
 
@@ -555,10 +545,10 @@ export class UserService extends UserModelControls {
   /**
    * Remove subscription
    * 
-   * @todo
+   * @tested
    */
   removeSubscribe({ event, payload }: NotifyEventPayload<string>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     const subscription = NotifyService.createEvent({ event, key: payload });
 
@@ -575,13 +565,13 @@ export class UserService extends UserModelControls {
 
   /**
    * Fix user lib anime documents, remove documents that are not exist
-   * Will save the document
    * 
    * @returns fixed lib
+   * @savedoc
    * @tested
    */
   async fixLibAnimeDocuments(libId: string): Promise<UserLib> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_BASE_NO_DOCUMENT;
 
     const lib = this.document.libs.find(el => el.id === libId);
     if (!lib) throw new E404(`Lib with id (${libId}) is npt found`);
