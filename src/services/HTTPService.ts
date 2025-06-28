@@ -1,8 +1,7 @@
 import axios from 'axios';
 import express from 'express';
-import http, { IncomingHttpHeaders } from 'http';
-import https from 'https';
 import { ERR_MIDDLEWARE_REQUIRED, HandleRequest } from './ErrorService';
+import { IncomingHttpHeaders } from 'http';
 
 import TokenService from './TokenService';
 import { TMiddlewareName } from './MiddlewareService';
@@ -47,9 +46,7 @@ export const $http = axios.create({
 
 /** Axios upload instance with extended timeout and forced keepAlive. Only for file uploading */
 export const $upload = axios.create({
-  timeout: 420000,
-  httpAgent: new http.Agent({ keepAlive: true }),
-  httpsAgent: new https.Agent({ keepAlive: true }),
+  timeout: 420000
 });
 
 /** MyAnimeList axios instance. Will set X-MAL-CLIENT-ID header */

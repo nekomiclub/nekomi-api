@@ -15,7 +15,6 @@ import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
 import { getRequestIP } from './services/HTTPService';
-import { removeUsersLinkTelegramToken } from '~/utils/deprecated-utils';
 
 
 
@@ -76,7 +75,6 @@ app.use('/', GenericRouter);
 
 //* HTTP server
 const UpdateHandlers = [
-  removeUsersLinkTelegramToken(),
   Search.init(),
 ] as const;
 
@@ -86,14 +84,6 @@ const UpdateHandlers = [
       Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${config.env.HOST}:${config.env.PORT}`);
     });
   }
-
-
-  //! ONE-TIME HANDLER
-  if (ProductionMode) {
-    await ANIME_MODEL_UPDATE.run();
-  }
-
-
 
   try {
     if (!TestMode) console.log(`
@@ -108,6 +98,7 @@ const UpdateHandlers = [
     `);
 
     if (ProductionMode) {
+      await ANIME_MODEL_UPDATE.run();
       await USER_MODEL_UPDATE.run();
     }
 

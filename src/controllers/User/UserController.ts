@@ -20,7 +20,7 @@ import { ProductionMode, TestMode, config } from '~/config';
 import { User } from '~/core/interfaces/User.intf';
 import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps } from './UserControllerTypes';
 import { body, query } from 'express-validator';
-import { parseObjectTypes } from '~/utils/parse-object-types';
+import { parseObjectTypes } from '~/utils/utils';
 import { parseRoles } from '~/models/Role';
 
 
@@ -315,6 +315,7 @@ const postLinkTelegram = HTTPEndpoint(async (req, res) => {
   const userWithThisTelegramID = await UserModel.findOne({ 'telegramData.id': telegramID });
   if (user.statistics.isTelegramLinked || userWithThisTelegramID) throw new ERR_ALREADY_EXIST('This Telegram ID already linked');
 
+  await userService.setTelegramLinkToken(null);
   await userService.patchStatistics({ isTelegramLinked: true });
   userService.patchTelegramData({ id: telegramID });
   await userService.save();

@@ -21,7 +21,7 @@ import { MiddlewareService } from '~/services/MiddlewareService';
 import { TestMode, config } from '~/config';
 import { body, param, query } from 'express-validator';
 import { createStringID, getUTC } from '~/utils/utils';
-import { parseObjectTypes } from '~/utils/parse-object-types';
+import { parseObjectTypes } from '~/utils/utils';
 import { z } from 'zod';
 
 
