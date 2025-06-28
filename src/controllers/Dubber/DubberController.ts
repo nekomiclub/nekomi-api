@@ -23,8 +23,6 @@ export const DubberParsedMembersCache = new CacheService<User[]>('DubberParsedMe
 
 
 //* ===================================== GET ONE
-
-
 async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
   const dubberService = new DubberService();
   await dubberService.init(query);

@@ -48,3 +48,8 @@ export const ERROR_ANIME_EPISODE_NOT_FOUND = new E404(`Anime episode not found`,
 
 // === DUBBER ===
 export const ERROR_DUBBER_NOT_FOUND = new E404(`Dubber not found`, ERROR.DUBBER_NOT_FOUND);
+
+
+
+// === GENERIC ===
+export const ERROR_GENERIC_FILE_MISS = new E404(`File is not provided`, ERROR.GENERIC_FILE_MISS);

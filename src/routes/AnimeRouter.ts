@@ -26,5 +26,4 @@ AnimeRouter.delete('/:uuid', AnimeController.DeleteByUuid);
 
 
 
-
 export default AnimeRouter;

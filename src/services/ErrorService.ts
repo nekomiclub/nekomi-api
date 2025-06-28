@@ -66,6 +66,11 @@ export enum ERROR {
 
   // === ROLE ===
   DUBBER_NOT_FOUND = 'dubber:not_found',
+
+
+
+  // === GENERIC ===
+  GENERIC_FILE_MISS = 'generic:file_miss'
 }
 
 
