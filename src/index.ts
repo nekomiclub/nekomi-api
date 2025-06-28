@@ -123,6 +123,9 @@ const UpdateHandlers = [
   }
 })();
 
+
+
+// Rickroll
 app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {
   const IP = getRequestIP(req.headers);
 
@@ -131,9 +134,7 @@ app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) 
   return res.redirect(`https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley`);
 });
 
-
-
-//* 404 catcher. Writes suspicious logs
+// 404 catcher. Writes suspicious logs
 app.all('*', (req: express.Request, res: express.Response) => {
   const IP = getRequestIP(req.headers);
 

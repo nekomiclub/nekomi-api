@@ -22,7 +22,7 @@ import { NotifyAiringStartedProps } from '~/services/NotifyService';
 import { NotifyNewEpisodeProps } from '~/services/NotifyService';
 import { createSlug, createStringID, createUUID } from '~/utils/utils';
 import { getUTC } from '~/utils/utils';
-import { parseRoles } from '~/models/Role';
+import { parseRoles } from './RoleService';
 import { trimString } from '~/utils/utils';
 
 

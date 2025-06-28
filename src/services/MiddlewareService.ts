@@ -10,7 +10,7 @@ import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf'
 import { Logger } from './LoggerService';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode } from '~/config';
-import { parseRoles } from '~/models/Role';
+import { parseRoles } from '~/core/services/RoleService';
 
 
 

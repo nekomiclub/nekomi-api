@@ -21,7 +21,7 @@ import { User } from '~/core/interfaces/User.intf';
 import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps } from './UserControllerTypes';
 import { body, query } from 'express-validator';
 import { parseObjectTypes } from '~/utils/utils';
-import { parseRoles } from '~/models/Role';
+import { parseRoles } from '~/core/services/RoleService';
 
 
 
