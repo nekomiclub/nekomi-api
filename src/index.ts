@@ -32,8 +32,8 @@ mongoose.connect(config.mongodbUrl, {
 const CORSOpt: CorsOptions = {
   origin: [
     `https://${config.DOMAIN.nekomi}`,
-    `https://${config.DOMAIN.nekomiAuth}`,
-    `https://${config.DOMAIN.nekomiApi}`,
+    `https://${config.DOMAIN.nekomi_auth}`,
+    `https://${config.DOMAIN.nekomi_api}`,
 
     !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
     !ProductionMode ? 'http://127.0.0.1:3000' : '_null',

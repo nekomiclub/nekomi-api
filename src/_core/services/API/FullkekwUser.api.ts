@@ -16,7 +16,7 @@ interface RefreshAuthProps {
 
 
 
-const baseURL = config.URL.fullkekw_usapi;
+const baseURL = config.URL.fullkekw_userapi;
 const APINAME = 'fullkekw-userapi';
 
 

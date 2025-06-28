@@ -742,7 +742,7 @@ export class AnimeService extends AnimeModelControls {
       if (node.related_anime) await this.setRelated(node.related_anime.map(el => el.node.id));
 
       // Update poster
-      if (!this.document.poster.includes(config.DOMAIN.nekomiMedia) || this.document.poster === config.vars.defaultPoster) {
+      if (!this.document.poster.includes(config.DOMAIN.nekomi_media) || this.document.poster === config.vars.defaultPoster) {
         this.document.poster = node.main_picture.large;
         this.document.markModified('poster');
       }

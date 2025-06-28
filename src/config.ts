@@ -29,34 +29,45 @@ const env = {
   CSRF: String(process.env['CSRF-Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
 
+  // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
+  PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
   NEKOMI_DOMAIN: String(process.env['NEKOMI_DOMAIN']),
+  NEKOMI_WEBSOCKET_DOMAIN: String(process.env['NEKOMI_WEBSOCKET_DOMAIN']),
   NEKOMI_AUTH_DOMAIN: String(process.env['NEKOMI_AUTH_DOMAIN']),
   NEKOMI_BOT_DOMAIN: String(process.env['NEKOMI_BOT_DOMAIN']),
   NEKOMI_MEDIA_DOMAIN: String(process.env['NEKOMI_MEDIA_DOMAIN']),
   NEKOMI_API_DOMAIN: String(process.env['NEKOMI_API_DOMAIN']),
   FULLKEKW_USERAPI_DOMAIN: String(process.env['FULLKEKW_USERAPI_DOMAIN']),
   FULLKEKW_AUTHORITY_DOMAIN: String(process.env['FULLKEKW_AUTHORITY_DOMAIN']),
+  FULLKEKW_ACCOUNT_DOMAIN: String(process.env['FULLKEKW_ACCOUNT_DOMAIN']),
 
   NEKOMI_API_URL: String(process.env['NEKOMI_API_URL']),
+  PROXY_URL: String(process.env['PROXY_URL']),
+  TELEGRAM_BOT_URL: String(process.env['TELEGRAM_BOT_URL']),
   NEKOMI_NEXTJS_URL: String(process.env['NEKOMI_NEXTJS_URL']),
+  NEKOMI_WEBSOCKET_URL: String(process.env['NEKOMI_WEBSOCKET_URL']),
   NEKOMI_MEDIA_URL: String(process.env['NEKOMI_MEDIA_URL']),
   NEKOMI_BOT_URL: String(process.env['NEKOMI_BOT_URL']),
   NEKOMI_UPLOADS_URL: String(process.env['NEKOMI_UPLOADS_URL']),
   FULLKEKW_AUTHORITY_URL: String(process.env['FULLKEKW_AUTHORITY_URL']),
   FULLKEKW_USERAPI_URL: String(process.env['FULLKEKW_USERAPI_URL']),
+  FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
 };
 
 
 
 const DOMAIN = {
+  proxy: env.PROXY_DOMAIN,
   nekomi: env.NEKOMI_DOMAIN,
-  nekomiAuth: env.NEKOMI_AUTH_DOMAIN,
-  nekomiApi: env.NEKOMI_API_DOMAIN,
-  nekomiMedia: env.NEKOMI_MEDIA_DOMAIN,
-  nekomiBot: env.NEKOMI_BOT_DOMAIN,
+  nekomi_auth: env.NEKOMI_AUTH_DOMAIN,
+  nekomi_api: env.NEKOMI_API_DOMAIN,
+  nekomi_media: env.NEKOMI_MEDIA_DOMAIN,
+  nekomi_bot: env.NEKOMI_BOT_DOMAIN,
+  nekomi_websocket: env.NEKOMI_WEBSOCKET_DOMAIN,
 
-  fullkekwAuthority: env.FULLKEKW_AUTHORITY_DOMAIN,
-  fullkekwUserapi: env.FULLKEKW_USERAPI_DOMAIN,
+  fullkekw_authority: env.FULLKEKW_AUTHORITY_DOMAIN,
+  fullkekw_userapi: env.FULLKEKW_USERAPI_DOMAIN,
+  fullkekw_account: env.FULLKEKW_ACCOUNT_DOMAIN,
 };
 
 const STATIC = {
@@ -168,13 +179,16 @@ const VALIDATION = {
 };
 
 const URL = {
+  proxy: env.PROXY_URL,
   nekomi_site: env.NEKOMI_NEXTJS_URL,
+  nekomi_ws: env.NEKOMI_WEBSOCKET_URL,
   nekomi_media: env.NEKOMI_MEDIA_URL,
-  nekomi_core: env.NEKOMI_API_URL,
+  nekomi_api: env.NEKOMI_API_URL,
   nekomi_bot: env.NEKOMI_BOT_URL,
   nekomi_uploads: env.NEKOMI_UPLOADS_URL,
   fullkekw_authority: env.FULLKEKW_AUTHORITY_URL,
-  fullkekw_usapi: env.FULLKEKW_USERAPI_URL,
+  fullkekw_userapi: env.FULLKEKW_USERAPI_URL,
+  fullkekw_account: env.FULLKEKW_USERAPI_URL,
 };
 
 const vars = {

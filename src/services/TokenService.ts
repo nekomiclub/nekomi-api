@@ -85,7 +85,7 @@ export default class TokenService {
   /** Sign CSRF token */
   static signCSRF(): string {
     return jwt.sign({
-      origin: config.DOMAIN.nekomiApi,
+      origin: config.DOMAIN.nekomi_api,
       expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
     }, config.env.CSRF, {
       algorithm: 'RS256'

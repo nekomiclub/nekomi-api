@@ -64,9 +64,7 @@ export class MiddlewareService {
         session.username = sessionData.username;
         session.avatar = sessionData.avatar;
       } catch (e) {
-        if (e instanceof AxiosError && e.response?.data.code === 'session:not_exist') {
-          throw ERROR_AUTH_SESSION_EXPIRED;
-        }
+        if (e instanceof AxiosError && (e.response?.data.code === 'session:not_exist' || e.response?.data.code === 'session:not_verified')) throw ERROR_AUTH_SESSION_EXPIRED;
 
         throw e;
       }

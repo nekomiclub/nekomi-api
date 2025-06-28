@@ -515,7 +515,7 @@ const deleteByUuid = HTTPEndpoint(async (req, res) => {
   }
 
   if (!TestMode) {
-    await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomiApi] });
+    await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomi_api] });
   }
 
 

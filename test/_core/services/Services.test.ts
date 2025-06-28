@@ -124,7 +124,7 @@ describe('Middleware Service', () => {
         token: '_MOCKED',
         origins: [],
         mock: {
-          origin: config.DOMAIN.nekomiApi,
+          origin: config.DOMAIN.nekomi_api,
           verified: true
         }
       })).toBeTruthy();
@@ -133,9 +133,9 @@ describe('Middleware Service', () => {
     test('Pass - Required origin specified', async () => {
       expect(await instance.checkCSRF({
         token: '_MOCKED',
-        origins: [config.DOMAIN.nekomiApi],
+        origins: [config.DOMAIN.nekomi_api],
         mock: {
-          origin: config.DOMAIN.nekomiApi,
+          origin: config.DOMAIN.nekomi_api,
           verified: true
         }
       })).toBeTruthy();
@@ -162,7 +162,7 @@ describe('Middleware Service', () => {
       try {
         await instance.checkCSRF({
           token: '_MOCKED',
-          origins: [config.DOMAIN.nekomiApi],
+          origins: [config.DOMAIN.nekomi_api],
           mock: {
             origin: '_INVALID',
             verified: true
