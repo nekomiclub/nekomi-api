@@ -189,6 +189,10 @@ const URL = {
   fullkekw_authority: env.FULLKEKW_AUTHORITY_URL,
   fullkekw_userapi: env.FULLKEKW_USERAPI_URL,
   fullkekw_account: env.FULLKEKW_USERAPI_URL,
+
+  hikka: 'https://hikka.io',
+  MALAPI: `https://api.myanimelist.net/v2`,
+  hikkaAPI: 'https://api.hikka.io',
 };
 
 const vars = {

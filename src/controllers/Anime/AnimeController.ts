@@ -210,6 +210,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   // Sync
   await animeService.syncWithMyAnimeList();
+  // await animeService.syncWithHikka();
 
   const anime = animeService.anime;
 

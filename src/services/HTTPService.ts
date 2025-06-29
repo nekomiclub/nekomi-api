@@ -52,7 +52,7 @@ export const $upload = axios.create({
 /** MyAnimeList axios instance. Will set X-MAL-CLIENT-ID header */
 export const $mal = axios.create({
   timeout: 10000,
-  baseURL: 'https://api.myanimelist.net/v2'
+  baseURL: config.URL.MALAPI
 });
 
 

@@ -11,6 +11,7 @@ import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E403, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
 import { ERROR_ANIME_NOT_FOUND } from '~/services/Exceptions';
 import { ERROR_NO_DOCUMENT } from '~/services/Exceptions';
+import { Hikka } from './API/Hikka.api';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/data-mappers';
@@ -688,13 +689,13 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Sync anime details with myanimelist
-   * Will save the document
    * 
    * @requires malId specified
    * 
    * @param force will skip stopsync check
    * @returns parse state (parsed/not)
    * 
+   * @savedoc
    * @tested
    */
   async syncWithMyAnimeList(force?: boolean): Promise<boolean> {
@@ -767,13 +768,13 @@ export class AnimeService extends AnimeModelControls {
 
   /**
    * Sync anime episode descriptions
-   * Will save the document
    * 
    * @requires malId specified
    * 
    * @param force will skip stopsync check
    * @returns parse state (parsed/not)
    * 
+   * @savedoc
    * @todo
    */
   async syncWithAniDB(force?: boolean): Promise<boolean> {
@@ -807,6 +808,7 @@ export class AnimeService extends AnimeModelControls {
    * @param force will skip stopsync check
    * @returns parse state (parsed/not)
    * 
+   * @savedoc
    * @todo
    */
   async syncWithShikimori(force?: boolean): Promise<boolean> {
@@ -828,6 +830,46 @@ export class AnimeService extends AnimeModelControls {
 
     //   return false;
     // }
+  }
+
+
+
+  /**
+   * Sync anime names from hikka.io
+   * 
+   * @requires malId specified
+   * @param force will skip stopsync check
+   * 
+   * @savedoc
+   */
+  async syncWithHikka(force?: boolean): Promise<boolean> {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    if (this.document.malId === null) return false;
+
+    if (!force) {
+      if (this.document.stopSync?.hikka) return false; // Check if sync is not prevented
+      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+    }
+
+    try {
+      const { slug } = await Hikka.getMALIntegration({ slug: `${this.document.malId}` });
+      const data = await Hikka.getAnime({ slug });
+
+      // await this.setNames({ ukr: data.title_ua });
+      // if (data.synopsis_ua) this.setDescription(`${data.synopsis_ua}\n\nОпис з сайту [hikka.io](${config.URL.hikka}/anime/${slug})`);
+
+      this.document.hikkaSyncedAt = getUTC().timestamp;
+      this.document.markModified('hikkaSyncedAt');
+
+      await this.save();
+      await Search.update('anime');
+
+      Logger.info(`[AnimeService]: Anime synced with hikka.io. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+      return true;
+    } catch (e) {
+      Logger.fail(`[AnimeService]: Cannot sync with hikka.io`, e);
+      return false;
+    }
   }
 
 

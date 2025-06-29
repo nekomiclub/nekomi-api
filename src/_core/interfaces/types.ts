@@ -1,4 +1,4 @@
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS } from './Anime.intf';
+import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from './Anime.intf';
 
 /** Make single key in T optional */
 export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -77,6 +77,39 @@ export interface MyAnimeListNode {
     ja: string
     synonyms: string[]
   }
+}
+
+/** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
+export interface HikkaMALIntegration {
+  data_type: string
+  media_type: ANIME_MEDIA_TYPE
+  title_ua: string
+  title_en: string
+  title_ja: string
+  episodes_released: number
+  episodes_total: number
+  image: string
+  status: ANIME_STATUS
+  scored_by: number
+  score: number
+  slug: string
+  start_date: number
+  end_date: number
+  translated_ua: boolean
+  season: ANIME_SEASON
+  source: string
+  rating: ANIME_RATE
+  year: number
+}
+
+export interface HikkaAnime {
+  title_ua: string
+  title_en: string
+  title_ja: string
+  synonyms: string[]
+  synopsis_ua: string | null
+  synopsis_en: string
+  // ... 
 }
 
 export interface Metadata {
