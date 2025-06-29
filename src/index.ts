@@ -14,6 +14,7 @@ import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
+import { cronCurrentSeasonAnime } from './utils/fetch-seasonal';
 import { getRequestIP } from './services/HTTPService';
 
 
@@ -105,6 +106,10 @@ const UpdateHandlers = [
 
     // Callback body
     Promise.all(UpdateHandlers);
+
+    if (!TestMode) {
+      cronCurrentSeasonAnime();
+    }
 
 
 

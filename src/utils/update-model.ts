@@ -10,7 +10,7 @@ import { getUTC } from './utils';
 
 
 const DUMP_DIR_PATH = `${path.resolve()}/.dump`;
-const DATA_FILE_PATH = `${DUMP_DIR_PATH}/data.json`;
+const DATA_FILE_PATH = `${DUMP_DIR_PATH}/dumps.json`;
 
 interface DATA_FILE_DUMP {
   name: string

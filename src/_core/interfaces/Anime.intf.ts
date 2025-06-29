@@ -537,4 +537,17 @@ export const ANIME_MEDIA_TYPES: Record<ANIME_MEDIA_TYPE, AnimeMedia> = {
   },
 };
 
+/** 
+ * Anime seasons sorted by month index
+ * 
+ * @example {this}[6] - summer
+ */
+export const AnimeMonthSeasons: ANIME_SEASON[] = [
+  ANIME_SEASON.WINTER, ANIME_SEASON.WINTER,
+  ANIME_SEASON.SPRING, ANIME_SEASON.SPRING, ANIME_SEASON.SPRING,
+  ANIME_SEASON.SUMMER, ANIME_SEASON.SUMMER, ANIME_SEASON.SUMMER,
+  ANIME_SEASON.FALL, ANIME_SEASON.FALL, ANIME_SEASON.FALL,
+  ANIME_SEASON.WINTER,
+];
+
 export default Anime;
