@@ -43,6 +43,7 @@ export enum ERROR {
   // === AUTH ===
   AUTH_SESSION_EXPIRED = 'auth:session_expired',
   AUTH_CSRF_INVALID = 'auth:csrf_invalid',
+  AUTH_NO_RIGHTS = 'auth:no_rights',
 
 
 

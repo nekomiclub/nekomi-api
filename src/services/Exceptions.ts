@@ -19,6 +19,7 @@ export const ERROR_ROLE_NOT_FOUND = new E404(`Role not found`, ERROR.ROLE_NOT_FO
 // === AUTH ===
 export const ERROR_AUTH_SESSION_EXPIRED = new E401(`Session expired. Re-login at fullkekw-sso`, ERROR.AUTH_SESSION_EXPIRED);
 export const ERROR_AUTH_CSRF_INVALID = new E403(`CSRF token invalid`, ERROR.AUTH_CSRF_INVALID);
+export const ERROR_AUTH_NO_RIGHTS = new E403(`Access forbidden due to lack of rights`, ERROR.AUTH_NO_RIGHTS);
 
 
 

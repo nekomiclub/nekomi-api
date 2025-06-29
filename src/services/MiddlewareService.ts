@@ -3,8 +3,7 @@ import FullkekwUser from '~/core/services/API/FullkekwUser.api';
 import User from '~/core/interfaces/User.intf';
 import UserService from '~/core/services/UserService';
 import { AxiosError } from 'axios';
-import { E403 } from './ErrorService';
-import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_EXPIRED, ERROR_MOCK_UNDEFINED } from './Exceptions';
+import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_NO_RIGHTS, ERROR_AUTH_SESSION_EXPIRED, ERROR_MOCK_UNDEFINED } from './Exceptions';
 import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
 import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
@@ -77,7 +76,7 @@ export class MiddlewareService {
       session.avatar = mock.avatar;
     }
 
-    const user = await new UserService().getById(session.id);
+    const user = await new UserService().getById(session.id, true);
 
     // Sync with fullkekw-userapi
     try {
@@ -105,7 +104,7 @@ export class MiddlewareService {
     if (caps.includes('root')) return { user, capabilities: caps };
 
     capabilities.forEach(cap => {
-      if (!caps.includes(cap)) throw new E403;
+      if (!caps.includes(cap)) throw ERROR_AUTH_NO_RIGHTS;
     });
 
     // Pass if everything is ok
