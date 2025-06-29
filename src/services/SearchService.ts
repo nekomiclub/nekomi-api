@@ -72,7 +72,7 @@ class SearchService {
       const list = (await AnimeModel.find()).map(doc => DocumentDTO.anime(doc, true));
 
       this.AnimeEngine = new Fuse(list, {
-        keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
+        keys: ['names.eng', 'names.ukr', 'names.alt', 'slug', 'id'],
         shouldSort: true,
         ignoreLocation: true
       });

@@ -213,28 +213,7 @@ export class DubberService extends DubberModelControls {
   async save(): Promise<string[]> {
     if (!this.document) throw ERROR_NO_DOCUMENT;
 
-    try {
-      await this.document.save();
-    } catch (error) {
-      Logger.debug(`[DubberService]: Cannot save the document. Retrying after 1 second...`);
-
-      await new Promise(res => {
-        setTimeout(() => {
-          res(1);
-        }, 1000);
-      });
-
-      try {
-        await this.document.save();
-      } catch (e) {
-        Logger.error(`[DubberService]: Cannot save the document`, e);
-
-        const stack = this.stack;
-        this.stack = [];
-
-        return stack;
-      }
-    }
+    await this.document.save();
 
     Logger.debug(`[DubberService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
@@ -606,7 +585,7 @@ export class DubberService extends DubberModelControls {
     this.document.avatar = url;
     this.document.markModified('avatar');
 
-    this.document.save();
+    await this.save();
 
     Logger.debug(`[DubberService]: New avatar has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
 
@@ -632,7 +611,7 @@ export class DubberService extends DubberModelControls {
     this.document.banner = url;
     this.document.markModified('banner');
 
-    this.document.save();
+    await this.save();
 
     Logger.debug(`[DubberService]: New banner has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
 

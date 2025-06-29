@@ -729,7 +729,7 @@ export class AnimeService extends AnimeModelControls {
 
 
 
-      if (node.alternative_titles?.en && this.document.names.eng !== node.alternative_titles?.en) this.setNames({ eng: node.alternative_titles?.en });
+      if (node.alternative_titles?.en && this.document.names.eng !== node.alternative_titles?.en) await this.setNames({ eng: node.alternative_titles?.en });
       if (node.mean && node.mean !== this.document.score.mal) this.setScore({ mal: node.mean });
       if (node.num_scoring_users && node.num_scoring_users !== this.document.score.malScoredBy) this.setScore({ malScoredBy: node.num_scoring_users });
       if (node.num_episodes && node.num_episodes !== this.document.episodesCount) this.setEpisodesCount(node.num_episodes);

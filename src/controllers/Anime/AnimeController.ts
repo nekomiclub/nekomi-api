@@ -208,17 +208,19 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   const animeService = new AnimeService();
   await animeService.init(query);
 
-  // Sync
-  await animeService.syncWithMyAnimeList();
-  // await animeService.syncWithHikka();
+  // Sync with third-parties
+  if (!metadataOnly) {
+    await animeService.syncWithMyAnimeList();
+    // await animeService.syncWithHikka();
+  }
 
   const anime = animeService.anime;
 
-  let related: AnimeGetByQuery['related'] = undefined;
-  let dubbers: AnimeGetByQuery['dubbers'] = undefined;
-  let metadata: AnimeGetByQuery['metadata'] = undefined;
-  let posterAdapt: AnimeGetByQuery['posterAdapt'] = undefined;
-  let nextBroadcast: AnimeGetByQuery['nextBroadcast'] = undefined;
+  let related: AnimeGetByQuery['related'];
+  let dubbers: AnimeGetByQuery['dubbers'];
+  let metadata: AnimeGetByQuery['metadata'];
+  let posterAdapt: AnimeGetByQuery['posterAdapt'];
+  let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
 
 
