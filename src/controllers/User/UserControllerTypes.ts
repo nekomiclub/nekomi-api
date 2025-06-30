@@ -1,6 +1,5 @@
 import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
-import { Metadata } from '~/core/interfaces/types';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { z } from 'zod';
 
@@ -22,19 +21,15 @@ export interface UserGetSearch {
 export interface UserGetByQueryProps {
   query: string
 
-  /** Return only metadata */
-  metadataOnly?: boolean
   parseCapabilities?: boolean
   parseLibId?: string
   detailed?: boolean
 }
 
 export interface UserGetByQuery {
-  /** Will be undefined with metadataOnly specified */
   user: User
 
   capabilities?: RoleCapability[]
-  metadata?: Metadata
   parsedLib?: HydratedAnime[]
 }
 

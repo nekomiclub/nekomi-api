@@ -7,11 +7,10 @@ import User from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
 import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
-import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E403, E500, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { HydrateAnimeDocument } from '~/utils/data-mappers';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
-import { Metadata } from '~/core/interfaces/types';
 import { getUTC } from '~/utils/utils';
 
 
@@ -23,7 +22,7 @@ export const DubberParsedMembersCache = new CacheService<User[]>('DubberParsedMe
 
 
 //* ===================================== GET ONE
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
@@ -32,7 +31,6 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
   let dubber: Dubber = DocumentDTO.dubber(dubberService.dubber);
   let dubbedHydratedAnimes: HydratedAnime[] | undefined = undefined;
   let parsedMembers: User[] | undefined = undefined;
-  let metadata: Metadata | undefined = undefined;
 
 
 
@@ -83,19 +81,12 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     }
   }
 
-  // Send only metadata
-  if (metadataOnly) {
-    metadata = DubberMetadataMapper(dubber);
 
-    // @ts-ignore
-    dubber = null;
-  }
 
   return {
     dubber,
     dubbedHydratedAnimes,
     parsedMembers,
-    metadata
   };
 }
 

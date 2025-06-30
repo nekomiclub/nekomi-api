@@ -111,10 +111,3 @@ export interface HikkaAnime {
   synopsis_en: string
   // ... 
 }
-
-export interface Metadata {
-  title: string
-  description: string
-  keywords: string[]
-  photo: string
-}

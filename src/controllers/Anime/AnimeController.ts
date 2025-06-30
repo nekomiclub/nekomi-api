@@ -10,9 +10,9 @@ import TokenService from '~/services/TokenService';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
 import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePatchByUuidProps, AnimePatchByUuidSchema, AnimePostEpisode, AnimePostEpisodeProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
-import { AnimeMetadataMapper, DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
+import { DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
 import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
 import { GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -189,7 +189,7 @@ const GetFeatured = [
 //* ===================================== GET BY QUERY
 const getByQuery = HTTPEndpoint(async (req, res) => {
   const { query } = parseObjectTypes<AnimeGetByQueryProps>(req.params);
-  const { metadataOnly, fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+  const { fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
   const CSRF_Token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
   let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
 
@@ -209,26 +209,20 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   await animeService.init(query);
 
   // Sync with third-parties
-  if (!metadataOnly) {
-    await animeService.syncWithMyAnimeList();
-    // await animeService.syncWithHikka();
-  }
+  await animeService.syncWithMyAnimeList();
+  // await animeService.syncWithHikka();
 
   const anime = animeService.anime;
 
   let related: AnimeGetByQuery['related'];
   let dubbers: AnimeGetByQuery['dubbers'];
-  let metadata: AnimeGetByQuery['metadata'];
   let posterAdapt: AnimeGetByQuery['posterAdapt'];
   let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
 
 
-  // Handle metadataOnly
-  if (metadataOnly) metadata = AnimeMetadataMapper(anime);
-
   // Fetch dubbers & related & next broadcast
-  if (detailed && !metadataOnly) {
+  if (detailed) {
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
@@ -290,16 +284,12 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   let hydrated = HydrateAnimeDocument(DocumentDTO.anime(anime, detailed));
 
-  // @ts-expect-error Hide hydrated when metadata only
-  if (metadataOnly) hydrated = undefined;
-
 
 
   const body: AnimeGetByQuery = {
     ...hydrated,
     dubbers,
     related,
-    metadata,
     posterAdapt,
     nextBroadcast
   };

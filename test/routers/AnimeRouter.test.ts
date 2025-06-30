@@ -143,25 +143,6 @@ describe('AnimeRouter', () => {
       expect(res.body.code).toBe(ERROR.HTTP_UNAUTHORIZED);
     });
 
-    it('should return only metadata', async () => {
-      const res = await request(app)
-        .get(`/anime/${anime?.uuid}`)
-        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock]))
-        .set(config.vars.csrfHeader, '~')
-        .query({ metadataOnly: true })
-        .expect(200);
-
-      const data = res.body as AnimeGetByQuery;
-
-      expect(data.anime).toBeUndefined();
-      expect(data.genres).toBeUndefined();
-      expect(data.media).toBeUndefined();
-      expect(data.rate).toBeUndefined();
-      expect(data.season).toBeUndefined();
-
-      expect(data.metadata).not.toBeUndefined();
-    });
-
     it('should fetch dubbers & related', async () => {
       const res = await request(app)
         .get(`/anime/${anime?.uuid}`)

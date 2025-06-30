@@ -1,7 +1,6 @@
 import Anime, { ANIME_GENRE, ANIME_GENRES, ANIME_MEDIA_TYPES, ANIME_RATES, ANIME_SEASONS, ANIME_STATUSES, AnimeStudio, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import Dubber, { DubberCompact } from '~/core/interfaces/Dubber.intf';
-import { Metadata, MyAnimeListNode } from '~/core/interfaces/types';
-import { User } from '~/core/interfaces/User.intf';
+import { MyAnimeListNode } from '~/core/interfaces/types';
 
 
 
@@ -12,38 +11,6 @@ export function DubberCompactMapper(dubber: Dubber): DubberCompact {
     nameEng: dubber.nameEng,
     nameUkr: dubber.nameUkr,
     slug: dubber.slug
-  };
-}
-
-
-
-export function DubberMetadataMapper(dubber: Dubber): Metadata {
-  return {
-    title: dubber.nameUkr,
-    description: dubber.description ?? 'Ця команда озвучує аніме на nekomi.club',
-    keywords: [dubber.nameUkr, dubber.nameEng],
-    photo: dubber.avatar
-  };
-}
-
-export function AnimeMetadataMapper(anime: Anime): Metadata {
-  const genres = anime.genres.map(slug => ANIME_GENRES[slug]);
-  const media = ANIME_MEDIA_TYPES[anime.media];
-
-  return {
-    title: `Аніме ${anime.names.ukr} (${anime.year})`,
-    description: `${genres.map(el => el.name).join(', ')} • ${anime.year} • ${media.name}. ${anime.description}`,
-    keywords: [anime.names.ukr, anime.names.eng, ...anime.names.alt],
-    photo: anime.poster
-  };
-}
-
-export function UserMetadataMapper(user: User): Metadata {
-  return {
-    title: `@${user.username}`,
-    description: `Профіль користувача`,
-    keywords: [user.username],
-    photo: user.avatar
   };
 }
 

@@ -13,7 +13,7 @@ import { ERROR_GENERIC_FILE_MISS, ERROR_USER_LIB_NOT_FOUND } from '~/services/Ex
 import { FullkekwUser_RefreshPayload, FullkekwUser_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
-import { HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
+import { HydrateAnimeDocument } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
@@ -100,7 +100,7 @@ const GetSearch = [
  * @returns UserGetByQuery
  */
 const getByQuery = HTTPEndpoint(async (req, res) => {
-  const { metadataOnly, parseCapabilities } = parseObjectTypes<UserGetByQueryProps>(req.query);
+  const { parseCapabilities } = parseObjectTypes<UserGetByQueryProps>(req.query);
   const CSRFToken = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
   const SessionCookie = req.cookies[config.vars.sessionCookie];
 
@@ -143,47 +143,38 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   let user = await new UserService().getByQuery(query, true);
 
-  let metadata: UserGetByQuery['metadata'] | undefined = undefined;
-  let parsedLib: UserGetByQuery['parsedLib'] | undefined = undefined;
-  let capabilities: UserGetByQuery['capabilities'] | undefined = undefined;
+  let parsedLib: UserGetByQuery['parsedLib'];
+  let capabilities: UserGetByQuery['capabilities'];
 
 
 
-  if (metadataOnly) metadata = UserMetadataMapper(user);
+  if (parseCapabilities) capabilities = await parseRoles(user.roles);
 
-  if (!metadataOnly) {
-    if (parseCapabilities) capabilities = await parseRoles(user.roles);
+  if (parseLibId) {
+    const lib = user.libs.find(el => el.id === parseLibId);
+    if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
 
-    if (parseLibId) {
-      const lib = user.libs.find(el => el.id === parseLibId);
-      if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
+    parsedLib = [];
 
-      parsedLib = [];
+    if (lib.titles.length) {
+      parsedLib = (await AnimeModel.find(
+        { uuid: { $in: lib.titles } }
+      )).map(document => HydrateAnimeDocument(DocumentDTO.anime(document)));
+    }
 
-      if (lib.titles.length) {
-        parsedLib = (await AnimeModel.find(
-          { uuid: { $in: lib.titles } }
-        )).map(document => HydrateAnimeDocument(DocumentDTO.anime(document)));
-      }
+    // Check if every anime listed in user lib exist
+    if (lib.titles.length !== parsedLib.length) {
+      const userService = new UserService();
+      await userService.init(user.id);
 
-      // Check if every anime listed in user lib exist
-      if (lib.titles.length !== parsedLib.length) {
-        const userService = new UserService();
-        await userService.init(user.id);
-
-        userService.fixLibAnimeDocuments(lib.id);
-      }
+      userService.fixLibAnimeDocuments(lib.id);
     }
   }
 
   user = DocumentDTO.user(user, detailed);
 
-  // @ts-expect-error Hide user when metadata only
-  if (metadataOnly) user = undefined;
-
   const body: UserGetByQuery = {
     user,
-    metadata,
     capabilities,
     parsedLib
   };
