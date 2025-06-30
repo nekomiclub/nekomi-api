@@ -15,6 +15,7 @@ interface Props {
 
 interface Payload {
   year?: number
+  month?: number
   season?: ANIME_SEASON
 }
 
@@ -32,8 +33,16 @@ export async function cronCurrentSeasonAnime() {
     }
 
     const logs = JSON.parse(fs.readFileSync(LOGPATH).toString()) ?? {};
-    const { season, year } = getCurrentAnimeSeason();
+    const { season, year, month } = getCurrentAnimeSeason();
     const header = `${season}:${year}`;
+
+    // Drop first month of the season
+    if (
+      month === 2
+      || month === 5
+      || month === 8
+      || month === 11
+    ) return;
 
     // Supress if season fetched
     if (logs[header]) return;
@@ -60,7 +69,7 @@ export function getCurrentAnimeSeason(props?: Props): Required<Payload> {
   // Increment year if current month is december
   if (monthIndex === 11) year += 1;
 
-  return { season, year };
+  return { season, year, month: monthIndex };
 }
 
 /** 
