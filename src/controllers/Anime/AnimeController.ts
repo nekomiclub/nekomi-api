@@ -543,19 +543,21 @@ const DeleteByUuid = [
 
 
 
-export default class AnimeController {
-  static GetStats = GetStats;
-  static GetByQuery = GetByQuery;
-  static GetSearch = GetSearch;
-  static GetFeatured = GetFeatured;
+const AnimeController = {
+  GetStats,
+  GetByQuery,
+  GetSearch,
+  GetFeatured,
 
-  static PostAnime = PostAnime;
-  static PostEpisode = PostEpisode;
+  PostAnime,
+  PostEpisode,
 
-  static PutPoster = PutPoster;
+  PutPoster,
 
-  static PatchByUuid = PatchByUuid;
+  PatchByUuid,
 
-  static DeleteByUuid = DeleteByUuid;
-  static DeleteEpisode = DeleteEpisode;
-}
+  DeleteByUuid,
+  DeleteEpisode,
+};
+
+export default AnimeController;

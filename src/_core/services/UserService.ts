@@ -7,13 +7,14 @@ import RoleModel from '~/core/models/RoleModel';
 import User, { UserLib, UserTelegramData, UserWatchProgress } from '~/core/interfaces/User.intf';
 import UserModel from '~/core/models/UserModel';
 import validator from 'validator';
+import { ANIME_STATUS } from '~/core/interfaces/Anime.intf';
 import { DevelopmentMode, TestMode, config } from '~/config';
 import { E400, E404 } from '~/services/ErrorService';
 import { ERROR_ANIME_EPISODE_NOT_FOUND, ERROR_NO_DOCUMENT } from '~/services/Exceptions';
 import { ERROR_ROLE_NOT_FOUND, ERROR_USER_LIB_NOT_FOUND, ERROR_USER_TGDATA_ID_MISS, ERROR_USER_TGTOKEN_ASSIGNED } from '~/services/Exceptions';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
-import { NotifyEventPayload, NotifyService } from '~/services/NotifyService';
+import { NOTIFY_EVENT, NotifyEventPayload, NotifyService } from '~/services/NotifyService';
 import { ServiceControls, SinglePartial } from '~/core/interfaces/types';
 import { createSlug, createStringID, createUUID } from '~/utils/utils';
 import { getUTC } from '~/utils/utils';
@@ -225,7 +226,6 @@ export class UserService extends UserModelControls {
   /**
    * Upload new banner
    * 
-   * @returns UploadBanner
    * @savedoc
    * @tested
    */
@@ -344,11 +344,11 @@ export class UserService extends UserModelControls {
 
 
   /**
-   * Delete watch progress record
+   * Remove watch progress record
    * 
    * @tested
    */
-  deleteWatchProgress(animeId: string) {
+  removeWatchProgress(animeId: string) {
     if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Skip if not exist
@@ -357,7 +357,7 @@ export class UserService extends UserModelControls {
     this.document.watchProgress = this.document.watchProgress.filter(el => el.titleID !== animeId);
     this.document.markModified('watchProgress');
 
-    this.stack.push(`Watch progress for anime was deleted. [animeId: ${animeId}]`);
+    this.stack.push(`Watch progress deleted. [animeId: ${animeId}]`);
   }
 
 
@@ -444,15 +444,16 @@ export class UserService extends UserModelControls {
 
 
   /**
-   * Add anime in lib
+   * Append anime in lib
+   * Handle NEW_EPISODE, AIRING_STARTED subscribes
    * 
-   * @tested
+   * @tested (w/o subscribes)
    */
-  async addInLib(libId: string, animeId: string) {
+  async appendInLib(libId: string, animeId: string) {
     if (!this.document) throw ERROR_NO_DOCUMENT;
 
     // Check if anime exist
-    await new AnimeService().getById(animeId);
+    const anime = await new AnimeService().getById(animeId, true);
 
     const lib = this.document.libs.find(el => el.id === libId);
     if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
@@ -461,6 +462,19 @@ export class UserService extends UserModelControls {
     if (lib.titles.includes(animeId)) return;
 
     lib.titles.push(animeId);
+
+
+
+    // Add NEW_EPISODE subscribe if lib type is "watching"
+    if (lib.type === 'watching') this.addSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, payload: animeId });
+
+    // Add AIRING_STARTED subscribe if there are no episodes in the anime and status is NOT_YET_AIRED or CURRENTLY_AIRING
+    if (
+      anime.episodes.length === 0 &&
+      (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
+    ) this.addSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, payload: animeId });
+
+
 
     this.document.markModified('libs');
     this.stack.push(`Anime ${animeId} added in lib ${libId}`);
@@ -471,8 +485,9 @@ export class UserService extends UserModelControls {
 
   /**
    * Remove anime from lib
+   * Remove event subscribes
    * 
-   * @tested
+   * @tested (w/o subscribes)
    */
   removeFromLib(libId: string, animeId: string) {
     if (!this.document) throw ERROR_NO_DOCUMENT;
@@ -484,6 +499,9 @@ export class UserService extends UserModelControls {
     if (!lib.titles.includes(animeId)) return;
 
     lib.titles = lib.titles.filter(el => el !== animeId);
+
+    this.removeSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, payload: animeId });
+    this.removeSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, payload: animeId });
 
     this.document.markModified('libs');
     this.stack.push(`Anime ${animeId} removed from lib ${libId}`);

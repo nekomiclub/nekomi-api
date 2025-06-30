@@ -75,10 +75,12 @@ const DeleteUpload = [
 
 
 
-export default class GenericController {
-  static GetPing = GetPing;
+const GenericController = {
+  GetPing,
 
-  static PostUpload = PostUpload;
+  PostUpload,
 
-  static DeleteUpload = DeleteUpload;
-}
+  DeleteUpload,
+};
+
+export default GenericController;

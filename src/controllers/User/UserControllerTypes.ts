@@ -2,7 +2,7 @@ import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { Metadata } from '~/core/interfaces/types';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
-import { UserPatchWatchProgressProps } from '~/core/services/UserService';
+import { z } from 'zod';
 
 export interface UserGetSearchProps {
   /** Query ~all will return all users */
@@ -57,35 +57,33 @@ export interface UserGetTogetherRoom {
   anime: HydratedAnime
 }
 
-export interface UserPatchProps {
-  id: string
-
-  watchProgress?: UserPatchWatchProgressProps
-
-  /** Anime ID */
-  deleteWatchProgress?: string
-}
 
 
-export type UserPatchMethodType = 'editFolderItem' | 'patchWatchProgress' | 'upload_banner' | 'removeWatchProgress'
+export const UserPatchSchema = z.object({
+  editFolderAnime: z.object({
+    libId: z.string(),
+    animeId: z.string(),
+  }).optional(),
 
-export interface UserPatchProps {
-  /** Method */
-  method: UserPatchMethodType
+  watchProgress: z.object({
+    animeId: z.string(),
+    dubberId: z.string(),
+    episodeOrder: z.number(),
 
-  //* editFolderItem, patchWatchProgress, removeWatchProgress methods
-  titleId?: string
+    /** Session viewtime in seconds */
+    viewtime: z.number(),
 
-  //* editFolderItem method
-  folderId?: string
+    /** View progress in seconds */
+    progress: z.number()
+  }).optional(),
 
-  //* patchWatchProgress method
-  dubberID?: string
-  episodeOrder?: number
+  removeWatchProgress: z.object({
+    animeId: z.string(),
+  }).optional()
+});
 
-  /** Session viewtime in seconds */
-  viewtime?: number
+export type UserPatchProps = z.infer<typeof UserPatchSchema>
 
-  /** Current video progress in seconds */
-  progress?: number
+export interface PutBanner {
+  bannerUrl: string
 }

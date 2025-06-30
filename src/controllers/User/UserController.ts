@@ -9,6 +9,7 @@ import multer from 'multer';
 import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { E401, E404, ERR_ALREADY_EXIST, HTTPErrorConstructor } from '~/services/ErrorService';
 import { ERROR } from '~/services/ErrorService';
+import { ERROR_GENERIC_FILE_MISS, ERROR_USER_LIB_NOT_FOUND } from '~/services/Exceptions';
 import { FullkekwUser_RefreshPayload, FullkekwUser_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -17,8 +18,8 @@ import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
 import { ProductionMode, TestMode, config } from '~/config';
+import { PutBanner, UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchProps, UserPatchSchema } from './UserControllerTypes';
 import { User } from '~/core/interfaces/User.intf';
-import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps } from './UserControllerTypes';
 import { body, query } from 'express-validator';
 import { parseObjectTypes } from '~/utils/utils';
 import { parseRoles } from '~/core/services/RoleService';
@@ -365,86 +366,53 @@ const PostLinkTelegramTokenVerify = [
 
 //* ===================================== PATCH USER
 const patchUser = HTTPEndpoint(async (req, res) => {
-  // const { id } = req.nekomi.user!;
-  // const { method } = req.body as UserPatchProps;
+  UserPatchSchema.parse(req.body);
+
+  const { id } = req.nekomi.user!;
+  const { editFolderAnime, watchProgress, removeWatchProgress } = req.body as UserPatchProps;
+
+  const userService = new UserService();
+  await userService.init(id);
 
 
 
-  // const user = (await UserModel.findOne({ id }))!;
+  if (editFolderAnime !== undefined) {
+    const { animeId, libId } = editFolderAnime;
 
-  // const patcher = new UserServiceOld({ user });
-  // const HANDLERS: { [type in UserPatchMethodType]: () => Promise<void> } = {
-  //   editFolderItem,
-  //   patchWatchProgress,
-  //   upload_banner,
-  //   removeWatchProgress,
-  // };
+    const lib = userService.user.libs.find(el => el.id === libId);
+    if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
 
-  // const handler = HANDLERS[method];
-  // if (!handler) throw new ERR_INVALID_PAYLOAD(`Method ${method} is invalid`);
-
-  // await handler();
-  // await patcher.save();
-
-
-
-  // return res.status(200).json({ message: 'User modified', stack: patcher.stack.join('\n') });
+    if (lib.titles.includes(animeId)) {
+      // Remove
+      userService.removeFromLib(libId, animeId);
+    } else {
+      // Append
+      await userService.appendInLib(libId, animeId);
+    }
+  }
 
 
 
-  // async function editFolderItem() {
-  //   const { folderId, titleId } = req.body as UserPatchProps;
-  //   if (!folderId || !titleId) throw new ERR_INVALID_PAYLOAD();
+  if (watchProgress !== undefined) {
+    const { animeId, dubberId, episodeOrder, progress, viewtime } = watchProgress;
 
-  //   const lib = patcher.user.libs.find(el => el.id === folderId);
-  //   if (!lib) throw new E404(`Lib ${folderId} is not found`);
+    await userService.patchWatchProgress({ dubberID: dubberId, titleID: animeId, episodeOrder, progress });
+    await userService.patchStatistics({ increaseViewtime: viewtime });
+  }
 
-  //   const anime = await new AnimeService().getById(titleId, true);
 
-  //   if (!lib.titles.includes(titleId)) {
-  //     // Add title & event
-  //     await patcher.addToLib({ libID: folderId, titleID: titleId });
 
-  //     if (lib.type === 'watching') await patcher.addSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
+  if (removeWatchProgress !== undefined) {
+    const { animeId } = removeWatchProgress;
 
-  //     // Add airing_started subscribe if there is no episodes in title and status is announcement or ongoing
-  //     if (
-  //       lib.type === 'plans' &&
-  //       anime.episodes.length === 0 &&
-  //       (anime.status === ANIME_STATUS.NOT_YET_AIRED || anime.status === ANIME_STATUS.CURRENTLY_AIRING)
-  //     ) await patcher.addSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
-  //   } else {
-  //     // Remove title & event
-  //     await patcher.removeFromLib({ libID: folderId, titleID: titleId });
+    userService.removeWatchProgress(animeId);
+  }
 
-  //     if (lib.type === 'watching') await patcher.removeSubscribe({ event: NOTIFY_EVENT.NEW_EPISODE, key: titleId });
-  //     if (lib.type === 'plans') await patcher.removeSubscribe({ event: NOTIFY_EVENT.AIRING_STARTED, key: titleId });
-  //   }
-  // }
 
-  // async function patchWatchProgress() {
-  //   const { progress, titleId, episodeOrder, dubberID, viewtime } = req.body as UserPatchProps;
 
-  //   if (!titleId || !dubberID || viewtime === undefined || progress === undefined || episodeOrder === undefined) throw new ERR_INVALID_PAYLOAD();
-  //   if (isNaN(+viewtime) || isNaN(+episodeOrder) || isNaN(+progress)) throw new ERR_TYPE_INVALID('Viewtime, episodeOrder and progress can not be NaN');
+  await userService.save();
 
-  //   await patcher.patchWatchProgress({ dubberID, titleID: titleId, episodeOrder, progress, updatedAt: 0 });
-  //   await patcher.patchStatistics({ viewtime });
-  // }
-
-  // async function upload_banner() {
-  //   const file = req.file;
-  //   if (!file) throw new ERR_TYPE_INVALID(`File is not provided`);
-
-  //   await patcher.uploadBanner({ file });
-  // }
-
-  // async function removeWatchProgress() {
-  //   const { titleId } = req.body as { titleId: string };
-  //   if (!titleId) throw new ERR_INVALID_PAYLOAD();
-
-  //   await patcher.removeWatchProgress({ animeId: titleId });
-  // }
+  return res.status(200).json({ message: 'User modified' });
 }, {
   requireMiddlewares: ['checkAccess', 'checkCSRF']
 });
@@ -452,22 +420,52 @@ const patchUser = HTTPEndpoint(async (req, res) => {
 const PatchUser = [
   CheckCSRF([config.DOMAIN.nekomi]),
   CheckAccess(['basic']),
-  body('method').notEmpty(),
-  upload.single('file'),
   patchUser,
 ];
 
 
 
-export default class UserController {
-  static GetSearch = GetSearch;
-  static GetByQuery = GetByQuery;
-  static GetLogout = GetLogout;
-  static GetLinkTelegramToken = GetLinkTelegramToken;
+//* ===================================== PUT BANNER
+const putBanner = HTTPEndpoint(async (req, res) => {
+  const { id } = req.nekomi.user!;
 
-  static PostSignin = PostSignin;
-  static PostLinkTelegram = PostLinkTelegram;
-  static PostLinkTelegramTokenVerify = PostLinkTelegramTokenVerify;
+  const file = req.file;
+  if (!file) throw ERROR_GENERIC_FILE_MISS;
 
-  static PatchUser = PatchUser;
-}
+  const userService = new UserService();
+  await userService.init(id);
+
+  const { bannerUrl } = await userService.uploadBanner(file);
+
+  const body: PutBanner = {
+    bannerUrl
+  };
+
+  return res.status(200).json({ message: 'Banner updated', ...body });
+}, { requireMiddlewares: ['checkAccess', 'checkCSRF'] });
+
+const PutBanner = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+  upload.single('file'),
+  putBanner
+];
+
+
+
+const UserController = {
+  GetSearch,
+  GetByQuery,
+  GetLogout,
+  GetLinkTelegramToken,
+
+  PostSignin,
+  PostLinkTelegram,
+  PostLinkTelegramTokenVerify,
+
+  PatchUser,
+
+  PutBanner,
+};
+
+export default UserController;

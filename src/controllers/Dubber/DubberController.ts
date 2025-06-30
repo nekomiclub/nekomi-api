@@ -393,19 +393,21 @@ function ensureAccess({ role, user, member }: { role: DubberRoleType, user: IEXP
 
 
 
-export default class DubberController {
-  static GetOneByQuery = GetOneByQuery;
-  static GetSearch = GetSearch;
-  static PutAvatar = PutAvatar;
-  static PutBanner = PutBanner;
+const DubberController = {
+  GetOneByQuery,
+  GetSearch,
+  PutAvatar,
+  PutBanner,
 
-  static PatchSettings = PatchSettings;
+  PatchSettings,
 
-  static GetInviteById = GetInviteById;
-  static PostInviteSend = PostInviteSend;
-  static PostInviteDecline = PostInviteDecline;
-  static PostInviteAccept = PostInviteAccept;
+  GetInviteById,
+  PostInviteSend,
+  PostInviteDecline,
+  PostInviteAccept,
 
-  static PatchMemberById = PatchMemberById;
-  static DeleteMemberById = DeleteMemberById;
-}
+  PatchMemberById,
+  DeleteMemberById,
+};
+
+export default DubberController;

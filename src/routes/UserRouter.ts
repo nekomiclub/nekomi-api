@@ -16,7 +16,9 @@ UserRouter.post(`/signin`, UserController.PostSignin);
 UserRouter.post([`/link/telegram`, `/linkTelegram`], UserController.PostLinkTelegram); //* /linkTelegram is deprecated
 UserRouter.post([`/link/telegram/verify`, `/linkTelegram/verify`], UserController.PostLinkTelegramTokenVerify); //* /linkTelegram/verify is deprecated
 
-UserRouter.patch([`/me`, `/`], UserController.PatchUser); //* / is deprecated
+UserRouter.patch(['/me', `/`], UserController.PatchUser); //* /me is deprecated
+
+UserRouter.put('/banner', UserController.PutBanner);
 
 
 

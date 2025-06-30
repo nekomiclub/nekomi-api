@@ -170,7 +170,7 @@ describe('UserService', () => {
 
     expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubberId)).toBeTruthy();
 
-    userService.deleteWatchProgress(anime.uuid);
+    userService.removeWatchProgress(anime.uuid);
     expect(userService.document?.watchProgress.find(el => el.titleID === anime.uuid && el.dubberID === dubberId)).toBeFalsy();
   });
 
@@ -254,18 +254,18 @@ describe('UserService', () => {
     const anime = (await AnimeModel.find())[0];
 
     //* Add in lib
-    await userService.addInLib(lib.id, anime.uuid);
+    await userService.appendInLib(lib.id, anime.uuid);
 
     expect(userService.document?.libs.find(el => el.id === lib.id)?.titles.includes(anime.uuid)).toBeTruthy();
 
     // Invalid lib id
     shouldfail(async () => {
-      await userService.addInLib('_INVALID', anime.uuid);
+      await userService.appendInLib('_INVALID', anime.uuid);
     }, ERROR.USER_LIB_NOT_FOUND);
 
     // Invalid anime id 
     shouldfail(async () => {
-      await userService.addInLib(lib.id, '_INVALID');
+      await userService.appendInLib(lib.id, '_INVALID');
     }, ERROR.ANIME_NOT_FOUND);
 
     //* Remove from lib
