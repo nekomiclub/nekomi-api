@@ -17,7 +17,7 @@ interface HTTPEndpointProps {
 
 
 /** Express endpoint that accept callback as a prop */
-export const HTTPEndpoint = (callback: (req: express.Request, res: express.Response) => Promise<any>, props?: HTTPEndpointProps) => {
+export const HTTPEndpoint = (callback: (req: express.Request, res: express.Response) => Promise<express.Response>, props?: HTTPEndpointProps) => {
   return async (req: express.Request, res: express.Response) => {
     return await HandleRequest(req, res, async () => {
       if (props?.requireMiddlewares?.includes('checkAccess') && !req.nekomi.middlewaresPassed?.includes('checkAccess')) throw new ERR_MIDDLEWARE_REQUIRED(`checkAccess`);

@@ -46,10 +46,10 @@ const CORSOpt: CorsOptions = {
 //* Setup http middlewares
 export const app = express();
 
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(cookieParser());
 
 
 
@@ -61,7 +61,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
   req.nekomi = req.nekomi !== undefined ? req.nekomi : {};
 
-  next();
+  return next();
 });
 
 

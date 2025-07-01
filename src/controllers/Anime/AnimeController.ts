@@ -121,52 +121,52 @@ const AnimeFeaturedCache = new CacheService<AnimeFeatured>('AnimeFeaturedCache')
 
 const getFeatured = HTTPEndpoint(async (req, res) => {
   const cache = AnimeFeaturedCache.get({ id: AnimeFeaturedCacheID });
-  if (cache) return cache;
-
-  const featured: AnimeFeatured = {
+  const featured: AnimeFeatured = cache ?? {
     headliners: [],
     hot: [],
     rated: [],
     updatedRecently: []
   };
 
-  try {
-    const animes = await new AnimeService().getAll(true);
+  if (!cache) {
+    try {
+      const animes = await new AnimeService().getAll(true);
 
-    // Parse headliners
-    for (const key in config.STATIC.AnimeFeatured.headliners) {
-      const { backgroundURL, id, videoURL } = config.STATIC.AnimeFeatured.headliners[key];
-      const anime = await new AnimeService().getById(id);
+      // Parse headliners
+      for (const key in config.STATIC.AnimeFeatured.headliners) {
+        const { backgroundURL, id, videoURL } = config.STATIC.AnimeFeatured.headliners[key];
+        const anime = await new AnimeService().getById(id);
 
-      featured.headliners.push({
-        ...anime,
-        backgroundURL,
-        videoURL
+        featured.headliners.push({
+          ...anime,
+          backgroundURL,
+          videoURL
+        });
+      }
+
+      // Process hot
+      featured.hot = (await AnimeModel.find(
+        { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
+      )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      // Process recently updated
+      featured.updatedRecently = animes.sort(
+        (a, b) => b.updatedAt - a.updatedAt
+      ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      // Process rated
+      featured.rated = animes.filter(el => el.score.mal !== null).sort(
+        (a, b) => b.score!.mal! - a.score!.mal!
+      ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      AnimeFeaturedCache.push({
+        id: AnimeFeaturedCacheID,
+        createdAt: getUTC().timestamp,
+        data: featured
       });
+    } catch (e) {
+      Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
     }
-
-    // Process hot
-    featured.hot = (await AnimeModel.find(
-      { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
-    )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    // Process recently updated
-    featured.updatedRecently = animes.sort(
-      (a, b) => b.updatedAt - a.updatedAt
-    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    // Process rated
-    featured.rated = animes.filter(el => el.score.mal !== null).sort(
-      (a, b) => b.score!.mal! - a.score!.mal!
-    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    AnimeFeaturedCache.push({
-      id: AnimeFeaturedCacheID,
-      createdAt: getUTC().timestamp,
-      data: featured
-    });
-  } catch (e) {
-    Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
   }
 
 
