@@ -1,10 +1,9 @@
-import User from '~/core/interfaces/UserIntf';
+import User from '~/core/interfaces/User.intf';
 import mongoose, { Schema } from 'mongoose';
 
 
 
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT USER SERVICE */
-export const UserModel = mongoose.model<User>('user', new Schema({
+const schema = new Schema({
   id: String,
   libs: Array,
   statistics: Object,
@@ -16,7 +15,11 @@ export const UserModel = mongoose.model<User>('user', new Schema({
   telegramData: Object,
   telegramLinkToken: String,
   banner: String,
-  togetherRooms: Array,
-}));
+});
+
+schema.set('optimisticConcurrency', false);
+
+/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT USER SERVICE */
+export const UserModel = mongoose.model<User>('user', schema);
 
 export default UserModel;

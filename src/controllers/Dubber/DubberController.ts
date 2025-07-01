@@ -1,45 +1,41 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import CacheService from '~/services/CacheService';
+import DocumentDTO from '~/core/services/DTOService';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
-import User, { IUser } from '~/core/interfaces/UserIntf';
-import UserModel from '~/models/User';
-import getUTC from '~/utils/get-utc';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
+import User from '~/core/interfaces/User.intf';
+import UserModel from '~/core/models/UserModel';
+import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
 import { DubberGetOneByQuery, DubberGetOneByQueryProps, DubberGetSearch, DubberGetSearchProps } from './DubberControllerTypes';
-import { DubberMetadataMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
-import { E500, ERR_ACCESS_REJECTED, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
-import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
+import { E403, E500, ERR_DUBBER_NOT_INVITED, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { HydrateAnimeDocument } from '~/utils/data-mappers';
+import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { IEXPRESS_REQ_NEKOMI_USER } from '~/core/interfaces/globals';
-import { Metadata } from '~/core/interfaces/types';
+import { getUTC } from '~/utils/utils';
 
 
 
 
 export const DubberDubbedAnimeCache = new CacheService<HydratedAnime[]>('DubberDubbedAnimeCache');
-export const DubberParsedMembersCache = new CacheService<IUser[]>('DubberParsedMembersCache');
+export const DubberParsedMembersCache = new CacheService<User[]>('DubberParsedMembersCache');
 
 
 
 //* ===================================== GET ONE
-
-
-async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
+async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache }: DubberGetOneByQueryProps): Promise<DubberGetOneByQuery> {
   const dubberService = new DubberService();
   await dubberService.init(query);
 
   useCache = useCache ?? true;
 
-  let dubber: IDubber = new DocumentDTO().dubber({ object: dubberService.dubber });
+  let dubber: Dubber = DocumentDTO.dubber(dubberService.dubber);
   let dubbedHydratedAnimes: HydratedAnime[] | undefined = undefined;
   let parsedMembers: User[] | undefined = undefined;
-  let metadata: Metadata | undefined = undefined;
 
 
 
   if (detailed) {
-    dubber = new DocumentDTO().dubber({ object: dubberService.dubber, details: true });
+    dubber = DocumentDTO.dubber(dubberService.dubber, detailed);
   }
 
   // Fetch dubbed anime's
@@ -49,14 +45,14 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       dubbedHydratedAnimes = cached;
     } else {
-      const titles = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+      const titles = (await AnimeModel.find()).map(doc => DocumentDTO.anime(doc, true));
       const withDubbing = titles.filter(title => {
         return title.episodes?.some(ep => ep.dubberID === dubberService.dubber.id);
       });
 
       dubbedHydratedAnimes = withDubbing.sort(
         (a, b) => b.updatedAt - a.updatedAt
-      ).slice(0, 8).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+      ).slice(0, 8).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
       DubberDubbedAnimeCache.push({
         id: dubberService.dubber.id,
@@ -73,7 +69,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     if (cached && useCache) {
       parsedMembers = cached;
     } else {
-      const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
+      const users = (await UserModel.find({ id: { $in: dubberService.dubber.members.map(el => el.id) } })).map(doc => DocumentDTO.user(doc, true));
 
       parsedMembers = users;
 
@@ -85,19 +81,12 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
     }
   }
 
-  // Send only metadata
-  if (metadataOnly) {
-    metadata = DubberMetadataMapper(dubber);
 
-    // @ts-ignore
-    dubber = null;
-  }
 
   return {
     dubber,
     dubbedHydratedAnimes,
     parsedMembers,
-    metadata
   };
 }
 
@@ -107,7 +96,7 @@ async function GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, 
 async function GetSearch({ q }: DubberGetSearchProps): Promise<DubberGetSearch> {
   const limit = 15;
 
-  let dubberResults: IDubber[] = [];
+  let dubberResults: Dubber[] = [];
 
   if (q === '~all') {
     // Get all
@@ -116,10 +105,10 @@ async function GetSearch({ q }: DubberGetSearchProps): Promise<DubberGetSearch> 
     dubberResults = Search.search({ query: q, engine: 'dubber', limit });
   }
 
-  const results: IDubber[] = [];
+  const results: Dubber[] = [];
 
-  dubberResults.forEach(dubber => {
-    results.push(new DocumentDTO().dubber({ object: dubber }));
+  dubberResults.forEach(doc => {
+    results.push(DocumentDTO.dubber(doc));
   });
 
   return { results };
@@ -186,8 +175,8 @@ export interface IDubberPatchSettingsProps {
   nameUkr?: string
   nameEng?: string
   description?: string
-  supportLinks?: Partial<IDubber['support']>
-  socialLinks?: Partial<IDubber['socials']>
+  supportLinks?: Partial<Dubber['support']>
+  socialLinks?: Partial<Dubber['socials']>
 }
 
 async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLinks, supportLinks, currentUser }: IDubberPatchSettingsProps) {
@@ -207,14 +196,14 @@ async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLi
 
   if (typeof socialLinks === 'object') {
     for (const key in socialLinks) {
-      if (typeof socialLinks[key] === 'string') await dubberService.changeSocials({ key: key as keyof IDubber['socials'], value: socialLinks[key] });
+      if (typeof socialLinks[key] === 'string') await dubberService.changeSocials({ key: key as keyof Dubber['socials'], value: socialLinks[key] });
       else throw new ERR_TYPE_INVALID(`Social link for ${key} type is invalid`);
     }
   }
 
   if (typeof supportLinks === 'object') {
     for (const key in supportLinks) {
-      if (typeof supportLinks[key] === 'string') await dubberService.changeSupport({ key: key as keyof IDubber['support'], value: supportLinks[key] });
+      if (typeof supportLinks[key] === 'string') await dubberService.changeSupport({ key: key as keyof Dubber['support'], value: supportLinks[key] });
       else throw new ERR_TYPE_INVALID(`Support link for ${key} type is invalid`);
     }
   }
@@ -226,7 +215,7 @@ async function PatchSettings({ dubberId, description, nameEng, nameUkr, socialLi
   return {
     status: 200,
     message: 'Dubber settings changed',
-    dubber: new DocumentDTO().dubber({ object: dubberService.dubber })
+    dubber: DocumentDTO.dubber(dubberService.dubber)
   };
 }
 
@@ -324,7 +313,7 @@ async function PostInviteDecline({ dubberId, userId }: IDubberPostInviteSADProps
 export interface IDubberPatchMemberByIdProps {
   dubberId: string
   userId: string
-  role?: TDubberMemberRole
+  role?: DubberRoleType
   currentUser: IEXPRESS_REQ_NEKOMI_USER
 }
 
@@ -383,31 +372,33 @@ async function DeleteMemberById({ dubberId, userId, currentUser }: IDubberDelete
 
 
 
-function ensureAccess({ role, user, member }: { role: TDubberMemberRole, user: IEXPRESS_REQ_NEKOMI_USER, member?: IDubberMember }) {
+function ensureAccess({ role, user, member }: { role: DubberRoleType, user: IEXPRESS_REQ_NEKOMI_USER, member?: DubberMember }) {
   // Pass root or admin
   if (!user.capabilities.includes('root') && !user.capabilities.includes('admin')) {
     // Only team member can edit settings
-    if (!member) throw new ERR_ACCESS_REJECTED(`Can not edit settings of the team what you don't belong to`);
+    if (!member) throw new E403(`Cannot edit settings of the team that you don't belong to`);
     // Only leader can edit settings
-    if (member.role !== role) throw new ERR_ACCESS_REJECTED();
+    if (member.role !== role) throw new E403(`Only team leader can edit settings`);
   }
 }
 
 
 
-export default class DubberController {
-  static GetOneByQuery = GetOneByQuery;
-  static GetSearch = GetSearch;
-  static PutAvatar = PutAvatar;
-  static PutBanner = PutBanner;
+const DubberController = {
+  GetOneByQuery,
+  GetSearch,
+  PutAvatar,
+  PutBanner,
 
-  static PatchSettings = PatchSettings;
+  PatchSettings,
 
-  static GetInviteById = GetInviteById;
-  static PostInviteSend = PostInviteSend;
-  static PostInviteDecline = PostInviteDecline;
-  static PostInviteAccept = PostInviteAccept;
+  GetInviteById,
+  PostInviteSend,
+  PostInviteDecline,
+  PostInviteAccept,
 
-  static PatchMemberById = PatchMemberById;
-  static DeleteMemberById = DeleteMemberById;
-}
+  PatchMemberById,
+  DeleteMemberById,
+};
+
+export default DubberController;

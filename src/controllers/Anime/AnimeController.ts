@@ -1,54 +1,41 @@
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import CacheService from '~/services/CacheService';
+import DocumentDTO from '~/core/services/DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
-import getUTC from '~/utils/get-utc';
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, Anime, HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { AnimeDeleteByUuidProps, AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePostEpisode, AnimePostEpisodeProps, AnimePostProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
-import { AnimeMetadataMapper, DubberCompactMapper } from '~/utils/data-mappers';
+import TokenService from '~/services/TokenService';
+import UserService from '~/core/services/UserService';
+import multer from 'multer';
+import { AnimeDeleteEpisodeProps, AnimeFeatured, AnimeGetByQuery, AnimeGetByQueryProps, AnimeGetSearch, AnimeGetSearchProps, AnimeGetStats, AnimePatchByUuidProps, AnimePatchByUuidSchema, AnimePostEpisode, AnimePostEpisodeProps, AnimePutPoster, AnimePutPosterProps } from './AnimeControllerTypes';
+import { CheckAccess, CheckCSRF } from '~/middlewares';
 import { DaysOfWeek } from '~/core/interfaces/types';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { HydrateAnimeDocument } from '~/utils/data-mappers';
+import { DubberCompactMapper, HydrateAnimeDocument } from '~/utils/data-mappers';
+import { E401, ERR_INVALID_PAYLOAD } from '~/services/ErrorService';
+import { GetCheckCSRFMock } from '~/utils/jest-utils';
+import { HTTPEndpoint } from '~/services/HTTPService';
 import { Logger } from '~/services/LoggerService';
-import { config } from '~/config';
+import { MiddlewareService } from '~/services/MiddlewareService';
+import { TestMode, config } from '~/config';
+import { body, param, query } from 'express-validator';
+import { createStringID, getUTC } from '~/utils/utils';
+import { parseObjectTypes } from '~/utils/utils';
+import { z } from 'zod';
 
 
 
-
-//* ===================================== GET ALL
-/**
- * Get all anime documents count, updated (where rate is not G and media type is not OVA) and fullfilled (updated with malId specified)
- * 
- * @returns AnimeGetStats
- */
-async function GetStats(): Promise<AnimeGetStats> {
-  const animeService = new AnimeService();
-  const documents = await animeService.getAll();
-
-  const total = documents.length;
-  // All parsed anime documents by default were with G rate and OVA status
-  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
-  const fullfilled = updated.filter(el => el.malId !== null);
-
-  return {
-    total,
-    updated: updated.length,
-    fullfilled: fullfilled.length
-  };
-}
+const upload = multer();
 
 
 
 //* ===================================== GET SEARCH
-/**
- * Search anime by uuid, slug or names
- * 
- * @see AnimeGetSearchProps
- * @returns AnimeGetSearch
- */
-async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
+const getSearch = HTTPEndpoint(async (req, res) => {
+  const { q } = parseObjectTypes<AnimeGetSearchProps>(req.query);
+
+
+
   const limit = 15;
 
   let animeResults: Anime[] = [];
@@ -56,10 +43,10 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
 
   if (q === '~all') {
     // Get all
-    animeResults = (await AnimeModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find()).slice(0, limit).map(doc => DocumentDTO.anime(doc, true));
   } else if (q === '~wo-mal-id') {
     // Get all without mail id
-    animeResults = (await AnimeModel.find({ malId: null })).slice(0, limit).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+    animeResults = (await AnimeModel.find({ malId: null })).slice(0, limit).map(doc => DocumentDTO.anime(doc, true));
   } else {
     animeResults = Search.search({ query: q, engine: 'anime', limit });
   }
@@ -76,18 +63,55 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
     }
 
     dubbedEpisodes[anime.uuid] = maxEp;
-    results.push(HydrateAnimeDocument(new DocumentDTO().anime({ object: anime })));
+    results.push(HydrateAnimeDocument(DocumentDTO.anime(anime)));
   });
 
 
 
-  return {
+  const body: AnimeGetSearch = {
     results,
     extended: {
       dubbedEpisodes
     }
   };
-}
+
+  return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+/** @tested */
+const GetSearch = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  query(['q']).notEmpty(),
+  getSearch,
+];
+
+
+
+//* ===================================== GET STATS
+const getStats = HTTPEndpoint(async (req, res) => {
+  const animeService = new AnimeService();
+  const documents = await animeService.getAll();
+
+  const total = documents.length;
+  // All parsed anime documents by default were with G rate and OVA status
+  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
+  const fullfilled = updated.filter(el => el.malId !== null);
+
+  const body: AnimeGetStats = {
+    total,
+    updated: updated.length,
+    fullfilled: fullfilled.length
+  };
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested */
+const GetStats = [
+  getStats,
+];
 
 
 
@@ -95,12 +119,7 @@ async function GetSearch({ q }: AnimeGetSearchProps): Promise<AnimeGetSearch> {
 const AnimeFeaturedCacheID = '~featured';
 const AnimeFeaturedCache = new CacheService<AnimeFeatured>('AnimeFeaturedCache');
 
-/**
- * Get featured anime list for home page
- * 
- * @returns AnimeFeatured
- */
-async function GetFeatured(): Promise<AnimeFeatured> {
+const getFeatured = HTTPEndpoint(async (req, res) => {
   const cache = AnimeFeaturedCache.get({ id: AnimeFeaturedCacheID });
   if (cache) return cache;
 
@@ -129,17 +148,17 @@ async function GetFeatured(): Promise<AnimeFeatured> {
     // Process hot
     featured.hot = (await AnimeModel.find(
       { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
-    )).map(el => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: el })));
+    )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     // Process recently updated
     featured.updatedRecently = animes.sort(
       (a, b) => b.updatedAt - a.updatedAt
-    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     // Process rated
     featured.rated = animes.filter(el => el.score.mal !== null).sort(
       (a, b) => b.score!.mal! - a.score!.mal!
-    ).slice(0, 20).map(el => HydrateAnimeDocument(new DocumentDTO().anime({ object: el })));
+    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
 
     AnimeFeaturedCache.push({
       id: AnimeFeaturedCacheID,
@@ -150,45 +169,66 @@ async function GetFeatured(): Promise<AnimeFeatured> {
     Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
   }
 
-  return featured;
-}
+
+
+  const body: AnimeFeatured = featured;
+
+  return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+/** @tested */
+const GetFeatured = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  getFeatured
+];
 
 
 
 //* ===================================== GET BY QUERY
-/**
- * Get anime document by query (uuid, slug, malId). Parse genres & etc or return only metadata
- * 
- * @see AnimeGetByQueryProps
- * @returns AnimeGetByQuery
- */
-async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRelated }: AnimeGetByQueryProps): Promise<AnimeGetByQuery> {
+const getByQuery = HTTPEndpoint(async (req, res) => {
+  const { query } = parseObjectTypes<AnimeGetByQueryProps>(req.params);
+  const { fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+  const CSRF_Token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
+  let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+
+  if (detailed) {
+    if (!CSRF_Token) throw new E401;
+
+    await new MiddlewareService().checkCSRF({
+      token: CSRF_Token,
+      origins: [config.DOMAIN.nekomi],
+      mock: TestMode ? GetCheckCSRFMock(req) : undefined
+    });
+  }
+
+
+
   const animeService = new AnimeService();
   await animeService.init(query);
 
-  // Sync with myanimelist
+  // Sync with third-parties
   await animeService.syncWithMyAnimeList();
+  // await animeService.syncWithHikka();
+
   const anime = animeService.anime;
 
-  let related: AnimeGetByQuery['related'] = undefined;
-  let dubbers: AnimeGetByQuery['dubbers'] = undefined;
-  let metadata: AnimeGetByQuery['metadata'] = undefined;
-  let posterAdapt: AnimeGetByQuery['posterAdapt'] = undefined;
-  let nextBroadcast: AnimeGetByQuery['nextBroadcast'] = undefined;
+  let related: AnimeGetByQuery['related'];
+  let dubbers: AnimeGetByQuery['dubbers'];
+  let posterAdapt: AnimeGetByQuery['posterAdapt'];
+  let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
 
-
-  // Handle metadataOnly
-  if (metadataOnly) metadata = AnimeMetadataMapper(anime);
 
   // Fetch dubbers & related & next broadcast
-  if (detailed && !metadataOnly) {
+  if (detailed) {
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
       if (dubberIds.length) {
         const results = await DubberModel.find({ id: { $in: dubberIds } });
-        dubbers = results.map(dubber => DubberCompactMapper(new MongoDocumentDTO().dubber({ document: dubber })));
+        dubbers = results.map(doc => DubberCompactMapper(DocumentDTO.dubber(doc)));
       } else {
         dubbers = [];
       }
@@ -197,7 +237,7 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
     if (fetchRelated) {
       if (anime.related.length) {
         const results = await AnimeModel.find({ uuid: { $in: anime.related } });
-        related = results.map(anime => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document: anime })));
+        related = results.map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
       } else {
         related = [];
       }
@@ -231,7 +271,7 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
         try {
           const dubber = await new DubberService().getById(anime.posterAdapt);
 
-          posterAdapt = DubberCompactMapper(new DocumentDTO().dubber({ object: dubber }));
+          posterAdapt = DubberCompactMapper(DocumentDTO.dubber(dubber));
         } catch (e) { Logger.fail(`[AnimeController]: Cannot find poster adapt dubber. [id: ${anime.posterAdapt}]`); }
       } else {
         // Get dubber from anime dubbing
@@ -242,112 +282,272 @@ async function GetByQuery({ query, metadataOnly, detailed, fetchDubbers, fetchRe
     }
   }
 
-  let hydrated = HydrateAnimeDocument(detailed ? anime : new DocumentDTO().anime({ object: anime }));
-
-  // @ts-expect-error Hide hydrated when metadata only
-  if (metadataOnly) hydrated = undefined;
+  let hydrated = HydrateAnimeDocument(DocumentDTO.anime(anime, detailed));
 
 
 
-  return {
+  const body: AnimeGetByQuery = {
     ...hydrated,
     dubbers,
     related,
-    metadata,
     posterAdapt,
     nextBroadcast
   };
-}
 
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested */
+const GetByQuery = [
+  param('query').notEmpty(),
+  getByQuery,
+];
 
 
 //* ===================================== POST ANIME
-/** 
- * Create new anime document
- * 
- * @see AnimePostProps
- * @returns Anime
- */
-async function PostAnime({ nameEng }: AnimePostProps): Promise<Anime> {
-  return await new AnimeService().create({ nameEng });
-}
+const postAnime = HTTPEndpoint(async (req, res) => {
+  const nameEng = `untitled-${createStringID(4)}`;
+
+  const anime = await new AnimeService().create({ nameEng });
+
+
+
+  return res.status(201).json({ message: 'ok', anime });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+/** @tested */
+const PostAnime = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleAdd']),
+  postAnime,
+];
 
 
 
 //* ===================================== POST EPISODE
-/**
- * Upload episode
- * 
- * @see AnimePostEpisodeProps
- * @returns AnimePostEpisode
- */
-async function PostEpisode({ dubberId, file, order, user, uuid, qualities }: AnimePostEpisodeProps): Promise<AnimePostEpisode> {
+const postEpisode = HTTPEndpoint(async (req, res) => {
+  let { uuid, qualities, order, dubberId } = req.body as AnimePostEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    qualities: z.number().array(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+  // @ts-ignore
+  qualities = JSON.parse(qualities).map(el => +el);
+
+  schema.parse({ uuid, qualities, order, dubberId });
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not specified`);
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   const { episode } = await animeService.uploadEpisode(file, { dubberId, order, qualities, user });
 
-  return { episode };
-}
+
+
+  const body: AnimePostEpisode = {
+    episode
+  };
+
+  return res.status(201).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const PostEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesAdd']),
+  upload.single('file'),
+  postEpisode,
+];
 
 
 
 //* ===================================== PUT POSTER
-/**
- * Put poster
- * 
- * @see AnimePutPosterProps
- * @return AnimePutPoster
- */
-async function PutPoster({ uuid, file, user }: AnimePutPosterProps): Promise<AnimePutPoster> {
+const putPoster = HTTPEndpoint(async (req, res) => {
+  const { uuid } = req.body as AnimePutPosterProps;
+
+  const file = req.file;
+  if (!file) throw new ERR_INVALID_PAYLOAD(`File is not specified`);
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   const { url } = await animeService.putPoster(file, { user });
 
-  return { url };
-}
+
+
+  const body: AnimePutPoster = {
+    url
+  };
+
+  return res.status(200).json({ message: 'ok', ...body });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const PutPoster = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleEdit']),
+  upload.single('file'),
+  body('uuid').notEmpty().isString(), // Must be below multer middleware
+  putPoster
+];
+
+
+
+//* ===================================== PATCH BY UUID
+const patchByUuid = HTTPEndpoint(async (req, res) => {
+  AnimePatchByUuidSchema.parse(req.body);
+
+  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year } = req.body as AnimePatchByUuidProps;
+
+  const animeService = new AnimeService();
+  await animeService.init(uuid);
+
+
+
+  // Patches
+  if (nameAlt?.length || nameEng !== undefined || nameUkr !== undefined) await animeService.setNames({ alt: nameAlt, eng: nameEng, ukr: nameUkr });
+  if (description !== undefined) animeService.setDescription(description);
+  if (details !== undefined) animeService.setDetails(details);
+  if (episodesCount !== undefined) animeService.setEpisodesCount(episodesCount);
+  if (genres !== undefined) animeService.setGenres(animeService.parseGenres(genres));
+  if (malId !== undefined) animeService.setMalId(malId);
+  if (posterAdapt !== undefined) await animeService.setPosterAdapt(posterAdapt);
+  if (media !== undefined) animeService.setMedia(animeService.parseMedia(media));
+  if (rate !== undefined) animeService.setRate(animeService.parseRate(rate));
+  if (season !== undefined) animeService.setSeason(animeService.parseSeason(season));
+  if (status !== undefined) animeService.setStatus(animeService.parseStatus(status));
+  if (scoreMAL !== undefined || scoreIMDB !== undefined || malScoredBy !== undefined) animeService.setScore({ imdb: scoreIMDB, mal: scoreMAL, malScoredBy });
+  if (studios !== undefined) animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
+  if (year !== undefined) animeService.setYear(year);
+
+
+
+  await animeService.save();
+
+  return res.status(200).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const PatchByUuid = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleEdit']),
+  patchByUuid
+];
 
 
 
 //* ===================================== DELETE EPISODE
-/**
- * Delete dubbed episode
- * 
- * @see AnimeDeleteEpisodeProps
- */
-async function DeleteEpisode({ dubberId, order, uuid, user }: AnimeDeleteEpisodeProps) {
+const deleteEpisode = HTTPEndpoint(async (req, res) => {
+  let { dubberId, order, uuid } = req.body as AnimeDeleteEpisodeProps;
+
+  const schema = z.object({
+    uuid: z.string(),
+    order: z.number(),
+    dubberId: z.string()
+  });
+
+  order = +order;
+
+  schema.parse({ dubberId, order, uuid });
+
+  const user = await new UserService().getById(req.nekomi.user?.id ?? '', true);
+
+
+
   const animeService = new AnimeService();
   await animeService.init(uuid);
 
   await animeService.deleteEpisode({ dubberId, order, user });
-}
+
+
+
+  return res.status(200).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const DeleteEpisode = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['seriesDelete']),
+  deleteEpisode
+];
 
 
 
 //* ===================================== DELETE BY UUID
-/**
- * Delete anime document
- */
-async function DeleteByUuid({ uuid }: AnimeDeleteByUuidProps): Promise<void> {
+const deleteByUuid = HTTPEndpoint(async (req, res) => {
+  const { uuid } = req.params as { uuid: string };
+  const { token } = req.query as { token?: string };
+
+  if (!token) {
+    console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN START --`);
+    console.log(TokenService.signCSRF());
+    console.log(`-- INCOME DELETE ANIME REQUEST; TOKEN END --`);
+
+    throw new E401(`Not authorized`);
+  }
+
+  if (!TestMode) {
+    await new MiddlewareService().checkCSRF({ token, origins: [config.DOMAIN.nekomi_api] });
+  }
+
+
+
   await new AnimeService().deleteOne(uuid);
-}
+
+
+
+  return res.status(200).json({ message: 'ok' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+/** @tested */
+const DeleteByUuid = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['titleDelete']),
+  deleteByUuid,
+];
 
 
 
 
 
-export default class AnimeController {
-  static GetStats = GetStats;
-  static GetByQuery = GetByQuery;
-  static GetSearch = GetSearch;
-  static GetFeatured = GetFeatured;
+const AnimeController = {
+  GetStats,
+  GetByQuery,
+  GetSearch,
+  GetFeatured,
 
-  static PostAnime = PostAnime;
-  static PostEpisode = PostEpisode;
+  PostAnime,
+  PostEpisode,
 
-  static PutPoster = PutPoster;
+  PutPoster,
 
-  static DeleteEpisode = DeleteEpisode;
-  static DeleteByUuid = DeleteByUuid;
-}
+  PatchByUuid,
+
+  DeleteByUuid,
+  DeleteEpisode,
+};
+
+export default AnimeController;

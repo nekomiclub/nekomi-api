@@ -1,16 +1,14 @@
 {
   "name": "nekomi-api",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
     "dev": "npx nodemon devMode",
     "start": "npx tsx ./src/index.ts prodMode",
     "test": "npx jest --silent /test --forceExit",
-    "build": "npm run cleanup && npx eslint . --fix && git add . && npx tsc",
-    "prepare": "npm run test && npm run build",
-    "cleanup": "npx rimraf dist .cache .dump"
+    "build": "npx eslint . --fix && npx tsc"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
@@ -28,7 +26,6 @@
     "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
-    "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
     "eslint-plugin-path": "^1.4.0-beta.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",

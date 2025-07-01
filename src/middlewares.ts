@@ -1,10 +1,10 @@
 import express from 'express';
-import { AxiosError } from 'axios';
 
-import { ERR_MISSING_AUTHORIZATION, HandleRequest } from './services/ErrorService';
-import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/testing';
+import { E401, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
+import { ERROR } from './services/ErrorService';
+import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/jest-utils';
 import { MiddlewareService } from './services/MiddlewareService';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
 import { TestMode, config } from './config';
 
 
@@ -16,14 +16,14 @@ const Middleware = new MiddlewareService();
  * Will write user object in request nekomi data
  * @param capabilities An array of required capabilities. Request will be passed if at least one capability will match or array will be empty
  */
-export function CheckAccess(capabilities: TRoleCapability[]) {
+export function CheckAccess(capabilities: RoleCapability[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await HandleRequest(req, res, async () => {
       req.nekomi.middlewaresPassed = req.nekomi.middlewaresPassed || [];
       req.nekomi.middlewaresPassed.push('checkAccess');
 
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
-      if (!token) throw new ERR_MISSING_AUTHORIZATION();
+      if (!token) throw new E401;
 
       try {
         const { user, capabilities: userCaps } = await Middleware.checkAccess({
@@ -42,17 +42,15 @@ export function CheckAccess(capabilities: TRoleCapability[]) {
         req.nekomi.user.username = user.username;
         req.nekomi.user.capabilities = userCaps;
       } catch (e) {
-        if (e instanceof AxiosError && (e.response?.status === 403 || e.response?.status === 400 || e.response?.status === 404)) {
-          const message = 'Your session has expired. Re-login in fullkekw';
-
-          return res.status(403).clearCookie(config.vars.sessionCookie).json({ message, msg: message, status: 403, code: 'ERR_SESSION_EXPIRED' });
+        if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) {
+          res.clearCookie(config.vars.sessionCookie);
         }
 
         throw e;
       }
 
       return next();
-    }, true);
+    });
   };
 }
 
@@ -66,7 +64,7 @@ export function CheckCSRF(origins?: string[]) {
       req.nekomi.middlewaresPassed.push('checkCSRF');
 
       const token = req.header(config.vars.csrfHeader);
-      if (!token) throw new ERR_MISSING_AUTHORIZATION('CSRF header is missing');
+      if (!token) throw new E401('CSRF header is missing');
 
       const origin = await Middleware.checkCSRF({
         token,
@@ -75,6 +73,6 @@ export function CheckCSRF(origins?: string[]) {
       });
 
       return next();
-    }, true);
+    });
   };
 }

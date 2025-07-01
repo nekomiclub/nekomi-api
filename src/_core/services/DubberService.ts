@@ -1,91 +1,92 @@
 import validator from 'validator';
 import { HydratedDocument } from 'mongoose';
 
+import DocumentDTO from './DTOService';
 import DubberModel from '~/core/models/DubberModel';
 import Search from '~/services/SearchService';
-import UserModel, { UserService } from '~/models/User';
-import getUTC from '~/utils/get-utc';
-import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_NO_DOCUMENT, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
-import { IDubber, IDubberMember, TDubberMemberRole } from '~/core/interfaces/DubberIntf';
-import { INotifyDubberTell } from '~/interfaces/types';
+import UserService from './UserService';
+import { Dubber, DubberMember, DubberRoleType } from '~/core/interfaces/Dubber.intf';
+import { E404, ERR_DESCRIPTION_LENGTH_INVALID, ERR_DUBBER_ALREADY_INVITED, ERR_DUBBER_MEMBER_ALREADY, ERR_DUBBER_NOT_INVITED, ERR_DUBBER_NOT_MEMBER, ERR_DUBBER_OTHER_TEAM_MEMBER, ERR_FILE_TOO_LARGE, ERR_INVALID_PAYLOAD, ERR_LINK_INVALID, ERR_USERNAME_LENGTH_INVALID, ERR_USERNAME_NOT_LATIN, ERR_USER_TELEGRAM_NOT_LINKED } from '~/services/ErrorService';
+import { ERROR_DUBBER_NOT_FOUND, ERROR_NO_DOCUMENT } from '~/services/Exceptions';
 import { Logger } from '~/services/LoggerService';
-import { MongoDocumentDTO } from './DTO';
-import { NekomiUploadsAPI } from './API/NekomiUploadsAPI';
-import { Notify } from '~/services/NotifyService';
+import { NOTIFY_EVENT, Notify, NotifyDubberTellProps } from '~/services/NotifyService';
+import { NekomiUploads } from './API/NekomiUploads.api';
 import { ServiceControls } from '~/core/interfaces/types';
 import { TestMode, config } from '~/config';
-import { createID, createUUID } from '~/utils/create-id';
-import { createSlug } from '~/utils/create-slug';
-import { trimString } from '~/utils/trim-string';
+import { createSlug } from '~/utils/utils';
+import { createStringID } from '~/utils/utils';
+import { createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
+import { trimString } from '~/utils/utils';
 
 
 
-interface IDubberCreateProps {
+interface DubberCreateProps {
   nameUkr: string
   nameEng: string
 
   /** Set dubber id. Only in test mode */
   DEV_ID?: string
 
-  TEST_MEMBERS?: IDubberMember[]
+  TEST_MEMBERS?: DubberMember[]
   TEST_MEMBERS_INVITED?: string[]
 }
 
-interface IDubberCRUDProps {
+interface DubberCRUDProps {
   TestMode?: boolean
 }
 
-interface IChangeName {
+interface ChangeName {
   nameEng?: string
   nameUkr?: string
 }
 
-interface IPatchLinks<K> {
+interface PatchLinks<K> {
   key: K,
   value: string | null
 }
 
-interface IMemberAdd {
+interface MemberAdd {
   id: string
   /** Check if user is invited in the team. @default true */
   checkInvitation?: boolean
 }
 
-interface IMemberInvite {
+interface MemberInvite {
   id: string
 }
 
-interface IMemberDelete {
+interface MemberDelete {
   id: string
   /** Check if user is invited in the team. @default true */
   declineInvite?: boolean
 }
 
-interface IMemberEdit {
+interface MemberEdit {
   id: string
 
-  role?: TDubberMemberRole
+  role?: DubberRoleType
 }
 
-interface IChangeAvatarBanner {
+interface ChangeAvatarBanner {
   file: Express.Multer.File
   userId: string
 }
 
-type TDubberModelControls = ServiceControls<IDubberCreateProps, IDubber>
+type DubberModelControlsType = ServiceControls<DubberCreateProps, Dubber>
 
 
 
-class DubberModelControls implements TDubberModelControls {
+class DubberModelControls implements DubberModelControlsType {
   readonly TestMode: boolean;
 
-  constructor(props?: IDubberCRUDProps) {
+  constructor(props?: DubberCRUDProps) {
     this.TestMode = props?.TestMode ?? TestMode;
   }
 
 
 
-  async create(props: IDubberCreateProps): Promise<IDubber> {
+  async create(props: DubberCreateProps): Promise<Dubber> {
     const { DEV_ID, TEST_MEMBERS, TEST_MEMBERS_INVITED } = props;
     let { nameUkr, nameEng } = props;
 
@@ -96,12 +97,12 @@ class DubberModelControls implements TDubberModelControls {
     if (!validator.isLength(nameEng, { min: config.VALIDATION.CreateUser.minNameLength, max: config.VALIDATION.CreateUser.maxNameLength })) throw ERR_USERNAME_LENGTH_INVALID;
     if (!validator.isAlpha(nameEng.replaceAll(' ', ''), 'en-US')) throw ERR_USERNAME_NOT_LATIN;
 
-    const id = this.TestMode && DEV_ID ? DEV_ID : createUUID();
+    const id = this.TestMode && DEV_ID ? DEV_ID : this.TestMode ? `~test-${createUUID()}` : createUUID();
     const createdAt = getUTC().timestamp;
     let slug = createSlug(nameEng);
 
     const exist = await DubberModel.findOne({ slug });
-    if (exist) slug = slug + `-${createID(3)}`;
+    if (exist) slug = slug + `-${createStringID(3)}`;
 
 
 
@@ -110,7 +111,7 @@ class DubberModelControls implements TDubberModelControls {
 
 
 
-    const instance: IDubber = {
+    const instance: Dubber = {
       id,
       nameUkr,
       nameEng,
@@ -161,30 +162,30 @@ class DubberModelControls implements TDubberModelControls {
     Logger.info(`[DubberService]: Some document were deleted. [id: ${id}; count: ${details.deletedCount}]`);
   }
 
-  async getAll(details?: boolean): Promise<IDubber[]> {
+  async getAll(details?: boolean): Promise<Dubber[]> {
     const total = await DubberModel.find();
     const list = total.map(document => {
-      return new MongoDocumentDTO().dubber({ document, details });
+      return DocumentDTO.dubber(document, details);
     });
 
     return list;
   }
 
-  async getById(id: string, details?: boolean): Promise<IDubber> {
+  async getById(id: string, details?: boolean): Promise<Dubber> {
     const document = await DubberModel.findOne({ id });
-    if (!document) throw new E404(`Dubber with id (${id}) is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
-    return new MongoDocumentDTO().dubber({ document, details });
+    return DocumentDTO.dubber(document, details);
   }
 
-  async getByQuery(query: string, details?: boolean): Promise<IDubber> {
+  async getByQuery(query: string, details?: boolean): Promise<Dubber> {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }] });
-    if (!document) throw new E404(`Dubber with query (${query}) is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
-    return new MongoDocumentDTO().dubber({ document, details });
+    return DocumentDTO.dubber(document, details);
   }
 
-  async safeGetByQuery(query: string, details?: boolean): Promise<IDubber | null> {
+  async safeGetByQuery(query: string, details?: boolean): Promise<Dubber | null> {
     try {
       return await this.getByQuery(query, details);
     } catch (e) { return null; }
@@ -196,12 +197,12 @@ class DubberModelControls implements TDubberModelControls {
  * This service must be initialized by calling @method init()
 */
 export class DubberService extends DubberModelControls {
-  private document: HydratedDocument<IDubber> | null = null;
+  private document: HydratedDocument<Dubber> | null = null;
   private stack: string[] = [];
 
   async init(query: string) {
     const document = await DubberModel.findOne({ $or: [{ id: query }, { slug: query }, { code: query }] }); // Hydrated document required, find by built-in method is not possible
-    if (!document) throw new E404(`Document ${query} is not found`);
+    if (!document) throw ERROR_DUBBER_NOT_FOUND;
 
     this.document = document;
   }
@@ -210,25 +211,26 @@ export class DubberService extends DubberModelControls {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     await this.document.save();
 
     Logger.debug(`[DubberService]: Document patched. [id: ${this.document.id}; changes: ${this.stack.length ? this.stack.join(', ') : 'none'}]`);
 
+    this.stack = [];
     return this.stack;
   }
 
-  get dubber(): IDubber {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    return new MongoDocumentDTO().dubber({ document: this.document, details: true });
+  get dubber(): Dubber {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    return DocumentDTO.dubber(this.document, true);
   }
 
 
 
   /** Changing nameEng will also change the slug */
-  async changeName({ nameEng, nameUkr }: IChangeName) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async changeName({ nameEng, nameUkr }: ChangeName) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     if (nameUkr !== undefined) {
       nameUkr = trimString(nameUkr);
@@ -250,7 +252,7 @@ export class DubberService extends DubberModelControls {
       let slug = createSlug(nameEng);
 
       const exist = await DubberModel.findOne({ slug });
-      if (exist && exist.id !== this.document.id) slug = slug + `-${createID(3)}`;
+      if (exist && exist.id !== this.document.id) slug = slug + `-${createStringID(3)}`;
 
       this.stack.push(`nameEng: ${this.document.nameEng} > ${nameEng}`);
       this.stack.push(`slug: ${this.document.slug} > ${slug}`);
@@ -266,7 +268,7 @@ export class DubberService extends DubberModelControls {
   }
 
   async changeDescription(description: string | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     if (description?.length) {
       description = trimString(description);
@@ -283,8 +285,8 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('description');
   }
 
-  async changeSocials({ key, value }: IPatchLinks<keyof IDubber['socials']>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async changeSocials({ key, value }: PatchLinks<keyof Dubber['socials']>) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
     if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
@@ -308,8 +310,8 @@ export class DubberService extends DubberModelControls {
     this.document.markModified('socials');
   }
 
-  async changeSupport({ key, value }: IPatchLinks<keyof IDubber['support']>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async changeSupport({ key, value }: PatchLinks<keyof Dubber['support']>) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     value = value?.length ? value : null;
     if (value?.length && value.length > 256) throw ERR_LINK_INVALID;
@@ -338,13 +340,16 @@ export class DubberService extends DubberModelControls {
 
 
   /** Add member into the team. Will save the document and remove the invitation */
-  async memberAdd({ id, checkInvitation }: IMemberAdd) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async memberAdd({ id, checkInvitation }: MemberAdd) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     checkInvitation = checkInvitation ?? true;
 
-    const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found`);
+    const userService = new UserService();
+    await userService.init(id);
+
+    const user = userService.user;
+
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_DUBBER_MEMBER_ALREADY;
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
     if (checkInvitation && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
@@ -352,14 +357,13 @@ export class DubberService extends DubberModelControls {
     Logger.info(`[DubberService]: Adding user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 
     //* Send notification
-    const userService = new UserService({ user });
-    await userService.addSubscribe({ event: 'dubber_invite_accepted', key: this.document.id });
+    userService.addSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_ACCEPTED, payload: this.document.id });
     await userService.save();
 
     if (!this.TestMode) {
       try {
-        await Notify.broadcast<INotifyDubberTell>({
-          event: 'dubber_invite_accepted',
+        await Notify.broadcast<NotifyDubberTellProps>({
+          event: NOTIFY_EVENT.DUBBER_INVITE_ACCEPTED,
           payload: {
             userId: id,
             dubberId: this.document.id
@@ -372,10 +376,10 @@ export class DubberService extends DubberModelControls {
       Logger.debug(`[DubberService]: Notify dubber_invite_accepted has been silenced due to Testing mode`);
     }
 
-    await userService.patchStatistics({ dubber_team_member: this.document.id });
-    await userService.addRole({ code: 'dubber_member' });
-    await userService.removeSubscribe({ event: 'dubber_invite_accepted', key: this.document.id });
-    await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.document.id });
+    await userService.patchStatistics({ dubberTeamMember: this.document.id });
+    await userService.addRole('dubber_member');
+    userService.removeSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_ACCEPTED, payload: this.document.id });
+    userService.removeSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, payload: this.document.id });
     await userService.save();
 
     //* Remove the invite and add user as a member
@@ -398,33 +402,31 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Edit team member */
-  async memberEdit({ id, role }: IMemberEdit) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async memberEdit({ id, role }: MemberEdit) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
-    const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found`);
+    const userService = new UserService();
+    await userService.init(id);
 
     const member = this.document.members.find(el => el.id === id);
     if (!member) throw ERR_DUBBER_NOT_MEMBER;
-
-    const userService = new UserService({ user });
 
     //* Edit role
     if (role !== undefined) {
       const prevRole = member.role;
 
       if (role === 'member') {
-        await userService.addRole({ code: `dubber_member` });
-        await userService.removeRole({ code: `dubber_editor` });
-        await userService.removeRole({ code: `dubber_leader` });
+        await userService.addRole(`dubber_member`);
+        await userService.removeRole(`dubber_editor`);
+        await userService.removeRole(`dubber_leader`);
       } else if (role === 'editor') {
-        await userService.addRole({ code: `dubber_editor` });
-        await userService.removeRole({ code: `dubber_member` });
-        await userService.removeRole({ code: `dubber_leader` });
+        await userService.addRole(`dubber_editor`);
+        await userService.removeRole(`dubber_member`);
+        await userService.removeRole(`dubber_leader`);
       } else if (role === 'leader') {
-        await userService.addRole({ code: `dubber_leader` });
-        await userService.removeRole({ code: `dubber_member` });
-        await userService.removeRole({ code: `dubber_editor` });
+        await userService.addRole(`dubber_leader`);
+        await userService.removeRole(`dubber_member`);
+        await userService.removeRole(`dubber_editor`);
       } else {
         throw new ERR_INVALID_PAYLOAD(`Role ${role} is invalid to patch`);
       }
@@ -441,67 +443,67 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Delete member / invitation. Will save the document */
-  async memberDelete({ id, declineInvite }: IMemberDelete) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async memberDelete({ id, declineInvite }: MemberDelete) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     declineInvite = declineInvite ?? true;
 
-    const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found`);
+    const userService = new UserService();
+    await userService.init(id);
+
     if (declineInvite && !this.document.membersInvited.includes(id)) throw ERR_DUBBER_NOT_INVITED;
     if (!declineInvite && !this.document.members.some(el => el.id === id)) throw new E404(`User ${id} is not found in this team`);
 
     Logger.info(`[DubberService]: Deleting user from the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 
-    const userService = new UserService({ user });
-
     if (declineInvite) {
       //* Send notification about declined invite
-      await userService.addSubscribe({ event: 'dubber_invite_declined', key: this.document.id });
+      userService.addSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_DECLINED, payload: this.document.id });
       await userService.save();
 
       if (!this.TestMode) {
         try {
-          await Notify.broadcast<INotifyDubberTell>({
-            event: 'dubber_invite_declined', payload: {
+          await Notify.broadcast<NotifyDubberTellProps>({
+            event: NOTIFY_EVENT.DUBBER_INVITE_DECLINED, payload: {
               userId: id,
               dubberId: this.document.id
             }
           });
         } catch (e) {
-          Logger.fail(`[DubberService]: Can not send dubber_invite_declined notify`, e);
+          Logger.fail(`[DubberService]: Can not send ${NOTIFY_EVENT.DUBBER_INVITE_DECLINED} notify`, e);
         }
       } else {
-        Logger.debug(`[DubberService]: Notify dubber_invite_declined has been silenced due to Testing mode`);
+        Logger.debug(`[DubberService]: Notify ${NOTIFY_EVENT.DUBBER_INVITE_DECLINED} has been silenced due to Testing mode`);
       }
 
-      await userService.removeSubscribe({ event: 'dubber_invite_declined', key: this.document.id });
-      await userService.removeSubscribe({ event: 'dubber_invite_pending', key: this.document.id });
+      userService.removeSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_DECLINED, payload: this.document.id });
+      userService.removeSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, payload: this.document.id });
     } else {
       //* Send notification about excluding from the team
-      await userService.addSubscribe({ event: 'dubber_member_excluded', key: this.document.id });
+      userService.addSubscribe({ event: NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED, payload: this.document.id });
       await userService.save();
 
       if (!this.TestMode) {
         try {
-          await Notify.broadcast<INotifyDubberTell>({
-            event: 'dubber_member_excluded', payload: {
+          await Notify.broadcast<NotifyDubberTellProps>({
+            event: NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED,
+            payload: {
               userId: id,
               dubberId: this.document.id
             }
           });
         } catch (e) {
-          Logger.fail(`[DubberService]: Can not send dubber_invite_declined notify`, e);
+          Logger.fail(`[DubberService]: Can not send ${NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED} notify`, e);
         }
       } else {
-        Logger.debug(`[DubberService]: Notify dubber_member_excluded has been silenced due to Testing mode`);
+        Logger.debug(`[DubberService]: Notify ${NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED} has been silenced due to Testing mode`);
       }
 
-      await userService.patchStatistics({ dubber_team_member: null });
-      await userService.removeSubscribe({ event: 'dubber_member_excluded', key: this.document.id });
-      await userService.removeRole({ code: 'dubber_member' });
-      await userService.removeRole({ code: 'dubber_editor' });
-      await userService.removeRole({ code: 'dubber_leader' });
+      await userService.patchStatistics({ dubberTeamMember: null });
+      userService.removeSubscribe({ event: NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED, payload: this.document.id });
+      await userService.removeRole('dubber_member');
+      await userService.removeRole('dubber_editor');
+      await userService.removeRole('dubber_leader');
     }
 
     await userService.save();
@@ -522,11 +524,14 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Invite member into the team. Will save the document */
-  async memberInvite({ id }: IMemberInvite) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async memberInvite({ id }: MemberInvite) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
-    const user = await UserModel.findOne({ id });
-    if (!user) throw new E404(`User ${id} is not found`);
+    const userService = new UserService();
+    await userService.init(id);
+
+    const user = userService.user;
+
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member === this.document.id) throw ERR_DUBBER_MEMBER_ALREADY;
     if (user.statistics.dubber_team_member && user.statistics.dubber_team_member !== this.document.id) throw ERR_DUBBER_OTHER_TEAM_MEMBER;
     if (this.document.membersInvited.includes(id)) throw ERR_DUBBER_ALREADY_INVITED;
@@ -535,14 +540,13 @@ export class DubberService extends DubberModelControls {
     Logger.info(`[DubberService]: Inviting user to the dubber team... [userId: ${id}; dubberId: ${this.document.id}]`);
 
     //* Send invite notify
-    const userService = new UserService({ user });
-    await userService.addSubscribe({ event: 'dubber_invite_pending', key: this.dubber.id });
+    userService.addSubscribe({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, payload: this.dubber.id });
     await userService.save();
 
     if (!this.TestMode) {
       try {
-        await Notify.broadcast<INotifyDubberTell>({
-          event: 'dubber_invite_pending',
+        await Notify.broadcast<NotifyDubberTellProps>({
+          event: NOTIFY_EVENT.DUBBER_INVITE_PENDING,
           payload: {
             userId: id,
             dubberId: this.dubber.id
@@ -570,24 +574,24 @@ export class DubberService extends DubberModelControls {
 
 
   /** Change dubber avatar. Will save the document */
-  async changeAvatar({ file, userId }: IChangeAvatarBanner) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async changeAvatar({ file, userId }: ChangeAvatarBanner) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumAvatarSize) throw ERR_FILE_TOO_LARGE;
 
-    const prevAvatarId = NekomiUploadsAPI.getUploadIdFromURL(this.document.avatar);
+    const prevAvatarId = NekomiUploads.getUploadIdFromURL(this.document.avatar);
 
-    const { id, url } = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/avatar', uploadedById: userId });
+    const { id, url } = await NekomiUploads.uploadFile({ file, type: 'photo/user/avatar', uploadedById: userId });
 
     this.document.avatar = url;
     this.document.markModified('avatar');
 
-    this.document.save();
+    await this.save();
 
     Logger.debug(`[DubberService]: New avatar has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
 
     // Delete old avatar if it is not default
     if (this.document.avatar !== config.vars.defaultAvatar) {
-      await NekomiUploadsAPI.deleteUpload({ id: prevAvatarId, deletedById: userId });
+      await NekomiUploads.deleteUpload({ id: prevAvatarId, deletedById: userId });
 
       Logger.debug(`[DubberService]: Old avatar deleted due to it's change. [uploadId: ${prevAvatarId}; dubberId: ${this.document.id}]`);
     }
@@ -596,24 +600,24 @@ export class DubberService extends DubberModelControls {
   }
 
   /** Change dubber banner. Will save the document */
-  async changeBanner({ file, userId }: IChangeAvatarBanner) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async changeBanner({ file, userId }: ChangeAvatarBanner) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     if (file.size > config.VALIDATION.User.MaximumBannerSize) throw ERR_FILE_TOO_LARGE;
 
-    const prevBannerId = NekomiUploadsAPI.getUploadIdFromURL(this.document.banner);
+    const prevBannerId = NekomiUploads.getUploadIdFromURL(this.document.banner);
 
-    const { id, url } = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/user/banner', uploadedById: userId });
+    const { id, url } = await NekomiUploads.uploadFile({ file, type: 'photo/user/banner', uploadedById: userId });
 
     this.document.banner = url;
     this.document.markModified('banner');
 
-    this.document.save();
+    await this.save();
 
     Logger.debug(`[DubberService]: New banner has been uploaded. [uploadId: ${id}; dubberId: ${this.document.id}]`);
 
     // Delete old banner if it is not default
     if (this.document.banner !== config.vars.defaultBanner) {
-      await NekomiUploadsAPI.deleteUpload({ id: prevBannerId, deletedById: userId });
+      await NekomiUploads.deleteUpload({ id: prevBannerId, deletedById: userId });
 
       Logger.debug(`[DubberService]: Old banner deleted due to it's change. [uploadId: ${prevBannerId}; dubberId: ${this.document.id}]`);
     }

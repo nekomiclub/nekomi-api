@@ -1,25 +1,30 @@
-import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
+import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
-import NekomiUploadsAPI from './API/NekomiUploadsAPI';
+import NekomiUploads from './API/NekomiUploads.api';
 import Search from '~/services/SearchService';
-import User from '~/core/interfaces/UserIntf';
-import axios from 'axios';
-import createID, { createUUID } from '~/utils/create-id';
-import getUTC from '~/utils/get-utc';
-import trimString from '~/utils/trim-string';
+import User from '~/core/interfaces/User.intf';
 import validator from 'validator';
 import { AnimeEpisodeQualityType } from '~/core/interfaces/API/NekomiUploadsAPI';
 import { DevelopmentMode, TestMode, config } from '~/config';
-import { E400, E403, E404, ERR_ACCESS_REJECTED, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_NO_DOCUMENT, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { E400, E403, ERR_ALREADY_EXIST, ERR_LENGTH_INVALID, ERR_TYPE_INVALID } from '~/services/ErrorService';
+import { ERROR_ANIME_NOT_FOUND } from '~/services/Exceptions';
+import { ERROR_NO_DOCUMENT } from '~/services/Exceptions';
+import { Hikka } from './API/Hikka.api';
 import { HydratedDocument } from 'mongoose';
-import { INotifyAiringStarted, INotifyNewEpisode, MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
 import { Logger } from '~/services/LoggerService';
-import { MALGenres, MALStudios } from '~/utils/mal-mappers';
-import { MongoDocumentDTO } from './DTO';
-import { Notify } from '~/services/NotifyService';
-import { createSlug } from '~/utils/create-slug';
-import { parseRoles } from '~/models/Role';
+import { MALGenres } from '~/utils/data-mappers';
+import { MALStudios } from '~/utils/data-mappers';
+import { MyAnimeList } from './API/MyAnimeList.api';
+import { MyAnimeListNode, ServiceControls } from '~/core/interfaces/types';
+import { NOTIFY_EVENT, Notify } from '~/services/NotifyService';
+import { NotifyAiringStartedProps } from '~/services/NotifyService';
+import { NotifyNewEpisodeProps } from '~/services/NotifyService';
+import { createSlug, createStringID, createUUID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
+import { parseRoles } from './RoleService';
+import { trimString } from '~/utils/utils';
 
 
 
@@ -83,10 +88,10 @@ class AnimeModelControls implements AnimeModelControlsType {
     if (!validator.isLength(nameEng, { min: config.VALIDATION.PatchTitle.minNameLength, max: config.VALIDATION.PatchTitle.maxNameLength })) throw ERR_NAME_LENGTH_INVALID;
 
     const uuid = TestMode ? `~test-${createUUID()}` : createUUID();
-    const slug = createSlug(nameEng);
+    let slug = createSlug(nameEng);
 
     const exist = await AnimeModel.findOne({ slug });
-    if (exist) throw new ERR_ALREADY_EXIST();
+    if (exist) slug += `-${createStringID(3)}`; // Make unique slug if slug by name is occupied
 
 
 
@@ -107,7 +112,9 @@ class AnimeModelControls implements AnimeModelControlsType {
       },
 
       stopSync: {
-        mal: false
+        mal: false,
+        anidb: false,
+        shikimori: false
       },
 
       media: ANIME_MEDIA_TYPE.UNKNOWN,
@@ -117,6 +124,9 @@ class AnimeModelControls implements AnimeModelControlsType {
       year: getUTC().year,
       updatedAt: getUTC().timestamp,
       createdAt: getUTC().timestamp,
+      anidbSyncedAt: getUTC().timestamp,
+      hikkaSyncedAt: getUTC().timestamp,
+      shikimoriSyncedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
 
       posterAdapt: null,
@@ -166,29 +176,34 @@ class AnimeModelControls implements AnimeModelControlsType {
 
   async getAll(details?: boolean): Promise<Anime[]> {
     const total = await AnimeModel.find();
-    const list = total.map(document => new MongoDocumentDTO().anime({ document, details }));
+    const list = total.map(doc => DocumentDTO.anime(doc, details));
 
     return list;
   }
 
   async getById(uuid: string, details?: boolean): Promise<Anime> {
     const document = await AnimeModel.findOne({ uuid });
-    if (!document) throw new E404(`Anime by uuid (${uuid}) is not found`);
+    if (!document) throw ERROR_ANIME_NOT_FOUND;
 
-    return new MongoDocumentDTO().anime({ document, details });
+    return DocumentDTO.anime(document, details);
+  }
+
+  async getByQuery(query: string, details?: boolean): Promise<Anime> {
+    const queryArr = [{ uuid: query }, { slug: query }];
+
+    // @ts-expect-error Query can be stringified number, parse it if not NaN
+    if (!isNaN(+query)) queryArr.push({ malId: +query });
+
+    const document = await AnimeModel.findOne({ $or: queryArr });
+    if (!document) throw ERROR_ANIME_NOT_FOUND;
+
+    return DocumentDTO.anime(document, details);
   }
 
   async safeGetByQuery(query: string, details?: boolean): Promise<Anime | null> {
     try {
       return await this.getByQuery(query, details);
     } catch (e) { return null; }
-  }
-
-  async getByQuery(query: string, details?: boolean): Promise<Anime> {
-    const document = await AnimeModel.findOne({ $or: [{ id: query }, { uuid: query }, { slug: query }, { code: query }, { malId: +query }, { mal_id: query }] });
-    if (!document) throw new E404(`Anime by query (${query}) is not found`);
-
-    return new MongoDocumentDTO().anime({ document, details });
   }
 }
 
@@ -207,13 +222,13 @@ export class AnimeService extends AnimeModelControls {
   async init(query: string) {
     const queryArr = [{ uuid: query }, { slug: query }];
 
-    // @ts-ignore
+    // @ts-expect-error Query can be stringified number, parse it if not NaN
     if (!isNaN(+query)) queryArr.push({ malId: +query });
 
     const document = await AnimeModel.findOne({ $or: queryArr }); // Hydrated document required, find by built-in method is not possible
-    if (!document) throw new E404(`Document with query (${query}) is not found`);
+    if (!document) throw ERROR_ANIME_NOT_FOUND;
 
-    // @ts-expect-error
+    // @ts-expect-error Ignore readonly
     this.document = document;
   }
 
@@ -221,7 +236,7 @@ export class AnimeService extends AnimeModelControls {
    * @returns current patch stack
    */
   async save(): Promise<string[]> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     this.document.updatedAt = getUTC().timestamp;
     this.document.markModified('updatedAt');
@@ -237,8 +252,8 @@ export class AnimeService extends AnimeModelControls {
   }
 
   get anime(): Anime {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    return new MongoDocumentDTO().anime({ document: this.document, details: true });
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    return DocumentDTO.anime(this.document, true);
   }
 
 
@@ -246,10 +261,10 @@ export class AnimeService extends AnimeModelControls {
   /**  
    * Set malId. Value can be null
    * 
-   * @tested 2.1.0 
+   * @tested  
   */
   setMalId(malId: number | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('malId');
 
     if (malId === null || malId < 0) {
@@ -270,10 +285,10 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set description. Zero-length value will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setDescription(description: string | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('description');
 
     if (description === null || description.length === 0) {
@@ -297,10 +312,10 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set details. Zero-length value will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setDetails(details: string | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('details');
 
     if (details === null || details.length === 0) {
@@ -324,10 +339,10 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set episodes count. Value 0 will set as null
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setEpisodesCount(episodesCount: number | null) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('episodesCount');
 
     if (episodesCount === null || episodesCount <= 0) {
@@ -349,10 +364,10 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set year
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setYear(year: number) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('year');
 
     if (year < this._vl.minYear || year > this._vl.maxYear) throw new ERR_LENGTH_INVALID(`Year is out of range`);
@@ -366,7 +381,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Should set rate
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setRate = (rate: ANIME_RATE) => this.setTypedValue<ANIME_RATE>(rate, 'rate');
 
@@ -378,7 +393,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set status
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setStatus = (status: ANIME_STATUS) => this.setTypedValue<ANIME_STATUS>(status, 'status');
 
@@ -390,7 +405,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set season
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setSeason = (season: ANIME_SEASON) => this.setTypedValue<ANIME_SEASON>(season, 'season');
 
@@ -402,7 +417,7 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set media
    * 
-   * @tested 2.1.0
+   * @tested 
    */
   setMedia = (media: ANIME_MEDIA_TYPE) => this.setTypedValue<ANIME_MEDIA_TYPE>(media, 'media');
 
@@ -413,10 +428,12 @@ export class AnimeService extends AnimeModelControls {
 
   /**
    * Set names
-   * English name will also change the slug
+   * English name will change the slug
+   * 
+   * @tested
    */
   async setNames({ alt, eng, ukr }: Partial<Anime['names']>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('names');
     this.document.markModified('slug');
 
@@ -431,7 +448,7 @@ export class AnimeService extends AnimeModelControls {
       let slug = createSlug(eng);
 
       const exist = await new AnimeService().safeGetByQuery(slug);
-      if (exist && exist.uuid !== this.document.uuid) slug += createID(3);
+      if (exist && exist.uuid !== this.document.uuid) slug += `-${createStringID(3)}`;
 
       this.stack.push(`Slug changed (${this.document.slug} > ${slug})`);
       this.document.slug = slug;
@@ -465,15 +482,28 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set stop sync flags
    * 
-   * @todo
+   * @tested
    */
-  setStopSync({ mal, shikimori }: Partial<Anime['stopSync']>) {
-    if (mal !== undefined) {
+  setStopSync({ mal, shikimori, anidb }: Partial<Anime['stopSync']>) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('stopSync');
 
+    if (mal !== undefined) {
+      this.stack.push(`Mal StopSync changed (${this.document.stopSync.mal} > ${mal})`);
+
+      this.document.stopSync.mal = mal;
     }
 
     if (shikimori !== undefined) {
+      this.stack.push(`Shikimori StopSync changed (${this.document.stopSync.shikimori} > ${shikimori})`);
 
+      this.document.stopSync.shikimori = shikimori;
+    }
+
+    if (anidb !== undefined) {
+      this.stack.push(`AniDB StopSync changed (${this.document.stopSync.anidb} > ${anidb})`);
+
+      this.document.stopSync.anidb = anidb;
     }
   }
 
@@ -482,9 +512,11 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set poster adapted by dubber
+   * 
+   * @tested
    */
   async setPosterAdapt(dubberId: Anime['posterAdapt']) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('posterAdapt');
 
     if (dubberId === null) {
@@ -504,9 +536,11 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Set score & malScoredBy
    * Score can be null
+   * 
+   * @tested
    */
   setScore({ imdb, mal, malScoredBy }: Partial<Anime['score']>) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('score');
 
     if (imdb !== undefined) {
@@ -555,10 +589,10 @@ export class AnimeService extends AnimeModelControls {
   /** 
    * Set studios.
    * 
-   * @todo fetch studio (?)
+   * @tested
    */
   async setStudios(studios: AnimeStudio[]) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('studios');
 
     if (studios.length > config.VALIDATION.PatchTitle.maxStudioLength) throw new ERR_LENGTH_INVALID(`Studios are too many`);
@@ -585,9 +619,11 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set genres
+   * 
+   * @tested
    */
   setGenres(genres: ANIME_GENRE[]) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('genres');
 
     if (genres.length > this._vl.maxGenresLength) throw new ERR_LENGTH_INVALID(`Genres length is out of range`);
@@ -613,10 +649,12 @@ export class AnimeService extends AnimeModelControls {
 
   /** 
    * Set broadcast timing
+   * 
+   * @tested
    */
   setBroadcast(broadcast: AnimeBroadcast) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
-    this.document.markModified('studios');
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('broadcast');
 
     this.stack.push(`Broadcast changed (${this.document.broadcast ? `${this.document.broadcast?.day} ${this.document.broadcast?.time}` : 'null'} > ${broadcast.day} ${broadcast.time})`);
     this.document.broadcast = broadcast;
@@ -625,42 +663,53 @@ export class AnimeService extends AnimeModelControls {
 
 
   /**
-   * Find related anime's by mal ids
+   * Find related anime documents by mal ids
+   * 
+   * @tested
    */
   async setRelated(malIds: number[]) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
     this.document.markModified('related');
 
-    try {
-      const documents = await AnimeModel.find({ malId: { $in: [-1, ...malIds] } });
-      if (!documents.length) return;
+    if (!malIds.length) {
+      this.stack.push(`Related anime removed`);
+      this.document.related = [];
 
-      const related = documents.map(el => el.uuid);
-
-      this.stack.push(`Related changed (${this.document.related.join(', ')} > ${related.join(', ')})`);
-      this.document.related = related;
-    } catch (e) {
-      Logger.fail(`[AnimeService]: Cannot set related anime's`, e);
+      return;
     }
+
+    const documents = await AnimeModel.find({ malId: { $in: malIds } });
+    const related = documents.map(el => el.uuid);
+
+    this.stack.push(`Related changed (${this.document.related.join(', ')} > ${related.join(', ')})`);
+    this.document.related = related;
   }
 
 
 
   /** 
    * Sync anime details with myanimelist
-   * Will save the document
+   * 
+   * @requires malId specified
    * 
    * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
+   * 
+   * @savedoc
+   * @tested
    */
-  async syncWithMyAnimeList(force?: boolean) {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+  async syncWithMyAnimeList(force?: boolean): Promise<boolean> {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    if (this.document.malId === null) return false;
 
     if (!force) {
-      if (this.anime.stopSync?.mal) return; // Check if sync is not prevented
-      if (this.anime.malId === null || getUTC().timestamp < Number(this.anime.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return; // Check if last sync timed out
+      if (this.document.stopSync?.mal) return false; // Check if sync is not prevented
+      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
     }
 
-    const API_ENDPONT = `https://api.myanimelist.net/v2`;
+    // Pass in test mode
+    if (TestMode) return true;
+
     const fields: (keyof MyAnimeListNode)[] = [
       'broadcast',
       'genres',
@@ -676,18 +725,11 @@ export class AnimeService extends AnimeModelControls {
     ];
 
     try {
-      const { data: node } = await axios.get<MyAnimeListNode>(`${API_ENDPONT}/anime/${this.anime.malId}`, {
-        headers: {
-          'X-MAL-CLIENT-ID': config.env.MALClientID
-        },
-        params: {
-          fields: fields.join(', ')
-        }
-      });
+      const node = await MyAnimeList.getAnime({ id: this.document.malId, fields });
 
 
 
-      if (node.alternative_titles?.en && this.document.names.eng !== node.alternative_titles?.en) this.setNames({ eng: node.alternative_titles?.en });
+      if (node.alternative_titles?.en && this.document.names.eng !== node.alternative_titles?.en) await this.setNames({ eng: node.alternative_titles?.en });
       if (node.mean && node.mean !== this.document.score.mal) this.setScore({ mal: node.mean });
       if (node.num_scoring_users && node.num_scoring_users !== this.document.score.malScoredBy) this.setScore({ malScoredBy: node.num_scoring_users });
       if (node.num_episodes && node.num_episodes !== this.document.episodesCount) this.setEpisodesCount(node.num_episodes);
@@ -715,9 +757,45 @@ export class AnimeService extends AnimeModelControls {
       await Search.update('anime');
 
       Logger.info(`[AnimeService]: Anime synced with myanimelist. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+      return true;
     } catch (e) {
-      return Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
+      Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
+      return false;
     }
+  }
+
+
+
+  /**
+   * Sync anime episode descriptions
+   * 
+   * @requires malId specified
+   * 
+   * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
+   * 
+   * @savedoc
+   * @todo
+   */
+  async syncWithAniDB(force?: boolean): Promise<boolean> {
+    return false;
+
+    // if (!this.document) throw ERR_NO_DOCUMENT;
+    // if (this.document.malId === null) return false;
+
+    // if (!force) {
+    //   if (this.document.stopSync.anidb) return false; // Check if anidb sync not prevented
+    // }
+
+    // try {
+    //   Logger.info(`[AnimeService]: Anime synced with anidb. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+
+    //   return true;
+    // } catch (e) {
+    //   Logger.fail(`[AnimeService]: Cannot sync with anidb`, e);
+
+    //   return false;
+    // }
   }
 
 
@@ -725,10 +803,73 @@ export class AnimeService extends AnimeModelControls {
   /**
    * Sync anime photos with shikimori
    * 
+   * @requires malId specified
+   * 
+   * @param force will skip stopsync check
+   * @returns parse state (parsed/not)
+   * 
+   * @savedoc
    * @todo
    */
-  async syncWithShikimori() {
+  async syncWithShikimori(force?: boolean): Promise<boolean> {
+    return false;
 
+    // if (!this.document) throw ERR_NO_DOCUMENT;
+    // if (this.document.malId === null) return false;
+
+    // if (!force) {
+    //   if (this.document.stopSync.shikimori) return false; // Check if shikimori sync not prevented
+    // }
+
+    // try {
+    //   Logger.info(`[AnimeService]: Anime synced with shikimori. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+
+    //   return true;
+    // } catch (e) {
+    //   Logger.fail(`[AnimeService]: Cannot sync with shikimori`, e);
+
+    //   return false;
+    // }
+  }
+
+
+
+  /**
+   * Sync anime names from hikka.io
+   * 
+   * @requires malId specified
+   * @param force will skip stopsync check
+   * 
+   * @savedoc
+   */
+  async syncWithHikka(force?: boolean): Promise<boolean> {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    if (this.document.malId === null) return false;
+
+    if (!force) {
+      if (this.document.stopSync?.hikka) return false; // Check if sync is not prevented
+      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+    }
+
+    try {
+      const { slug } = await Hikka.getMALIntegration({ slug: `${this.document.malId}` });
+      const data = await Hikka.getAnime({ slug });
+
+      // await this.setNames({ ukr: data.title_ua });
+      // if (data.synopsis_ua) this.setDescription(`${data.synopsis_ua}\n\nОпис з сайту [hikka.io](${config.URL.hikka}/anime/${slug})`);
+
+      this.document.hikkaSyncedAt = getUTC().timestamp;
+      this.document.markModified('hikkaSyncedAt');
+
+      await this.save();
+      await Search.update('anime');
+
+      Logger.info(`[AnimeService]: Anime synced with hikka.io. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+      return true;
+    } catch (e) {
+      Logger.fail(`[AnimeService]: Cannot sync with hikka.io`, e);
+      return false;
+    }
   }
 
 
@@ -738,15 +879,15 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access titleEdit
-   * @tested 2.1.0
+   * @tested 
    */
   async putPoster(file: Express.Multer.File, { user }: AnimePutPosterProps): Promise<AnimePutPoster> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && !capabilities.includes('titleEdit')) throw new E403;
 
-    const oldPosterId = NekomiUploadsAPI.getUploadIdFromURL(this.document.poster);
+    const oldPosterId = NekomiUploads.getUploadIdFromURL(this.document.poster);
     const oldPosterURL = this.document.poster;
     let newUploadId: string | null = null;
     let newUploadURL: string | null = null;
@@ -755,7 +896,7 @@ export class AnimeService extends AnimeModelControls {
 
     // Upload new poster
     if (!TestMode) {
-      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
+      const res = await NekomiUploads.uploadFile({ file, type: 'photo/title/poster', uploadedById: user.id });
 
       newUploadId = res.id;
       newUploadURL = res.url;
@@ -786,7 +927,7 @@ export class AnimeService extends AnimeModelControls {
     if (oldPosterURL.match(uploadsOrigin) && oldPosterURL !== config.vars.defaultPoster) {
       if (!TestMode) {
         try {
-          await NekomiUploadsAPI.deleteUpload({ id: oldPosterId, deletedById: user.id });
+          await NekomiUploads.deleteUpload({ id: oldPosterId, deletedById: user.id });
           Logger.info(`[AnimeSerivce/${this.document.uuid}]: Old anime poster removed. [id: ${oldPosterId}; by: ${user.id}]`);
         } catch (e) {
           Logger.fail(`[AnimeService/${this.document.uuid}]: Failed remove old anime poster. [id: ${oldPosterId}]`);
@@ -808,12 +949,13 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access seriesAdd
+   * @todo test
    */
   async uploadEpisode(file: Express.Multer.File, { dubberId, order, qualities, user }: AnimeUploadEpisodeProps): Promise<AnimeUploadEpisode> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new ERR_ACCESS_REJECTED();
+    if (!capabilities.includes('root') && !capabilities.includes('seriesAdd')) throw new E403;
     if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot upload episodes in other dubs`);
     if (!capabilities.includes('root') && !capabilities.includes('admin') && qualities.includes(2160)) throw new E403(`Only admin can upload 4k anime`);
 
@@ -827,7 +969,7 @@ export class AnimeService extends AnimeModelControls {
 
     // Upload episode
     if (!TestMode) {
-      const res = await NekomiUploadsAPI.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
+      const res = await NekomiUploads.uploadFile({ file, type: 'video/title/episode', uploadedById: user.id, qualities });
 
       episodeId = res.id;
       episodeFrames = res.frames ?? 0;
@@ -875,7 +1017,7 @@ export class AnimeService extends AnimeModelControls {
     // Send notifications
     try {
       // Send new_episode
-      const notifyNewEpisodePayload: INotifyNewEpisode = {
+      const notifyNewEpisodePayload: NotifyNewEpisodeProps = {
         dubberID: dubber.id,
         episodeOrder: order,
         titleID: this.document.uuid
@@ -883,7 +1025,7 @@ export class AnimeService extends AnimeModelControls {
 
       if (!TestMode) {
         Notify.broadcast({
-          event: 'new_episode',
+          event: NOTIFY_EVENT.NEW_EPISODE,
           payload: notifyNewEpisodePayload
         });
       }
@@ -892,13 +1034,13 @@ export class AnimeService extends AnimeModelControls {
 
       // Send airing_started
       if (this.document.episodes.length === 1) {
-        const notifyAiringStartedPayload: INotifyAiringStarted = {
+        const notifyAiringStartedPayload: NotifyAiringStartedProps = {
           titleID: this.document.uuid
         };
 
         if (!TestMode) {
           Notify.broadcast({
-            event: 'airing_started',
+            event: NOTIFY_EVENT.AIRING_STARTED,
             payload: notifyAiringStartedPayload
           });
         }
@@ -920,13 +1062,14 @@ export class AnimeService extends AnimeModelControls {
    * Will save the document
    * 
    * @access seriesDelete
+   * @tested
    */
   async deleteEpisode({ dubberId, order, user }: AnimeDeleteEpisodeProps): Promise<AnimeDeleteEpisode> {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     const capabilities = await parseRoles(user.roles);
-    if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new ERR_ACCESS_REJECTED();
-    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`User cannot delete episodes from not own dubbing`);
+    if (!capabilities.includes('root') && !capabilities.includes('seriesDelete')) throw new E403;
+    if (!capabilities.includes('root') && user.statistics.dubber_team_member !== dubberId) throw new E403(`Cannot delete episodes from not own dubbing`);
 
     const episode = this.document.episodes.find(el => el.dubberID === dubberId && el.order === order);
     if (!episode) {
@@ -935,11 +1078,11 @@ export class AnimeService extends AnimeModelControls {
       return {};
     }
 
-    const uploadId = NekomiUploadsAPI.getUploadIdFromURL(episode.qualities.q1080);
+    const uploadId = NekomiUploads.getUploadIdFromURL(episode.qualities.q1080);
 
     // Delete episode
     if (!TestMode) {
-      await NekomiUploadsAPI.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
+      await NekomiUploads.deleteUpload({ id: uploadId, deletedById: user.id, withChildren: true });
     }
 
     const msg = `Episode deleted. [id: ${uploadId}; dubberId: ${dubberId}; order: ${order}]`;
@@ -982,7 +1125,7 @@ export class AnimeService extends AnimeModelControls {
    * @param key document key
    */
   private setTypedValue<T>(value: T, key: 'rate' | 'media' | 'season' | 'rate' | 'status') {
-    if (!this.document) throw ERR_NO_DOCUMENT;
+    if (!this.document) throw ERROR_NO_DOCUMENT;
 
     this.document.markModified(key);
 

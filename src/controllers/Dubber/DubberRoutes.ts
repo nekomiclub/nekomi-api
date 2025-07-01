@@ -7,7 +7,7 @@ import { HTTPEndpoint } from '~/services/HTTPService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { body, param, query } from 'express-validator';
 import { config } from '~/config';
-import { parseObjectTypes } from '~/utils/parse-object-types';
+import { parseObjectTypes } from '~/utils/utils';
 
 
 
@@ -19,7 +19,7 @@ const upload = multer();
 //* ===================================== GET BY ID
 const getOne = HTTPEndpoint(async (req, res) => {
   const { query } = parseObjectTypes<DubberGetOneByQueryProps>(req.params);
-  let { detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly } = parseObjectTypes<DubberGetOneByQueryProps>(req.query);
+  let { detailed, fetchDubbedAnime, parseMembers, useCache } = parseObjectTypes<DubberGetOneByQueryProps>(req.query);
   const CSRFToken = req.header(config.vars.csrfHeader);
 
   // Ensure that only client get detailed document
@@ -33,7 +33,7 @@ const getOne = HTTPEndpoint(async (req, res) => {
     detailed = true;
   }
 
-  const data = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache, metadataOnly });
+  const data = await DubberController.GetOneByQuery({ query, detailed, fetchDubbedAnime, parseMembers, useCache });
 
   return res.status(200).json({ message: 'ok', ...data });
 });

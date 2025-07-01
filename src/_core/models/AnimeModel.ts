@@ -1,10 +1,9 @@
-import Anime from '~/core/interfaces/AnimeIntf';
+import Anime from '~/core/interfaces/Anime.intf';
 import mongoose, { Schema } from 'mongoose';
 
 
 
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
-export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
+const schema = new Schema({
   uuid: String,
   broadcast: Object,
   description: String,
@@ -14,6 +13,10 @@ export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   episodesMeta: Array,
   malId: Number,
   malSyncedAt: Number,
+  anidbSyncedAt: Number,
+  createdAt: Number,
+  hikkaSyncedAt: Number,
+  shikimoriSyncedAt: Number,
   media: String,
   names: Object,
   pictures: Array,
@@ -30,8 +33,12 @@ export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   genres: Array,
   posterAdapt: String,
   stopSync: Object,
+});
 
-}));
+schema.set('optimisticConcurrency', false);
+
+/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
+export const AnimeModel = mongoose.model<Anime>('anime', schema);
 
 
 

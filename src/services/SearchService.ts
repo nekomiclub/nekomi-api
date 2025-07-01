@@ -1,13 +1,13 @@
 import AnimeModel from '~/core/models/AnimeModel';
+import DocumentDTO from '~/core/services/DTOService';
 import DubberService from '~/core/services/DubberService';
 import Fuse from 'fuse.js';
 import UserModel from '~/core/models/UserModel';
-import { Anime } from '~/core/interfaces/AnimeIntf';
-import { E500, ERR_NOT_READY } from './ErrorService';
-import { IDubber } from '~/core/interfaces/DubberIntf';
-import { IUser } from '~/core/interfaces/UserIntf';
+import { Anime } from '~/core/interfaces/Anime.intf';
+import { Dubber } from '~/core/interfaces/Dubber.intf';
+import { E500 } from './ErrorService';
 import { Logger } from './LoggerService';
-import { MongoDocumentDTO } from '~/core/services/DTO';
+import { User } from '~/core/interfaces/User.intf';
 
 
 
@@ -24,8 +24,8 @@ export type SearchEngineType = 'user' | 'dubber' | 'anime';
 
 
 class SearchService {
-  private UserEngine: Fuse<IUser> | null = null;
-  private DubberEngine: Fuse<IDubber> | null = null;
+  private UserEngine: Fuse<User> | null = null;
+  private DubberEngine: Fuse<Dubber> | null = null;
   private AnimeEngine: Fuse<Anime> | null = null;
 
 
@@ -41,9 +41,9 @@ class SearchService {
   /** Update search engine */
   async update(type: SearchEngineType) {
     if (type === 'user') {
-      const list = (await UserModel.find()).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
+      const list = (await UserModel.find()).map(doc => DocumentDTO.user(doc, true));
 
-      const keys: (keyof IUser)[] = [
+      const keys: (keyof User)[] = [
         'id',
         'username',
       ];
@@ -56,7 +56,7 @@ class SearchService {
     } else if (type === 'dubber') {
       const list = await new DubberService().getAll(true);
 
-      const keys: (keyof IDubber)[] = [
+      const keys: (keyof Dubber)[] = [
         'id',
         'slug',
         'nameEng',
@@ -69,10 +69,10 @@ class SearchService {
         ignoreLocation: true
       });
     } else if (type === 'anime') {
-      const list = (await AnimeModel.find()).map(el => new MongoDocumentDTO().anime({ document: el, details: true }));
+      const list = (await AnimeModel.find()).map(doc => DocumentDTO.anime(doc, true));
 
       this.AnimeEngine = new Fuse(list, {
-        keys: ['names.eng', 'names.ukr', 'names.alt', 'code', 'id'],
+        keys: ['names.eng', 'names.ukr', 'names.alt', 'slug', 'id'],
         shouldSort: true,
         ignoreLocation: true
       });
@@ -86,13 +86,13 @@ class SearchService {
     let SearchEngine: Fuse<any>;
 
     if (engine === 'user') {
-      if (!this.UserEngine) throw new ERR_NOT_READY();
+      if (!this.UserEngine) throw new E500('Search not ready');
       SearchEngine = this.UserEngine;
     } else if (engine === 'dubber') {
-      if (!this.DubberEngine) throw new ERR_NOT_READY();
+      if (!this.DubberEngine) throw new E500('Search not ready');
       SearchEngine = this.DubberEngine;
     } else if (engine === 'anime') {
-      if (!this.AnimeEngine) throw new ERR_NOT_READY();
+      if (!this.AnimeEngine) throw new E500('Search not ready');
       SearchEngine = this.AnimeEngine;
     } else throw new E500(`[SearchService]: Can not search not exist engine - ${engine}`);
 

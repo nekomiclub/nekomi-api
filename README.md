@@ -1,15 +1,15 @@
 # NEKOMI API
-nekomi-api is an nekomi.club backend. Provides title, dubber & user APIs.
-**HTTP port in development mode will be changed from ANIMEE_CONFIG to 80**
+nekomi-api is an nekomi.club backend. Simple, isn't it?
+
+> [!IMPORTANT]
+> In DevelopmentMode env.PORT will be changed into 80
+
+## Setup Guide
+1. Add .env file (see .env.example)
+2. ```npm ci```
+3. ```npm run start```
 
 ## Docs
-- [Endpoints](./docs/endpoints.md)
-- [Features](./docs/features.md)
 - [Roles](./docs/roles.md)
 - [Secrets](./docs/secrets.md)
 - [Services](./docs/services.md)
-
-## Dependencies
-- nekomi-uploads
-- fk-usapi
-- fk-authority

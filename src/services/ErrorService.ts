@@ -1,6 +1,6 @@
 import express from 'express';
-import getUTC from '~/utils/get-utc';
 import { AxiosError } from 'axios';
+import { getUTC } from '~/utils/utils';
 
 import { validationResult } from 'express-validator';
 
@@ -12,20 +12,83 @@ import { ZodError } from 'zod';
 
 
 
-export const HTTP_ERROR_CORES = [400, 401, 403, 404, 418, 500, 501, 502, 503] as const;
-export type THTTPErrorCode = typeof HTTP_ERROR_CORES[number];
+export enum ERROR {
+  // === HTTP ===
+  HTTP_ERROR = 'http:error',
+  HTTP_BAD_REQUEST = 'http:bad_request',
+  HTTP_UNAUTHORIZED = 'http:unauthorized',
+  HTTP_FORBIDDEN = 'http:forbidden',
+  HTTP_NOT_FOUND = 'http:not_found',
+  HTTP_INTERNAL_ERROR = 'http:internal_error',
+  HTTP_NOT_IMPLEMENTED = 'http:not_implemented',
+  HTTP_BAD_GATEWAY = 'http:bad_gateway',
+  HTTP_NOT_AVAILABLE = 'http:not_available',
+
+
+
+  // === BASE ===
+  BASE_INVALID_PAYLOAD = 'base:invalid_payload',
+  BASE_MIDDLEWARE_REQUIRED = 'base:middleware_required',
+  BASE_MOCK_UNDEFINED = 'base:mock_undefined',
+  BASE_NO_DOCUMENT = 'base:no_document',
+  BASE_FILE_TOO_LARGE = 'base:file_too_large',
+
+
+
+  // === ROLES ===
+  ROLE_NOT_FOUND = 'role:not_found',
+
+
+
+  // === AUTH ===
+  AUTH_SESSION_EXPIRED = 'auth:session_expired',
+  AUTH_CSRF_INVALID = 'auth:csrf_invalid',
+  AUTH_NO_RIGHTS = 'auth:no_rights',
+
+
+
+  // === USER ===
+  USER_USERNAME_INVALID = 'user:username_invalid',
+  USER_USERNAME_OCCUPIED = 'user:username_occupied',
+
+  USER_LIB_NAME_INVALID = 'user:lib:name_invalid',
+  USER_LIB_NOT_FOUND = 'user:lib:not_found',
+
+  USER_TGTOKEN_ASSIGNED = 'user:telegram:token_already_assigned',
+  USER_TGDATA_ID_MISS = 'user:telegram:data_id_miss',
+
+
+
+  // === ANIME ===
+  ANIME_NOT_FOUND = 'anime:not_found',
+  ANIME_EPISODE_NOT_FOUND = 'anime:episode:not_found',
+
+
+
+  // === ROLE ===
+  DUBBER_NOT_FOUND = 'dubber:not_found',
+
+
+
+  // === GENERIC ===
+  GENERIC_FILE_MISS = 'generic:file_miss'
+}
+
+
+
+type HTTPStatus = 400 | 401 | 403 | 404 | 500 | 501 | 502 | 503;
 
 
 
 export class HTTPErrorConstructor {
   message: string;
-  status: THTTPErrorCode;
+  status: HTTPStatus;
   code: string;
 
-  constructor({ message, status, code }: { message: string, status: THTTPErrorCode, code?: string }) {
-    this.message = message;
+  constructor({ message, status, code }: { message?: string, status: HTTPStatus, code?: string }) {
+    this.message = message ?? 'No message provided';
+    this.code = code ?? ERROR.HTTP_ERROR;
     this.status = status;
-    this.code = code || 'generic:http_error';
   }
 }
 
@@ -33,75 +96,67 @@ export class HTTPErrorConstructor {
 
 /** HTTP_BAD_REQUEST */
 export class E400 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 400, code: code || 'generic:bad_request' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Invalid data passed', status: 400, code: code ?? ERROR.HTTP_BAD_REQUEST });
   }
 }
 
 /** HTTP_NOT_AUTHORIZED */
 export class E401 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 401, code: code || 'generic:missing_authorization' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Authorization missed', status: 401, code: code ?? ERROR.HTTP_UNAUTHORIZED });
   }
 }
 
 /** HTTP_FORBIDDEN */
 export class E403 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 403, code: code || 'generic:forbidden' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Access forbidden', status: 403, code: code ?? ERROR.HTTP_FORBIDDEN });
   }
 }
 
 /** HTTP_NOT_FOUND */
 export class E404 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 404, code: code || 'generic:not_found' });
-  }
-}
-
-/** HTTP_TEAPOT */
-export class E418 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 418, code: code || 'generic:idk' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Content not found', status: 404, code: code ?? ERROR.HTTP_NOT_FOUND });
   }
 }
 
 /** HTTP_INTERNAL */
 export class E500 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 500, code: code || 'generic:server_error' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Internal server error', status: 500, code: code ?? ERROR.HTTP_INTERNAL_ERROR });
   }
 }
 
 /** HTTP_NOT_IMPLEMENTED */
 export class E501 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 501, code: code || 'generic:method_not_implemented' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Method not implemented yet', status: 501, code: code ?? ERROR.HTTP_NOT_IMPLEMENTED });
   }
 }
 
 /** HTTP_BAD_GATEWAY */
 export class E502 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 502, code: code || 'generic:bad_gateway' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'An error occured while processing this request to another service', status: 502, code: code ?? ERROR.HTTP_BAD_GATEWAY });
   }
 }
 
 /** HTTP_SERVICE_UNAVAILABLE */
 export class E503 extends HTTPErrorConstructor {
-  constructor(message: string, code?: string) {
-    super({ message, status: 503, code: code || 'generic:service_not_available' });
+  constructor(message?: string, code?: string) {
+    super({ message: message ?? 'Something not available for now. Try again later', status: 503, code: code ?? ERROR.HTTP_NOT_AVAILABLE });
   }
 }
 
 
 
-/** Handle request errors like
+/** 
+ * Handle request errors like:
  * HTTPErrorConstructor, Axios, express-validator & uncaught
- * 
- * @param preventFullfilled prevent default fullfilled response
  */
-export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>, preventFullfilled?: boolean) {
+export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
     const validation = validationResult(req);
 
@@ -110,12 +165,6 @@ export async function HandleRequest(req: express.Request, res: express.Response,
 
     // Run callback
     await cb(req, res);
-
-    if (!preventFullfilled) {
-      try {
-        res.status(204).json({ message: 'Request fullfilled' });
-      } catch (e) { null; }
-    }
   } catch (e) {
     const date = `${getUTC().fulldate} UTC-0 ${getUTC().time}.${String(getUTC().secs).padStart(2, '0')}`;
 
@@ -143,7 +192,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         const message = `[AXIOS/503]: Connection refused`;
         Logger.error(`[AXIOS/503]: Connection to ${reqURL} refused`);
 
-        return res.status(503).json({ msg: message, message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
+        return res.status(503).json({ message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
       } else {
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
@@ -169,12 +218,46 @@ export async function HandleRequest(req: express.Request, res: express.Response,
   }
 }
 
+/** Handle service ECONNREFUSED (503) error */
+export function HandleAPIError(e: unknown, apiname: string): never {
+  if (e instanceof AxiosError && e.code === 'ECONNREFUSED') {
+    throw new E503(`${apiname} is currently not available. Try again in a few minutes or send a report`);
+  }
+
+  throw e;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //* --------------- DEFAULT EXCEPTIONS ---------------
 export class ERR_INVALID_PAYLOAD extends E400 {
   constructor(message?: string) {
-    super(message || 'Invalid payload, match it with endpoint documentation.', ERR_GENERIC.INVALID_PAYLOAD);
+    super(message || 'Invalid payload, match it with endpoint documentation.', 'ERR_INVAID_PAYLOAD');
   }
 }
 
@@ -196,27 +279,9 @@ export class ERR_LENGTH_INVALID extends E400 {
   }
 }
 
-export class ERR_NOT_READY extends E418 {
-  constructor(message?: string) {
-    super(message || 'Endpoint response is not ready yet, try in a few minutes.', 'ERR_NOT_READY');
-  }
-}
-
-export class ERR_MISSING_AUTHORIZATION extends E401 {
-  constructor(message?: string) {
-    super(message || 'Authorization cookie/header is missing.', ERR_GENERIC.MISSING_AUTHORIZATION);
-  }
-}
-
-export class ERR_ACCESS_REJECTED extends E403 {
-  constructor(message?: string) {
-    super(message || 'You are not allowed to have access for that.', 'ERR_ACCESS_REJECTED');
-  }
-}
-
 export class ERR_MIDDLEWARE_REQUIRED extends E500 {
   constructor(middleware: TMiddlewareName) {
-    super(`Request not passed throught ${middleware} middleware and being rejected`, 'ERR_MIDDLEWARE_REQUIRED');
+    super(`Request does not pass throught ${middleware} middleware and being rejected`, ERROR.BASE_MIDDLEWARE_REQUIRED);
   }
 }
 
@@ -225,7 +290,6 @@ export class ERR_MIDDLEWARE_REQUIRED extends E500 {
 
 
 
-//* ========= GENERIC
 export enum ERR_GENERIC {
   LINK_INVALID = 'generic:link_invalid',
   USERNAME_LENGTH_INVALID = 'generic:username_length_invalid',
@@ -241,7 +305,6 @@ export const ERR_USERNAME_NOT_LATIN = new E400(`Username must contain only latin
 export const ERR_DESCRIPTION_LENGTH_INVALID = new E400(`Description must be shorter than ${config.VALIDATION.PatchTitle.maxDescriptionLength} symbols`, ERR_GENERIC.DESCRIPTION_LENGTH_INVALID);
 
 export const ERR_LINK_INVALID = new E400(`Link was parsed with error, domain is not valid or it's length is above 256 chars`, ERR_GENERIC.LINK_INVALID);
-export const ERR_NO_DOCUMENT = new E500(`No document is passed into the constructor`, 'generic:no_document');
 export const ERR_FILE_TOO_LARGE = new E400(`Uploaded file size is too large`, 'generic:file_too_large');
 
 
@@ -263,3 +326,4 @@ export const ERR_DUBBER_NOT_MEMBER = new E400(`User is not a member of the team`
 
 //* ========= USER
 export const ERR_USER_TELEGRAM_NOT_LINKED = new E400(`User does not link telegram`, 'user:telegram_not_linked');
+

@@ -1,28 +1,48 @@
 import AnimeModel from '~/core/models/AnimeModel';
-import AnimeService from '~/core/services/AnimeService';
-import DubberModel from '~/core/models/DubberModel';
+import DocumentDTO from '~/core/services/DTOService';
+import FullkekwUser from '~/core/services/API/FullkekwUser.api';
 import Search from '~/services/SearchService';
+import TokenService, { TOKEN_METHOD } from '~/services/TokenService';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
-import { DocumentDTO, MongoDocumentDTO } from '~/core/services/DTO';
-import { DubberCompactMapper, HydrateAnimeDocument, UserMetadataMapper } from '~/utils/data-mappers';
-import { E404 } from '~/services/ErrorService';
-import { IUser } from '~/core/interfaces/UserIntf';
-import { NotifyService } from '~/services/NotifyService';
-import { UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchProps } from './UserControllerTypes';
-import { parseRoles } from '~/models/Role';
+import multer from 'multer';
+import { CheckAccess, CheckCSRF } from '~/middlewares';
+import { E401, E404, ERR_ALREADY_EXIST, HTTPErrorConstructor } from '~/services/ErrorService';
+import { ERROR } from '~/services/ErrorService';
+import { ERROR_GENERIC_FILE_MISS, ERROR_USER_LIB_NOT_FOUND } from '~/services/Exceptions';
+import { FullkekwUser_RefreshPayload, FullkekwUser_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
+import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
+import { HTTPEndpoint } from '~/services/HTTPService';
+import { HydrateAnimeDocument } from '~/utils/data-mappers';
+import { Logger } from '~/services/LoggerService';
+import { MiddlewareService } from '~/services/MiddlewareService';
+import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
+import { ProductionMode, TestMode, config } from '~/config';
+import { PutBanner, UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchProps, UserPatchSchema } from './UserControllerTypes';
+import { User } from '~/core/interfaces/User.intf';
+import { body, query } from 'express-validator';
+import { parseObjectTypes } from '~/utils/utils';
+import { parseRoles } from '~/core/services/RoleService';
+
+
+
+const upload = multer();
 
 
 
 //* ===================================== GET SEARCH
-async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): Promise<UserGetSearch[]> {
+const getSearch = HTTPEndpoint(async (req, res) => {
+  const { q, parseInvitationStatusFor } = parseObjectTypes<UserGetSearchProps>(req.query);
+
+
+
   const limit = 15;
 
-  let userResults: IUser[] = [];
+  let userResults: User[] = [];
 
   if (q === '~all') {
     // Get all
-    userResults = (await UserModel.find()).slice(0, limit).map(el => new MongoDocumentDTO().user({ document: el, details: true }));
+    userResults = (await UserModel.find()).slice(0, limit).map(doc => DocumentDTO.user(doc));
   } else {
     userResults = Search.search({ query: q, engine: 'user', limit });
   }
@@ -35,7 +55,7 @@ async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): P
     // Parse invitation status
     if (parseInvitationStatusFor) {
       const isTelegramNotLinked = !user.statistics.isTelegramLinked;
-      const isInvitePending = user.subscribes.includes(NotifyService.createEvent({ event: 'dubber_invite_pending', key: parseInvitationStatusFor }));
+      const isInvitePending = user.subscribes.includes(NotifyService.createEvent({ event: NOTIFY_EVENT.DUBBER_INVITE_PENDING, key: parseInvitationStatusFor }));
       const isOthersMemberAlready = user.statistics.dubber_team_member;
 
       if (isTelegramNotLinked) {
@@ -50,13 +70,23 @@ async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): P
     }
 
     results.push({
-      user: new DocumentDTO().user({ object: user }),
+      user: DocumentDTO.user(user),
       invitationStatus
     });
   });
 
-  return results;
-}
+
+
+  return res.status(200).json({ message: 'ok', results });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+const GetSearch = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  query(['q']).notEmpty(),
+  getSearch,
+];
 
 
 
@@ -64,92 +94,369 @@ async function GetSearch({ q, parseInvitationStatusFor }: UserGetSearchProps): P
 /**
  * Get user by query or session (*), parse capabilities or return only metadata
  * 
+ * User with "*" query will session validity and return document with same user id
+ * 
  * @see UserGetByQueryProps
  * @returns UserGetByQuery
  */
-async function GetByQuery({ query, metadataOnly, parseCapabilities, detailed, parseLibId, parseTogetherRoomId }: UserGetByQueryProps): Promise<UserGetByQuery> {
-  let user = await new UserService().getByQuery(query, true);
+const getByQuery = HTTPEndpoint(async (req, res) => {
+  const { parseCapabilities } = parseObjectTypes<UserGetByQueryProps>(req.query);
+  const CSRFToken = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
+  const SessionCookie = req.cookies[config.vars.sessionCookie];
 
-  let metadata: UserGetByQuery['metadata'] | undefined = undefined;
-  let parsedLib: UserGetByQuery['parsedLib'] | undefined = undefined;
-  let parsedTogetherRoom: UserGetByQuery['parsedTogetherRoom'] | undefined = undefined;
-  let capabilities: UserGetByQuery['capabilities'] | undefined = undefined;
+  let { query } = parseObjectTypes<UserGetByQueryProps>(req.params);
+  let { detailed, parseLibId } = parseObjectTypes<UserGetByQueryProps>(req.query);
 
 
 
-  if (metadataOnly) metadata = UserMetadataMapper(user);
+  if (detailed) {
+    if (!CSRFToken) throw new E401;
 
-  if (!metadataOnly) {
-    if (parseCapabilities) capabilities = await parseRoles(user.roles);
+    await new MiddlewareService().checkCSRF({
+      token: CSRFToken,
+      origins: [config.DOMAIN.nekomi],
+      mock: TestMode ? GetCheckCSRFMock(req) : undefined
+    });
+  }
 
-    if (parseLibId) {
-      const lib = user.libs.find(el => el.id === parseLibId);
-      if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
+  // Parse query from session
+  if (query === '*') {
+    if (!SessionCookie) throw new E401;
 
-      parsedLib = [];
-
-      if (lib.titles.length) {
-        parsedLib = (await AnimeModel.find(
-          { uuid: { $in: lib.titles } }
-        )).map(document => HydrateAnimeDocument(new MongoDocumentDTO().anime({ document })));
+    // Verify session
+    try {
+      await new MiddlewareService().checkAccess({ token: SessionCookie, mock: TestMode ? GetCheckAccessMock(req) : undefined });
+    } catch (e) {
+      if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) {
+        res.clearCookie(config.vars.sessionCookie);
       }
+
+      throw e;
     }
 
-    if (parseTogetherRoomId) {
-      const room = user.togetherRooms.find(el => el.id === parseTogetherRoomId);
-      if (!room) throw new E404(`Together room with id (${parseTogetherRoomId}) is not found`);
-
-      const anime = await new AnimeService().getById(room.titleId, true);
-      const dubbers = anime.episodes.length > 0 ? (await DubberModel.find({
-        id: {
-          $in: [...new Set(anime.episodes.map(el => el.dubberID))]
-        }
-      })).map(el => new MongoDocumentDTO().dubber({ document: el })) : [];
-
-      parsedTogetherRoom = {
-        anime: HydrateAnimeDocument(anime),
-        dubbers: dubbers.map(el => DubberCompactMapper(el))
-      };
+    if (!TestMode) {
+      query = TokenService.decode<FullkekwUser_SessionTokenPayload>(SessionCookie).payload?.userId ?? query;
+    } else {
+      query = GetCheckAccessMock(req).id;
     }
   }
 
-  user = new DocumentDTO().user({ object: user, details: detailed });
+  let user = await new UserService().getByQuery(query, true);
 
-  // @ts-expect-error Hide user when metadata only
-  if (metadataOnly) user = undefined;
+  let parsedLib: UserGetByQuery['parsedLib'];
+  let capabilities: UserGetByQuery['capabilities'];
 
 
 
-  return {
+  if (parseCapabilities) capabilities = await parseRoles(user.roles);
+
+  if (parseLibId) {
+    const lib = user.libs.find(el => el.id === parseLibId);
+    if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
+
+    parsedLib = [];
+
+    if (lib.titles.length) {
+      parsedLib = (await AnimeModel.find(
+        { uuid: { $in: lib.titles } }
+      )).map(document => HydrateAnimeDocument(DocumentDTO.anime(document)));
+    }
+
+    // Check if every anime listed in user lib exist
+    if (lib.titles.length !== parsedLib.length) {
+      const userService = new UserService();
+      await userService.init(user.id);
+
+      userService.fixLibAnimeDocuments(lib.id);
+    }
+  }
+
+  user = DocumentDTO.user(user, detailed);
+
+  const body: UserGetByQuery = {
     user,
-
-    metadata,
     capabilities,
-    parsedLib,
-    parsedTogetherRoom
+    parsedLib
   };
-}
+
+  return res.status(200).json({ message: 'ok', ...body });
+});
+
+/** @tested partially tested */
+const GetByQuery = [
+  getByQuery
+];
 
 
 
-//* ===================================== PATCH BY ID
-/** @todo */
-export async function PatchById({ id, watchProgress, deleteWatchProgress }: UserPatchProps) {
+//* ===================================== GET LOGOUT
+const getLogout = HTTPEndpoint(async (req, res) => {
+  return res.status(200).clearCookie(config.vars.sessionCookie, {
+    httpOnly: true,
+    domain: ProductionMode ? `.${config.DOMAIN.nekomi}` : undefined
+  }).json({ message: `Logged out` });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+const GetLogout = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  getLogout
+];
+
+
+//* ===================================== GET LINK TELEGRAM TOKEN
+const getLinkTelegramToken = HTTPEndpoint(async (req, res) => {
+  const userService = new UserService();
+  const user = await userService.init(req.nekomi.user?.id ?? '');
+
+  if (user.statistics.isTelegramLinked) throw new ERR_ALREADY_EXIST('Account already linked');
+
+  const token = TokenService.sign(TOKEN_METHOD.TELEGRAM_LINK, {});
+
+  await userService.setTelegramLinkToken(token);
+  await userService.save();
+
+  return res.status(200).json({ message: 'Telegram link token issued', token });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const GetLinkTelegramToken = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+  getLinkTelegramToken
+];
+
+
+
+//* ===================================== POST SIGNIN
+const postSignin = HTTPEndpoint(async (req, res) => {
+  const { session: sessionToken } = req.body as { session: string };
+
+  const userService = new UserService();
+
+  // @ts-expect-error Need empty object
+  const session: FullkekwUser_RefreshPayload = {};
+
+
+
+  // Validate session
+  if (!TestMode) {
+    const data = await FullkekwUser.refreshAuth({ sessionCookie: sessionToken });
+
+    session.id = data.id;
+    session.avatar = data.avatar;
+    session.username = data.username;
+  } else {
+    const data = GetCheckAccessMock(req);
+
+    session.id = data.id;
+    session.avatar = data.avatar;
+    session.username = data.username;
+  }
+
+  const user = await userService.safeGetByQuery(session.id);
+
+  if (!user) {
+    // User not found, create new
+    await userService.create({ username: session.username, avatar: session.avatar, id: session.id });
+
+    Search.update('user');
+
+    Logger.info(`[UserController]: New user signed in, welcome!`);
+  }
+
+
+
+  return res.status(!user ? 201 : 200).cookie(config.vars.sessionCookie, sessionToken, {
+    httpOnly: true,
+    maxAge: config.vars.sessionCookieExpireOffset,
+    domain: ProductionMode ? `.${config.DOMAIN.nekomi}` : undefined
+  }).json({
+    message: 'User signed in',
+    id: session.id,
+    username: session.username,
+    avatar: session.avatar
+  });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+/**
+ * Singin user & assign nekomi session cookie
+ * 
+ * @requires {session: string} - session token
+ * @returns {id: string, username: string, avatar: string}
+ */
+const PostSignin = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  body('session').notEmpty(),
+  postSignin
+];
+
+
+
+//* ===================================== POST LINK TELEGRAM
+const postLinkTelegram = HTTPEndpoint(async (req, res) => {
+  const { animeeID: nekomiId, telegramID } = req.body as { animeeID: string, telegramID: number };
+
+  const userService = new UserService();
+  const user = await userService.init(nekomiId);
+
+  const userWithThisTelegramID = await UserModel.findOne({ 'telegramData.id': telegramID });
+  if (user.statistics.isTelegramLinked || userWithThisTelegramID) throw new ERR_ALREADY_EXIST('This Telegram ID already linked');
+
+  await userService.setTelegramLinkToken(null);
+  await userService.patchStatistics({ isTelegramLinked: true });
+  userService.patchTelegramData({ id: telegramID });
+  await userService.save();
+
+  Logger.info(`[UserController]: User ${nekomiId} linked telegram with id ${telegramID}`);
+
+  return res.status(200).json({ message: 'Account linked', username: user.username });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+const PostLinkTelegram = [
+  CheckCSRF([config.DOMAIN.nekomi_bot]),
+  body(['animeeID', 'telegramID']).notEmpty(),
+  postLinkTelegram
+];
+
+
+
+//* ===================================== POST LINK TELEGRAM TOKEN VERIFY
+const postLinkTelegramTokenVerify = HTTPEndpoint(async (req, res) => {
+  const { token } = req.body as { token: string };
+
+  const user = await UserModel.findOne({ telegramLinkToken: token });
+  if (!user) throw new E404('User with this telegram link token is not found');
+
+  const userService = new UserService();
+  await userService.init(user.id);
+
+  await userService.setTelegramLinkToken(null);
+  await userService.save();
+
+  Logger.info(`[UserController]: Telegram link token verified and revoked for ${user.id}`);
+
+  return res.status(200).json({ message: 'Token verified', verified: true, id: user.id });
+}, {
+  requireMiddlewares: ['checkCSRF']
+});
+
+const PostLinkTelegramTokenVerify = [
+  CheckCSRF([config.DOMAIN.nekomi_bot]),
+  body('token').notEmpty(),
+  postLinkTelegramTokenVerify
+];
+
+
+
+//* ===================================== PATCH USER
+const patchUser = HTTPEndpoint(async (req, res) => {
+  UserPatchSchema.parse(req.body);
+
+  const { id } = req.nekomi.user!;
+  const { editFolderAnime, watchProgress, removeWatchProgress } = req.body as UserPatchProps;
+
   const userService = new UserService();
   await userService.init(id);
 
-  if (watchProgress) await userService.patchWatchProgress(watchProgress);
-  if (deleteWatchProgress) await userService.deleteWatchProgress({ animeId: deleteWatchProgress });
+
+
+  if (editFolderAnime !== undefined) {
+    const { animeId, libId } = editFolderAnime;
+
+    const lib = userService.user.libs.find(el => el.id === libId);
+    if (!lib) throw ERROR_USER_LIB_NOT_FOUND;
+
+    if (lib.titles.includes(animeId)) {
+      // Remove
+      userService.removeFromLib(libId, animeId);
+    } else {
+      // Append
+      await userService.appendInLib(libId, animeId);
+    }
+  }
+
+
+
+  if (watchProgress !== undefined) {
+    const { animeId, dubberId, episodeOrder, progress, viewtime } = watchProgress;
+
+    await userService.patchWatchProgress({ dubberID: dubberId, titleID: animeId, episodeOrder, progress });
+    await userService.patchStatistics({ increaseViewtime: viewtime });
+  }
+
+
+
+  if (removeWatchProgress !== undefined) {
+    const { animeId } = removeWatchProgress;
+
+    userService.removeWatchProgress(animeId);
+  }
+
+
 
   await userService.save();
-}
+
+  return res.status(200).json({ message: 'User modified' });
+}, {
+  requireMiddlewares: ['checkAccess', 'checkCSRF']
+});
+
+const PatchUser = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+  patchUser,
+];
 
 
 
+//* ===================================== PUT BANNER
+const putBanner = HTTPEndpoint(async (req, res) => {
+  const { id } = req.nekomi.user!;
 
-export default class UserController {
-  static GetSearch = GetSearch;
-  static GetByQuery = GetByQuery;
+  const file = req.file;
+  if (!file) throw ERROR_GENERIC_FILE_MISS;
 
-  static PatchById = PatchById;
-}
+  const userService = new UserService();
+  await userService.init(id);
+
+  const { bannerUrl } = await userService.uploadBanner(file);
+
+  const body: PutBanner = {
+    bannerUrl
+  };
+
+  return res.status(200).json({ message: 'Banner updated', ...body });
+}, { requireMiddlewares: ['checkAccess', 'checkCSRF'] });
+
+const PutBanner = [
+  CheckCSRF([config.DOMAIN.nekomi]),
+  CheckAccess(['basic']),
+  upload.single('file'),
+  putBanner
+];
+
+
+
+const UserController = {
+  GetSearch,
+  GetByQuery,
+  GetLogout,
+  GetLinkTelegramToken,
+
+  PostSignin,
+  PostLinkTelegram,
+  PostLinkTelegramTokenVerify,
+
+  PatchUser,
+
+  PutBanner,
+};
+
+export default UserController;

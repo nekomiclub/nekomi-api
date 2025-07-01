@@ -1,19 +1,26 @@
 process.argv.push('testMode');
 process.argv.push('devMode');
 
-import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/AnimeIntf';
+import Anime, { ANIME_MEDIA_TYPE } from '~/core/interfaces/Anime.intf';
 import AnimeService from '~/core/services/AnimeService';
-import createID from '~/utils/create-id';
+import TokenService from '~/services/TokenService';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { AnimeGetByQuery, AnimeGetSearch, AnimeGetStats } from '~/controllers/Anime/AnimeControllerTypes';
-import { ERR_GENERIC } from '~/services/ErrorService';
-import { MockAccessCheck, MockCheckCSRF, testPurge } from '~/utils/testing';
+import { ERROR } from '~/services/ErrorService';
+import { MockAccessCheck, MockCheckCSRF } from '~/utils/jest-utils';
 import { app } from '~/index';
 import { config } from '~/config';
+import { createStringID } from '~/utils/utils';
 
 
-beforeAll(testPurge);
-afterAll(testPurge);
+
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+  mongoose.connect(config.mongodbUrl, {
+    retryWrites: true,
+  });
+});
 
 
 
@@ -27,7 +34,7 @@ describe('AnimeRouter', () => {
     let anime: Anime | null = null;
 
     beforeAll(async () => {
-      anime = await new AnimeService().create({ nameEng: createID(12) });
+      anime = await new AnimeService().create({ nameEng: createStringID(12) });
     });
 
     it('should search by query', async () => {
@@ -72,10 +79,10 @@ describe('AnimeRouter', () => {
     });
   });
 
-  describe('GET /anime/all', () => {
+  describe('GET /anime/stats', () => {
     it('should return total/updated/fullfilled anime documents', async () => {
       const res = await request(app)
-        .get('/anime/all')
+        .get('/anime/stats')
         .expect(200);
 
       const data = res.body as AnimeGetStats;
@@ -90,7 +97,7 @@ describe('AnimeRouter', () => {
     let anime: Anime | null = null;
 
     beforeAll(async () => {
-      anime = await new AnimeService().create({ nameEng: createID(12) });
+      anime = await new AnimeService().create({ nameEng: createStringID(12) });
     });
 
     it(`should return anime document in detailed mode`, async () => {
@@ -133,26 +140,7 @@ describe('AnimeRouter', () => {
         .query({ detailed: true, fetchDubbers: true })
         .expect(401);
 
-      expect(res.body.code).toBe(ERR_GENERIC.MISSING_AUTHORIZATION);
-    });
-
-    it('should return only metadata', async () => {
-      const res = await request(app)
-        .get(`/anime/${anime?.uuid}`)
-        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock]))
-        .set(config.vars.csrfHeader, '~')
-        .query({ metadataOnly: true })
-        .expect(200);
-
-      const data = res.body as AnimeGetByQuery;
-
-      expect(data.anime).toBeUndefined();
-      expect(data.genres).toBeUndefined();
-      expect(data.media).toBeUndefined();
-      expect(data.rate).toBeUndefined();
-      expect(data.season).toBeUndefined();
-
-      expect(data.metadata).not.toBeUndefined();
+      expect(res.body.code).toBe(ERROR.HTTP_UNAUTHORIZED);
     });
 
     it('should fetch dubbers & related', async () => {
@@ -200,18 +188,28 @@ describe('AnimeRouter', () => {
 
   describe('DELETE /anime/:uuid', () => {
     it('should delete', async () => {
-      // const anime = await new AnimeService().create({ nameEng: createID(12) });
+      const anime = await new AnimeService().create({ nameEng: createStringID(12) });
 
-      // await request(app)
-      //   .delete(`/anime/${anime.uuid}`)
-      //   .set(config.vars.csrfHeader, '~')
-      //   .set(`Cookie`, `${config.vars.sessionCookie}=~`)
-      //   .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
-      //   .expect(204);
+      await request(app)
+        .delete(`/anime/${anime.uuid}`)
+        .query(`token=${TokenService.signCSRF()}`)
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(200);
 
-      // const afterDeleteAnime = await new AnimeService().safeGetByQuery(anime.uuid);
+      const afterDeleteAnime = await new AnimeService().safeGetByQuery(anime.uuid);
 
-      // expect(afterDeleteAnime).toBeNull();
+      expect(afterDeleteAnime).toBeNull();
+    });
+
+    it(`should reject`, async () => {
+      await request(app)
+        .delete(`/anime/SOME_ID`)
+        .set(config.vars.csrfHeader, '~')
+        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, RootAccessMock]))
+        .expect(401);
     });
   });
 });

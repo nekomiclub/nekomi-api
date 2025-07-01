@@ -1,16 +1,14 @@
-import IDubber from '~/core/interfaces/DubberIntf';
-import User from '~/core/interfaces/UserIntf';
-import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { Metadata } from '~/core/interfaces/types';
+import Dubber from '~/core/interfaces/Dubber.intf';
+import User from '~/core/interfaces/User.intf';
+import { HydratedAnime } from '~/core/interfaces/Anime.intf';
+
+
 
 export interface DubberGetOneByQueryProps {
   query: string
   detailed?: boolean
   fetchDubbedAnime?: boolean
   parseMembers?: boolean
-
-  /** Fetch only dubber metadata, will set dubber to null */
-  metadataOnly?: boolean
 
   /** Use cache
    * @default true
@@ -19,10 +17,9 @@ export interface DubberGetOneByQueryProps {
 }
 
 export interface DubberGetOneByQuery {
-  dubber: IDubber
+  dubber: Dubber
 
   dubbedHydratedAnimes?: HydratedAnime[]
-  metadata?: Metadata
   parsedMembers?: User[]
 }
 
@@ -32,5 +29,5 @@ export interface DubberGetSearchProps {
 }
 
 export interface DubberGetSearch {
-  results: IDubber[]
+  results: Dubber[]
 }

@@ -1,9 +1,3 @@
-//! --------------
-//! VERSION: 2.1.0
-//! --------------
-
-
-
 /** Episode processing qualities */
 export const EpisodeQualities = [240, 480, 720, 1080, 2160] as const;
 export type AnimeEpisodeQualityType = typeof EpisodeQualities[number];
@@ -15,7 +9,7 @@ export type NekomiUploadType =
   | 'photo/raw'
   | 'video/title/episode'
 
-export interface NekomiUploadsAPI_UploadFile {
+export interface NekomiUploads_UploadFile {
   id: string
   url: string
   srt_id?: string

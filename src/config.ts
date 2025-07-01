@@ -1,12 +1,8 @@
 import chalk from 'chalk';
-import fs from 'fs';
-import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 
-import getUTC from './utils/get-utc';
-import preserveIP from './utils/preserve-ip';
-import { ISERVICE_CONFIG } from '../SERVICE_CONFIG';
+import { getUTC } from './utils/utils';
 
 
 
@@ -20,40 +16,59 @@ export const DevelopmentMode = process.argv.includes('devMode');
 export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
 
+const env = {
+  PORT: Number(process.env['PORT']),
+  HOST: String(process.env['HOST']),
 
+  DATABASE_HOST: String(process.env['DATABASE_HOST']),
+  DATABASE_PORT: Number(process.env['DATABASE_PORT']),
+  DATABASE_NAME: String(process.env['DATABASE_NAME']),
+  DATABASE_USR: String(process.env['DATABASE_USR']),
+  DATABASE_PWD: String(process.env['DATABASE_PWD']),
 
-const SERVICE_CONFIG = JSON.parse(fs.readFileSync(`${path.resolve()}/../SERVICE_CONFIG.json`).toString()) as ISERVICE_CONFIG;
-const FULLKEKW_CONFIG = {
-  DOMAINS: {
-    fullkekw: 'nekomi.club',
-    fullkekw_authority: 'authority.nekomi.club',
-    fullkekw_usapi: 'usapi.nekomi.club',
-  },
-  SERVICES: {
-    fullkekw_authority: {
-      host: '0.0.0.0',
-      port: 45010
-    },
-    fullkekw_usapi: {
-      host: '0.0.0.0',
-      port: 45660
-    },
-  }
+  CSRF: String(process.env['CSRF-Token']),
+  MALClientID: String(process.env['MAL-Client-ID']),
+
+  // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
+  PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
+  NEKOMI_DOMAIN: String(process.env['NEKOMI_DOMAIN']),
+  NEKOMI_WEBSOCKET_DOMAIN: String(process.env['NEKOMI_WEBSOCKET_DOMAIN']),
+  NEKOMI_AUTH_DOMAIN: String(process.env['NEKOMI_AUTH_DOMAIN']),
+  NEKOMI_BOT_DOMAIN: String(process.env['NEKOMI_BOT_DOMAIN']),
+  NEKOMI_MEDIA_DOMAIN: String(process.env['NEKOMI_MEDIA_DOMAIN']),
+  NEKOMI_API_DOMAIN: String(process.env['NEKOMI_API_DOMAIN']),
+  FULLKEKW_USERAPI_DOMAIN: String(process.env['FULLKEKW_USERAPI_DOMAIN']),
+  FULLKEKW_AUTHORITY_DOMAIN: String(process.env['FULLKEKW_AUTHORITY_DOMAIN']),
+  FULLKEKW_ACCOUNT_DOMAIN: String(process.env['FULLKEKW_ACCOUNT_DOMAIN']),
+
+  NEKOMI_API_URL: String(process.env['NEKOMI_API_URL']),
+  PROXY_URL: String(process.env['PROXY_URL']),
+  TELEGRAM_BOT_URL: String(process.env['TELEGRAM_BOT_URL']),
+  NEKOMI_NEXTJS_URL: String(process.env['NEKOMI_NEXTJS_URL']),
+  NEKOMI_WEBSOCKET_URL: String(process.env['NEKOMI_WEBSOCKET_URL']),
+  NEKOMI_MEDIA_URL: String(process.env['NEKOMI_MEDIA_URL']),
+  NEKOMI_BOT_URL: String(process.env['NEKOMI_BOT_URL']),
+  NEKOMI_UPLOADS_URL: String(process.env['NEKOMI_UPLOADS_URL']),
+  FULLKEKW_AUTHORITY_URL: String(process.env['FULLKEKW_AUTHORITY_URL']),
+  FULLKEKW_USERAPI_URL: String(process.env['FULLKEKW_USERAPI_URL']),
+  FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
 };
+
+
 
 const DOMAIN = {
-  nekomi: SERVICE_CONFIG.DOMAINS.nekomi_site,
-  nekomi_auth: SERVICE_CONFIG.DOMAINS.nekomi_auth,
-  nekomi_core: SERVICE_CONFIG.DOMAINS.nekomi_api,
-  nekomi_media: SERVICE_CONFIG.DOMAINS.nekomi_media,
-  nekomi_bot: SERVICE_CONFIG.DOMAINS.nekomi_bot,
+  proxy: env.PROXY_DOMAIN,
+  nekomi: env.NEKOMI_DOMAIN,
+  nekomi_auth: env.NEKOMI_AUTH_DOMAIN,
+  nekomi_api: env.NEKOMI_API_DOMAIN,
+  nekomi_media: env.NEKOMI_MEDIA_DOMAIN,
+  nekomi_bot: env.NEKOMI_BOT_DOMAIN,
+  nekomi_websocket: env.NEKOMI_WEBSOCKET_DOMAIN,
 
-  fullkekw: FULLKEKW_CONFIG.DOMAINS.fullkekw,
-  fullkekw_authority: FULLKEKW_CONFIG.DOMAINS.fullkekw_authority,
-  fullkekw_usapi: FULLKEKW_CONFIG.DOMAINS.fullkekw_usapi,
+  fullkekw_authority: env.FULLKEKW_AUTHORITY_DOMAIN,
+  fullkekw_userapi: env.FULLKEKW_USERAPI_DOMAIN,
+  fullkekw_account: env.FULLKEKW_ACCOUNT_DOMAIN,
 };
-
-
 
 const STATIC = {
   AnimeFeatured: {
@@ -112,23 +127,6 @@ const STATIC = {
   }
 };
 
-export const INTERNALS = {
-  database: {
-    host: SERVICE_CONFIG.DATABASE!.host,
-    port: SERVICE_CONFIG.DATABASE!.port,
-    creds: ProductionMode ? SERVICE_CONFIG.SERVICES.nekomi_api.DATABASE!.production : SERVICE_CONFIG.SERVICES.nekomi_api.DATABASE!.development
-  },
-  http_server: {
-    host: preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host),
-    port: SERVICE_CONFIG.SERVICES.nekomi_api.port
-  },
-  ws_server: {
-    host: preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host),
-    port: SERVICE_CONFIG.SERVICES.nekomi_api.port_ws!
-  },
-  SERVICE_CONFIG
-};
-
 const VALIDATION = {
   CreateUser: {
     minNameLength: 6,
@@ -150,9 +148,6 @@ const VALIDATION = {
     maxStudiosCount: 5,
     minStudioLength: 3,
     maxStudioLength: 32,
-  },
-  WatchTogether: {
-    textMessageLength: 256
   },
 
 
@@ -184,27 +179,20 @@ const VALIDATION = {
 };
 
 const URL = {
-  nekomi_site: ProductionMode ? `https://${DOMAIN.nekomi}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_site.host)}:${SERVICE_CONFIG.SERVICES.nekomi_site.port}`,
-  nekomi_media: ProductionMode ? `https://${DOMAIN.nekomi_media}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_media.host)}:${SERVICE_CONFIG.SERVICES.nekomi_media.port}`,
+  proxy: env.PROXY_URL,
+  nekomi_site: env.NEKOMI_NEXTJS_URL,
+  nekomi_ws: env.NEKOMI_WEBSOCKET_URL,
+  nekomi_media: env.NEKOMI_MEDIA_URL,
+  nekomi_api: env.NEKOMI_API_URL,
+  nekomi_bot: env.NEKOMI_BOT_URL,
+  nekomi_uploads: env.NEKOMI_UPLOADS_URL,
+  fullkekw_authority: env.FULLKEKW_AUTHORITY_URL,
+  fullkekw_userapi: env.FULLKEKW_USERAPI_URL,
+  fullkekw_account: env.FULLKEKW_USERAPI_URL,
 
-  /** In development mode port was changed into 80 */
-  nekomi_core: ProductionMode ? `https://${DOMAIN.nekomi_core}` : `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_api.host)}`,
-
-  //* LOCAL
-  nekomi_bot: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_bot.host)}:${SERVICE_CONFIG.SERVICES.nekomi_bot.port}`,
-  nekomi_uploads: `http://${preserveIP(SERVICE_CONFIG.SERVICES.nekomi_uploads.host)}:${SERVICE_CONFIG.SERVICES.nekomi_uploads.port}`,
-
-  MyanimelistAPI: 'https://api.myanimelist.net/v2',
-
-
-
-  fullkekw_authority: ProductionMode ? `https://${DOMAIN.fullkekw_authority}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_authority.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_authority.port}`,
-  fullkekw_usapi: ProductionMode ? `https://${DOMAIN.fullkekw_usapi}` : `http://${preserveIP(FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.host)}:${FULLKEKW_CONFIG.SERVICES.fullkekw_usapi.port}`,
-};
-
-const env = {
-  CSRF: process.env['CSRF-Token']!,
-  MALClientID: process.env['MAL-Client-ID']!,
+  hikka: 'https://hikka.io',
+  MALAPI: `https://api.myanimelist.net/v2`,
+  hikkaAPI: 'https://api.hikka.io',
 };
 
 const vars = {
@@ -255,7 +243,7 @@ const rickrollEndpoints: RegExp[] = [
 
 
 export const config = {
-  mongodbUrl: `mongodb://${INTERNALS.database.creds!.usr}:${INTERNALS.database.creds!.pwd}@${INTERNALS.database.host}:${INTERNALS.database.port}/${INTERNALS.database.creds!.name}`,
+  mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`,
   commit: execSync(`git rev-parse --short HEAD`).toString().replace('\n', ''),
   startedAt: `${getUTC().fulldate} ${getUTC().timeAccurate}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
@@ -273,5 +261,5 @@ export const config = {
 
 //! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
 if (DevelopmentMode) {
-  INTERNALS.http_server.port = 80;
+  env.PORT = 80;
 }

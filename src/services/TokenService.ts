@@ -1,105 +1,94 @@
-import getUTC from '~/utils/get-utc';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { ERROR_TOKEN_DATATYPE_INVALID, ERROR_TOKEN_METHOD_INVALID } from './Exceptions';
 import { config } from '~/config';
-import { createID } from '~/utils/create-id';
+import { createStringID } from '~/utils/utils';
+import { getUTC } from '~/utils/utils';
 
 
-/** Decoded token interface */
-interface ITokenPayload<T = any> {
-  /** Token is verified */
+
+export enum TOKEN_METHOD {
+  TELEGRAM_LINK = 'telegram:link'
+}
+
+
+
+export interface TokenPayload<T = object> {
+  payload: JwtPayload & T
+
+  /** Will be null if verify method is not specified */
   verified: boolean | null
-
-  /** Token headers */
-  headers: jwt.JwtHeader | null
-
-  /** Token payload */
-  payload: T | null
 }
 
-/** JWT Headers */
-const JWTHeaders = ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti'];
 
-/** Token methods */
-type TTokenMethod = 'CSRF' | 'TelegramLink';
 
-/** Decode JWT token.
- * @param method If specified, will also verify token with this method
- */
-export function decodeToken<T = any>(token: string, method?: TTokenMethod): ITokenPayload<T> {
-  try {
-    const decoded = jwt.decode(token);
-
-    let payload: any = null;
-    let headers: any = null;
-    let verified: any = null;
-
-    if (typeof decoded === 'string') {
-      payload = decoded;
-    } else {
-      for (const key in decoded) {
-        if (JWTHeaders.includes(key)) {
-          if (!headers) headers = {};
-          headers[key] = decoded[key];
-        } else {
-          if (!payload) payload = {};
-          payload[key] = decoded[key];
-        }
-      }
+export default class TokenService {
+  /** 
+   * Sign token
+   */
+  static sign<T extends object>(method: TOKEN_METHOD, payload: T): string {
+    if (method === TOKEN_METHOD.TELEGRAM_LINK) {
+      return createStringID(24);
     }
 
-    switch (method) {
-      case 'CSRF': {
-        verified = verifyCSRFToken(token);
-        break;
-      }
-    }
+    throw ERROR_TOKEN_METHOD_INVALID;
+  }
+
+
+
+  /** 
+   * Decode & Verify token
+   */
+  static parse<T = object>(token: string, method: TOKEN_METHOD): TokenPayload<T> {
+    const { payload } = this.decode<T>(token);
+    const verified = this.verify(token, method);
 
     return {
-      headers,
       payload,
-      verified,
+      verified
     };
-  } catch (error) {
+  }
+
+
+
+  /** 
+   * Decode token
+   */
+  static decode<T = object>(token: string): TokenPayload<T> {
+    const payload = jwt.decode(token) as JwtPayload & T;
+    if (typeof payload !== 'object') throw ERROR_TOKEN_DATATYPE_INVALID;
+
     return {
-      headers: null,
-      payload: null,
       verified: null,
+      payload,
     };
   }
-}
 
 
 
-/** Verify CSRF token */
-export function verifyCSRFToken(token: string): boolean {
-  try {
-    return Boolean(jwt.verify(token, config.env.CSRF));
-  } catch (e) {
-    return false;
-  }
-}
+  /** 
+   * Verify token with method
+   * 
+   * @returns boolean verify state
+   */
+  static verify(token: string, method: TOKEN_METHOD): boolean {
+    try {
+      // if (method === TOKEN_METHOD.SESSION) {
+      //   return Boolean(jwt.verify(token, config.secrets.SessionKey));
+      // }
 
-/** Sign CSRF token */
-export function signCSRFToken(): string {
-  return jwt.sign({
-    origin: config.DOMAIN.nekomi_core,
-    expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
-  }, config.env.CSRF, {
-    algorithm: 'RS256'
-  });
-}
-
-export class TokenService {
-  static signToken(method: TTokenMethod, payload?: object): string {
-    let token = '';
-
-    switch (method) {
-      case 'TelegramLink': {
-        token = createID(24);
-        break;
-      }
+      throw ERROR_TOKEN_METHOD_INVALID;
+    } catch (e) {
+      return false;
     }
+  }
 
-    return token;
+  /** Sign CSRF token */
+  static signCSRF(): string {
+    return jwt.sign({
+      origin: config.DOMAIN.nekomi_api,
+      expire: getUTC().timestamp + config.vars.CSRF_EXPIRE
+    }, config.env.CSRF, {
+      algorithm: 'RS256'
+    });
   }
 }

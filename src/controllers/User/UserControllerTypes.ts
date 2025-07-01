@@ -1,9 +1,7 @@
-import User, { UserTogetherRoom } from '~/core/interfaces/UserIntf';
-import { DubberCompact } from '~/core/interfaces/DubberIntf';
-import { HydratedAnime } from '~/core/interfaces/AnimeIntf';
-import { Metadata } from '~/core/interfaces/types';
-import { TRoleCapability } from '~/core/interfaces/RoleIntf';
-import { UserPatchWatchProgressProps } from '~/core/services/UserService';
+import User from '~/core/interfaces/User.intf';
+import { HydratedAnime } from '~/core/interfaces/Anime.intf';
+import { RoleCapability } from '~/core/interfaces/Role.intf';
+import { z } from 'zod';
 
 export interface UserGetSearchProps {
   /** Query ~all will return all users */
@@ -23,25 +21,16 @@ export interface UserGetSearch {
 export interface UserGetByQueryProps {
   query: string
 
-  /** Return only metadata */
-  metadataOnly?: boolean
   parseCapabilities?: boolean
   parseLibId?: string
-  parseTogetherRoomId?: string
   detailed?: boolean
 }
 
 export interface UserGetByQuery {
-  /** Will be undefined with metadataOnly specified */
   user: User
 
-  capabilities?: TRoleCapability[]
-  metadata?: Metadata
+  capabilities?: RoleCapability[]
   parsedLib?: HydratedAnime[]
-  parsedTogetherRoom?: {
-    anime: HydratedAnime
-    dubbers: DubberCompact[]
-  }
 }
 
 export interface UserGetLibProps {
@@ -59,15 +48,37 @@ export interface UserGetTogetherRoomProps {
 }
 
 export interface UserGetTogetherRoom {
-  room: UserTogetherRoom
+  room: void
   anime: HydratedAnime
 }
 
-export interface UserPatchProps {
-  id: string
 
-  watchProgress?: UserPatchWatchProgressProps
 
-  /** Anime ID */
-  deleteWatchProgress?: string
+export const UserPatchSchema = z.object({
+  editFolderAnime: z.object({
+    libId: z.string(),
+    animeId: z.string(),
+  }).optional(),
+
+  watchProgress: z.object({
+    animeId: z.string(),
+    dubberId: z.string(),
+    episodeOrder: z.number(),
+
+    /** Session viewtime in seconds */
+    viewtime: z.number(),
+
+    /** View progress in seconds */
+    progress: z.number()
+  }).optional(),
+
+  removeWatchProgress: z.object({
+    animeId: z.string(),
+  }).optional()
+});
+
+export type UserPatchProps = z.infer<typeof UserPatchSchema>
+
+export interface PutBanner {
+  bannerUrl: string
 }
