@@ -106,25 +106,6 @@ const UpdateHandlers = [
       cronCurrentSeasonAnime();
     }
 
-    // try {
-    //   const animes = await AnimeModel.find({ malId: { $ne: null } });
-    //   const subjects = animes.slice(0, 50);
-
-    //   Logger.warn(`=================`);
-    //   Logger.warn(`TESTING ASHDI PARSE FOR ${subjects.length} ANIME DOCUMENTS`);
-    //   Logger.warn(`${subjects.map(el => el.malId).join(', ')}`);
-    //   Logger.warn(`=================`);
-
-    //   for (const key in subjects) {
-    //     const anime = subjects[key] as Anime;
-    //     await AshdiVODService.getEpisodes({ malId: anime.malId!, title: anime.names.eng, episodesCount: Number(anime.episodesCount), forceUpdate: true });
-
-    //     Logger.info(`ANIME ${anime.malId} SUCCESSFULLY PARSED`);
-    //   }
-    // } catch (e) {
-    //   console.error(e);
-    // }
-
 
 
     // Update cache

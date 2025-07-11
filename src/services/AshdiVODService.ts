@@ -38,7 +38,7 @@ class AshdiVODServ {
   async getEpisodes({ malId, title, forceUpdate, episodesCount }: IGetEpisodesProps): Promise<AnimeEpisode[]> {
     const { part: partIndex, season: seasonIndex } = this.getSeason(title);
 
-    const vod = await AshdiVODModel.findOne({ malIds: { $in: malId } });
+    const vod = await AshdiVODModel.findOne({ malIds: { $in: [malId] } });
     if (!vod || getUTC().timestamp > vod.updatedAt + config.vars.AshdiSyncCooldown || forceUpdate) this.updateVOD({ title, malId, season: seasonIndex, episodesCount }); // update vod if it is not exist, sync cooled down or forced
 
     const season: IAshdiVODSeason | undefined = vod?.seasons.find(el => el.season === seasonIndex);
@@ -73,16 +73,16 @@ class AshdiVODServ {
       const { part, season } = this.getSeason(title);
 
       // Find by malId
-      let vod = await AshdiVODModel.findOne({ malIds: { $in: malId } });
+      let vod = await AshdiVODModel.findOne({ malIds: { $in: [malId] } });
       let imdbId = vod?.imdbId;
 
       // Fetch IMDB id if vod not found
       if (!imdbId) {
         const imdbSearch = await IMDB.searchTitles({ query: title });
-        imdbId = imdbSearch[0].id;
+        imdbId = imdbSearch[0]?.id;
       }
 
-      if (!imdbId) return Logger.debug(`[AshdiVODService]: Cannot find IMDB title with name "${title}"`);
+      if (!imdbId) return Logger.fail(`[AshdiVODService]: Cannot find IMDB title with name "${title}"`);
 
       // Find by imdbId
       if (!vod) vod = await AshdiVODModel.findOne({ imdbId });
@@ -108,11 +108,11 @@ class AshdiVODServ {
       // Parse episodes
       pl.forEach(ashdiDubber => {
         const dubberId = ASHDI_DUBBERS_MAP[ashdiDubber.title.trim()];
-        if (!dubberId) return Logger.fail(`[AshdiVODService]: Dubber id not mapped (${ashdiDubber.title})`);
+        if (!dubberId) return Logger.warn(`[AshdiVODService]: Dubber id not mapped (${ashdiDubber.title})`);
 
         ashdiDubber.folder.forEach(ashdiSeason => {
           const seasonIndex = Number(ashdiSeason.title.trim().replace('Сезон', ''));
-          if (isNaN(seasonIndex)) return Logger.fail(`[AshdiVODService]: Season index is NaN (${ashdiSeason.title})`);
+          if (isNaN(seasonIndex)) return Logger.warn(`[AshdiVODService]: Season index is NaN (${ashdiSeason.title})`);
 
           const season: IAshdiVODSeason = seasons.find(el => el.season === seasonIndex) ?? {
             season: seasonIndex,
@@ -134,7 +134,7 @@ class AshdiVODServ {
 
           ashdiSeason.folder.forEach(ashdiEpisode => {
             const episodeOrder = Number(ashdiEpisode.title.trim().replace('Серія', ''));
-            if (isNaN(episodeOrder)) return Logger.fail(`[AshdiVODService]: Episode order is NaN (${ashdiEpisode.title})`);
+            if (isNaN(episodeOrder)) return Logger.warn(`[AshdiVODService]: Episode order is NaN (${ashdiEpisode.title})`);
 
             season.episodes.push({
               dubberID: dubberId,

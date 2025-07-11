@@ -1,4 +1,4 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/Anime.intf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, AnimeEpisode, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
 import AshdiVODService from '~/services/AshdiVODService';
@@ -190,7 +190,7 @@ const GetFeatured = [
 //* ===================================== GET BY QUERY
 const getByQuery = HTTPEndpoint(async (req, res) => {
   const { query } = parseObjectTypes<AnimeGetByQueryProps>(req.params);
-  const { fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+  const { fetchDubbers, fetchRelated, ashdi } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
   const CSRF_Token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
   let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
 
@@ -215,18 +215,26 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
 
   const anime = animeService.anime;
+  const ashdiEpisodes: AnimeEpisode[] = anime.malId ? await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, episodesCount: Number(anime.episodesCount) }) : [];
 
   let related: AnimeGetByQuery['related'] = [];
   let dubbers: AnimeGetByQuery['dubbers'] = [];
-  let posterAdapt: AnimeGetByQuery['posterAdapt'];
-  let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
+  let posterAdapt: AnimeGetByQuery['posterAdapt'] = null;
+  let nextBroadcast: AnimeGetByQuery['nextBroadcast'] = null;
+
+
+
+  // Return only ashdi episodes
+  if (ashdi) {
+    anime.episodes = ashdiEpisodes;
+  } else {
+    if (anime.malId) anime.episodes = [...anime.episodes, ...ashdiEpisodes.filter(ae => !anime.episodes.some(el => el.dubberID === ae.dubberID && el.order === ae.order))];
+  }
 
 
 
   // Fetch dubbers & related & next broadcast
   if (detailed) {
-    if (anime.malId) anime.episodes = [...anime.episodes, ...(await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, episodesCount: Number(anime.episodesCount), forceUpdate: true }))];
-
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 
@@ -258,8 +266,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       time.setMilliseconds(0);
 
       nextBroadcast = +time;
-    } else {
-      nextBroadcast = null;
     }
 
     // Fetch poster adapt
@@ -277,8 +283,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
         // Get dubber from anime dubbing
         posterAdapt = dubber;
       }
-    } else {
-      posterAdapt = null;
     }
   }
 

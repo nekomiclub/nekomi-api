@@ -19,6 +19,9 @@ export interface AnimeGetStats {
 export interface AnimeGetByQueryProps {
   query: string
 
+  /** Use only ashdi episodes */
+  ashdi?: boolean
+
   /** Return detailed document */
   detailed?: boolean
 

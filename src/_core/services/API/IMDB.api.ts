@@ -20,6 +20,6 @@ export class IMDB {
 
     const { data } = await axios.get<{ titles: IMDBTitle[] }>(url);
 
-    return data.titles;
+    return data.titles ?? [];
   }
 }
