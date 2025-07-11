@@ -97,8 +97,8 @@ const getStats = HTTPEndpoint(async (req, res) => {
 
   const total = documents.length;
   // All parsed anime documents by default were with G rate and OVA status
-  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
-  const fullfilled = updated.filter(el => el.malId !== null);
+  const updated = documents.filter(el => el.rate !== ANIME_RATE.G && el.media !== ANIME_MEDIA_TYPE.OVA);
+  const fullfilled = documents.filter(el => el.malId !== null);
 
   const body: AnimeGetStats = {
     total,
