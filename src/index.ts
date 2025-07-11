@@ -10,6 +10,7 @@ import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
+import { ANIME_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
@@ -96,6 +97,12 @@ const UpdateHandlers = [
   HTTP: http://${config.env.HOST}:${config.env.PORT} ${DevelopmentMode ? '(port changed, see README.md)' : ''}
   ----------------------------
     `);
+
+
+
+    if (ProductionMode) {
+      await ANIME_MODEL_UPDATE.run();
+    }
 
 
 

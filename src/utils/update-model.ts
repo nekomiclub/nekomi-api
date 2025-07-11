@@ -126,18 +126,8 @@ export const ANIME_MODEL_UPDATE = new UpdateModel('AnimeModel', async () => {
   for (const key in animes) {
     const anime = animes[key];
 
-    anime.createdAt = anime.createdAt ?? getUTC().timestamp;
-
-    anime.shikimoriSyncedAt = anime.shikimoriSyncedAt ?? null;
-    anime.hikkaSyncedAt = anime.hikkaSyncedAt ?? null;
-    anime.anidbSyncedAt = anime.anidbSyncedAt ?? null;
-
-    anime.stopSync.mal = anime.stopSync.mal ?? false;
-    anime.stopSync.shikimori = anime.stopSync.shikimori ?? false;
-    anime.stopSync.anidb = anime.stopSync.anidb ?? false;
-    anime.stopSync.hikka = anime.stopSync.hikka ?? false;
-
-    anime.markModified('stopSync');
+    anime.imdbId = anime.imdbId ?? null;
+    anime.isDMCARestricted = anime.isDMCARestricted ?? false;
 
     await anime.save();
 
@@ -161,8 +151,6 @@ export const USER_MODEL_UPDATE = new UpdateModel('UserModel', async () => {
   //* =======================
   for (const key in users) {
     const user = users[key];
-
-    user.set('togetherRooms', undefined, { strict: false });
 
     await user.save();
   }

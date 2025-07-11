@@ -34,6 +34,8 @@ export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   genres: Array,
   posterAdapt: String,
   stopSync: Object,
+  imdbId: String,
+  isDMCARestricted: Boolean
 }));
 
 

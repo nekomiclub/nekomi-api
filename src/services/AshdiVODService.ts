@@ -1,3 +1,4 @@
+import AnimeService from '~/core/services/AnimeService';
 import AshdiVODModel from '~/core/models/AshdiVODModel';
 import { ASHDI_DUBBERS_MAP, IAshdiVOD, IAshdiVODSeason } from '~/core/interfaces/AshdiVOD.intf';
 import { AnimeEpisode } from '~/core/interfaces/Anime.intf';
@@ -13,6 +14,7 @@ interface IGetEpisodesProps {
   malId: number
   title: string
 
+  imdbId?: string
   forceUpdate?: boolean
   episodesCount?: number
 }
@@ -20,6 +22,7 @@ interface IGetEpisodesProps {
 interface IFetchAshdiProps {
   title: string
 
+  imdbId?: string
   malId?: number
   season?: number
 
@@ -35,11 +38,11 @@ interface IGetSeason {
 
 
 class AshdiVODServ {
-  async getEpisodes({ malId, title, forceUpdate, episodesCount }: IGetEpisodesProps): Promise<AnimeEpisode[]> {
+  async getEpisodes({ malId, title, forceUpdate, episodesCount, imdbId }: IGetEpisodesProps): Promise<AnimeEpisode[]> {
     const { part: partIndex, season: seasonIndex } = this.getSeason(title);
 
     const vod = await AshdiVODModel.findOne({ malIds: { $in: [malId] } });
-    if (!vod || getUTC().timestamp > vod.updatedAt + config.vars.AshdiSyncCooldown || forceUpdate) this.updateVOD({ title, malId, season: seasonIndex, episodesCount }); // update vod if it is not exist, sync cooled down or forced
+    if (!vod || getUTC().timestamp > vod.updatedAt + config.vars.AshdiSyncCooldown || forceUpdate) this.updateVOD({ title, malId, season: seasonIndex, episodesCount, imdbId }); // update vod if it is not exist, sync cooled down or forced
 
     const season: IAshdiVODSeason | undefined = vod?.seasons.find(el => el.season === seasonIndex);
     const part = season?.parts.find(el => el.malId === malId);
@@ -68,12 +71,12 @@ class AshdiVODServ {
     return episodes;
   }
 
-  async updateVOD({ title, malId, season: preservedSeasonIndex, episodesCount }: IFetchAshdiProps) {
+  private async updateVOD({ title, malId, season: preservedSeasonIndex, episodesCount, imdbId: nativeImdbId }: IFetchAshdiProps) {
     try {
       const { part, season } = this.getSeason(title);
 
-      // Find by malId
-      let vod = await AshdiVODModel.findOne({ malIds: { $in: [malId] } });
+      // Find by malId or native imdb id
+      let vod = await AshdiVODModel.findOne({ $or: [{ malIds: { $in: [malId] } }, { imdbId: nativeImdbId }] });
       let imdbId = vod?.imdbId;
 
       // Fetch IMDB id if vod not found
@@ -162,7 +165,16 @@ class AshdiVODServ {
 
       await vod.save();
 
-      Logger.debug(`[AshdiVODService]: VOD for ${vod.imdbId} updated`);
+      Logger.debug(`[AshdiVODService]: VOD for ${imdbId} updated`);
+
+      // Set imdbId
+      const animeService = new AnimeService();
+      await animeService.init(`${malId}`);
+
+      if (!animeService.anime.imdbId) {
+        animeService.setImdbId(imdbId);
+        await animeService.save();
+      }
     } catch (e) {
       Logger.fail(`[AshdiVODService]: Ashdi fetch failed`, e);
     }

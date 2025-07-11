@@ -129,6 +129,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       hikkaSyncedAt: getUTC().timestamp,
       shikimoriSyncedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
+      isDMCARestricted: false,
 
       posterAdapt: null,
       broadcast: null,
@@ -137,6 +138,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       episodesCount: null,
       malId: null,
       malSyncedAt: null,
+      imdbId: null,
 
       studios: [],
       related: [],
@@ -279,6 +281,46 @@ export class AnimeService extends AnimeModelControls {
     this.stack.push(`Changed malId (${this.document.malId} > ${malId})`);
 
     this.document.malId = malId;
+  }
+
+
+
+  /**  
+   * Set imdbId. Value can be null
+   * 
+   * @todo test
+  */
+  setImdbId(imdbId: string | null) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('imdbId');
+
+    if (imdbId === null || !imdbId) {
+      this.stack.push(`imdbId deleted`);
+
+      this.document.imdbId = null;
+
+      return;
+    }
+
+    this.stack.push(`Changed imdbId (${this.document.imdbId} > ${imdbId})`);
+
+    this.document.imdbId = imdbId;
+  }
+
+
+
+  /**  
+   * Set isDMCARestricted
+   * 
+   * @todo test
+  */
+  setIsDMCARestricted(is: boolean) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('isDMCARestricted');
+
+    this.stack.push(`Changed isDMCARestricted (${this.document.isDMCARestricted} > ${is})`);
+
+    this.document.isDMCARestricted = is;
   }
 
 

@@ -120,6 +120,7 @@ export const AnimePatchByUuidSchema = z.object({
   nameAlt: z.string().array().optional(),
 
   malId: z.number().optional(),
+  imdbId: z.string().optional(),
   scoreIMDB: z.number().optional(),
   scoreMAL: z.number().optional(),
   malScoredBy: z.number().optional(),
@@ -128,6 +129,7 @@ export const AnimePatchByUuidSchema = z.object({
   studios: z.string().array().optional(),
   genres: z.string().array().optional(),
   posterAdapt: z.string().optional(),
+  isDMCARestricted: z.boolean().optional(),
 
   status: z.string().optional(),
   season: z.string().optional(),

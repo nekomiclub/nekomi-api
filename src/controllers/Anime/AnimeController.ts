@@ -215,7 +215,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
 
   const anime = animeService.anime;
-  const ashdiEpisodes: AnimeEpisode[] = anime.malId ? await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, episodesCount: Number(anime.episodesCount) }) : [];
+  const ashdiEpisodes: AnimeEpisode[] = anime.malId ? await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, episodesCount: Number(anime.episodesCount), imdbId: anime.imdbId ?? undefined }) : [];
 
   let related: AnimeGetByQuery['related'] = [];
   let dubbers: AnimeGetByQuery['dubbers'] = [];
@@ -420,7 +420,7 @@ const PutPoster = [
 const patchByUuid = HTTPEndpoint(async (req, res) => {
   AnimePatchByUuidSchema.parse(req.body);
 
-  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year } = req.body as AnimePatchByUuidProps;
+  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year, imdbId, isDMCARestricted } = req.body as AnimePatchByUuidProps;
 
   const animeService = new AnimeService();
   await animeService.init(uuid);
@@ -440,8 +440,10 @@ const patchByUuid = HTTPEndpoint(async (req, res) => {
   if (season !== undefined) animeService.setSeason(animeService.parseSeason(season));
   if (status !== undefined) animeService.setStatus(animeService.parseStatus(status));
   if (scoreMAL !== undefined || scoreIMDB !== undefined || malScoredBy !== undefined) animeService.setScore({ imdb: scoreIMDB, mal: scoreMAL, malScoredBy });
-  if (studios !== undefined) animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
+  if (studios !== undefined) await animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
   if (year !== undefined) animeService.setYear(year);
+  if (isDMCARestricted !== undefined) animeService.setIsDMCARestricted(isDMCARestricted);
+  if (imdbId !== undefined) animeService.setImdbId(imdbId);
 
 
 
