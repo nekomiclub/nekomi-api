@@ -196,6 +196,7 @@ const URL = {
   hikkaAPI: 'https://api.hikka.io',
   ashdiAPI: 'https://base.ashdi.vip',
   imdbAPI: 'https://rest.imdbapi.dev',
+  jikanAPI: 'https://api.jikan.moe/',
 };
 
 const vars = {

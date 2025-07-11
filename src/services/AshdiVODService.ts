@@ -162,7 +162,6 @@ class AshdiVODServ {
 
       await vod.save();
 
-      console.log(vod);
       Logger.debug(`[AshdiVODService]: VOD for ${vod.imdbId} updated`);
     } catch (e) {
       Logger.fail(`[AshdiVODService]: Ashdi fetch failed`, e);
