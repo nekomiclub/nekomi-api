@@ -10,7 +10,6 @@ import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
-import { ANIME_MODEL_UPDATE, USER_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
@@ -98,10 +97,6 @@ const UpdateHandlers = [
   ----------------------------
     `);
 
-    if (ProductionMode) {
-      await ANIME_MODEL_UPDATE.run();
-      await USER_MODEL_UPDATE.run();
-    }
 
 
     // Callback body
@@ -110,6 +105,25 @@ const UpdateHandlers = [
     if (!TestMode) {
       cronCurrentSeasonAnime();
     }
+
+    // try {
+    //   const animes = await AnimeModel.find({ malId: { $ne: null } });
+    //   const subjects = animes.slice(0, 50);
+
+    //   Logger.warn(`=================`);
+    //   Logger.warn(`TESTING ASHDI PARSE FOR ${subjects.length} ANIME DOCUMENTS`);
+    //   Logger.warn(`${subjects.map(el => el.malId).join(', ')}`);
+    //   Logger.warn(`=================`);
+
+    //   for (const key in subjects) {
+    //     const anime = subjects[key] as Anime;
+    //     await AshdiVODService.getEpisodes({ malId: anime.malId!, title: anime.names.eng, episodesCount: Number(anime.episodesCount), forceUpdate: true });
+
+    //     Logger.info(`ANIME ${anime.malId} SUCCESSFULLY PARSED`);
+    //   }
+    // } catch (e) {
+    //   console.error(e);
+    // }
 
 
 
