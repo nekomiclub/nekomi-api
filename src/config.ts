@@ -28,6 +28,7 @@ const env = {
 
   CSRF: String(process.env['CSRF-Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
+  ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
 
   // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
   PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
@@ -191,8 +192,10 @@ const URL = {
   fullkekw_account: env.FULLKEKW_USERAPI_URL,
 
   hikka: 'https://hikka.io',
-  MALAPI: `https://api.myanimelist.net/v2`,
+  MALAPI: `https://api.myanimelist.net`,
   hikkaAPI: 'https://api.hikka.io',
+  ashdiAPI: 'https://base.ashdi.vip',
+  imdbAPI: 'https://rest.imdbapi.dev',
 };
 
 const vars = {

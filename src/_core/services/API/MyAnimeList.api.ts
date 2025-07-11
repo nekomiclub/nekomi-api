@@ -27,9 +27,8 @@ interface FetchSeasonalProps {
 const baseURL = config.URL.MALAPI;
 
 export class MyAnimeList {
-  /** Fetch myanimelist anime */
   static async getAnime({ id, fields }: GetAnimeProps): Promise<MyAnimeListNode> {
-    const url = `/anime/${id}`;
+    const url = `/v2/anime/${id}`;
     Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
 
     const { data } = await $mal.get<MyAnimeListNode>(url, {
@@ -43,7 +42,7 @@ export class MyAnimeList {
 
   /** Fetch myanimelist seasonal anime. Will skip G, PG and Rx, Different media types from TV */
   static async getSeasonalAnime({ season, year }: GetSeasonalAnimeProps): Promise<MyAnimeListNode[]> {
-    const url = `/anime/season/${year}/${season}`;
+    const url = `/v2/anime/season/${year}/${season}`;
     Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
 
     const fields: (keyof MyAnimeListNode)[] = [

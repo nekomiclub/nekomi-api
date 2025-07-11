@@ -18,7 +18,6 @@ interface GetAnimeProps {
 const baseURL = config.URL.hikkaAPI;
 
 export class Hikka {
-  /** Fetch myanimelist integration */
   static async getMALIntegration({ slug }: GetMALIntegrationProps): Promise<HikkaMALIntegration> {
     const url = `${baseURL}/integrations/mal/anime/${slug}`;
     Logger.trace(`[Hikka]: GET - ${url}`);
@@ -28,7 +27,6 @@ export class Hikka {
     return data;
   }
 
-  /** Get anime */
   static async getAnime({ slug }: GetAnimeProps): Promise<HikkaAnime> {
     const url = `${baseURL}/anime/${slug}`;
     Logger.trace(`[Hikka]: GET - ${url}`);

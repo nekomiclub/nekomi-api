@@ -214,8 +214,8 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   const anime = animeService.anime;
 
-  let related: AnimeGetByQuery['related'];
-  let dubbers: AnimeGetByQuery['dubbers'];
+  let related: AnimeGetByQuery['related'] = [];
+  let dubbers: AnimeGetByQuery['dubbers'] = [];
   let posterAdapt: AnimeGetByQuery['posterAdapt'];
   let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
@@ -229,8 +229,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       if (dubberIds.length) {
         const results = await DubberModel.find({ id: { $in: dubberIds } });
         dubbers = results.map(doc => DubberCompactMapper(DocumentDTO.dubber(doc)));
-      } else {
-        dubbers = [];
       }
     }
 
@@ -238,8 +236,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       if (anime.related.length) {
         const results = await AnimeModel.find({ uuid: { $in: anime.related } });
         related = results.map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-      } else {
-        related = [];
       }
     }
 
