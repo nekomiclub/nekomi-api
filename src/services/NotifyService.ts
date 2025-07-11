@@ -6,7 +6,7 @@ import NekomiBot from '~/core/services/API/NekomiBot.api';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import { DevelopmentMode, config } from '~/config';
-import { E404, E501, ERR_INVALID_PAYLOAD, HTTPErrorConstructor } from './ErrorService';
+import { E404, E501, HTTPErrorConstructor } from './ErrorService';
 import { InlineKeyboardMarkup } from '~/core/interfaces/API/NekomiBotAPI.intf';
 import { Logger } from './LoggerService';
 
@@ -51,13 +51,13 @@ export interface NotifyDubberTellProps {
 type TEventFunction = (payload: NotifyEventPayload<any>) => Promise<void>
 
 const EVENTS: Record<NOTIFY_EVENT, TEventFunction> = {
-  airing_started,
-  new_episode,
+  [NOTIFY_EVENT.AIRING_STARTED]: airing_started,
+  [NOTIFY_EVENT.NEW_EPISODE]: new_episode,
 
-  dubber_invite_pending: HANDLER_dubber_tell,
-  dubber_invite_accepted: HANDLER_dubber_tell,
-  dubber_invite_declined: HANDLER_dubber_tell,
-  dubber_member_excluded: HANDLER_dubber_tell,
+  [NOTIFY_EVENT.DUBBER_INVITE_PENDING]: HANDLER_dubber_tell,
+  [NOTIFY_EVENT.DUBBER_INVITE_ACCEPTED]: HANDLER_dubber_tell,
+  [NOTIFY_EVENT.DUBBER_INVITE_DECLINED]: HANDLER_dubber_tell,
+  [NOTIFY_EVENT.DUBBER_MEMBER_EXCLUDED]: HANDLER_dubber_tell,
 };
 
 
@@ -71,12 +71,10 @@ export class NotifyService {
   async broadcast<P = any>(payload: NotifyEventPayload<P>) {
     const event = payload.event;
 
-    if (!NOTIFY_EVENT[event]) throw new ERR_INVALID_PAYLOAD(`Event ${event} is invalid`);
-
-    const handler = EVENTS[event];
-    if (!handler) throw new E501(`Event ${event} is found, but handler for it is not implemented yet`);
-
     try {
+      const handler = EVENTS[event];
+      if (!handler) throw new E501(`No event handler is present for the ${event} event`);
+
       await handler(payload);
     } catch (e) {
       if (e instanceof HTTPErrorConstructor) {
