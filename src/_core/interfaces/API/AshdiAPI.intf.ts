@@ -1,21 +1,21 @@
 export interface AshdiTitle {
   id: string
   url: string
-  pl: string // JSON stringified AshdiDub[]
+  pl: AshdiDub[]
 }
 
 export interface AshdiDub {
-  title: string
+  title: string // {DUBBER_NAME}
   folder: AshdiSeason[]
 }
 
 export interface AshdiSeason {
-  title: string
+  title: string // Сезон {N}
   folder: AshdiEpisode[]
 }
 
 export interface AshdiEpisode {
   id: string
-  title: string
+  title: string // Серія {N}
   file: string
 }

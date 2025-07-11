@@ -1,6 +1,7 @@
 import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
+import AshdiVODService from '~/services/AshdiVODService';
 import CacheService from '~/services/CacheService';
 import DocumentDTO from '~/core/services/DTOService';
 import DubberModel from '~/core/models/DubberModel';
@@ -212,6 +213,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   await animeService.syncWithMyAnimeList();
   // await animeService.syncWithHikka();
 
+
   const anime = animeService.anime;
 
   let related: AnimeGetByQuery['related'] = [];
@@ -219,6 +221,7 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   let posterAdapt: AnimeGetByQuery['posterAdapt'];
   let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
+  AshdiVODService.fetchAshdi({ title: anime.names.eng });
 
 
   // Fetch dubbers & related & next broadcast

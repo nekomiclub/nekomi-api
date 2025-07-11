@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AshdiTitle } from '~/core/interfaces/API/AshdiAPI.intf';
+import { AshdiDub, AshdiTitle } from '~/core/interfaces/API/AshdiAPI.intf';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
@@ -19,6 +19,8 @@ export class Ashdi {
     Logger.trace(`[Ashdi]: GET - ${url}`);
 
     const { data } = await axios.get<AshdiTitle>(url);
+
+    data.pl = JSON.parse(`${data.pl}`) as AshdiDub[];
 
     return data;
   }

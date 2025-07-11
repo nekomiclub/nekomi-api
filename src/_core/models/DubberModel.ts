@@ -3,7 +3,8 @@ import { Dubber } from '~/core/interfaces/Dubber.intf';
 
 
 
-const schema = new Schema({
+/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
+export const DubberModel = mongoose.model<Dubber>('dubber', new Schema({
   id: String,
   code: String,
   name: String,
@@ -19,11 +20,6 @@ const schema = new Schema({
   nameUkr: String,
   slug: String,
   banner: String,
-});
-
-schema.set('optimisticConcurrency', false);
-
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
-export const DubberModel = mongoose.model<Dubber>('dubber', schema);
+}));
 
 export default DubberModel;
