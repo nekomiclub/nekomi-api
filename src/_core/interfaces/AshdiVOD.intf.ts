@@ -5,7 +5,6 @@ import { AnimeEpisode } from './Anime.intf';
 export interface IAshdiVOD {
   imdbId: string // Primary ID
   malIds: number[]
-  nekomiIds: string[]
   createdAt: number
   updatedAt: number
 
@@ -15,13 +14,10 @@ export interface IAshdiVOD {
 export interface IAshdiVODSeason {
   season: number
   episodes: AnimeEpisode[]
-
-  malId: number | null
-  nekomiId: string | null
 }
 
 
 
 export enum ASHDI_DUBBERS_MAP {
-  'Amanogawa' = 'amanogawa',
+  'Amanogawa' = 'd979d465-1407-452f-8955-a7692480f9ac',
 }

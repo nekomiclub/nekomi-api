@@ -221,11 +221,12 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   let posterAdapt: AnimeGetByQuery['posterAdapt'];
   let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
 
-  AshdiVODService.fetchAshdi({ title: anime.names.eng });
 
 
   // Fetch dubbers & related & next broadcast
   if (detailed) {
+    if (anime.malId) anime.episodes = [...anime.episodes, ...(await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, forceUpdate: true }))];
+
     if (fetchDubbers) {
       const dubberIds = [...new Set(anime.episodes.map(el => el.dubberID))];
 

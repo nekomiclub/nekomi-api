@@ -217,7 +217,8 @@ const vars = {
   /** CSRF token expiration */
   CSRF_EXPIRE: 180000,
 
-  MyAnimeListSyncTimeout: 432000000, // 5d | 432000000
+  MyAnimeListSyncCooldown: 432000000, // 5d | 432000000
+  AshdiSyncCooldown: 172800000, // 2d | 172800000
 
   /** Default avatar */
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',

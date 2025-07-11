@@ -704,7 +704,7 @@ export class AnimeService extends AnimeModelControls {
 
     if (!force) {
       if (this.document.stopSync?.mal) return false; // Check if sync is not prevented
-      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncCooldown) return false; // Check if last sync timed out
     }
 
     // Pass in test mode
@@ -848,7 +848,7 @@ export class AnimeService extends AnimeModelControls {
 
     if (!force) {
       if (this.document.stopSync?.hikka) return false; // Check if sync is not prevented
-      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncCooldown) return false; // Check if last sync timed out
     }
 
     try {
