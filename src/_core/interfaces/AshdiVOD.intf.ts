@@ -14,6 +14,13 @@ export interface IAshdiVOD {
 export interface IAshdiVODSeason {
   season: number
   episodes: AnimeEpisode[]
+  parts: IAshdiVODSeasonPart[]
+}
+
+export interface IAshdiVODSeasonPart {
+  malId: number
+  episodesCount: number
+  part: number
 }
 
 

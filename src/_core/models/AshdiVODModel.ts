@@ -8,7 +8,7 @@ export const AshdiVODModel = mongoose.model<IAshdiVOD>('ashdi_vod', new Schema({
   imdbId: String,
   malIds: Array,
   seasons: Array,
-  updatedAt: Number
+  updatedAt: Number,
 }));
 
 export default AshdiVODModel;

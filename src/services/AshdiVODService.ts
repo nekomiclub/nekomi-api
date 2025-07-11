@@ -14,6 +14,7 @@ interface IGetEpisodesProps {
   title: string
 
   forceUpdate?: boolean
+  episodesCount?: number
 }
 
 interface IFetchAshdiProps {
@@ -21,6 +22,9 @@ interface IFetchAshdiProps {
 
   malId?: number
   season?: number
+
+  /** Episodes count for season related */
+  episodesCount?: number
 }
 
 interface IGetSeason {
@@ -31,19 +35,43 @@ interface IGetSeason {
 
 
 class AshdiVODServ {
-  async getEpisodes({ malId, title, forceUpdate }: IGetEpisodesProps): Promise<AnimeEpisode[]> {
-    const { part, season } = this.getSeason(title);
+  async getEpisodes({ malId, title, forceUpdate, episodesCount }: IGetEpisodesProps): Promise<AnimeEpisode[]> {
+    const { part: partIndex, season: seasonIndex } = this.getSeason(title);
 
     const vod = await AshdiVODModel.findOne({ malIds: { $in: malId } });
-    if (!vod || getUTC().timestamp > vod.updatedAt + config.vars.AshdiSyncCooldown || forceUpdate) this.updateVOD({ title, malId, season }); // update vod if it is not exist, sync cooled down or forced
+    if (!vod || getUTC().timestamp > vod.updatedAt + config.vars.AshdiSyncCooldown || forceUpdate) this.updateVOD({ title, malId, season: seasonIndex, episodesCount }); // update vod if it is not exist, sync cooled down or forced
 
-    const episodes: AnimeEpisode[] = vod?.seasons.find(el => el.season === season)?.episodes ?? [];
+    const season: IAshdiVODSeason | undefined = vod?.seasons.find(el => el.season === seasonIndex);
+    const part = season?.parts.find(el => el.malId === malId);
+    let episodes: AnimeEpisode[] = [];
+    let areEpisodesReordered = false;
 
+    if (part) {
+      areEpisodesReordered = part.part !== 1;
+
+      // Slice from 0 to max episodes
+      if (part.part === 1) episodes = season?.episodes.slice(0, part.episodesCount) ?? [];
+
+      // Slice from first part episodes to second part max episodes & reorder them
+      if (part.part === 2) {
+        episodes = season?.episodes.slice(part.episodesCount - 1).slice(0, part.episodesCount) ?? [];
+
+        episodes = episodes.map(episode => {
+          episode.order -= (part.episodesCount - 1);
+
+          return episode;
+        });
+      }
+    } else episodes = season?.episodes ?? [];
+
+    Logger.info(`[AshdiVODService]: Retrieved episodes for ${malId} (${seasonIndex} season, ${partIndex} part): ${episodes.map(el => el.order).join('; ')}${areEpisodesReordered ? ' (episodes reordered)' : ''}`);
     return episodes;
   }
 
-  async updateVOD({ title, malId, season: preservedSeasonIndex }: IFetchAshdiProps) {
+  async updateVOD({ title, malId, season: preservedSeasonIndex, episodesCount }: IFetchAshdiProps) {
     try {
+      const { part, season } = this.getSeason(title);
+
       // Find by malId
       let vod = await AshdiVODModel.findOne({ malIds: { $in: malId } });
       let imdbId = vod?.imdbId;
@@ -66,18 +94,16 @@ class AshdiVODServ {
           malIds: [],
           seasons: [],
           createdAt: getUTC().timestamp,
-          updatedAt: getUTC().timestamp
+          updatedAt: getUTC().timestamp,
         };
 
         vod = new AshdiVODModel(instance);
         Logger.debug(`[AshdiVODService]: New VOD created. [imdbId: ${imdbId}]`);
       }
 
-
-
       // Fetch ASHDI
       const { pl } = await Ashdi.getTitle({ imdbId });
-      const seasons: IAshdiVODSeason[] = [];
+      const seasons: IAshdiVODSeason[] = vod.seasons;
 
       // Parse episodes
       pl.forEach(ashdiDubber => {
@@ -88,14 +114,22 @@ class AshdiVODServ {
           const seasonIndex = Number(ashdiSeason.title.trim().replace('Сезон', ''));
           if (isNaN(seasonIndex)) return Logger.fail(`[AshdiVODService]: Season index is NaN (${ashdiSeason.title})`);
 
-          const season: IAshdiVODSeason = {
+          const season: IAshdiVODSeason = seasons.find(el => el.season === seasonIndex) ?? {
             season: seasonIndex,
             episodes: [],
+            parts: []
           };
+
+          season.episodes = [];
 
           // Match season with malId
           if (malId !== undefined && preservedSeasonIndex === seasonIndex) {
             if (!vod?.malIds.includes(malId)) vod?.malIds.push(malId);
+            if (!season.parts.some(el => el.malId === malId) && episodesCount !== undefined) season.parts.push({
+              malId,
+              episodesCount,
+              part
+            });
           }
 
           ashdiSeason.folder.forEach(ashdiEpisode => {
@@ -116,13 +150,15 @@ class AshdiVODServ {
             });
           });
 
-          seasons.push(season);
+          if (!seasons.some(el => el.season === seasonIndex)) seasons.push(season);
         });
       });
 
-
       vod.seasons = seasons;
       vod.updatedAt = getUTC().timestamp;
+
+      vod.markModified('malIds');
+      vod.markModified('seasons');
 
       await vod.save();
 
