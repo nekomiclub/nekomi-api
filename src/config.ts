@@ -17,6 +17,7 @@ export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
 
 const env = {
+  PORT_PROMETHEUS: Number(process.env['PORT_PROMETHEUS']),
   PORT: Number(process.env['PORT']),
   HOST: String(process.env['HOST']),
 
