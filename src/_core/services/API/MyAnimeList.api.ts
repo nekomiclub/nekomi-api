@@ -29,10 +29,7 @@ const baseURL = config.URL.MALAPI;
 export class MyAnimeList {
   /** Fetch myanimelist anime */
   static async getAnime({ id, fields }: GetAnimeProps): Promise<MyAnimeListNode> {
-    const url = `/anime/${id}`;
-    Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
-
-    const { data } = await $mal.get<MyAnimeListNode>(url, {
+    const { data } = await $mal.get<MyAnimeListNode>(`/anime/${id}`, {
       params: {
         fields: fields.join(', ')
       }
@@ -43,9 +40,6 @@ export class MyAnimeList {
 
   /** Fetch myanimelist seasonal anime. Will skip G, PG and Rx, Different media types from TV */
   static async getSeasonalAnime({ season, year }: GetSeasonalAnimeProps): Promise<MyAnimeListNode[]> {
-    const url = `/anime/season/${year}/${season}`;
-    Logger.trace(`[MyAnimeList]: GET - ${baseURL}${url}`);
-
     const fields: (keyof MyAnimeListNode)[] = [
       'alternative_titles',
       'rating',
@@ -53,7 +47,7 @@ export class MyAnimeList {
       'synopsis'
     ];
 
-    const { data } = await $mal.get<{ data: { node: MyAnimeListNode }[] }>(url, {
+    const { data } = await $mal.get<{ data: { node: MyAnimeListNode }[] }>(`/anime/season/${year}/${season}`, {
       params: {
         limit: 70,
         sort: 'anime_num_list_users',

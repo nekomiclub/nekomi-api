@@ -195,6 +195,14 @@ const URL = {
   hikkaAPI: 'https://api.hikka.io',
 };
 
+export const ApiOrigins: Partial<Record<string, string>> = {
+  [URL.nekomi_bot]: 'NekomiBotAPI',
+  [URL.hikkaAPI]: 'HikkaAPI',
+  [URL.fullkekw_account]: 'FullkekwUserAPI',
+  [URL.fullkekw_authority]: 'FullkekwAuthorityAPI',
+  [URL.MALAPI]: 'MyAnimeListAPI',
+};
+
 const vars = {
   /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
   INTERNAL_ROOT_USER_ID: 'nekomiclub',
