@@ -17,6 +17,7 @@ export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
 
 const env = {
+  PORT_PROMETHEUS: Number(process.env['PORT_PROMETHEUS']),
   PORT: Number(process.env['PORT']),
   HOST: String(process.env['HOST']),
 
@@ -193,6 +194,14 @@ const URL = {
   hikka: 'https://hikka.io',
   MALAPI: `https://api.myanimelist.net/v2`,
   hikkaAPI: 'https://api.hikka.io',
+};
+
+export const ApiOrigins: Partial<Record<string, string>> = {
+  [URL.nekomi_bot]: 'NekomiBotAPI',
+  [URL.hikkaAPI]: 'HikkaAPI',
+  [URL.fullkekw_account]: 'FullkekwUserAPI',
+  [URL.fullkekw_authority]: 'FullkekwAuthorityAPI',
+  [URL.MALAPI]: 'MyAnimeListAPI',
 };
 
 const vars = {
