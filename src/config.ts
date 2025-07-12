@@ -17,6 +17,7 @@ export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
 
 const env = {
+  PORT_PROMETHEUS: Number(process.env['PORT_PROMETHEUS']),
   PORT: Number(process.env['PORT']),
   HOST: String(process.env['HOST']),
 
@@ -197,6 +198,14 @@ const URL = {
   ashdiAPI: 'https://base.ashdi.vip',
   imdbAPI: 'https://rest.imdbapi.dev',
   jikanAPI: 'https://api.jikan.moe/',
+};
+
+export const ApiOrigins: Partial<Record<string, string>> = {
+  [URL.nekomi_bot]: 'NekomiBotAPI',
+  [URL.hikkaAPI]: 'HikkaAPI',
+  [URL.fullkekw_account]: 'FullkekwUserAPI',
+  [URL.fullkekw_authority]: 'FullkekwAuthorityAPI',
+  [URL.MALAPI]: 'MyAnimeListAPI',
 };
 
 const vars = {

@@ -46,10 +46,7 @@ export class NekomiUploads {
 
       if (qualities?.length) formData.set('qualities', JSON.stringify(qualities));
 
-      const url = `${baseURL}/upload`;
-      Logger.trace(`[NekomiUploads]: POST - ${url.replace(baseURL, '')}`);
-
-      const { data } = await $upload.post<NekomiUploads_UploadFile>(url, formData);
+      const { data } = await $upload.post<NekomiUploads_UploadFile>(`${baseURL}/upload`, formData);
 
       Logger.debug(`[NekomiUploads]: Upload created. [id: ${data.id}; by: ${uploadedById}]`);
 
@@ -61,10 +58,7 @@ export class NekomiUploads {
 
   static async deleteUpload({ id, deletedById, withChildren }: IDeleteUploadProps) {
     try {
-      const url = `${baseURL}/upload/${id}`;
-      Logger.trace(`[NekomiUploads]: DELETE - ${url.replace(baseURL, '')}`);
-
-      await $upload.delete(url, {
+      await $upload.delete(`${baseURL}/upload/${id}`, {
         params: {
           by: deletedById,
           withChildren

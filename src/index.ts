@@ -10,6 +10,7 @@ import GenericRouter from './routes/GenericRouter';
 import Search from './services/SearchService';
 import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
+import nstats from './utils/nstats';
 import { ANIME_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
@@ -45,11 +46,16 @@ const CORSOpt: CorsOptions = {
 
 //* Setup http middlewares
 export const app = express();
+const prometheus = express();
+const metrics = nstats();
+
+metrics.serverName = config.DOMAIN.nekomi_api;
 
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
+app.use(nstats().express());
 
 
 
@@ -83,6 +89,10 @@ const UpdateHandlers = [
   if (!TestMode) {
     app.listen(config.env.PORT, config.env.HOST, () => {
       Logger.info(`[System]: HTTP server started in ${config.startedMode} mode at http://${config.env.HOST}:${config.env.PORT}`);
+    });
+
+    prometheus.listen(config.env.PORT_PROMETHEUS, config.env.HOST, () => {
+      Logger.info(`[System]: Prometheus server started in ${config.startedMode} mode at ${config.env.HOST}:${config.env.PORT_PROMETHEUS}`);
     });
   }
 
@@ -133,7 +143,7 @@ const UpdateHandlers = [
 
 
 // Rickroll
-app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) => {
+app.all(config.rickrollEndpoints, (req, res) => {
   const IP = getRequestIP(req.headers);
 
   Logger.info(`[Request/${IP}]: Request has been rickrolled`);
@@ -142,7 +152,7 @@ app.all(config.rickrollEndpoints, (req: express.Request, res: express.Response) 
 });
 
 // 404 catcher. Writes suspicious logs
-app.all('*', (req: express.Request, res: express.Response) => {
+app.all('*', (req, res) => {
   const IP = getRequestIP(req.headers);
 
   if (req.url !== '/') {
@@ -150,4 +160,9 @@ app.all('*', (req: express.Request, res: express.Response) => {
   }
 
   return res.status(404).json({ message: 'Not Found', code: 'ERR_NOT_FOUND', status: 404 });
+});
+
+// Prometheus metrics
+prometheus.get(`/metrics`, (req, res) => {
+  return res.status(200).set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8; escaping=values').send(metrics.toPrometheus());
 });

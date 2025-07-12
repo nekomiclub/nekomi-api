@@ -1,7 +1,6 @@
 import { $http } from '~/services/HTTPService';
 import { FullkekwUser_GetUser, FullkekwUser_RefreshPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { HandleAPIError } from '~/services/ErrorService';
-import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
 
@@ -25,10 +24,7 @@ const APINAME = 'fullkekw-userapi';
 export default class FullkekwUser {
   static async getUser({ id }: GetUserProps) {
     try {
-      const url = `${baseURL}/user/${id}`;
-      Logger.trace(`[FullkekwUser]: GET - ${url.replace(baseURL, '')}`);
-
-      const { data } = await $http.get<FullkekwUser_GetUser>(url);
+      const { data } = await $http.get<FullkekwUser_GetUser>(`${baseURL}/user/${id}`);
 
       return data;
     } catch (e) {
@@ -38,11 +34,7 @@ export default class FullkekwUser {
 
   static async refreshAuth({ sessionCookie }: RefreshAuthProps) {
     try {
-      const url = `${baseURL}/auth/refresh`;
-      Logger.trace(`[FullkekwUser]: GET - ${url.replace(baseURL, '')}`);
-
-
-      const { data } = await $http.get<FullkekwUser_RefreshPayload>(url, {
+      const { data } = await $http.get<FullkekwUser_RefreshPayload>(`${baseURL}/auth/refresh`, {
         headers: {
           Cookie: `session=${sessionCookie}`
         }

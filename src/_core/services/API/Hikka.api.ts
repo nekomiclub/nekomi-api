@@ -1,6 +1,5 @@
-import axios from 'axios';
+import { $http } from '~/services/HTTPService';
 import { HikkaAnime, HikkaMALIntegration } from '~/core/interfaces/types';
-import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
 
 
@@ -19,19 +18,13 @@ const baseURL = config.URL.hikkaAPI;
 
 export class Hikka {
   static async getMALIntegration({ slug }: GetMALIntegrationProps): Promise<HikkaMALIntegration> {
-    const url = `${baseURL}/integrations/mal/anime/${slug}`;
-    Logger.trace(`[Hikka]: GET - ${url}`);
-
-    const { data } = await axios.get<HikkaMALIntegration>(url);
+    const { data } = await $http.get<HikkaMALIntegration>(`${baseURL}/integrations/mal/anime/${slug}`);
 
     return data;
   }
 
   static async getAnime({ slug }: GetAnimeProps): Promise<HikkaAnime> {
-    const url = `${baseURL}/anime/${slug}`;
-    Logger.trace(`[Hikka]: GET - ${url}`);
-
-    const { data } = await axios.get<HikkaAnime>(url);
+    const { data } = await $http.get<HikkaAnime>(`${baseURL}/anime/${slug}`);
 
     return data;
   }
