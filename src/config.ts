@@ -39,6 +39,7 @@ const env = {
   NEKOMI_BOT_DOMAIN: String(process.env['NEKOMI_BOT_DOMAIN']),
   NEKOMI_MEDIA_DOMAIN: String(process.env['NEKOMI_MEDIA_DOMAIN']),
   NEKOMI_API_DOMAIN: String(process.env['NEKOMI_API_DOMAIN']),
+  NEKOMI_ADMIN_DOMAIN: String(process.env['NEKOMI_ADMIN_DOMAIN']),
   FULLKEKW_USERAPI_DOMAIN: String(process.env['FULLKEKW_USERAPI_DOMAIN']),
   FULLKEKW_AUTHORITY_DOMAIN: String(process.env['FULLKEKW_AUTHORITY_DOMAIN']),
   FULLKEKW_ACCOUNT_DOMAIN: String(process.env['FULLKEKW_ACCOUNT_DOMAIN']),
@@ -66,6 +67,7 @@ const DOMAIN = {
   nekomi_media: env.NEKOMI_MEDIA_DOMAIN,
   nekomi_bot: env.NEKOMI_BOT_DOMAIN,
   nekomi_websocket: env.NEKOMI_WEBSOCKET_DOMAIN,
+  nekomi_admin: env.NEKOMI_ADMIN_DOMAIN,
 
   fullkekw_authority: env.FULLKEKW_AUTHORITY_DOMAIN,
   fullkekw_userapi: env.FULLKEKW_USERAPI_DOMAIN,

@@ -6,7 +6,7 @@
 
 process.argv.push('testMode');
 
-import DubberController from '~/controllers/Dubber/DubberController';
+import DubberController from '~/controllers/Dubber/DubberController.old';
 import DubberService from '~/core/services/DubberService';
 import Search from '~/services/SearchService';
 import UserService from '~/core/services/UserService';

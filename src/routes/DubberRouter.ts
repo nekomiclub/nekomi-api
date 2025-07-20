@@ -1,4 +1,4 @@
-import DubberRoutes from '~/controllers/Dubber/DubberRoutes';
+import DubberRoutes from '~/controllers/Dubber/DubberController';
 import express from 'express';
 
 
@@ -10,6 +10,7 @@ DubberRouter.get(`/search`, DubberRoutes.GetSearch);
 DubberRouter.get(`/invite/:id`, DubberRoutes.GetInviteById);
 DubberRouter.get(`/:query`, DubberRoutes.GetOne);
 
+DubberRouter.post(`/create`, DubberRoutes.PostCreate);
 DubberRouter.post(`/invite/send`, DubberRoutes.PostInviteSend);
 DubberRouter.post(`/invite/accept`, DubberRoutes.PostInviteAccept);
 DubberRouter.post(`/invite/decline`, DubberRoutes.PostInviteDecline);

@@ -8,7 +8,7 @@ import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAut
 import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './LoggerService';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
-import { TestMode } from '~/config';
+import { TestMode, config } from '~/config';
 import { parseRoles } from '~/core/services/RoleService';
 
 
@@ -142,7 +142,12 @@ export class MiddlewareService {
       csrf.verified = mock.verified;
     }
 
-    if (!csrf.verified || (origins.length !== 0 && !origins.includes(csrf.origin))) throw ERROR_AUTH_CSRF_INVALID;
+    if (!csrf.verified) throw ERROR_AUTH_CSRF_INVALID;
+
+    // Bypass checks if origin is nekomi admin
+    if (csrf.origin !== config.DOMAIN.nekomi_admin) {
+      if (origins.length !== 0 && !origins.includes(csrf.origin)) throw ERROR_AUTH_CSRF_INVALID;
+    }
 
     return csrf.origin;
   }
