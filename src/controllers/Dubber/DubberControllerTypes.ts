@@ -1,6 +1,7 @@
 import Dubber from '~/core/interfaces/Dubber.intf';
 import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
+import { z } from 'zod';
 
 
 
@@ -31,3 +32,14 @@ export interface DubberGetSearchProps {
 export interface DubberGetSearch {
   results: Dubber[]
 }
+
+
+
+export const DubberCreateSchema = z.object({
+  nameUkr: z.string(),
+  nameEng: z.string()
+});
+
+export type IDubberCreateProps = z.infer<typeof DubberCreateSchema>
+
+export type IDubberCreate = Dubber
