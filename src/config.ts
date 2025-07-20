@@ -197,7 +197,7 @@ const URL = {
   hikkaAPI: 'https://api.hikka.io',
   ashdiAPI: 'https://base.ashdi.vip',
   imdbAPI: 'https://rest.imdbapi.dev',
-  jikanAPI: 'https://api.jikan.moe/',
+  jikanAPI: 'https://api.jikan.moe',
 };
 
 export const ApiOrigins: Partial<Record<string, string>> = {
