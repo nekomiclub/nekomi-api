@@ -3,7 +3,8 @@ import mongoose, { Schema } from 'mongoose';
 
 
 
-const schema = new Schema({
+/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
+export const AnimeModel = mongoose.model<Anime>('anime', new Schema({
   uuid: String,
   broadcast: Object,
   description: String,
@@ -33,12 +34,9 @@ const schema = new Schema({
   genres: Array,
   posterAdapt: String,
   stopSync: Object,
-});
-
-schema.set('optimisticConcurrency', false);
-
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
-export const AnimeModel = mongoose.model<Anime>('anime', schema);
+  imdbId: String,
+  isDMCARestricted: Boolean
+}));
 
 
 

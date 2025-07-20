@@ -1,4 +1,4 @@
-import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeStudio } from '~/core/interfaces/Anime.intf';
+import Anime, { ANIME_GENRE, ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, AnimeBroadcast, AnimeEpisode, AnimeEpisodeMeta, AnimeStudio } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import DocumentDTO from './DTOService';
 import DubberService from './DubberService';
@@ -13,6 +13,7 @@ import { ERROR_ANIME_NOT_FOUND } from '~/services/Exceptions';
 import { ERROR_NO_DOCUMENT } from '~/services/Exceptions';
 import { Hikka } from './API/Hikka.api';
 import { HydratedDocument } from 'mongoose';
+import { Jikan } from './API/Jikan.api';
 import { Logger } from '~/services/LoggerService';
 import { MALGenres } from '~/utils/data-mappers';
 import { MALStudios } from '~/utils/data-mappers';
@@ -128,6 +129,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       hikkaSyncedAt: getUTC().timestamp,
       shikimoriSyncedAt: getUTC().timestamp,
       poster: config.vars.defaultPoster,
+      isDMCARestricted: false,
 
       posterAdapt: null,
       broadcast: null,
@@ -136,6 +138,7 @@ class AnimeModelControls implements AnimeModelControlsType {
       episodesCount: null,
       malId: null,
       malSyncedAt: null,
+      imdbId: null,
 
       studios: [],
       related: [],
@@ -278,6 +281,46 @@ export class AnimeService extends AnimeModelControls {
     this.stack.push(`Changed malId (${this.document.malId} > ${malId})`);
 
     this.document.malId = malId;
+  }
+
+
+
+  /**  
+   * Set imdbId. Value can be null
+   * 
+   * @todo test
+  */
+  setImdbId(imdbId: string | null) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('imdbId');
+
+    if (imdbId === null || !imdbId) {
+      this.stack.push(`imdbId deleted`);
+
+      this.document.imdbId = null;
+
+      return;
+    }
+
+    this.stack.push(`Changed imdbId (${this.document.imdbId} > ${imdbId})`);
+
+    this.document.imdbId = imdbId;
+  }
+
+
+
+  /**  
+   * Set isDMCARestricted
+   * 
+   * @todo test
+  */
+  setIsDMCARestricted(is: boolean) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('isDMCARestricted');
+
+    this.stack.push(`Changed isDMCARestricted (${this.document.isDMCARestricted} > ${is})`);
+
+    this.document.isDMCARestricted = is;
   }
 
 
@@ -511,6 +554,37 @@ export class AnimeService extends AnimeModelControls {
 
 
   /** 
+   * Set anime episode meta
+   * 
+   * @todo test
+   */
+  setEpisodeMeta({ dateOut, names, order }: AnimeEpisodeMeta, remove?: boolean) {
+    if (!this.document) throw ERROR_NO_DOCUMENT;
+    this.document.markModified('episodesMeta');
+
+    if (remove) {
+      this.document.episodesMeta = this.document.episodesMeta.filter(el => el.order !== order);
+
+      this.stack.push(`Meta for ${order} episode removed`);
+
+      return;
+    }
+
+    const meta: AnimeEpisodeMeta = this.document.episodesMeta.find(el => el.order === order) ?? { dateOut, names, order };
+
+    this.stack.push(`Meta for ${order} episode updated (eng: ${meta.names.eng} > ${names.eng}; ukr: ${meta.names.ukr} > ${names.ukr}; dateOut: ${meta.dateOut} > ${dateOut})`);
+
+    meta.dateOut = dateOut;
+    meta.names = names;
+
+    // Push if not exist
+    if (!this.document.episodesMeta.some(el => el.order === order)) this.document.episodesMeta.push(meta);
+  }
+
+
+
+
+  /** 
    * Set poster adapted by dubber
    * 
    * @tested
@@ -704,7 +778,7 @@ export class AnimeService extends AnimeModelControls {
 
     if (!force) {
       if (this.document.stopSync?.mal) return false; // Check if sync is not prevented
-      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+      if (getUTC().timestamp < Number(this.document.malSyncedAt) + config.vars.MyAnimeListSyncCooldown) return false; // Check if last sync timed out
     }
 
     // Pass in test mode
@@ -724,6 +798,7 @@ export class AnimeService extends AnimeModelControls {
       'alternative_titles'
     ];
 
+    // Fetch myanimelist
     try {
       const node = await MyAnimeList.getAnime({ id: this.document.malId, fields });
 
@@ -748,20 +823,38 @@ export class AnimeService extends AnimeModelControls {
         this.document.markModified('poster');
       }
 
-
-
-      this.document.malSyncedAt = getUTC().timestamp;
-      this.document.markModified('malSyncedAt');
-
-      await this.save();
-      await Search.update('anime');
-
       Logger.info(`[AnimeService]: Anime synced with myanimelist. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
-      return true;
     } catch (e) {
       Logger.fail(`[AnimeService]: Cannot sync with myanimelist`, e);
-      return false;
     }
+
+    // Fetch jikan (anime episodes meta)
+    try {
+      const episodes = await Jikan.getAnimeEpisodeMeta({ malId: this.document.malId });
+
+      episodes.forEach(episode => {
+        this.setEpisodeMeta({
+          dateOut: getUTC(episode.aired).timestamp,
+          names: {
+            ukr: this.document?.episodesMeta.find(el => el.order === episode.mal_id)?.names.ukr ?? '',
+            eng: episode.title,
+          },
+          order: episode.mal_id
+        });
+      });
+
+      Logger.info(`[AnimeService]: Anime synced with jikan. [uuid: ${this.document.uuid}; malId: ${this.document.malId}]`);
+    } catch (e) {
+      Logger.fail(`[AnimeService]: Cannot sync with jikan`, e);
+    }
+
+    this.document.malSyncedAt = getUTC().timestamp;
+    this.document.markModified('malSyncedAt');
+
+    await this.save();
+    await Search.update('anime');
+
+    return true;
   }
 
 
@@ -848,7 +941,7 @@ export class AnimeService extends AnimeModelControls {
 
     if (!force) {
       if (this.document.stopSync?.hikka) return false; // Check if sync is not prevented
-      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncTimeout) return false; // Check if last sync timed out
+      if (getUTC().timestamp < Number(this.document.hikkaSyncedAt) + config.vars.MyAnimeListSyncCooldown) return false; // Check if last sync timed out
     }
 
     try {

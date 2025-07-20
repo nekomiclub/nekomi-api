@@ -11,6 +11,7 @@ import Search from './services/SearchService';
 import TokenService from './services/TokenService';
 import UserRouter from './routes/UserRouter';
 import nstats from './utils/nstats';
+import { ANIME_MODEL_UPDATE } from './utils/update-model';
 import { DevelopmentMode, ProductionMode, TestMode, config } from './config';
 import { FullkekwUser_SessionTokenPayload } from './_core/interfaces/API/FullkekwUserAPI.intf';
 import { Logger } from './services/LoggerService';
@@ -50,11 +51,11 @@ const metrics = nstats();
 
 metrics.serverName = config.DOMAIN.nekomi_api;
 
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cookieParser());
 app.use(cors(CORSOpt));
 app.options('*', cors(CORSOpt));
-app.use(metrics.express());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(cookieParser());
+app.use(nstats().express());
 
 
 
@@ -66,7 +67,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
   Logger.trace(`[Request/${IP}${session?.payload?.userId ? ` (${session.payload.userId})` : ''}]: ${req.method} - ${req.url}`);
   req.nekomi = req.nekomi !== undefined ? req.nekomi : {};
 
-  next();
+  return next();
 });
 
 
@@ -106,6 +107,12 @@ const UpdateHandlers = [
   HTTP: http://${config.env.HOST}:${config.env.PORT} ${DevelopmentMode ? '(port changed, see README.md)' : ''}
   ----------------------------
     `);
+
+
+
+    if (ProductionMode) {
+      await ANIME_MODEL_UPDATE.run();
+    }
 
 
 

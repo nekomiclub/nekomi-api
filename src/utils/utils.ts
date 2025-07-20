@@ -24,7 +24,7 @@ export function randomNumberBetween(min: number, max: number): number {
 /** Get UTC date
  * @param timestamp Timestamp to start from. Default - now
  */
-export function getUTC(timestamp?: number | null): {
+export function getUTC(timestamp?: number | string | null): {
   year: number
   /** January is first month, december is 12 */
   month: number

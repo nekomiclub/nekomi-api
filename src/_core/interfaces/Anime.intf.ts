@@ -19,17 +19,22 @@ export interface Anime {
   studios: AnimeStudio[]
   malId: number | null
 
+  /** @since 2.1.2 */
+  imdbId: string | null
+  /** @since 2.1.2 */
+  isDMCARestricted: boolean
+
   /** UTC timestamp @private */
   updatedAt: number
   /** UTC timestamp @private */
   createdAt: number
   /** MAL sync UTC timestamp @private */
   malSyncedAt: number | null
-  /** Shikimori sync UTC timestamp @since 2.1.1 @private */
+  /** Shikimori sync UTC timestamp @private */
   shikimoriSyncedAt: number | null
-  /** AniDB sync UTC timestamp @since 2.1.1 @private */
+  /** AniDB sync UTC timestamp @private */
   anidbSyncedAt: number | null
-  /** hikka.io sync UTC timestamp @since 2.1.1 @private */
+  /** hikka.io sync UTC timestamp @private */
   hikkaSyncedAt: number | null
 
   /** @private */
@@ -47,13 +52,12 @@ export interface Anime {
   stopSync: {
     mal?: boolean
     shikimori?: boolean
-    /** @since 2.1.1 */
     anidb?: boolean
-    /** @since 2.1.1 */
     hikka?: boolean
   }
 
   score: {
+    /** @deprecated */
     imdb: number | null
     mal: number | null
     malScoredBy: number | null

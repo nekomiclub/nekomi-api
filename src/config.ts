@@ -29,6 +29,7 @@ const env = {
 
   CSRF: String(process.env['CSRF-Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
+  ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
 
   // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
   PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
@@ -192,8 +193,11 @@ const URL = {
   fullkekw_account: env.FULLKEKW_USERAPI_URL,
 
   hikka: 'https://hikka.io',
-  MALAPI: `https://api.myanimelist.net/v2`,
+  MALAPI: `https://api.myanimelist.net`,
   hikkaAPI: 'https://api.hikka.io',
+  ashdiAPI: 'https://base.ashdi.vip',
+  imdbAPI: 'https://rest.imdbapi.dev',
+  jikanAPI: 'https://api.jikan.moe/',
 };
 
 export const ApiOrigins: Partial<Record<string, string>> = {
@@ -223,7 +227,8 @@ const vars = {
   /** CSRF token expiration */
   CSRF_EXPIRE: 180000,
 
-  MyAnimeListSyncTimeout: 432000000, // 5d | 432000000
+  MyAnimeListSyncCooldown: 432000000, // 5d | 432000000
+  AshdiSyncCooldown: 172800000, // 2d | 172800000
 
   /** Default avatar */
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',

@@ -1,6 +1,7 @@
-import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, HydratedAnime } from '~/core/interfaces/Anime.intf';
+import Anime, { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_STATUS, AnimeEpisode, HydratedAnime } from '~/core/interfaces/Anime.intf';
 import AnimeModel from '~/core/models/AnimeModel';
 import AnimeService from '~/core/services/AnimeService';
+import AshdiVODService from '~/services/AshdiVODService';
 import CacheService from '~/services/CacheService';
 import DocumentDTO from '~/core/services/DTOService';
 import DubberModel from '~/core/models/DubberModel';
@@ -96,8 +97,8 @@ const getStats = HTTPEndpoint(async (req, res) => {
 
   const total = documents.length;
   // All parsed anime documents by default were with G rate and OVA status
-  const updated = documents.filter(el => !(el.rate === ANIME_RATE.G && el.media === ANIME_MEDIA_TYPE.OVA));
-  const fullfilled = updated.filter(el => el.malId !== null);
+  const updated = documents.filter(el => el.rate !== ANIME_RATE.G && el.media !== ANIME_MEDIA_TYPE.OVA);
+  const fullfilled = documents.filter(el => el.malId !== null);
 
   const body: AnimeGetStats = {
     total,
@@ -121,52 +122,52 @@ const AnimeFeaturedCache = new CacheService<AnimeFeatured>('AnimeFeaturedCache')
 
 const getFeatured = HTTPEndpoint(async (req, res) => {
   const cache = AnimeFeaturedCache.get({ id: AnimeFeaturedCacheID });
-  if (cache) return cache;
-
-  const featured: AnimeFeatured = {
+  const featured: AnimeFeatured = cache ?? {
     headliners: [],
     hot: [],
     rated: [],
     updatedRecently: []
   };
 
-  try {
-    const animes = await new AnimeService().getAll(true);
+  if (!cache) {
+    try {
+      const animes = await new AnimeService().getAll(true);
 
-    // Parse headliners
-    for (const key in config.STATIC.AnimeFeatured.headliners) {
-      const { backgroundURL, id, videoURL } = config.STATIC.AnimeFeatured.headliners[key];
-      const anime = await new AnimeService().getById(id);
+      // Parse headliners
+      for (const key in config.STATIC.AnimeFeatured.headliners) {
+        const { backgroundURL, id, videoURL } = config.STATIC.AnimeFeatured.headliners[key];
+        const anime = await new AnimeService().getById(id);
 
-      featured.headliners.push({
-        ...anime,
-        backgroundURL,
-        videoURL
+        featured.headliners.push({
+          ...anime,
+          backgroundURL,
+          videoURL
+        });
+      }
+
+      // Process hot
+      featured.hot = (await AnimeModel.find(
+        { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
+      )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      // Process recently updated
+      featured.updatedRecently = animes.sort(
+        (a, b) => b.updatedAt - a.updatedAt
+      ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      // Process rated
+      featured.rated = animes.filter(el => el.score.mal !== null).sort(
+        (a, b) => b.score!.mal! - a.score!.mal!
+      ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
+
+      AnimeFeaturedCache.push({
+        id: AnimeFeaturedCacheID,
+        createdAt: getUTC().timestamp,
+        data: featured
       });
+    } catch (e) {
+      Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
     }
-
-    // Process hot
-    featured.hot = (await AnimeModel.find(
-      { uuid: { $in: config.STATIC.AnimeFeatured.hot } }
-    )).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    // Process recently updated
-    featured.updatedRecently = animes.sort(
-      (a, b) => b.updatedAt - a.updatedAt
-    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    // Process rated
-    featured.rated = animes.filter(el => el.score.mal !== null).sort(
-      (a, b) => b.score!.mal! - a.score!.mal!
-    ).slice(0, 20).map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-
-    AnimeFeaturedCache.push({
-      id: AnimeFeaturedCacheID,
-      createdAt: getUTC().timestamp,
-      data: featured
-    });
-  } catch (e) {
-    Logger.fail(`[AnimeController]: AnimeFeatured processed with error`, e);
   }
 
 
@@ -189,7 +190,7 @@ const GetFeatured = [
 //* ===================================== GET BY QUERY
 const getByQuery = HTTPEndpoint(async (req, res) => {
   const { query } = parseObjectTypes<AnimeGetByQueryProps>(req.params);
-  const { fetchDubbers, fetchRelated } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
+  const { fetchDubbers, fetchRelated, ashdi } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
   const CSRF_Token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
   let { detailed } = parseObjectTypes<AnimeGetByQueryProps>(req.query);
 
@@ -212,12 +213,23 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   await animeService.syncWithMyAnimeList();
   // await animeService.syncWithHikka();
 
-  const anime = animeService.anime;
 
-  let related: AnimeGetByQuery['related'];
-  let dubbers: AnimeGetByQuery['dubbers'];
-  let posterAdapt: AnimeGetByQuery['posterAdapt'];
-  let nextBroadcast: AnimeGetByQuery['nextBroadcast'];
+  const anime = animeService.anime;
+  const ashdiEpisodes: AnimeEpisode[] = anime.malId ? await AshdiVODService.getEpisodes({ malId: anime.malId, title: anime.names.eng, episodesCount: Number(anime.episodesCount), imdbId: anime.imdbId ?? undefined }) : [];
+
+  let related: AnimeGetByQuery['related'] = [];
+  let dubbers: AnimeGetByQuery['dubbers'] = [];
+  let posterAdapt: AnimeGetByQuery['posterAdapt'] = null;
+  let nextBroadcast: AnimeGetByQuery['nextBroadcast'] = null;
+
+
+
+  // Return only ashdi episodes
+  if (ashdi) {
+    anime.episodes = ashdiEpisodes;
+  } else {
+    if (anime.malId) anime.episodes = [...anime.episodes, ...ashdiEpisodes.filter(ae => !anime.episodes.some(el => el.dubberID === ae.dubberID && el.order === ae.order))];
+  }
 
 
 
@@ -229,8 +241,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       if (dubberIds.length) {
         const results = await DubberModel.find({ id: { $in: dubberIds } });
         dubbers = results.map(doc => DubberCompactMapper(DocumentDTO.dubber(doc)));
-      } else {
-        dubbers = [];
       }
     }
 
@@ -238,8 +248,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       if (anime.related.length) {
         const results = await AnimeModel.find({ uuid: { $in: anime.related } });
         related = results.map(doc => HydrateAnimeDocument(DocumentDTO.anime(doc)));
-      } else {
-        related = [];
       }
     }
 
@@ -258,8 +266,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       time.setMilliseconds(0);
 
       nextBroadcast = +time;
-    } else {
-      nextBroadcast = null;
     }
 
     // Fetch poster adapt
@@ -277,8 +283,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
         // Get dubber from anime dubbing
         posterAdapt = dubber;
       }
-    } else {
-      posterAdapt = null;
     }
   }
 
@@ -416,7 +420,7 @@ const PutPoster = [
 const patchByUuid = HTTPEndpoint(async (req, res) => {
   AnimePatchByUuidSchema.parse(req.body);
 
-  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year } = req.body as AnimePatchByUuidProps;
+  const { uuid, nameAlt, nameEng, nameUkr, description, details, episodesCount, genres, malId, malScoredBy, media, posterAdapt, rate, scoreIMDB, scoreMAL, season, status, studios, year, imdbId, isDMCARestricted } = req.body as AnimePatchByUuidProps;
 
   const animeService = new AnimeService();
   await animeService.init(uuid);
@@ -436,8 +440,10 @@ const patchByUuid = HTTPEndpoint(async (req, res) => {
   if (season !== undefined) animeService.setSeason(animeService.parseSeason(season));
   if (status !== undefined) animeService.setStatus(animeService.parseStatus(status));
   if (scoreMAL !== undefined || scoreIMDB !== undefined || malScoredBy !== undefined) animeService.setScore({ imdb: scoreIMDB, mal: scoreMAL, malScoredBy });
-  if (studios !== undefined) animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
+  if (studios !== undefined) await animeService.setStudios(studios.map(el => { return { name: el, malId: -1 }; }));
   if (year !== undefined) animeService.setYear(year);
+  if (isDMCARestricted !== undefined) animeService.setIsDMCARestricted(isDMCARestricted);
+  if (imdbId !== undefined) animeService.setImdbId(imdbId);
 
 
 
