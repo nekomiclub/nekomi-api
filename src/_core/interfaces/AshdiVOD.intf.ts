@@ -30,7 +30,7 @@ export enum ASHDI_DUBBERS_MAP {
   'Справжня Козацька Озвучка' = 'c0bafd73-0a38-46f8-a5ef-b8e6aa150020',
   'Dzuski' = 'd92b0be9-5068-472a-b4b7-f0c77b3c7c3c',
   // 'InariOkami' = '__did',
-  'UFDUB' = '__did',
+  // 'UFDUB' = '__did',
   // 'субтитри | AniKappa' = '__did',
   'Студія Качур' = 'bc08931d-a8d4-4bcb-9c82-3def865872d9',
   // 'Шалене Чаювання' = '__did',

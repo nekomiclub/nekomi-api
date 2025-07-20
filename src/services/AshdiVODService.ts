@@ -46,8 +46,11 @@ class AshdiVODServ {
 
     const season: IAshdiVODSeason | undefined = vod?.seasons.find(el => el.season === seasonIndex);
     const part = season?.parts.find(el => el.malId === malId);
-    let episodes: AnimeEpisode[] = [];
+
+    let episodes: AnimeEpisode[] = season?.episodes ?? [];
     let areEpisodesReordered = false;
+
+
 
     if (part) {
       areEpisodesReordered = part.part !== 1;
@@ -65,9 +68,10 @@ class AshdiVODServ {
           return episode;
         });
       }
-    } else episodes = season?.episodes ?? [];
+    }
 
     Logger.info(`[AshdiVODService]: Retrieved episodes for ${malId} (${seasonIndex} season, ${partIndex} part): ${episodes.map(el => el.order).join('; ')}${areEpisodesReordered ? ' (episodes reordered)' : ''}`);
+
     return episodes;
   }
 
@@ -176,7 +180,7 @@ class AshdiVODServ {
         await animeService.save();
       }
     } catch (e) {
-      Logger.fail(`[AshdiVODService]: Ashdi fetch failed`, e);
+      Logger.fail(`[AshdiVODService]: VOD update for ${malId} failed`, e);
     }
   }
 
