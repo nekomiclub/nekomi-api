@@ -1,0 +1,40 @@
+name: Build & Deploy nekomi-api
+
+on: 
+  workflow_dispatch: 
+  push:
+    branches: 'main'
+  
+jobs:
+  build:
+    name: Build & Test
+    runs-on: self-hosted
+  
+    steps:
+      - name: Get the repository
+        uses: actions/checkout@v4
+      - name: Setup nodejs
+        uses: actions/setup-node@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Copy env file
+        run: cp ~/nekomi/.config/env/nekomi-api.env ./.env
+      - name: Run tests
+        run: npm run test
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to the docker
+    runs-on: self-hosted
+    needs: build
+
+    steps:
+      - name: Prepare workdir
+        run: rm -rf ~/nekomi/nekomi-api && mkdir -p ~/nekomi/nekomi-api
+      - name: Copy files in workdir
+        run: cp -r ./* ./.env ~/nekomi/nekomi-api
+      - name: Create docker image
+        run: docker build -t nekomi-api ~/nekomi/nekomi-api
+      - name: Restart compose service
+        run: cd ~/nekomi && docker-compose up -d --force-recreate --renew-anon-volumes --no-deps nekomi-api
