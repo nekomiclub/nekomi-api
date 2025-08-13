@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { config as dotenvCfg } from 'dotenv';
-import { execSync } from 'child_process';
 
 import { getUTC } from './utils/utils';
 
@@ -30,6 +29,9 @@ const env = {
   CSRF: String(process.env['CSRF-Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
   ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
+
+  ISDEV: process.env['ISDEV'] == 'true',
+  ISDOCKER: process.env['ISDOCKER'] == 'true',
 
   // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
   PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
@@ -260,7 +262,7 @@ const rickrollEndpoints: RegExp[] = [
 
 export const config = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`,
-  commit: execSync(`git rev-parse --short HEAD`).toString().replace('\n', ''),
+  commit: 'TEST-DEV-COMMIT',
   startedAt: `${getUTC().fulldate} ${getUTC().timeAccurate}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
   URL,
