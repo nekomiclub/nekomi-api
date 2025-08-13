@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
-import { TestMode } from '~/config';
+import { TestMode, config } from '~/config';
 import { getUTC } from '~/utils/utils';
 
 
@@ -15,10 +15,9 @@ export type TLogType = typeof LOG_TYPES[number];
 /** Logging service */
 class LoggerService {
   private MAX_TYPE_LENGTH = Math.max(...LOG_TYPES.map(el => el.length));
-  private ROOT_DIR = path.resolve();
 
-  private LOG_FOLDER = `${this.ROOT_DIR}/logs`;
-  private LOG_DUMP_FOLDER = `${this.ROOT_DIR}/logs/.dump`;
+  private LOG_FOLDER = config.env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
+  private LOG_DUMP_FOLDER = `${this.LOG_FOLDER}/.dumps`;
 
   private LOG_FILE = `${this.LOG_FOLDER}/latest.log`;
   private LOG_ERROR_FILE = `${this.LOG_FOLDER}/error.log`;

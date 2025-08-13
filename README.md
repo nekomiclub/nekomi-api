@@ -9,6 +9,17 @@ nekomi-api is an nekomi.club backend. Simple, isn't it?
 2. ```npm ci```
 3. ```npm run start```
 
+## Docker
+Make image of this repo
+```bash
+docker build -t nekomi-api .
+```
+
+Run container 
+```bash
+docker run -p 43080:43080 --rm --name nekomi-api-service -d nekomi-api -v ~/nekomi/nekomi-api/logs:/logs
+```
+
 ## Docs
 - [Roles](./docs/roles.md)
 - [Secrets](./docs/secrets.md)
