@@ -1,6 +1,9 @@
 import chalk from 'chalk';
+import fs from 'fs';
+import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 
+import { execSync } from 'child_process';
 import { getUTC } from './utils/utils';
 
 
@@ -58,6 +61,27 @@ const env = {
   FULLKEKW_USERAPI_URL: String(process.env['FULLKEKW_USERAPI_URL']),
   FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
 };
+
+const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
+
+
+
+// Retrieve git commit
+const commitFilePath = `${logsDir}/git-commit.txt`;
+
+if (!env.ISDOCKER) {
+  try {
+    const commit = execSync(`git rev-parse --short HEAD`).toString().replace('\n', '');
+
+    fs.writeFileSync(commitFilePath, commit, 'utf-8');
+
+    console.info(`[System]: Git commit retrieved: ${commit}`);
+  } catch (e) {
+    console.error(`[System]: Cannot retrieve git commit`, e);
+  }
+}
+
+const commit = fs.readFileSync(commitFilePath, 'utf-8');
 
 
 
@@ -200,7 +224,7 @@ const URL = {
   MALAPI: `https://api.myanimelist.net`,
   hikkaAPI: 'https://api.hikka.io',
   ashdiAPI: 'https://base.ashdi.vip',
-  imdbAPI: 'https://rest.imdbapi.dev',
+  imdbAPI: 'https://api.imdbapi.dev',
   jikanAPI: 'https://api.jikan.moe',
 };
 
@@ -210,6 +234,9 @@ export const ApiOrigins: Partial<Record<string, string>> = {
   [URL.fullkekw_account]: 'FullkekwUserAPI',
   [URL.fullkekw_authority]: 'FullkekwAuthorityAPI',
   [URL.MALAPI]: 'MyAnimeListAPI',
+  [URL.jikanAPI]: 'JikanAPI',
+  [URL.ashdiAPI]: 'AshidiAPI',
+  [URL.imdbAPI]: 'IMDBAPI',
 };
 
 const vars = {
@@ -262,7 +289,8 @@ const rickrollEndpoints: RegExp[] = [
 
 export const config = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`,
-  commit: 'TEST-DEV-COMMIT',
+  commit,
+  logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().timeAccurate}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
   URL,
