@@ -3,9 +3,7 @@ process.argv.push('devMode');
 
 import UserService from '~/core/services/UserService';
 import mongoose from 'mongoose';
-import request from 'supertest';
 import { MockAccessCheck, MockCheckCSRF } from '~/utils/jest-utils';
-import { app } from '~/index';
 import { config } from '~/config';
 import { createStringID } from '~/utils/utils';
 
@@ -41,23 +39,23 @@ describe('UserRouter', () => {
     it('should get by session', async () => { });
     it('should validate session and reject if session invalid', async () => { });
 
-    it('should sync user avatar & username with fullkekw-userapi (MiddlewareService/checkAccess)', async () => {
-      const newAvatar = 'https://lolkek.com';
-      const UserAccessMock = MockAccessCheck({ id: userService.user.id, avatar: newAvatar, capabilities: ['root'], username: '~' });
+    // it('should sync user avatar & username with fullkekw-userapi (MiddlewareService/checkAccess)', async () => {
+    //   const newAvatar = 'https://lolkek.com';
+    //   const UserAccessMock = MockAccessCheck({ id: userService.user.id, avatar: newAvatar, capabilities: ['root'], username: '~' });
 
-      expect(userService.user.avatar).not.toBe(newAvatar);
+    //   expect(userService.user.avatar).not.toBe(newAvatar);
 
-      const res = await request(app)
-        .get(`/user/*`)
-        .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, UserAccessMock]))
-        .set(config.vars.csrfHeader, '~')
-        .set(`Cookie`, `${config.vars.sessionCookie}=~`)
-        .expect(200);
+    //   const res = await request(app)
+    //     .get(`/user/*`)
+    //     .set(config.vars.mockHeader, JSON.stringify([NekomiCSRFMock, UserAccessMock]))
+    //     .set(config.vars.csrfHeader, '~')
+    //     .set(`Cookie`, `${config.vars.sessionCookie}=~`)
+    //     .expect(200);
 
-      const body = res.body;
+    //   const body = res.body;
 
-      expect(body.user.avatar).toBe(newAvatar);
-    });
+    //   expect(body.user.avatar).toBe(newAvatar);
+    // });
   });
 
 

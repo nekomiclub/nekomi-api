@@ -1,7 +1,10 @@
 import User from '~/core/interfaces/User.intf';
 import { HydratedAnime } from '~/core/interfaces/Anime.intf';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
+import { ZodBooleanish } from '~/core/interfaces/types';
 import { z } from 'zod';
+
+
 
 export interface UserGetSearchProps {
   /** Query ~all will return all users */
@@ -16,21 +19,6 @@ export interface UserGetSearch {
 
   /** @requires parseInvitationStatusFor */
   invitationStatus?: 'can_be_invited' | 'telegram_not_linked' | 'invite_pending' | 'others_member_already'
-}
-
-export interface UserGetByQueryProps {
-  query: string
-
-  parseCapabilities?: boolean
-  parseLibId?: string
-  detailed?: boolean
-}
-
-export interface UserGetByQuery {
-  user: User
-
-  capabilities?: RoleCapability[]
-  parsedLib?: HydratedAnime[]
 }
 
 export interface UserGetLibProps {
@@ -51,6 +39,49 @@ export interface UserGetTogetherRoom {
   room: void
   anime: HydratedAnime
 }
+
+export interface PutBanner {
+  bannerUrl: string
+}
+
+
+
+export interface UserGetByQueryProps {
+  query: string
+
+  parseCapabilities?: boolean
+  parseLibId?: string
+  detailed?: boolean
+}
+
+
+
+export interface UserGetByQuery {
+  user: User
+
+  capabilities?: RoleCapability[]
+  parsedLib?: HydratedAnime[]
+}
+
+export const UserGetByQuerySchema = {
+  params: z.object({
+    query: z.string(),
+  }),
+
+  search: z.object({
+    /** Detailed mode. Require specified CSRF token */
+    detailed: ZodBooleanish.optional(),
+
+    /** Parse user capabilities from roles */
+    parseCapabilities: ZodBooleanish.optional(),
+
+    /** Parse lib anime documents. Require session provided for hidden libs */
+    parseLibId: z.string().optional(),
+  })
+};
+
+export type UserGetByQueryParamsType = z.infer<typeof UserGetByQuerySchema.params>
+export type UserGetByQuerySearchType = z.infer<typeof UserGetByQuerySchema.search>
 
 
 
@@ -78,7 +109,3 @@ export const UserPatchSchema = z.object({
 });
 
 export type UserPatchProps = z.infer<typeof UserPatchSchema>
-
-export interface PutBanner {
-  bannerUrl: string
-}

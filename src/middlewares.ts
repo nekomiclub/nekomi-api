@@ -2,6 +2,7 @@ import express from 'express';
 
 import { E401, HTTPErrorConstructor, HandleRequest } from './services/ErrorService';
 import { ERROR } from './services/ErrorService';
+import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_SESSION_INVALID } from './services/Exceptions';
 import { GetCheckAccessMock, GetCheckCSRFMock } from './utils/jest-utils';
 import { MiddlewareService } from './services/MiddlewareService';
 import { RoleCapability } from '~/core/interfaces/Role.intf';
@@ -23,7 +24,7 @@ export function CheckAccess(capabilities: RoleCapability[]) {
       req.nekomi.middlewaresPassed.push('checkAccess');
 
       const token = req.cookies[config.vars.sessionCookie] || req.header('Authorization');
-      if (!token) throw new E401;
+      if (!token) throw ERROR_AUTH_SESSION_INVALID;
 
       try {
         const { user, capabilities: userCaps } = await Middleware.checkAccess({
@@ -75,4 +76,22 @@ export function CheckCSRF(origins?: string[]) {
       return next();
     });
   };
+}
+
+
+
+/** Retrieve CSRF token from request or throw an error if it is not provided */
+export function getCSRFToken(req: express.Request): string {
+  const token = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
+  if (!token) throw ERROR_AUTH_CSRF_INVALID;
+
+  return token;
+}
+
+/** Retrieve session token from request or throw an error if it is not provided */
+export function getSessionToken(req: express.Request): string {
+  const cookie = req.cookies[config.vars.sessionCookie];
+  if (!cookie) throw ERROR_AUTH_SESSION_INVALID;
+
+  return cookie;
 }

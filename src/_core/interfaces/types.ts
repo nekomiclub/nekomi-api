@@ -1,4 +1,7 @@
 import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from './Anime.intf';
+import { z } from 'zod';
+
+
 
 /** Make single key in T optional */
 export type SinglePartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -111,3 +114,7 @@ export interface HikkaAnime {
   synopsis_en: string
   // ... 
 }
+
+export const ZodBooleanish = z.string().refine((value) => value === 'true' || value === 'false', {
+  message: 'Value must be a boolean',
+}).transform((value) => value === 'true');

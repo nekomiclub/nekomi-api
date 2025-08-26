@@ -6,10 +6,10 @@ import TokenService, { TOKEN_METHOD } from '~/services/TokenService';
 import UserModel from '~/core/models/UserModel';
 import UserService from '~/core/services/UserService';
 import multer from 'multer';
-import { CheckAccess, CheckCSRF } from '~/middlewares';
-import { E401, E404, ERR_ALREADY_EXIST, HTTPErrorConstructor } from '~/services/ErrorService';
-import { ERROR } from '~/services/ErrorService';
-import { ERROR_GENERIC_FILE_MISS, ERROR_USER_LIB_NOT_FOUND } from '~/services/Exceptions';
+import { CheckAccess, CheckCSRF, getCSRFToken, getSessionToken } from '~/middlewares';
+import { DevelopmentMode, ProductionMode, TestMode, config } from '~/config';
+import { E404, ERROR, ERR_ALREADY_EXIST, HTTPErrorConstructor } from '~/services/ErrorService';
+import { ERROR_AUTH_NO_RIGHTS, ERROR_GENERIC_FILE_MISS, ERROR_USER_LIB_NOT_FOUND } from '~/services/Exceptions';
 import { FullkekwUser_RefreshPayload, FullkekwUser_SessionTokenPayload } from '~/core/interfaces/API/FullkekwUserAPI.intf';
 import { GetCheckAccessMock, GetCheckCSRFMock } from '~/utils/jest-utils';
 import { HTTPEndpoint } from '~/services/HTTPService';
@@ -17,8 +17,7 @@ import { HydrateAnimeDocument } from '~/utils/data-mappers';
 import { Logger } from '~/services/LoggerService';
 import { MiddlewareService } from '~/services/MiddlewareService';
 import { NOTIFY_EVENT, NotifyService } from '~/services/NotifyService';
-import { ProductionMode, TestMode, config } from '~/config';
-import { PutBanner, UserGetByQuery, UserGetByQueryProps, UserGetSearch, UserGetSearchProps, UserPatchProps, UserPatchSchema } from './UserControllerTypes';
+import { PutBanner, UserGetByQuery, UserGetByQuerySchema, UserGetSearch, UserGetSearchProps, UserPatchProps, UserPatchSchema } from './UserControllerTypes';
 import { User } from '~/core/interfaces/User.intf';
 import { body, query } from 'express-validator';
 import { parseObjectTypes } from '~/utils/utils';
@@ -92,54 +91,38 @@ const GetSearch = [
 
 //* ===================================== GET BY QUERY
 /**
- * Get user by query or session (*), parse capabilities or return only metadata
+ * Get user by query or session (query=*)
  * 
- * User with "*" query will session validity and return document with same user id
+ * User with "*" query will retrieved by session id
+ * Parse private lib available only for account owner or admin
+ * Private user libs will be hidden from output if user neither account owner nor admin
  * 
  * @see UserGetByQueryProps
  * @returns UserGetByQuery
  */
 const getByQuery = HTTPEndpoint(async (req, res) => {
-  const { parseCapabilities } = parseObjectTypes<UserGetByQueryProps>(req.query);
-  const CSRFToken = req.headers[config.vars.csrfHeader.toLowerCase()] as string | undefined;
-  const SessionCookie = req.cookies[config.vars.sessionCookie];
+  let { query } = UserGetByQuerySchema.params.parse(req.params);
+  const { detailed, parseCapabilities, parseLibId } = UserGetByQuerySchema.search.parse(req.query);
 
-  let { query } = parseObjectTypes<UserGetByQueryProps>(req.params);
-  let { detailed, parseLibId } = parseObjectTypes<UserGetByQueryProps>(req.query);
+  let isCSRFValid = false;
+  let isSessionValid = false;
+  let sessionPayload: FullkekwUser_SessionTokenPayload | undefined;
+  let isOwner = false;
+  let isAdmin = false;
 
 
 
-  if (detailed) {
-    if (!CSRFToken) throw new E401;
+  // Detailed mode available only for CSRF allowed origins
+  if (detailed) await validateCSRF();
 
-    await new MiddlewareService().checkCSRF({
-      token: CSRFToken,
-      origins: [config.DOMAIN.nekomi],
-      mock: TestMode ? GetCheckCSRFMock(req) : undefined
-    });
-  }
-
-  // Parse query from session
+  // Retrieve query from session id
   if (query === '*') {
-    if (!SessionCookie) throw new E401;
+    await validateSession();
 
-    // Verify session
-    try {
-      await new MiddlewareService().checkAccess({ token: SessionCookie, mock: TestMode ? GetCheckAccessMock(req) : undefined });
-    } catch (e) {
-      if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) {
-        res.clearCookie(config.vars.sessionCookie);
-      }
-
-      throw e;
-    }
-
-    if (!TestMode) {
-      query = TokenService.decode<FullkekwUser_SessionTokenPayload>(SessionCookie).payload?.userId ?? query;
-    } else {
-      query = GetCheckAccessMock(req).id;
-    }
+    query = sessionPayload?.userId ?? query;
   }
+
+
 
   let user = await new UserService().getByQuery(query, true);
 
@@ -148,11 +131,21 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
 
 
+  // Parse capabilities from roles
   if (parseCapabilities) capabilities = await parseRoles(user.roles);
 
+  // Parse lib anime documents
   if (parseLibId) {
     const lib = user.libs.find(el => el.id === parseLibId);
     if (!lib) throw new E404(`Lib with id (${parseLibId}) is not found`);
+
+    // Verify that only account owner and admin can access hidden libs
+    if (lib.settings.hidden) {
+      if (!await validateOwner()) {
+        // Reject access if user is neither admin not account owner 
+        if (!await validateAdmin()) throw ERROR_AUTH_NO_RIGHTS;
+      }
+    }
 
     parsedLib = [];
 
@@ -167,8 +160,16 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
       const userService = new UserService();
       await userService.init(user.id);
 
-      userService.fixLibAnimeDocuments(lib.id);
+      userService.fixLibAnimeDocuments(lib.id); // async only
     }
+  }
+
+  // Drop private user libs
+  try {
+    if (!await validateOwner() && !await validateAdmin()) throw new Error('403');
+  } catch (e) {
+    if (DevelopmentMode) console.debug(`[dev]: get user drop private libs`);
+    user.libs = user.libs.filter(el => !el.settings.hidden);
   }
 
   user = DocumentDTO.user(user, detailed);
@@ -180,6 +181,62 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   };
 
   return res.status(200).json({ message: 'ok', ...body });
+
+
+
+  async function validateCSRF(): Promise<boolean> {
+    if (isCSRFValid) return true;
+
+    if (DevelopmentMode) console.debug(`[dev]: get user validate csrf`);
+    await new MiddlewareService().checkCSRF({ token: getCSRFToken(req), origins: [config.DOMAIN.nekomi], mock: TestMode ? GetCheckCSRFMock(req) : undefined });
+
+    isCSRFValid = true;
+
+    return true;
+  }
+
+  async function validateSession(): Promise<boolean> {
+    if (isSessionValid) return true;
+
+    const session = getSessionToken(req);
+    sessionPayload = TokenService.decode<FullkekwUser_SessionTokenPayload>(session).payload;
+
+    try {
+      if (DevelopmentMode) console.debug(`[dev]: get user validate session`);
+      await new MiddlewareService().checkAccess({ token: session, mock: TestMode ? GetCheckAccessMock(req) : undefined });
+    } catch (e) {
+      // Remove nekomi cookie if session expired
+      if (e instanceof HTTPErrorConstructor && e.code === ERROR.AUTH_SESSION_EXPIRED) res.clearCookie(config.vars.sessionCookie);
+      throw e;
+    }
+
+    isSessionValid = true;
+
+    return true;
+  }
+
+  async function validateOwner(): Promise<boolean> {
+    if (isOwner) return true;
+
+    await validateSession();
+
+    if (DevelopmentMode) console.debug(`[dev]: get user validate isOwner`);
+    isOwner = sessionPayload?.userId === user.id;
+
+    return isOwner;
+  }
+
+  async function validateAdmin(): Promise<boolean> {
+    if (isAdmin) return true;
+
+    if (DevelopmentMode) console.debug(`[dev]: get user validate isAdmin`);
+    const sessionUser = await new UserService().init(sessionPayload?.userId ?? '');
+    const sessionCapabilities = await parseRoles(sessionUser.roles);
+
+    isAdmin = sessionCapabilities.includes('root') || sessionCapabilities.includes('admin');
+
+    return true;
+  }
 });
 
 /** @tested partially tested */
