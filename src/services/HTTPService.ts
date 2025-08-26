@@ -92,7 +92,7 @@ $upload.interceptors.request.use(async cfg => {
   return cfg;
 });
 
-$http.interceptors.response.use(async cfg => {
+$upload.interceptors.response.use(async cfg => {
   getResponseMetrics(cfg);
 
   return cfg;

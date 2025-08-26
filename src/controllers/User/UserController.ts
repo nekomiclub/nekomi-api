@@ -104,7 +104,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   let { query } = UserGetByQuerySchema.params.parse(req.params);
   const { detailed, parseCapabilities, parseLibId } = UserGetByQuerySchema.search.parse(req.query);
 
-  let isCSRFValid = false;
   let isSessionValid = false;
   let sessionPayload: FullkekwUser_SessionTokenPayload | undefined;
   let isOwner = false;
@@ -113,7 +112,9 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
 
   // Detailed mode available only for CSRF allowed origins
-  if (detailed) await validateCSRF();
+  if (detailed) {
+    await new MiddlewareService().checkCSRF({ token: getCSRFToken(req), origins: [config.DOMAIN.nekomi], mock: TestMode ? GetCheckCSRFMock(req) : undefined });
+  }
 
   // Retrieve query from session id
   if (query === '*') {
@@ -166,9 +167,13 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
   // Drop private user libs
   try {
-    if (!await validateOwner() && !await validateAdmin()) throw new Error('403');
+    // Check if user is account owner
+    if (!await validateOwner()) {
+      // Check if user is admin
+      if (!await validateAdmin()) throw new Error('403');
+    }
   } catch (e) {
-    if (DevelopmentMode) console.debug(`[dev]: get user drop private libs`);
+    if (DevelopmentMode) Logger.error(`[GetUser]: An error occured while dropping private libs`, e);
     user.libs = user.libs.filter(el => !el.settings.hidden);
   }
 
@@ -184,25 +189,24 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
 
 
-  async function validateCSRF(): Promise<boolean> {
-    if (isCSRFValid) return true;
-
-    if (DevelopmentMode) console.debug(`[dev]: get user validate csrf`);
-    await new MiddlewareService().checkCSRF({ token: getCSRFToken(req), origins: [config.DOMAIN.nekomi], mock: TestMode ? GetCheckCSRFMock(req) : undefined });
-
-    isCSRFValid = true;
-
-    return true;
-  }
-
   async function validateSession(): Promise<boolean> {
     if (isSessionValid) return true;
 
     const session = getSessionToken(req);
-    sessionPayload = TokenService.decode<FullkekwUser_SessionTokenPayload>(session).payload;
+
+    if (!TestMode) {
+      sessionPayload = TokenService.decode<FullkekwUser_SessionTokenPayload>(session).payload;
+    } else {
+      const mock = GetCheckAccessMock(req);
+
+      sessionPayload = {
+        sessionId: '',
+        timestamp: 0,
+        userId: mock.id
+      };
+    }
 
     try {
-      if (DevelopmentMode) console.debug(`[dev]: get user validate session`);
       await new MiddlewareService().checkAccess({ token: session, mock: TestMode ? GetCheckAccessMock(req) : undefined });
     } catch (e) {
       // Remove nekomi cookie if session expired
@@ -220,7 +224,6 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
 
     await validateSession();
 
-    if (DevelopmentMode) console.debug(`[dev]: get user validate isOwner`);
     isOwner = sessionPayload?.userId === user.id;
 
     return isOwner;
@@ -229,13 +232,14 @@ const getByQuery = HTTPEndpoint(async (req, res) => {
   async function validateAdmin(): Promise<boolean> {
     if (isAdmin) return true;
 
-    if (DevelopmentMode) console.debug(`[dev]: get user validate isAdmin`);
+    await validateSession();
+
     const sessionUser = await new UserService().init(sessionPayload?.userId ?? '');
     const sessionCapabilities = await parseRoles(sessionUser.roles);
 
     isAdmin = sessionCapabilities.includes('root') || sessionCapabilities.includes('admin');
 
-    return true;
+    return isAdmin;
   }
 });
 
