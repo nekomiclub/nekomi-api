@@ -1,7 +1,7 @@
 {
   "name": "nekomi-api",
   "private": true,
-  "version": "2.1.2",
+  "version": "2.1.3",
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
@@ -55,7 +55,6 @@
     "mongoose": "^8.0.1",
     "multer": "^1.4.5-lts.1",
     "node": "^21.6.0",
-    "nstats": "^7.0.0",
     "puppeteer": "^23.2.1",
     "url-slug": "^4.0.1",
     "uuid": "^9.0.1",

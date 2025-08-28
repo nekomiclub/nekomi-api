@@ -8,7 +8,6 @@ const AnimeRouter = express.Router();
 
 
 
-//* Generic
 AnimeRouter.get('/stats', AnimeController.GetStats);
 AnimeRouter.get(`/search`, AnimeController.GetSearch);
 AnimeRouter.get('/featured', AnimeController.GetFeatured);

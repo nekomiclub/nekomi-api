@@ -11,5 +11,5 @@ COPY . .
 ENV ISDOCKER=true
 
 # Run
-EXPOSE 45660
+EXPOSE 43080
 CMD [ "npm", "run", "start" ]

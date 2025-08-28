@@ -1,7 +1,6 @@
 import AnimeModel from '~/core/models/AnimeModel';
 import UserModel from '~/core/models/UserModel';
 import fs from 'fs';
-import path from 'path';
 import { HydratedDocument } from 'mongoose';
 import { Logger } from '~/services/LoggerService';
 import { config } from '~/config';
@@ -9,8 +8,8 @@ import { getUTC } from './utils';
 
 
 
-const DUMP_DIR_PATH = `${path.resolve()}/.dump`;
-const DATA_FILE_PATH = `${DUMP_DIR_PATH}/dumps.json`;
+const DUMP_DIR_PATH = `${config.logsDir}/.dump`;
+const DATA_FILE_PATH = `${config.logsDir}/dump.json`;
 
 interface DATA_FILE_DUMP {
   name: string

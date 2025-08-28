@@ -130,7 +130,6 @@ export class MiddlewareService {
     };
 
     if (!TestMode) {
-
       const data = await FullkekwAuthority.verifyToken({ token });
 
       csrf.origin = data.origin;

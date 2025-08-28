@@ -1,10 +1,9 @@
 import Search from '~/services/SearchService';
 import fs from 'fs';
-import path from 'path';
 import { ANIME_SEASON, AnimeMonthSeasons } from '~/core/interfaces/Anime.intf';
 import { Logger } from '~/services/LoggerService';
 import { MyAnimeList } from '~/core/services/API/MyAnimeList.api';
-import { TestMode } from '~/config';
+import { TestMode, config } from '~/config';
 import { getUTC } from './utils';
 
 
@@ -20,7 +19,7 @@ interface Payload {
 }
 
 
-const LOGDIR = `${path.resolve()}/.dump`;
+const LOGDIR = config.logsDir;
 const LOGPATH = `${LOGDIR}/fetch-seasonal.json`;
 
 /** CRON Job for this handler */
