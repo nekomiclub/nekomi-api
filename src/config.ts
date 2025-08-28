@@ -81,7 +81,7 @@ if (!env.ISDOCKER) {
   }
 }
 
-const commit = fs.readFileSync(commitFilePath, 'utf-8');
+const commit = env.ISDOCKER ? 'DOCKER' : fs.readFileSync(commitFilePath, 'utf-8');
 
 
 
