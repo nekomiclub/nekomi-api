@@ -105,49 +105,40 @@ const STATIC = {
     headliners:
       ProductionMode
         ? [{
-          id: '3cf9bee6-fbbb-4950-b112-d27da97a8518', // Devil May Cry 2025
-          backgroundURL: 'https://media.nekomi.club/0fb3bd81-5deb-4e2c-8a73-be618b26053b',
-          videoURL: 'https://media.nekomi.club/b88ed577-a580-41a5-9089-2fb91c67a921'
+          id: '90195ae6-e7c6-4608-8894-05041e06343b', // Gachiakuta
+          backgroundURL: 'https://media.nekomi.club/b36bf271-5131-4062-91b3-2ac1fef9cad5',
+          videoURL: 'https://media.nekomi.club/gachiakuta-op',
         }, {
-          id: 'f9666d0a-f24b-4d7f-bd47-5723d965f52f', // Lazarus
-          backgroundURL: 'https://media.nekomi.club/abfe8c6e-7fee-44a8-aed0-f9d7e38f3f05',
-          videoURL: 'https://media.nekomi.club/04b5044e-5f77-43a3-b6b4-b658f401b405'
+          id: '38c54682-108e-481b-9cdc-9e14658c1f75', // The Fragrant Flower Blooms with Dignity
+          backgroundURL: 'https://media.nekomi.club/1367cb78-0594-409d-99b3-4a424a4e545f',
+          videoURL: 'https://media.nekomi.club/fragrant-flower-op',
         }, {
-          id: 'f846581c-0c8c-4d73-84aa-76d5ed928453', // The apothecary diaries
-          backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-          videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+          id: '96a213e7-b440-474c-8cd4-270ca5dfd150', // Grand Blue Dreaming Season 2
+          backgroundURL: 'https://media.nekomi.club/ef7b1eb7-ab89-48ba-85bb-2128490f3d11',
+          videoURL: 'https://media.nekomi.club/grand-blue-op',
         }]
         : [{
           id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/0729c26a-52b3-465c-a030-db683df68d09',
-          videoURL: 'https://media.nekomi.club/ea9a007c-017f-42c0-a94d-34729884c5d6'
+          backgroundURL: 'https://media.nekomi.club/b36bf271-5131-4062-91b3-2ac1fef9cad5',
+          videoURL: 'https://media.nekomi.club/gachiakuta-op',
         }, {
           id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/0fb3bd81-5deb-4e2c-8a73-be618b26053b',
-          videoURL: 'https://media.nekomi.club/b88ed577-a580-41a5-9089-2fb91c67a921'
+          backgroundURL: 'https://media.nekomi.club/1367cb78-0594-409d-99b3-4a424a4e545f',
+          videoURL: 'https://media.nekomi.club/fragrant-flower-op',
         }, {
           id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/abfe8c6e-7fee-44a8-aed0-f9d7e38f3f05',
-          videoURL: 'https://media.nekomi.club/04b5044e-5f77-43a3-b6b4-b658f401b405'
+          backgroundURL: 'https://media.nekomi.club/ef7b1eb7-ab89-48ba-85bb-2128490f3d11',
+          videoURL: 'https://media.nekomi.club/grand-blue-op',
         },],
 
 
     hot:
       ProductionMode
         ? [
-          '3cf9bee6-fbbb-4950-b112-d27da97a8518',
-          'f9666d0a-f24b-4d7f-bd47-5723d965f52f',
-          '6f3ffe87-3f22-4a70-b36b-d13dec3f5c40',
-          'f846581c-0c8c-4d73-84aa-76d5ed928453',
-          'ee050b75-2a7c-4142-98b0-945c2f3b9726',
-          '2eabab44-020e-4a22-bfff-1bf0096abd59',
-          '1c47303c-0a41-4dff-9c98-92f9bdc95824',
-          'fa1f686b-ab4f-4147-a748-1c797674f00f',
-          '42f1042a-a0fc-47d5-b1f1-40556fcdff6f',
-          '807fc8e2-b861-49cf-ba3b-7031d549a932',
-          'e3938803-9f07-40a8-b881-6362aee03c9f',
-          '895389f0-90d8-4b9c-9998-14c1453cae0e',
-          '6a720a3d-ad21-4b91-8e59-a7a90109368e',
+          '4af6ccf4-18e7-465e-96fd-f1c131cead4e',
+          '6883f1c2-7820-47b6-ae31-52ac2ec0cd5c',
+          '841c3c0b-1d78-4c6a-8d6c-cd91295f70f5',
+          'a4e7b293-be4d-4f5d-97be-c1b7cde2c5fe',
         ]
         : [
           '627690b0-f0c1-490d-b50e-c5ace32cd563',
