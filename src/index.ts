@@ -38,6 +38,7 @@ const CORSOpt: CorsOptions = {
     !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
   ].filter(el => el !== '_null'),
   credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
 };
 
 
@@ -46,9 +47,8 @@ const CORSOpt: CorsOptions = {
 export const app = express();
 
 app.use(cors(CORSOpt));
-app.options('*', cors(CORSOpt));
-app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
+app.use(bodyParser.json({ limit: '50mb' }));
 
 
 
