@@ -1,6 +1,6 @@
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import cors, { CorsOptions } from 'cors';
+import cors from 'cors';
 import express from 'express';
 import mongoose from 'mongoose';
 
@@ -28,25 +28,30 @@ mongoose.connect(config.mongodbUrl, {
 
 
 
-const CORSOpt: CorsOptions = {
-  origin: [
-    `https://${config.DOMAIN.nekomi}`,
-    `https://${config.DOMAIN.nekomi_auth}`,
-    `https://${config.DOMAIN.nekomi_api}`,
-
-    !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
-    !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
-  ].filter(el => el !== '_null'),
-  credentials: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
-};
-
 
 
 //* Setup http middlewares
 export const app = express();
 
-app.use(cors(CORSOpt));
+app.use(cors({
+  origin(origin, callback) {
+    const allowedOrigins = [
+      `https://${config.DOMAIN.nekomi}`,
+      `https://${config.DOMAIN.nekomi_auth}`,
+      `https://${config.DOMAIN.nekomi_api}`,
+
+      !ProductionMode ? 'http://127.0.0.1:3001' : '_null',
+      !ProductionMode ? 'http://127.0.0.1:3000' : '_null',
+    ].filter(el => el !== '_null');
+
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+}));
+
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 
