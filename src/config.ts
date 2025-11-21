@@ -85,7 +85,6 @@ if (!env.ISDOCKER) {
 const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createId()}`;
 
 
-
 const DOMAIN = {
   proxy: env.PROXY_DOMAIN,
   nekomi: env.NEKOMI_DOMAIN,

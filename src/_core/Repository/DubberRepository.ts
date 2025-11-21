@@ -1,12 +1,16 @@
 import IDubber from '~/core/Interfaces/IDubber';
+import UnifiedRepository from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
-import { IBasicRepository, RepositoryQueryType } from '~/core/Interfaces/types';
+import { RepositoryQueriesType } from '~/core/Interfaces/types';
 
 
 
 /** Repository type. Reffers to the model interface */
 type RepositoryType = IDubber;
 
+const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
+  return { $or: [{ id: query }, { slug: query }] };
+};
 
 
 const model = mongoose.model<IDubber>('dubber', new Schema({
@@ -29,45 +33,14 @@ const model = mongoose.model<IDubber>('dubber', new Schema({
 
 
 
-class DubberRepository implements IBasicRepository<RepositoryType> {
-  async getOne(query: string): Promise<RepositoryType> {
-    const queries: RepositoryQueryType<RepositoryType>[] = [{ id: query, slug: query }];
-
-    const result = await model.findOne(queries);
-    if (!result) throw Error('INDEV_ERROR');
-
-    return result;
-  }
-
-  async safeGetOne(query: string): Promise<RepositoryType | null> {
-    const queries: RepositoryQueryType<RepositoryType>[] = [{ id: query, slug: query }];
-
-    const result = await model.findOne(queries);
-
-    return result;
-  }
-
-  async getMany(query: string): Promise<RepositoryType[]> {
-    const queries: RepositoryQueryType<RepositoryType>[] = [{ id: query, slug: query }];
-
-    const results = await model.find(queries);
-
-    return results;
-  }
-
-  async getAll(): Promise<RepositoryType[]> {
-    return await model.find();
-  }
-
-  async deleteOne(id: string): Promise<void> {
-    await model.deleteOne({ uuid: id });
-  }
-
-  async deleteMany(id: string): Promise<void> {
-    await model.deleteMany({ uuid: id });
+export class DubberRepositoryClass extends UnifiedRepository<RepositoryType> {
+  constructor(query?: string) {
+    super(model, queries, query);
   }
 }
 
 
+
+const DubberRepository = new DubberRepositoryClass();
 
 export default DubberRepository;
