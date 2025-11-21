@@ -22,5 +22,5 @@ export default {
   transform: {
     '\\.(ts)$': 'ts-jest'
   },
-  globalTeardown: '<rootDir>/test/globalTeardown.ts',
+  // globalTeardown: '<rootDir>/test/globalTeardown.ts',
 };

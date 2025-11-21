@@ -1,4 +1,4 @@
-import { AnimeEpisode } from './Anime.intf';
+import { IAnimeEpisode } from './IAnime';
 
 
 
@@ -13,7 +13,7 @@ export interface IAshdiVOD {
 
 export interface IAshdiVODSeason {
   season: number
-  episodes: AnimeEpisode[]
+  episodes: IAnimeEpisode[]
   parts: IAshdiVODSeasonPart[]
 }
 

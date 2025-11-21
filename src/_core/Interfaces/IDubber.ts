@@ -1,6 +1,6 @@
 export type DubberRoleType = 'leader' | 'editor' | 'member'
 
-export interface Dubber {
+export interface IDubber {
   id: string
   slug: string
   avatar: string
@@ -10,7 +10,7 @@ export interface Dubber {
   nameUkr: string
 
   /** @private */
-  members: DubberMember[]
+  members: IDubberMember[]
 
   /** Invited members IDs
    * @private
@@ -52,7 +52,7 @@ export interface Dubber {
   code: string
 }
 
-export interface DubberMember {
+export interface IDubberMember {
   id: string
   role: DubberRoleType
 
@@ -60,7 +60,7 @@ export interface DubberMember {
   memberSince: number
 }
 
-export interface DubberCompact {
+export interface IDubberCompact {
   id: string
   slug: string
   nameUkr: string
@@ -69,4 +69,4 @@ export interface DubberCompact {
 }
 
 
-export default Dubber;
+export default IDubber;

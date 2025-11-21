@@ -1,8 +1,8 @@
-import { DayOfWeek } from '~/core/interfaces/types';
+import { DayOfWeek } from '~/core/Interfaces/types';
 
 
 
-export interface Anime {
+export interface IAnime {
   uuid: string
   slug: string
   poster: string
@@ -10,13 +10,13 @@ export interface Anime {
   episodesCount: number | null
   description: string | null
   details: string | null
-  broadcast: AnimeBroadcast | null
+  broadcast: IAnimeBroadcast | null
   genres: ANIME_GENRE[]
   rate: ANIME_RATE
   status: ANIME_STATUS
   season: ANIME_SEASON
   media: ANIME_MEDIA_TYPE
-  studios: AnimeStudio[]
+  studios: IAnimeStudio[]
   malId: number | null
 
   /** @since 2.1.2 */
@@ -38,9 +38,9 @@ export interface Anime {
   hikkaSyncedAt: number | null
 
   /** @private */
-  episodes: AnimeEpisode[]
+  episodes: IAnimeEpisode[]
   /** @private */
-  episodesMeta: AnimeEpisodeMeta[]
+  episodesMeta: IAnimeEpisodeMeta[]
   /** Anime pictures URL's @private */
   pictures: string[]
   /** Related animes ID's @private */
@@ -70,16 +70,16 @@ export interface Anime {
   }
 }
 
-export interface HydratedAnime {
-  anime: Anime
-  genres: AnimeGenre[]
-  media: AnimeMedia
-  rate: AnimeRate
-  season: AnimeSeason
-  status: AnimeStatus
+export interface IHydratedAnime {
+  anime: IAnime
+  genres: AnimeGenreType[]
+  media: AnimeMediaType
+  rate: AnimeRateType
+  season: AnimeSeasonType
+  status: AnimeStatusType
 }
 
-export interface AnimeEpisode {
+export interface IAnimeEpisode {
   dubberID: string
   order: number
   qualities: {
@@ -96,7 +96,7 @@ export interface AnimeEpisode {
   frames: string[]
 }
 
-export interface AnimeEpisodeMeta {
+export interface IAnimeEpisodeMeta {
   order: number
   names: {
     ukr: string
@@ -107,33 +107,33 @@ export interface AnimeEpisodeMeta {
   dateOut: number
 }
 
-export interface AnimeBroadcast {
+export interface IAnimeBroadcast {
   day: DayOfWeek
 
   /** Time of the broadcast. E.g 19:30 */
   time: string
 }
 
-export interface AnimeStudio {
+export interface IAnimeStudio {
   malId: number
   name: string
 }
 
-export type AnimeGenre = KeyValueDescription<ANIME_GENRE>
-export type AnimeRate = KeyValueDescription<ANIME_RATE>;
-export type AnimeStatus = KeyValue<ANIME_STATUS>;
-export type AnimeSeason = KeyValue<ANIME_SEASON>;
-export type AnimeMedia = KeyValue<ANIME_MEDIA_TYPE>;
+export type AnimeGenreType = IKeyValueDescription<ANIME_GENRE>
+export type AnimeRateType = IKeyValueDescription<ANIME_RATE>;
+export type AnimeStatusType = IKeyValue<ANIME_STATUS>;
+export type AnimeSeasonType = IKeyValue<ANIME_SEASON>;
+export type AnimeMediaType = IKeyValue<ANIME_MEDIA_TYPE>;
 
 
 
 
-interface KeyValue<T = string> {
+interface IKeyValue<T = string> {
   slug: T
   name: string
 }
 
-interface KeyValueDescription<T = string> extends KeyValue<T> {
+interface IKeyValueDescription<T = string> extends IKeyValue<T> {
   description: string
 }
 
@@ -229,7 +229,7 @@ export enum ANIME_MEDIA_TYPE {
 
 
 
-export const ANIME_GENRES: Record<ANIME_GENRE, AnimeGenre> = {
+export const AnimeGenres: Record<ANIME_GENRE, AnimeGenreType> = {
   [ANIME_GENRE.ACTION]: {
     slug: ANIME_GENRE.ACTION,
     name: 'Бойовик',
@@ -447,7 +447,7 @@ export const ANIME_GENRES: Record<ANIME_GENRE, AnimeGenre> = {
   },
 };
 
-export const ANIME_RATES: Record<ANIME_RATE, AnimeRate> = {
+export const AnimeRates: Record<ANIME_RATE, AnimeRateType> = {
   [ANIME_RATE.G]: {
     slug: ANIME_RATE.G,
     name: 'G',
@@ -480,7 +480,7 @@ export const ANIME_RATES: Record<ANIME_RATE, AnimeRate> = {
   },
 };
 
-export const ANIME_STATUSES: Record<ANIME_STATUS, AnimeStatus> = {
+export const AnimeStatuses: Record<ANIME_STATUS, AnimeStatusType> = {
   [ANIME_STATUS.CURRENTLY_AIRING]: {
     slug: ANIME_STATUS.CURRENTLY_AIRING,
     name: 'Онґоїнг',
@@ -495,7 +495,7 @@ export const ANIME_STATUSES: Record<ANIME_STATUS, AnimeStatus> = {
   }
 };
 
-export const ANIME_SEASONS: Record<ANIME_SEASON, AnimeSeason> = {
+export const AnimeSeasons: Record<ANIME_SEASON, AnimeSeasonType> = {
   [ANIME_SEASON.FALL]: {
     slug: ANIME_SEASON.FALL,
     name: 'Осінь',
@@ -514,7 +514,7 @@ export const ANIME_SEASONS: Record<ANIME_SEASON, AnimeSeason> = {
   },
 };
 
-export const ANIME_MEDIA_TYPES: Record<ANIME_MEDIA_TYPE, AnimeMedia> = {
+export const AnimeMedias: Record<ANIME_MEDIA_TYPE, AnimeMediaType> = {
   [ANIME_MEDIA_TYPE.MOVIE]: {
     slug: ANIME_MEDIA_TYPE.MOVIE,
     name: 'Фільм',
@@ -554,4 +554,4 @@ export const AnimeMonthSeasons: ANIME_SEASON[] = [
   ANIME_SEASON.WINTER,
 ];
 
-export default Anime;
+export default IAnime;

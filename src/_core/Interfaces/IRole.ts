@@ -1,9 +1,9 @@
 /** Role object */
-export interface Role {
+export interface IRole {
   id: string
   code: string
   title: string
-  capabilities: RoleCapability[]
+  capabilities: RoleCapabilityType[]
 }
 
 export const RoleCapabilities = [
@@ -31,10 +31,8 @@ export const RoleCapabilities = [
   'staffDeleteDubber'
 ] as const;
 
-export type RoleCapability = typeof RoleCapabilities[number];
+export type RoleCapabilityType = typeof RoleCapabilities[number];
 
 
 
-/** @deprecated use Role instead */
-export type IRole = Role;
-export default Role;
+export default IRole;

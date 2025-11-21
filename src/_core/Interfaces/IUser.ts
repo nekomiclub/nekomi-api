@@ -1,23 +1,23 @@
-export interface User {
+export interface IUser {
   id: string
   username: string
   avatar: string
   banner: string
 
   /** @private */
-  statistics: UserStatistics
+  statistics: IUserStatistics
 
   /** @private */
-  libs: UserLib[]
+  libs: IUserLib[]
 
   /** @private */
   roles: string[]
 
   /** @private */
-  watchProgress: UserWatchProgress[]
+  watchProgress: IUserWatchProgress[]
 
   /** @private */
-  telegramData: UserTelegramData | null
+  telegramData: IUserTelegramData | null
 
   /** 
    * Access token to verify user telegram link request
@@ -30,7 +30,7 @@ export interface User {
 }
 
 /** User nekomi statistics */
-export interface UserStatistics {
+export interface IUserStatistics {
   isTelegramLinked: boolean
 
   dubber_team_member: string | null
@@ -43,7 +43,7 @@ export interface UserStatistics {
 }
 
 /** User watch progress item */
-export interface UserWatchProgress {
+export interface IUserWatchProgress {
   titleID: string
   dubberID: string
   episodeOrder: number
@@ -55,13 +55,13 @@ export interface UserWatchProgress {
   updatedAt: number
 }
 
-export interface UserTelegramData {
+export interface IUserTelegramData {
   id: number
 }
 
 export type UserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
 
-export interface UserLib {
+export interface IUserLib {
   id: string
   type: UserLibType
 
@@ -84,4 +84,4 @@ export interface UserLib {
 
 
 
-export default User;
+export default IUser;

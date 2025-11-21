@@ -1,10 +1,9 @@
-import Role from '~/core/interfaces/Role.intf';
+import IRole from '~/core/Interfaces/IRole';
 import mongoose, { Schema } from 'mongoose';
 
 
 
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ROLE SERVICE */
-export const RoleModel = mongoose.model<Role>('role', new Schema({
+export const RoleModel = mongoose.model<IRole>('role', new Schema({
   capabilities: Array,
   code: String,
   id: String,

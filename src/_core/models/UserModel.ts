@@ -1,10 +1,9 @@
-import User from '~/core/interfaces/User.intf';
+import IUser from '~/core/Interfaces/IUser';
 import mongoose, { Schema } from 'mongoose';
 
 
 
-/** @private DO NOT USE IT ANYWHERE ELSE EXCEPT USER SERVICE */
-export const UserModel = mongoose.model<User>('user', new Schema({
+export const UserModel = mongoose.model<IUser>('user', new Schema({
   id: String,
   libs: Array,
   statistics: Object,
