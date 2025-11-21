@@ -24,20 +24,11 @@
       "~/core/*": [
         "./src/_core/*",
       ],
-      "~/controllers/*": [
-        "./src/controllers/*",
-      ],
-      "~/interfaces/*": [
-        "./src/_core/interfaces/*",
-      ],
       "~/services/*": [
         "./src/services/*",
       ],
       "~/utils/*": [
         "./src/utils/*",
-      ],
-      "~/routes/*": [
-        "./src/routes/*",
       ],
       "~/*": [
         "./src/*",
@@ -54,9 +45,6 @@
   ],
   "lib": [
     "esnext"
-  ],
-  "files": [
-    "./src/_core/interfaces/globals.d.ts"
   ],
   "ts-node": {
     "esm": true,

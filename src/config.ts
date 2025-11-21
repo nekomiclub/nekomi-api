@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 
-import { createUUID, getUTC } from './utils/utils';
+import createId from './utils/create-id';
 import { execSync } from 'child_process';
+import { getUTC } from './utils/utils';
 
 
 
@@ -81,7 +82,7 @@ if (!env.ISDOCKER) {
   }
 }
 
-const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createUUID()}`;
+const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createId()}`;
 
 
 
