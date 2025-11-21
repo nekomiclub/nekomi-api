@@ -8,10 +8,13 @@ export interface IBasicRepository<M> {
   safeGetOne(query: string): Promise<M | null>
 
   getMany(query: string): Promise<M[]>
+  getAll(): Promise<M[]>
 
   deleteOne(query: string): Promise<void>
   deleteMany(query: string): Promise<void>
 }
+
+export type RepositoryQueryType<M> = Partial<Record<keyof M, string>>
 
 export const DaysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 export type DayOfWeek = typeof DaysOfWeek[number];

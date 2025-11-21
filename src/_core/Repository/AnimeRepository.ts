@@ -1,10 +1,15 @@
 import IAnime from '~/core/Interfaces/IAnime';
 import mongoose, { Schema } from 'mongoose';
-import { IBasicRepository } from '~/core/Interfaces/types';
+import { IBasicRepository, RepositoryQueryType } from '~/core/Interfaces/types';
 
 
 
-const AnimeModel = mongoose.model<IAnime>('anime', new Schema({
+/** Repository type. Reffers to the model interface */
+type RepositoryType = IAnime;
+
+
+
+const model = mongoose.model<RepositoryType>('anime', new Schema({
   uuid: String,
   broadcast: Object,
   description: String,
@@ -40,39 +45,42 @@ const AnimeModel = mongoose.model<IAnime>('anime', new Schema({
 
 
 
-class AnimeRepository implements IBasicRepository<IAnime> {
-  async getOne(query: string): Promise<IAnime> {
-    const queries = [{ uuid: query }, { slug: query }];
+class AnimeRepository implements IBasicRepository<RepositoryType> {
+  async getOne(query: string): Promise<RepositoryType> {
+    const queries: RepositoryQueryType<RepositoryType>[] = [{ uuid: query }, { slug: query }];
 
-    const result = await AnimeModel.findOne(queries);
+    const result = await model.findOne(queries);
     if (!result) throw Error('INDEV_ERROR');
 
     return result;
   }
 
-  async safeGetOne(query: string): Promise<IAnime | null> {
-    const queries = [{ uuid: query }, { slug: query }];
+  async safeGetOne(query: string): Promise<RepositoryType | null> {
+    const queries: RepositoryQueryType<RepositoryType>[] = [{ uuid: query }, { slug: query }];
 
-    const result = await AnimeModel.findOne(queries);
+    const result = await model.findOne(queries);
 
     return result;
   }
 
-  async getMany(query: string): Promise<IAnime[]> {
-    const queries = [{ uuid: query }, { slug: query }];
+  async getMany(query: string): Promise<RepositoryType[]> {
+    const queries: RepositoryQueryType<RepositoryType>[] = [{ uuid: query }, { slug: query }];
 
-    const results = await AnimeModel.find(queries);
-    if (!results.length) throw Error('INDEV_ERROR');
+    const results = await model.find(queries);
 
     return results;
   }
 
+  async getAll(): Promise<RepositoryType[]> {
+    return await model.find();
+  }
+
   async deleteOne(id: string): Promise<void> {
-    await AnimeModel.deleteOne({ uuid: id });
+    await model.deleteOne({ uuid: id });
   }
 
   async deleteMany(id: string): Promise<void> {
-    await AnimeModel.deleteMany({ uuid: id });
+    await model.deleteMany({ uuid: id });
   }
 }
 

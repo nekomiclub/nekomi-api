@@ -8,5 +8,5 @@
     "dist",
     "src/__tests__"
   ],
-  "exec": "npx eslint . --fix && npx tsx ./src/index.ts"
+  "exec": "npm run lint && npx tsx ./src/index.ts"
 }
