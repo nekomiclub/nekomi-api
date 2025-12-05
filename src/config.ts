@@ -100,105 +100,6 @@ const DOMAIN = {
   fullkekw_account: env.FULLKEKW_ACCOUNT_DOMAIN,
 };
 
-const STATIC = {
-  AnimeFeatured: {
-    headliners:
-      ProductionMode
-        ? [{
-          id: '90195ae6-e7c6-4608-8894-05041e06343b', // Gachiakuta
-          backgroundURL: 'https://media.nekomi.club/b36bf271-5131-4062-91b3-2ac1fef9cad5',
-          videoURL: 'https://media.nekomi.club/gachiakuta-op',
-        }, {
-          id: '38c54682-108e-481b-9cdc-9e14658c1f75', // The Fragrant Flower Blooms with Dignity
-          backgroundURL: 'https://media.nekomi.club/1367cb78-0594-409d-99b3-4a424a4e545f',
-          videoURL: 'https://media.nekomi.club/fragrant-flower-op',
-        }, {
-          id: '96a213e7-b440-474c-8cd4-270ca5dfd150', // Grand Blue Dreaming Season 2
-          backgroundURL: 'https://media.nekomi.club/ef7b1eb7-ab89-48ba-85bb-2128490f3d11',
-          videoURL: 'https://media.nekomi.club/grand-blue-op',
-        }]
-        : [{
-          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/b36bf271-5131-4062-91b3-2ac1fef9cad5',
-          videoURL: 'https://media.nekomi.club/gachiakuta-op',
-        }, {
-          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/1367cb78-0594-409d-99b3-4a424a4e545f',
-          videoURL: 'https://media.nekomi.club/fragrant-flower-op',
-        }, {
-          id: '0bedcdb2-c666-4f90-9645-ad98f8bb53b7',
-          backgroundURL: 'https://media.nekomi.club/ef7b1eb7-ab89-48ba-85bb-2128490f3d11',
-          videoURL: 'https://media.nekomi.club/grand-blue-op',
-        },],
-
-
-    hot:
-      ProductionMode
-        ? [
-          '4af6ccf4-18e7-465e-96fd-f1c131cead4e',
-          '6883f1c2-7820-47b6-ae31-52ac2ec0cd5c',
-          '841c3c0b-1d78-4c6a-8d6c-cd91295f70f5',
-          'a4e7b293-be4d-4f5d-97be-c1b7cde2c5fe',
-        ]
-        : [
-          '627690b0-f0c1-490d-b50e-c5ace32cd563',
-          '2e546c6f-8545-4ea4-b9b9-3533d860d36a',
-          'fc6868df-bd76-494e-840f-f7ff3dd67e2d'
-        ]
-  }
-};
-
-const VALIDATION = {
-  CreateUser: {
-    minNameLength: 6,
-    maxNameLength: 32
-  },
-  PatchTitle: {
-    minNameLength: 1,
-    maxNameLength: 320,
-    maxAltNamesCount: 7,
-    maxDescriptionLength: 2200,
-    maxDetailsLength: 500,
-    minEpisode: 1,
-    maxEpisode: 9999,
-    maxGenresCount: 10,
-    minRating: 1,
-    maxRating: 10,
-    minYear: 2000,
-    maxYear: 2050,
-    maxStudiosCount: 5,
-    minStudioLength: 3,
-    maxStudioLength: 32,
-  },
-
-
-  User: {
-    /** In bytes */
-    MaximumAvatarSize: 1048576,
-    /** In bytes */
-    MaximumBannerSize: 2097152,
-
-    MinimumLibNameLength: 3,
-    MaximumLibNameLength: 32,
-    MaximumIncreaseViewtime: 7200, // 2h
-  },
-
-  Anime: {
-    minYear: 2007,
-    maxYear: getUTC().year + 1,
-
-    maxNameLength: 320,
-    maxAltNamesLength: 7,
-    maxStudiosLength: 7,
-    maxGenresLength: 7,
-    maxEpisodesCount: 9999,
-    maxDescriptionLength: 2200,
-    maxDetailsLength: 500,
-
-    maxScore: 10
-  }
-};
-
 const URL = {
   proxy: env.PROXY_URL,
   nekomi_site: env.NEKOMI_NEXTJS_URL,
@@ -282,15 +183,13 @@ export const config = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`,
   commit,
   logsDir,
-  startedAt: `${getUTC().fulldate} ${getUTC().timeAccurate}`,
+  startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().ms}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
   URL,
   env,
   vars,
 
-  VALIDATION,
   DOMAIN,
-  STATIC,
   rickrollEndpoints
 };
 

@@ -20,12 +20,10 @@
     "noImplicitAny": false,
     "noImplicitThis": false,
     "skipLibCheck": true,
+    "noEmit": true,
     "paths": {
       "~/core/*": [
         "./src/_core/*",
-      ],
-      "~/services/*": [
-        "./src/services/*",
       ],
       "~/utils/*": [
         "./src/utils/*",
