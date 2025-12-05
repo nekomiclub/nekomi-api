@@ -1,12 +1,13 @@
-import mongoose from 'mongoose';
-import { config } from './config';
+import MongoDBService from './_core/Services/DatabaseService';
+import log from './_core/Services/LoggerService';
 
 
 
-//* Establish mongodb connection
-mongoose.set('strictQuery', false);
-mongoose.connect(config.mongodbUrl, {
-  retryWrites: true,
-}).catch(e => {
-  // Logger.fail('[System]: MongoDB connection failed', e);
-});
+//* === Clear up console
+console.clear();
+log.debug(`[System/Init]: ------------------ DRY RUN ------------------`);
+
+
+
+//* === Establish mongodb connection
+MongoDBService.connect();

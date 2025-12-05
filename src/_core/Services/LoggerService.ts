@@ -5,7 +5,8 @@ import { getUTC } from '~/utils/utils';
 
 const fileFormat = format.combine(
   format.timestamp({ format: () => `${getUTC().fulldate} ${getUTC().time}` }),
-  format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}]\t${message}`)
+  format.errors({ stack: true }),
+  format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}]\t${message}`),
 );
 
 
@@ -19,6 +20,7 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: format.combine(
         format.timestamp({ format: () => getUTC().time }),
+        format.errors({ stack: true }),
         format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}] ${message}`),
         format.colorize({ all: true })
       )
@@ -40,15 +42,15 @@ const logger = winston.createLogger({
 
 
 
-class LoggerServ {
-  error(message: string, ...args: any[]) { logger.error(message, args); }
-  warn(message: string, ...args: any[]) { logger.warn(message, args); }
-  info(message: string, ...args: any[]) { logger.info(message, args); }
-  http(message: string, ...args: any[]) { logger.http(message, args); }
-  verbose(message: string, ...args: any[]) { logger.verbose(message, args); }
-  debug(message: string, ...args: any[]) { logger.debug(message, args); }
-  silly(message: string, ...args: any[]) { logger.silly(message, args); }
+class LoggerService {
+  error(message: string, ...args: any[]) { logger.error(message, ...args); }
+  warn(message: string, ...args: any[]) { logger.warn(message, ...args); }
+  info(message: string, ...args: any[]) { logger.info(message, ...args); }
+  http(message: string, ...args: any[]) { logger.http(message, ...args); }
+  verbose(message: string, ...args: any[]) { logger.verbose(message, ...args); }
+  debug(message: string, ...args: any[]) { logger.debug(message, ...args); }
+  silly(message: string, ...args: any[]) { logger.silly(message, ...args); }
 }
 
-const Logger = new LoggerServ();
-export default Logger;
+const log = new LoggerService();
+export default log;

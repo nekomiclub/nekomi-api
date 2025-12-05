@@ -25,7 +25,6 @@ const env = {
   HOST: String(process.env['HOST']),
 
   DATABASE_HOST: String(process.env['DATABASE_HOST']),
-  DATABASE_PORT: Number(process.env['DATABASE_PORT']),
   DATABASE_NAME: String(process.env['DATABASE_NAME']),
   DATABASE_USR: String(process.env['DATABASE_USR']),
   DATABASE_PWD: String(process.env['DATABASE_PWD']),
@@ -179,8 +178,8 @@ const rickrollEndpoints: RegExp[] = [
 
 
 
-export const config = {
-  mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}:${env.DATABASE_PORT}/${env.DATABASE_NAME}`,
+export const conf = {
+  mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
   commit,
   logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().ms}`,
