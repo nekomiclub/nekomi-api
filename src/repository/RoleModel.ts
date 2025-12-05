@@ -1,4 +1,4 @@
-import IRole from '~/core/Interfaces/IRole';
+import IRole from '~/intf/IRole';
 import mongoose, { Schema } from 'mongoose';
 
 

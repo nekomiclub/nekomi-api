@@ -1,7 +1,7 @@
-import IUser from '~/core/Interfaces/IUser';
+import IUser from '~/intf/IUser';
 import UnifiedRepository from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
-import { RepositoryQueriesType } from '~/core/Interfaces/types';
+import { RepositoryQueriesType } from '~/intf/types';
 
 
 

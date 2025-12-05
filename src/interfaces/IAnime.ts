@@ -1,4 +1,4 @@
-import { DayOfWeek } from '~/core/Interfaces/types';
+import { DayOfWeek } from '~/intf/types';
 
 
 

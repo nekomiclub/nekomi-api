@@ -1,7 +1,7 @@
-import IDubber from '~/core/Interfaces/IDubber';
+import IDubber from '~/intf/IDubber';
 import UnifiedRepository from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
-import { RepositoryQueriesType } from '~/core/Interfaces/types';
+import { RepositoryQueriesType } from '~/intf/types';
 
 
 

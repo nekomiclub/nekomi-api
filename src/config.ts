@@ -20,7 +20,6 @@ export const ProductionMode = process.argv.includes('prodMode');
 export const TestMode = process.argv.includes('testMode');
 
 const env = {
-  PORT_PROMETHEUS: Number(process.env['PORT_PROMETHEUS']),
   PORT: Number(process.env['PORT']),
   HOST: String(process.env['HOST']),
 
@@ -84,21 +83,6 @@ if (!env.ISDOCKER) {
 const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createId()}`;
 
 
-const DOMAIN = {
-  proxy: env.PROXY_DOMAIN,
-  nekomi: env.NEKOMI_DOMAIN,
-  nekomi_auth: env.NEKOMI_AUTH_DOMAIN,
-  nekomi_api: env.NEKOMI_API_DOMAIN,
-  nekomi_media: env.NEKOMI_MEDIA_DOMAIN,
-  nekomi_bot: env.NEKOMI_BOT_DOMAIN,
-  nekomi_websocket: env.NEKOMI_WEBSOCKET_DOMAIN,
-  nekomi_admin: env.NEKOMI_ADMIN_DOMAIN,
-
-  fullkekw_authority: env.FULLKEKW_AUTHORITY_DOMAIN,
-  fullkekw_userapi: env.FULLKEKW_USERAPI_DOMAIN,
-  fullkekw_account: env.FULLKEKW_ACCOUNT_DOMAIN,
-};
-
 const URL = {
   proxy: env.PROXY_URL,
   nekomi_site: env.NEKOMI_NEXTJS_URL,
@@ -119,17 +103,6 @@ const URL = {
   jikanAPI: 'https://api.jikan.moe',
 };
 
-export const ApiOrigins: Partial<Record<string, string>> = {
-  [URL.nekomi_bot]: 'NekomiBotAPI',
-  [URL.hikkaAPI]: 'HikkaAPI',
-  [URL.fullkekw_account]: 'FullkekwUserAPI',
-  [URL.fullkekw_authority]: 'FullkekwAuthorityAPI',
-  [URL.MALAPI]: 'MyAnimeListAPI',
-  [URL.jikanAPI]: 'JikanAPI',
-  [URL.ashdiAPI]: 'AshidiAPI',
-  [URL.imdbAPI]: 'IMDBAPI',
-};
-
 const vars = {
   /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
   INTERNAL_ROOT_USER_ID: 'nekomiclub',
@@ -148,9 +121,6 @@ const vars = {
 
   /** CSRF token expiration */
   CSRF_EXPIRE: 180000,
-
-  MyAnimeListSyncCooldown: 432000000, // 5d | 432000000
-  AshdiSyncCooldown: 172800000, // 2d | 172800000
 
   /** Default avatar */
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',
@@ -178,7 +148,7 @@ const rickrollEndpoints: RegExp[] = [
 
 
 
-export const conf = {
+const conf = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
   commit,
   logsDir,
@@ -188,13 +158,7 @@ export const conf = {
   env,
   vars,
 
-  DOMAIN,
   rickrollEndpoints
 };
 
-
-
-//! CHANGE HTTP PORT TO DEFAULT. IN PROD MODE THIS WILL BE MANAGED BY NGINX.
-if (DevelopmentMode) {
-  env.PORT = 80;
-}
+export default conf;

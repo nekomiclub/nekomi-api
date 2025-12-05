@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IAshdiVOD } from '~/core/Interfaces/IAshdiVOD';
+import { IAshdiVOD } from '~/intf/IAshdiVOD';
 
 
 

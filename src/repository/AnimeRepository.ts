@@ -1,7 +1,7 @@
-import IAnime from '~/core/Interfaces/IAnime';
+import IAnime from '~/intf/IAnime';
 import UnifiedRepository from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
-import { RepositoryQueriesType } from '~/core/Interfaces/types';
+import { RepositoryQueriesType } from '~/intf/types';
 
 
 

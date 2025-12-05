@@ -1,5 +1,5 @@
 import { HydratedDocument, Model } from 'mongoose';
-import { RepositoryQueriesType } from '~/core/Interfaces/types';
+import { RepositoryQueriesType } from '~/intf/types';
 
 
 

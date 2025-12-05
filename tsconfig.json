@@ -13,7 +13,7 @@
       "jest"
     ],
     "allowJs": true,
-    "outDir": "./dist",
+    "outDir": "./build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -22,8 +22,14 @@
     "skipLibCheck": true,
     "noEmit": true,
     "paths": {
-      "~/core/*": [
-        "./src/_core/*",
+      "~/intf/*": [
+        "./src/interfaces/*",
+      ],
+      "~/service/*": [
+        "./src/services/*",
+      ],
+      "~/repo/*": [
+        "./src/repository/*",
       ],
       "~/utils/*": [
         "./src/utils/*",
