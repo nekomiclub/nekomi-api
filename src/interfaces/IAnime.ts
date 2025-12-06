@@ -1,84 +1,61 @@
-import { DayOfWeek } from '~/intf/types';
+import { ISODateString } from './types';
 
 
 
 export interface IAnime {
-  uuid: string
+  id: string
+  mal_id: number | null
+  imdb_id: string | null
   slug: string
-  poster: string
+  hikka_slug: string | null
+
+  hero_poster: string
+  hero_poster_author: string | null
+  posters: string[]
+
   year: number
-  episodesCount: number | null
-  description: string | null
-  details: string | null
-  broadcast: IAnimeBroadcast | null
+  episodes_released: number | null
+
+  title_en: string
+  title_ja: string
+  title_ua: string | null
+  title_synonims: string[]
+
+  synopsis_en: string | null
+  synopsis_ua: string | null
+
+  score: number
+  scored_by: number
+
+  /** Anime pictures URLs */
+  pictures: string[]
+
+  /** Related animes IDs */
+  related: string[]
+
+  /** Studios IDs */
+  studios: string[]
+  schedule: IAnimeSchedule[]
+  episodes: IAnimeEpisode[]
+  episodes_meta: IAnimeEpisodeMeta[]
+
   genres: ANIME_GENRE[]
   rate: ANIME_RATE
   status: ANIME_STATUS
   season: ANIME_SEASON
-  media: ANIME_MEDIA_TYPE
-  studios: IAnimeStudio[]
-  malId: number | null
+  type: ANIME_TYPE
 
-  /** @since 2.1.2 */
-  imdbId: string | null
-  /** @since 2.1.2 */
-  isDMCARestricted: boolean
+  updated_at: ISODateString
+  created_at: ISODateString
+  hikka_sync: ISODateString | null
+  myanimelist_sync: ISODateString | null
+  shikimori_sync: ISODateString | null
 
-  /** UTC timestamp @private */
-  updatedAt: number
-  /** UTC timestamp @private */
-  createdAt: number
-  /** MAL sync UTC timestamp @private */
-  malSyncedAt: number | null
-  /** Shikimori sync UTC timestamp @private */
-  shikimoriSyncedAt: number | null
-  /** AniDB sync UTC timestamp @private */
-  anidbSyncedAt: number | null
-  /** hikka.io sync UTC timestamp @private */
-  hikkaSyncedAt: number | null
-
-  /** @private */
-  episodes: IAnimeEpisode[]
-  /** @private */
-  episodesMeta: IAnimeEpisodeMeta[]
-  /** Anime pictures URL's @private */
-  pictures: string[]
-  /** Related animes ID's @private */
-  related: string[]
-  /** Poster adapted by dubber ID */
-  posterAdapt: string | null
-
-  /** Prevent services sync @private */
-  stopSync: {
-    mal?: boolean
-    shikimori?: boolean
-    anidb?: boolean
-    hikka?: boolean
-  }
-
-  score: {
-    /** @deprecated */
-    imdb: number | null
-    mal: number | null
-    malScoredBy: number | null
-  }
-
-  names: {
-    eng: string
-    ukr: string
-    alt: string[]
-  }
+  /** Is anime restricted under DMCA */
+  isDMCARestricted?: boolean
 }
 
-export interface IHydratedAnime {
-  anime: IAnime
-  genres: AnimeGenreType[]
-  media: AnimeMediaType
-  rate: AnimeRateType
-  season: AnimeSeasonType
-  status: AnimeStatusType
-}
-
+/** @deprecated pending refactoring */
 export interface IAnimeEpisode {
   dubberID: string
   order: number
@@ -97,45 +74,32 @@ export interface IAnimeEpisode {
 }
 
 export interface IAnimeEpisodeMeta {
-  order: number
-  names: {
-    ukr: string
-    eng: string
-  }
-
-  /** UTC-0 timestamp */
-  dateOut: number
+  episode: number
+  title: string
+  cover: string | null
 }
 
-export interface IAnimeBroadcast {
-  day: DayOfWeek
-
-  /** Time of the broadcast. E.g 19:30 */
-  time: string
+export interface IAnimeSchedule {
+  episode: number
+  airing_at: number
 }
 
-export interface IAnimeStudio {
-  malId: number
-  name: string
-}
-
-export type AnimeGenreType = IKeyValueDescription<ANIME_GENRE>
-export type AnimeRateType = IKeyValueDescription<ANIME_RATE>;
-export type AnimeStatusType = IKeyValue<ANIME_STATUS>;
-export type AnimeSeasonType = IKeyValue<ANIME_SEASON>;
-export type AnimeMediaType = IKeyValue<ANIME_MEDIA_TYPE>;
 
 
-
-
-interface IKeyValue<T = string> {
+type AnimeNamedRecordType<T = string> = {
   slug: T
   name: string
 }
 
-interface IKeyValueDescription<T = string> extends IKeyValue<T> {
+type AnimeNamedDescriptionRecordType<T = string> = AnimeNamedRecordType<T> & {
   description: string
 }
+
+export type AnimeGenreType = AnimeNamedDescriptionRecordType<ANIME_GENRE>
+export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATE>;
+export type AnimeStatusType = AnimeNamedRecordType<ANIME_STATUS>;
+export type AnimeSeasonType = AnimeNamedRecordType<ANIME_SEASON>;
+export type AnimeType = AnimeNamedRecordType<ANIME_TYPE>;
 
 
 
@@ -186,22 +150,11 @@ export enum ANIME_GENRE {
 }
 
 export enum ANIME_RATE {
-  /** All ages */
   G = 'g',
-
-  /** Children */
   PG = 'pg',
-
-  /** Teens 13+ */
   PG13 = 'pg_13',
-
-  /** 17+ (violence) */
   R17 = 'r',
-
-  /** 18+ (mild nudity) */
   RPLUS = 'r+',
-
-  /** hentai */
   RX = 'rx',
 }
 
@@ -218,7 +171,7 @@ export enum ANIME_SEASON {
   SPRING = 'spring',
 }
 
-export enum ANIME_MEDIA_TYPE {
+export enum ANIME_TYPE {
   TV = 'tv',
   OVA = 'ova',
   MOVIE = 'movie',
@@ -514,44 +467,33 @@ export const AnimeSeasons: Record<ANIME_SEASON, AnimeSeasonType> = {
   },
 };
 
-export const AnimeMedias: Record<ANIME_MEDIA_TYPE, AnimeMediaType> = {
-  [ANIME_MEDIA_TYPE.MOVIE]: {
-    slug: ANIME_MEDIA_TYPE.MOVIE,
+export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
+  [ANIME_TYPE.MOVIE]: {
+    slug: ANIME_TYPE.MOVIE,
     name: 'Фільм',
   },
-  [ANIME_MEDIA_TYPE.ONA]: {
-    slug: ANIME_MEDIA_TYPE.ONA,
+  [ANIME_TYPE.ONA]: {
+    slug: ANIME_TYPE.ONA,
     name: 'ОНА',
   },
-  [ANIME_MEDIA_TYPE.OVA]: {
-    slug: ANIME_MEDIA_TYPE.OVA,
+  [ANIME_TYPE.OVA]: {
+    slug: ANIME_TYPE.OVA,
     name: 'ОВА',
   },
-  [ANIME_MEDIA_TYPE.SPECIAL]: {
-    slug: ANIME_MEDIA_TYPE.SPECIAL,
+  [ANIME_TYPE.SPECIAL]: {
+    slug: ANIME_TYPE.SPECIAL,
     name: 'Спешл',
   },
-  [ANIME_MEDIA_TYPE.TV]: {
-    slug: ANIME_MEDIA_TYPE.TV,
+  [ANIME_TYPE.TV]: {
+    slug: ANIME_TYPE.TV,
     name: 'Серіал',
   },
-  [ANIME_MEDIA_TYPE.UNKNOWN]: {
-    slug: ANIME_MEDIA_TYPE.UNKNOWN,
+  [ANIME_TYPE.UNKNOWN]: {
+    slug: ANIME_TYPE.UNKNOWN,
     name: 'Невідомо',
   },
 };
 
-/** 
- * Anime seasons sorted by month index
- * 
- * @example {this}[6] - summer
- */
-export const AnimeMonthSeasons: ANIME_SEASON[] = [
-  ANIME_SEASON.WINTER, ANIME_SEASON.WINTER,
-  ANIME_SEASON.SPRING, ANIME_SEASON.SPRING, ANIME_SEASON.SPRING,
-  ANIME_SEASON.SUMMER, ANIME_SEASON.SUMMER, ANIME_SEASON.SUMMER,
-  ANIME_SEASON.FALL, ANIME_SEASON.FALL, ANIME_SEASON.FALL,
-  ANIME_SEASON.WINTER,
-];
+
 
 export default IAnime;

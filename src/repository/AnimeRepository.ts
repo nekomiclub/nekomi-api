@@ -1,7 +1,7 @@
 import IAnime from '~/intf/IAnime';
 import UnifiedRepository from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
-import { RepositoryQueriesType } from '~/intf/types';
+import { RepositoryQueriesType, RepositorySchemaType } from '~/intf/types';
 
 
 
@@ -9,44 +9,50 @@ import { RepositoryQueriesType } from '~/intf/types';
 type RepositoryType = IAnime;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
-  return { $or: [{ uuid: query }, { slug: query }] };
+  return { $or: [{ id: query }, { slug: query }] };
 };
 
 
 
-const model = mongoose.model<RepositoryType>('anime', new Schema({
-  uuid: String,
-  broadcast: Object,
-  description: String,
-  details: String,
+const schema: RepositorySchemaType<RepositoryType> = {
+  id: String,
+  created_at: String,
   episodes: Array,
-  episodesCount: Number,
-  episodesMeta: Array,
-  malId: Number,
-  malSyncedAt: Number,
-  anidbSyncedAt: Number,
-  createdAt: Number,
-  hikkaSyncedAt: Number,
-  shikimoriSyncedAt: Number,
-  media: String,
-  names: Object,
+  episodes_meta: Array,
+  episodes_released: null,
+  genres: Array,
+  hero_poster: String,
+  hero_poster_author: null,
+  hikka_slug: null,
+  hikka_sync: null,
+  imdb_id: null,
+  isDMCARestricted: Boolean,
+  mal_id: null,
+  myanimelist_sync: null,
   pictures: Array,
-  poster: String,
+  posters: Array,
   rate: String,
   related: Array,
-  score: Object,
-  slug: String,
-  updatedAt: Number,
-  year: Number,
-  studios: Array,
-  status: String,
+  schedule: Array,
+  score: Number,
+  scored_by: Number,
   season: String,
-  genres: Array,
-  posterAdapt: String,
-  stopSync: Object,
-  imdbId: String,
-  isDMCARestricted: Boolean
-}));
+  slug: String,
+  status: String,
+  studios: Array,
+  synopsis_en: String,
+  synopsis_ua: null,
+  title_en: String,
+  title_ja: String,
+  title_ua: null,
+  title_synonims: Array,
+  type: String,
+  updated_at: String,
+  year: Number,
+  shikimori_sync: null
+};
+
+const model = mongoose.model<RepositoryType>('anime', new Schema(schema));
 
 
 

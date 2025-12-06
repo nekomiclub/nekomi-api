@@ -1,8 +1,11 @@
-import { ANIME_MEDIA_TYPE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS } from './IAnime';
+import { ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from './IAnime';
 import { z } from 'zod';
 
 
 
+export type ISODateString = string;
+
+export type RepositorySchemaType<RepositoryType> = Record<keyof RepositoryType, any>
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
 
 export const DaysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
@@ -13,7 +16,7 @@ export interface MyAnimeListNode {
   id: number
   title: string
 
-  media_type?: ANIME_MEDIA_TYPE
+  media_type?: ANIME_TYPE
   num_episodes?: number
   rating?: ANIME_RATE
   status?: ANIME_STATUS
@@ -61,7 +64,7 @@ export interface MyAnimeListNode {
 /** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
 export interface HikkaMALIntegration {
   data_type: string
-  media_type: ANIME_MEDIA_TYPE
+  media_type: ANIME_TYPE
   title_ua: string
   title_en: string
   title_ja: string
