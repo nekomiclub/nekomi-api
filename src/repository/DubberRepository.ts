@@ -1,5 +1,5 @@
 import IDubber from '~/intf/IDubber';
-import UnifiedRepository from './UnifiedRepository';
+import UnifiedRepositoryClass from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
 import { RepositoryQueriesType } from '~/intf/types';
 
@@ -33,7 +33,7 @@ const model = mongoose.model<IDubber>('dubber', new Schema({
 
 
 
-export class DubberRepositoryClass extends UnifiedRepository<RepositoryType> {
+export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor(query?: string) {
     super(model, queries, query);
   }

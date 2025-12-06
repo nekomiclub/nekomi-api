@@ -54,5 +54,5 @@ class LoggerService {
   silly(message: string, ...args: any[]) { logger.silly(message, ...args); }
 }
 
-const log = new LoggerService();
-export default log;
+const Logger = new LoggerService();
+export default Logger;

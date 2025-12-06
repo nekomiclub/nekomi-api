@@ -11,7 +11,7 @@ export interface IAnime {
 
   hero_poster: string
   hero_poster_author: string | null
-  posters: string[]
+  posters: string[] // Protected
 
   year: number
   episodes_released: number | null
@@ -27,17 +27,15 @@ export interface IAnime {
   score: number
   scored_by: number
 
-  /** Anime pictures URLs */
-  pictures: string[]
-
   /** Related animes IDs */
-  related: string[]
+  related: string[] // Protected
 
   /** Studios IDs */
   studios: string[]
+  pictures: string[] // Protected
   schedule: IAnimeSchedule[]
-  episodes: IAnimeEpisode[]
-  episodes_meta: IAnimeEpisodeMeta[]
+  episodes: IAnimeEpisode[] // Protected
+  episodes_meta: IAnimeEpisodeMeta[] // Protected
 
   genres: ANIME_GENRE[]
   rate: ANIME_RATE
@@ -45,14 +43,14 @@ export interface IAnime {
   season: ANIME_SEASON
   type: ANIME_TYPE
 
-  updated_at: ISODateString
-  created_at: ISODateString
-  hikka_sync: ISODateString | null
-  myanimelist_sync: ISODateString | null
-  shikimori_sync: ISODateString | null
+  updated_at: ISODateString // Protected
+  created_at: ISODateString // Protected
+  hikka_sync: ISODateString | null // Protected
+  myanimelist_sync: ISODateString | null // Protected
+  shikimori_sync: ISODateString | null // Protected
 
   /** Is anime restricted under DMCA */
-  isDMCARestricted?: boolean
+  is_DMCA_restricted?: boolean // Protected
 }
 
 /** @deprecated pending refactoring */

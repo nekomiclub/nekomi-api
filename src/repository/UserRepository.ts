@@ -1,5 +1,5 @@
 import IUser from '~/intf/IUser';
-import UnifiedRepository from './UnifiedRepository';
+import UnifiedRepositoryClass from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
 import { RepositoryQueriesType } from '~/intf/types';
 
@@ -30,7 +30,7 @@ const model = mongoose.model<RepositoryType>('user', new Schema({
 
 
 
-export class UserRepositoryClass extends UnifiedRepository<RepositoryType> {
+export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor(query?: string) {
     super(model, queries, query);
   }

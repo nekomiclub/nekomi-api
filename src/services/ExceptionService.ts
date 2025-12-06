@@ -1,6 +1,6 @@
+import Logger from './LoggerService';
 import express from 'express';
 import fs from 'fs';
-import log from './LoggerService';
 import { getUTC } from '~/utils/utils';
 
 
@@ -69,7 +69,7 @@ export class ErrorConstructor extends Error {
 
 
 
-export class HTTPError extends ErrorConstructor {
+export class NekoError extends ErrorConstructor {
   constructor(code: string) {
     const message = errorsList[code] as IError;
 
@@ -161,7 +161,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     console.error(e);
 
     const emsg = `[Uncaught]: Uncaught error occured`;
-    log.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
+    Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
     return res.status(500).json({ message: emsg, date });
   }

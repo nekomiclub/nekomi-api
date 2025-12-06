@@ -1,11 +1,11 @@
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
+import Logger from './services/LoggerService';
 import bodyParser from 'body-parser';
 import conf, { TestMode } from './config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import log from './services/LoggerService';
 import { traceRequest } from './services/HTTPService';
 
 
@@ -19,7 +19,7 @@ async function runtime() {
   try {
     //* === Clear up console
     console.clear();
-    log.debug(`------------------ DRY RUN ------------------`);
+    Logger.debug(`------------------ DRY RUN ------------------`);
 
 
 
@@ -49,7 +49,7 @@ async function runtime() {
     if (!TestMode) {
       await new Promise(res => {
         app.listen(conf.env.PORT, conf.env.HOST, () => {
-          log.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}. [commit: ${conf.commit}]`);
+          Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}. [commit: ${conf.commit}]`);
 
           res(1);
         });
@@ -68,7 +68,7 @@ async function runtime() {
     ----------------------------\n\n`);
     }
   } catch (e) {
-    log.error(`[System/Init]: Some error occured in runtime`, e);
+    Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }
 }
 

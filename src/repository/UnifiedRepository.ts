@@ -1,11 +1,12 @@
 import { HydratedDocument, Model } from 'mongoose';
+import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
 
 
 
 /** Unified repository to provide CRUD access to models */
-export default class UnifiedRepository<RepositoryType> {
-  private _doc: HydratedDocument<RepositoryType> | undefined;
+export default class UnifiedRepositoryClass<RepositoryType> {
+  protected _doc: HydratedDocument<RepositoryType> | undefined;
   readonly diff: string[] = [];
 
 
@@ -34,7 +35,7 @@ export default class UnifiedRepository<RepositoryType> {
 
   async getOne(query: string): Promise<RepositoryType> {
     const result = await this.model.findOne(this.queries(query));
-    if (!result) throw Error('INDEV_ERROR');
+    if (!result) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     return result;
   }
@@ -77,7 +78,7 @@ export default class UnifiedRepository<RepositoryType> {
 
   /** @requires query specified in the constructor */
   async set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
-    if (!this._doc) throw new Error('INDEV_ERROR');
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     // Write diff
     if (typeof value === 'string' || typeof value === 'number') this.diff.push(`[${String(key)}]: ${this._doc[key]} > ${value}`);
@@ -93,7 +94,7 @@ export default class UnifiedRepository<RepositoryType> {
 
   /** @requires query specified in the constructor */
   async save() {
-    if (!this._doc) throw new Error('INDEV_ERROR');
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     await this._doc.save();
   }

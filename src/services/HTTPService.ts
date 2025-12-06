@@ -1,5 +1,5 @@
+import Logger from './LoggerService';
 import express from 'express';
-import log from './LoggerService';
 import { HandleRequest } from './ExceptionService';
 import { IncomingHttpHeaders } from 'http';
 
@@ -29,7 +29,7 @@ export function traceRequest() {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const IP = getRequestIP(req.headers);
 
-    log.http(`[Request/${IP}]: ${req.method} ${req.url}`);
+    Logger.http(`[Request/${IP}]: ${req.method} ${req.url}`);
 
     return next();
   };

@@ -1,3 +1,8 @@
+/** 
+ * Get UTC date
+ * 
+ * @param ts ISO/UTC string, timestamp or Date
+ */
 export function getUTC(ts?: string | number | Date) {
   const now = new Date(ts ?? new Date());
 
@@ -24,6 +29,26 @@ export function getUTC(ts?: string | number | Date) {
     time: `${hrs}:${mins}:${secs}`,
 
     /** Stringified values (with pads) */
-    str: { month, hrs, mins, secs, ms }
+    str: { month, hrs, mins, secs, ms },
+
+    ISO: now.toISOString(),
   };
+}
+
+
+
+/** 
+ * Trim string and remove all excess spaces
+ * 
+ * @example "   Hello  World  " > "Hello World"
+ */
+export function trimString(input: string) {
+  return input.trim().replace(/\s+/g, ' ');
+}
+
+
+
+/** Get random number between min and max */
+export function randomBetween(min: number, max: number): number {
+  return Math.floor(min + Math.random() * (max + 1 - min));
 }
