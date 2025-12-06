@@ -152,7 +152,7 @@ const conf = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
   commit,
   logsDir,
-  startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().ms}`,
+  startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
   URL,
   env,

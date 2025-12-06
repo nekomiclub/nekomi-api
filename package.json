@@ -9,7 +9,7 @@
     "start": "npx tsx ./src/index.ts prodMode",
     "test": "npx jest --silent /test --forceExit",
     "build": "npm run lint && npx tsc --build",
-    "husky": "npm run lint && npx tsc --noEmit && git add .",
+    "husky": "npm run lint && npx tsc && git add .",
     "lint": "npx eslint . --fix"
   },
   "devDependencies": {

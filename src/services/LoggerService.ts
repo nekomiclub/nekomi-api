@@ -24,7 +24,7 @@ const logger = winston.createLogger({
         format.timestamp({ format: () => getUTC().time }),
         format.errors({ stack: true }),
         format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}] ${message}`),
-        format.colorize({ all: true })
+        format.colorize({ all: true, colors: { http: 'grey' } })
       )
     }),
     new winston.transports.File({

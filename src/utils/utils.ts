@@ -22,5 +22,8 @@ export function getUTC(ts?: string | number | Date) {
     timestamp: now.getTime(),
     fulldate: `${date}.${month}.${year}`,
     time: `${hrs}:${mins}:${secs}`,
+
+    /** Stringified values (with pads) */
+    str: { month, hrs, mins, secs, ms }
   };
 }

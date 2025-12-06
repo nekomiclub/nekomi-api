@@ -1,4 +1,5 @@
 import DatabaseService from './services/DatabaseService';
+import GenericRouter from './api/http/GenericController/GenericRouter';
 import bodyParser from 'body-parser';
 import conf, { TestMode } from './config';
 import cookieParser from 'cookie-parser';
@@ -40,6 +41,7 @@ async function runtime() {
 
 
     //* === HTTP Routing
+    app.use('/', GenericRouter);
 
 
 
@@ -65,7 +67,6 @@ async function runtime() {
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
     }
-
   } catch (e) {
     log.error(`[System/Init]: Some error occured in runtime`, e);
   }
