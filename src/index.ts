@@ -1,5 +1,6 @@
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
+import LoadCatalog from './utils/load-catalog';
 import Logger from './services/LoggerService';
 import bodyParser from 'body-parser';
 import conf, { TestMode } from './config';
@@ -67,6 +68,8 @@ async function runtime() {
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
     }
+
+    await LoadCatalog();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

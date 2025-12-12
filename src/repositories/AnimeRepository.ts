@@ -103,8 +103,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /** 
    * Creates new anime document and initialize service part of repository
    */
-  async create({ saveDocument }: ICreateProps): Promise<IAnime> {
-    saveDocument = saveDocument ?? true;
+  async create(props?: ICreateProps): Promise<IAnime> {
+    const saveDocument = props?.saveDocument ?? true;
 
     let id = createId();
     const title = `Untitled ${id}`;
@@ -129,8 +129,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       year: getUTC().year,
       episodes_released: null,
 
-      title_en: '',
-      title_ja: '',
+      title_en: title,
+      title_ja: title,
       title_ua: null,
       title_synonims: [],
 
