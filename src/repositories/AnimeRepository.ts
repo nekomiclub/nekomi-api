@@ -1,11 +1,12 @@
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimeEpisodeMeta, IAnimeSchedule } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf from '~/config';
 import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
+import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType, RepositorySchemaType } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
@@ -62,6 +63,30 @@ const model = mongoose.model<RepositoryType>('anime', new Schema(schema));
 
 
 
+interface ICreateProps {
+  /** Save the document in the database. @default true */
+  saveDocument?: boolean
+}
+
+interface ISetTitleProps {
+  title_en?: IAnime['title_en']
+  title_ja?: IAnime['title_ja']
+  title_ua?: string | null
+  synonyms?: string[]
+}
+
+interface ISetSynopsisProps {
+  synopsis_en?: string | null
+  synopsis_ua?: string | null
+}
+
+interface ISetScoreProps {
+  score?: number
+  scoredBy?: number
+}
+
+
+
 export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor(query?: string) {
     super(model, queries, query);
@@ -69,7 +94,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  get document() {
+  get document(): RepositoryType | null {
     return this._doc ? DocumentDTO.anime(this._doc, true) : null;
   }
 
@@ -78,7 +103,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /** 
    * Creates new anime document and initialize service part of repository
    */
-  async create(): Promise<IAnime> {
+  async create({ saveDocument }: ICreateProps): Promise<IAnime> {
+    saveDocument = saveDocument ?? true;
+
     let id = createId();
     const title = `Untitled ${id}`;
     const slug = createSlug(title);
@@ -134,13 +161,120 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     };
 
     const document = new model(payload);
-    await document.save();
+    if (saveDocument) await document.save();
 
     Logger.info(`[AnimeRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
     return DocumentDTO.anime(payload, true);
   }
+
+
+
+  /**
+   * Set new malId
+   */
+  setMalId(id: number | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    if (id === null || id < 0) id = null;
+
+    this.diff.push(`MalID changed (${this._doc.mal_id} > ${id})`);
+
+    this._doc.mal_id = id;
+    this._doc.markModified('mal_id');
+  }
+
+
+
+  setIMDBId(id: string | null) { }
+
+
+
+  async setSlug(slug: string) { }
+
+
+
+  async setHikkaSlug(slug: string | null) { }
+
+
+
+  async setHeroPosterAuthor(id: string | null) { }
+
+
+
+  async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) { }
+
+
+
+  async setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) { }
+
+
+
+  async setScore({ score, scoredBy }: ISetScoreProps) { }
+
+
+
+  async setRelated(related: string[] | null) { }
+
+
+
+  async setStudios(studios: string[] | null) { }
+
+
+
+  async setPictures(pictures: string[] | null) { }
+
+
+
+  async setSchedule(schedule: IAnimeSchedule) { }
+
+
+
+  async setGenres(genres: ANIME_GENRE[]) { }
+
+
+
+  async setRate(rate: ANIME_RATE) { }
+
+
+
+  async setSeason(season: ANIME_SEASON) { }
+
+
+
+  async setType(type: ANIME_TYPE) { }
+
+
+
+  async setIsDMCARestcited(flag: boolean) { }
+
+
+  async editEpisode(episode: IAnimeEpisode) { }
+
+
+
+  async removeEpisode(episode: IAnimeEpisode) { }
+
+
+
+  async editEpisodeMeta(meta: IAnimeEpisodeMeta) { }
+
+
+
+  async removeEpisodeMeta(meta: IAnimeEpisodeMeta) { }
+
+
+
+  async uploadHeroPoster() { }
+
+
+
+  async uploadPictures() { }
+
+
+
+  async removePicture(id: string) { }
 }
 
 

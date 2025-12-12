@@ -29,7 +29,7 @@
         "./src/services/*",
       ],
       "~/repo/*": [
-        "./src/repository/*",
+        "./src/repositories/*",
       ],
       "~/utils/*": [
         "./src/utils/*",

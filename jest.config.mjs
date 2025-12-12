@@ -1,23 +1,19 @@
-/**
- * JEST CONFIG  
- * 
- * @copyright fullkekw
- * @version 19.04.2025
-*/
-
+/** @type {import('jest').Config} */
 export default {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   transformIgnorePatterns: [
-    'node_modules/(?!variables/.*)'
+    'node_modules'
   ],
   testPathIgnorePatterns: [
     'dist/'
   ],
   moduleNameMapper: {
-    '^~/core/(.*)$': '<rootDir>/src/_core/$1',
-    '^~/interfaces/(.*)$': '<rootDir>/src/_core/interfaces/$1',
-    '^~/(.*)$': '<rootDir>/src/$1'
+    '^~/intf/(.*)$': '<rootDir>/src/interfaces/$1',
+    '^~/service/(.*)$': '<rootDir>/src/services/$1',
+    '^~/repo/(.*)$': '<rootDir>/src/repositories/$1',
+    '^~/utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^~/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
     '\\.(ts)$': 'ts-jest'
