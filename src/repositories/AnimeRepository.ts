@@ -1,5 +1,5 @@
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimeEpisodeMeta, IAnimeSchedule } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimeSchedule } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf from '~/config';
@@ -98,6 +98,14 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     return this._doc ? DocumentDTO.anime(this._doc, true) : null;
   }
 
+  async save() {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    await this.update();
+
+    Logger.debug(`[AnimeService]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+  }
+
 
 
   /** 
@@ -172,25 +180,22 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
   /**
-   * Set new malId
+   * Set malId
    * 
-   * @testing
+   * @tested
    */
   setMalId(id: number | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     if (id === null || id < 0) id = null;
 
-    this.diff.push(`MalID changed (${this._doc.mal_id} > ${id})`);
-
-    this._doc.mal_id = id;
-    this._doc.markModified('mal_id');
+    this.set('mal_id', id);
   }
 
 
 
   /**
-   * Set new IMDB id
+   * Set IMDB id
    * 
    * @testing
    */
@@ -199,16 +204,13 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (id === null || !id.length) id = null;
 
-    this.diff.push(`IMDB ID changed (${this._doc.imdb_id} > ${id})`);
-
-    this._doc.imdb_id = id;
-    this._doc.markModified('imdb_id');
+    this.set('imdb_id', id);
   }
 
 
 
   /** 
-   * Set new slug
+   * Set slug
    *
    * @returns accepted slug (if slug was occupied, will append it to it) 
    * @testing
@@ -222,144 +224,294 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
   /** 
-   * Set new hikka.io slug
+   * Set hikka.io slug
+   * 
+   * @testing
    */
   async setHikkaSlug(slug: string | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     if (slug === null || !slug.length) slug = null;
 
-    this.diff.push(`Hikka slug changed (${this._doc.hikka_slug} > ${slug})`);
-
-    this._doc.hikka_slug = slug;
-    this._doc.markModified('hikka_slug');
+    this.set('hikka_slug', slug);
   }
 
 
 
   /**
-   * Set new hero poster author
+   * Set hero poster author
+   * 
+   * @testing
    */
   async setHeroPosterAuthor(id: string | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     if (id === null || !id.length) id = null;
 
-    this.diff.push(`Hero poster author changed (${this._doc.hero_poster_author} > ${id})`);
-
-    this._doc.hero_poster_author = id;
-    this._doc.markModified('hero_poster_author');
+    this.set('hero_poster_author', id);
   }
 
 
 
+  /**
+   * Set title
+   * Updating english title will cumulative update the slug
+   * 
+   * @testing
+   */
   async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
   }
 
 
 
+  /**
+   * Set synopsis
+   * 
+   * @testing
+   */
   async setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
   }
 
 
 
+  /**
+   * Set score
+   * 
+   * @testing
+   */
   async setScore({ score, scoredBy }: ISetScoreProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
   }
 
 
 
+  // /**
+  //  * Append related document
+  //  * 
+  //  * @todo
+  //  */
+  // async appendRelated(id: string) {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+  // /**
+  //  * Remove related document
+  //  * 
+  //  * @todo
+  //  */
+  // async removeRelated(id: string) {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+
+
+  /**
+   * Set related documents
+   * 
+   * @notice use till new Append/Remove methods are not available
+   */
   async setRelated(related: string[] | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    if (related === null) related = [];
+
+    this.set('related', related);
   }
 
 
 
+  // /**
+  //  * Append studio
+  //  * 
+  //  * @todo
+  //  */
+  // async appendStudio(id: string) {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+
+
+  // /**
+  //  * Remove studio
+  //  * 
+  //  * @todo
+  //  */
+  // async removeStudio(id: string) {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+
+
+  /**
+   * Set studios
+   * 
+   * @notice use till new Append/Remove methods are not available
+   */
   async setStudios(studios: string[] | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    if (studios === null) studios = [];
+
+    this.set('studios', studios);
   }
 
 
 
-  async setPictures(pictures: string[] | null) {
+  /**
+   * Set schedule
+   * 
+   * @testing
+   */
+  async setSchedule(schedule: IAnimeSchedule[]) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('schedule', schedule);
   }
 
 
 
-  async setSchedule(schedule: IAnimeSchedule) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
-  }
-
-
-
+  /**
+   * Set genres
+   * 
+   * @testing
+   */
   async setGenres(genres: ANIME_GENRE[]) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('genres', genres);
   }
 
 
 
+  /**
+   * Set rate
+   * 
+   * @testing
+   */
   async setRate(rate: ANIME_RATE) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('rate', rate);
   }
 
 
 
+  /**
+   * Set season
+   * 
+   * @testing
+   */
   async setSeason(season: ANIME_SEASON) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('season', season);
   }
 
 
 
+  /**
+   * Set type
+   * 
+   * @testing
+   */
   async setType(type: ANIME_TYPE) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('type', type);
   }
 
 
 
+  /**
+   * Set is DMCA restricted
+   * 
+   * @tesring
+   */
   async setIsDMCARestcited(flag: boolean) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('is_DMCA_restricted', flag);
   }
 
 
-  async editEpisode(episode: IAnimeEpisode) {
+
+  // /**
+  //  * Edit anime episode
+  //  * 
+  //  * @returns IAnimeEpisode
+  //  * @todo
+  //  */
+  // async editEpisode(episode: IAnimeEpisode): Promise<IAnimeEpisode> {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+
+
+  // /**
+  //  * Remove episode
+  //  * 
+  //  * @todo
+  //  */
+  // async removeEpisode(order: number, dubberId: string) {
+  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // }
+
+
+
+  /**
+   * Edit episode meta
+   * 
+   * @returns IAnimeEpisodeMeta
+   * @todo
+   */
+  async editEpisodeMeta(meta: IAnimeEpisodeMeta): Promise<IAnimeEpisodeMeta> {
     throw new NekoError('ERROR_NOT_IMPLEMENTED');
   }
 
 
 
-  async removeEpisode(episode: IAnimeEpisode) {
+  /**
+   * Remove episode meta
+   * 
+   * @todo
+   */
+  async removeEpisodeMeta(order: number) {
     throw new NekoError('ERROR_NOT_IMPLEMENTED');
   }
 
 
 
-  async editEpisodeMeta(meta: IAnimeEpisodeMeta) {
+  /**
+   * Upload hero poster
+   * 
+   * @returns hero poster id
+   * @todo
+   */
+  async uploadHeroPoster(file: File): Promise<string> {
     throw new NekoError('ERROR_NOT_IMPLEMENTED');
   }
 
 
 
-  async removeEpisodeMeta(meta: IAnimeEpisodeMeta) {
+  /**
+   * Upload anime picture
+   * 
+   * @returns picture id
+   * @todo
+   */
+  async uploadPicture(file: File): Promise<string> {
     throw new NekoError('ERROR_NOT_IMPLEMENTED');
   }
 
 
 
-  async uploadHeroPoster() {
-    throw new NekoError('ERROR_NOT_IMPLEMENTED');
-  }
-
-
-
-  async uploadPictures() {
-    throw new NekoError('ERROR_NOT_IMPLEMENTED');
-  }
-
-
-
+  /**
+   * Remove picture
+   * 
+   * @todo
+   */
   async removePicture(id: string) {
     throw new NekoError('ERROR_NOT_IMPLEMENTED');
   }

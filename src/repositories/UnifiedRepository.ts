@@ -6,7 +6,10 @@ import { RepositoryQueriesType } from '~/intf/types';
 
 /** Unified repository to provide CRUD access to models */
 export default class UnifiedRepositoryClass<RepositoryType> {
+  /** Current document */
   protected _doc: HydratedDocument<RepositoryType> | undefined;
+
+  /** Changes diff */
   readonly diff: string[] = [];
 
 
@@ -65,20 +68,22 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
   async deleteOne(id: string): Promise<void> {
-    await this.model.deleteOne({ uuid: id }, { id });
+    await this.model.deleteOne({ id });
   }
 
 
 
   async deleteMany(id: string): Promise<void> {
-    await this.model.deleteMany({ uuid: id }, { id });
+    await this.model.deleteMany({ id });
   }
 
 
 
   /** @requires query specified in the constructor */
-  async set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
+  protected async set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    // TODO: Implement deep array/object diff
 
     // Write diff
     if (typeof value === 'string' || typeof value === 'number') this.diff.push(`[${String(key)}]: ${this._doc[key]} > ${value}`);
@@ -93,7 +98,7 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
   /** @requires query specified in the constructor */
-  async save() {
+  protected async update() {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     await this._doc.save();
