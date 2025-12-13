@@ -1,4 +1,8 @@
 {
+  "ERROR_NOT_IMPLEMENTED": {
+    "status": 501,
+    "message": "Requested feature is not implemented yet"
+  },
   "ERROR_DOCUMENT_NOT_INITIALIZED": {
     "status": 500,
     "message": "You cannot have access to document-related methods, if constructor is not initialized (no document)"

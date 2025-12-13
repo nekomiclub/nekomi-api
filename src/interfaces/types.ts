@@ -5,7 +5,6 @@ import { z } from 'zod';
 
 export type ISODateString = string;
 
-export type RepositorySchemaType<RepositoryType> = Record<keyof RepositoryType, any>
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
 
 export const DaysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;

@@ -7,7 +7,7 @@ import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
-import { RepositoryQueriesType, RepositorySchemaType } from '~/intf/types';
+import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
 
@@ -21,13 +21,13 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 
 
 
-const schema: RepositorySchemaType<RepositoryType> = {
+const schema = new Schema<RepositoryType>({
   id: String,
   created_at: String,
-  episodes: Array,
-  episodes_meta: Array,
+  episodes: Schema.Types.Mixed,
+  episodes_meta: Schema.Types.Mixed,
   episodes_released: Number,
-  genres: Array,
+  genres: Schema.Types.Mixed,
   hero_poster: String,
   hero_poster_author: String,
   hikka_slug: String,
@@ -36,30 +36,30 @@ const schema: RepositorySchemaType<RepositoryType> = {
   is_DMCA_restricted: Boolean,
   mal_id: Number,
   myanimelist_sync: String,
-  pictures: Array,
-  posters: Array,
+  pictures: Schema.Types.Mixed,
+  posters: Schema.Types.Mixed,
   rate: String,
-  related: Array,
-  schedule: Array,
+  related: Schema.Types.Mixed,
+  schedule: Schema.Types.Mixed,
   score: Number,
   scored_by: Number,
   season: String,
   slug: String,
   status: String,
-  studios: Array,
+  studios: Schema.Types.Mixed,
   synopsis_en: String,
   synopsis_ua: String,
   title_en: String,
   title_ja: String,
   title_ua: String,
-  title_synonims: Array,
+  title_synonims: Schema.Types.Mixed,
   type: String,
   updated_at: String,
   year: Number,
   shikimori_sync: String
-};
+}, { strict: false });
 
-const model = mongoose.model<RepositoryType>('anime', new Schema(schema));
+const model = mongoose.model<RepositoryType>('anime', schema);
 
 
 
@@ -173,6 +173,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
   /**
    * Set new malId
+   * 
+   * @testing
    */
   setMalId(id: number | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -187,94 +189,180 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  setIMDBId(id: string | null) { }
+  /**
+   * Set new IMDB id
+   * 
+   * @testing
+   */
+  setIMDBId(id: string | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
+    if (id === null || !id.length) id = null;
 
+    this.diff.push(`IMDB ID changed (${this._doc.imdb_id} > ${id})`);
 
-  async setSlug(slug: string) { }
+    this._doc.imdb_id = id;
+    this._doc.markModified('imdb_id');
+  }
 
 
 
-  async setHikkaSlug(slug: string | null) { }
+  /** 
+   * Set new slug
+   *
+   * @returns accepted slug (if slug was occupied, will append it to it) 
+   * @testing
+   */
+  async setSlug(slug: string): Promise<string> {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
+    return slug;
+  }
 
 
-  async setHeroPosterAuthor(id: string | null) { }
 
+  /** 
+   * Set new hikka.io slug
+   */
+  async setHikkaSlug(slug: string | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
+    if (slug === null || !slug.length) slug = null;
 
-  async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) { }
+    this.diff.push(`Hikka slug changed (${this._doc.hikka_slug} > ${slug})`);
 
+    this._doc.hikka_slug = slug;
+    this._doc.markModified('hikka_slug');
+  }
 
 
-  async setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) { }
 
+  /**
+   * Set new hero poster author
+   */
+  async setHeroPosterAuthor(id: string | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
+    if (id === null || !id.length) id = null;
 
-  async setScore({ score, scoredBy }: ISetScoreProps) { }
+    this.diff.push(`Hero poster author changed (${this._doc.hero_poster_author} > ${id})`);
 
+    this._doc.hero_poster_author = id;
+    this._doc.markModified('hero_poster_author');
+  }
 
 
-  async setRelated(related: string[] | null) { }
 
+  async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setStudios(studios: string[] | null) { }
 
+  async setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setPictures(pictures: string[] | null) { }
 
+  async setScore({ score, scoredBy }: ISetScoreProps) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setSchedule(schedule: IAnimeSchedule) { }
 
+  async setRelated(related: string[] | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setGenres(genres: ANIME_GENRE[]) { }
 
+  async setStudios(studios: string[] | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setRate(rate: ANIME_RATE) { }
 
+  async setPictures(pictures: string[] | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setSeason(season: ANIME_SEASON) { }
 
+  async setSchedule(schedule: IAnimeSchedule) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setType(type: ANIME_TYPE) { }
 
+  async setGenres(genres: ANIME_GENRE[]) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
 
-  async setIsDMCARestcited(flag: boolean) { }
 
+  async setRate(rate: ANIME_RATE) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
-  async editEpisode(episode: IAnimeEpisode) { }
 
 
+  async setSeason(season: ANIME_SEASON) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
-  async removeEpisode(episode: IAnimeEpisode) { }
 
 
+  async setType(type: ANIME_TYPE) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
-  async editEpisodeMeta(meta: IAnimeEpisodeMeta) { }
 
 
+  async setIsDMCARestcited(flag: boolean) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  }
 
-  async removeEpisodeMeta(meta: IAnimeEpisodeMeta) { }
 
+  async editEpisode(episode: IAnimeEpisode) {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
 
 
-  async uploadHeroPoster() { }
 
+  async removeEpisode(episode: IAnimeEpisode) {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
 
 
-  async uploadPictures() { }
 
+  async editEpisodeMeta(meta: IAnimeEpisodeMeta) {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
 
 
-  async removePicture(id: string) { }
+
+  async removeEpisodeMeta(meta: IAnimeEpisodeMeta) {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
+
+
+
+  async uploadHeroPoster() {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
+
+
+
+  async uploadPictures() {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
+
+
+
+  async removePicture(id: string) {
+    throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  }
 }
 
 
