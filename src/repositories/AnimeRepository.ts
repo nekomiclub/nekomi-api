@@ -111,7 +111,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     const slug = createSlug(title);
 
     // Ensure that document with the same id is not exist, if so recreate id with extended length
-    if (await this.safeGetOne(id)) id = createId(12);
+    if (saveDocument && await this.safeGetOne(id)) id = createId(12);
 
 
 

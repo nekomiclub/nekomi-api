@@ -9,8 +9,7 @@
     "rootDir": "./",
     "moduleResolution": "node",
     "types": [
-      "node",
-      "jest"
+      "node"
     ],
     "allowJs": true,
     "outDir": "./build",
@@ -45,10 +44,8 @@
   "exclude": [
     "node_modules",
     "dist",
+    "build",
     ".cache"
-  ],
-  "lib": [
-    "esnext"
   ],
   "ts-node": {
     "esm": true,

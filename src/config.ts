@@ -68,7 +68,7 @@ const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
 // Retrieve git commit
 const commitFilePath = `${logsDir}/git-commit.txt`;
 
-if (!env.ISDOCKER) {
+if (!env.ISDOCKER && !TestMode) {
   try {
     const commit = execSync(`git rev-parse --short HEAD`).toString().replace('\n', '');
 
