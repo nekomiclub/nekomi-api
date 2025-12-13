@@ -80,7 +80,7 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
   /** @requires query specified in the constructor */
-  protected async set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
+  protected set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
 
     // TODO: Implement deep array/object diff

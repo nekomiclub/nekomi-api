@@ -4,8 +4,8 @@ import mongoose from 'mongoose';
 
 
 
-const MAX_RETRY_ATTEMPS = 5;
-const RETRY_TIMEOUT_MS = 2000;
+const MAX_RETRY_ATTEMPS = 10;
+const RETRY_TIMEOUT_MS = 5000;
 
 
 
