@@ -16,10 +16,6 @@ dotenvCfg();
 
 
 
-export const DevelopmentMode = process.argv.includes('devMode');
-export const ProductionMode = process.argv.includes('prodMode');
-export const TestMode = process.argv.includes('testMode');
-
 const env = {
   PORT: Number(process.env['PORT']),
   HOST: String(process.env['HOST']),
@@ -35,6 +31,7 @@ const env = {
 
   ISDEV: process.env['ISDEV'] == 'true',
   ISDOCKER: process.env['ISDOCKER'] == 'true',
+  ENV: String(process.env['ENV']) as 'development' | 'production',
 
   // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
   PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
@@ -62,6 +59,9 @@ const env = {
   FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
 };
 
+export const ProductionMode = env.ENV === 'production';
+export const DevelopmentMode = !ProductionMode || env.ENV === 'development';
+
 const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
 
 
@@ -69,7 +69,7 @@ const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
 // Retrieve git commit
 const commitFilePath = `${logsDir}/git-commit.txt`;
 
-if (!env.ISDOCKER && !TestMode) {
+if (!env.ISDOCKER) {
   try {
     const commit = execSync(`git rev-parse --short HEAD`).toString().replace('\n', '');
 
@@ -154,7 +154,7 @@ const conf = {
   commit,
   logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
-  startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}${TestMode ? ' (Testing)' : ''}`,
+  startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
   URL,
   env,
   vars,

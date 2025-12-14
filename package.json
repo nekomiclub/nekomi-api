@@ -5,8 +5,8 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "npx nodemon devMode",
-    "start": "npx tsx ./src/index.ts prodMode",
+    "dev": "npx nodemon",
+    "start": "npx tsx ./src/index.ts",
     "test": "npx vitest --run --silent",
     "build": "npm run lint && npx tsc --build",
     "husky": "npm run lint && npx tsc && npm run test && git add .",

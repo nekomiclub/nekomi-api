@@ -14,6 +14,7 @@ export interface IAnime {
   posters: string[] // Protected
 
   year: number
+  episodes_total: number | null
   episodes_released: number | null
 
   title_en: string
@@ -38,7 +39,7 @@ export interface IAnime {
   episodes_meta: IAnimeEpisodeMeta[] // Protected
 
   genres: ANIME_GENRE[]
-  rate: ANIME_RATE
+  rating: ANIME_RATING
   status: ANIME_STATUS
   season: ANIME_SEASON
   type: ANIME_TYPE
@@ -94,7 +95,7 @@ type AnimeNamedDescriptionRecordType<T = string> = AnimeNamedRecordType<T> & {
 }
 
 export type AnimeGenreType = AnimeNamedDescriptionRecordType<ANIME_GENRE>
-export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATE>;
+export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATING>;
 export type AnimeStatusType = AnimeNamedRecordType<ANIME_STATUS>;
 export type AnimeSeasonType = AnimeNamedRecordType<ANIME_SEASON>;
 export type AnimeType = AnimeNamedRecordType<ANIME_TYPE>;
@@ -147,19 +148,19 @@ export enum ANIME_GENRE {
   YURI = 'yuri',
 }
 
-export enum ANIME_RATE {
+export enum ANIME_RATING {
   G = 'g',
   PG = 'pg',
   PG13 = 'pg_13',
   R17 = 'r',
-  RPLUS = 'r+',
+  RPLUS = 'r_plus',
   RX = 'rx',
 }
 
 export enum ANIME_STATUS {
-  FINISHED_AIRING = 'finished_airing',
-  CURRENTLY_AIRING = 'currently_airing',
-  NOT_YET_AIRED = 'not_yet_aired',
+  FINISHED = 'finished',
+  ONGOING = 'ongoing',
+  ANNOUNCED = 'announced',
 }
 
 export enum ANIME_SEASON {
@@ -398,50 +399,50 @@ export const AnimeGenres: Record<ANIME_GENRE, AnimeGenreType> = {
   },
 };
 
-export const AnimeRates: Record<ANIME_RATE, AnimeRateType> = {
-  [ANIME_RATE.G]: {
-    slug: ANIME_RATE.G,
+export const AnimeRatings: Record<ANIME_RATING, AnimeRateType> = {
+  [ANIME_RATING.G]: {
+    slug: ANIME_RATING.G,
     name: 'G',
     description: 'Аніме, для глядачів будь-якого віку.',
   },
-  [ANIME_RATE.PG]: {
-    slug: ANIME_RATE.PG,
+  [ANIME_RATING.PG]: {
+    slug: ANIME_RATING.PG,
     name: 'PG',
     description: 'Аніме, для дітей.',
   },
-  [ANIME_RATE.PG13]: {
-    slug: ANIME_RATE.PG13,
+  [ANIME_RATING.PG13]: {
+    slug: ANIME_RATING.PG13,
     name: 'PG-13',
     description: 'Аніме, для підлітків. (13+)',
   },
-  [ANIME_RATE.R17]: {
-    slug: ANIME_RATE.R17,
+  [ANIME_RATING.R17]: {
+    slug: ANIME_RATING.R17,
     name: 'R-17',
     description: 'Аніме, що містить сцени насильства. (17+)',
   },
-  [ANIME_RATE.RPLUS]: {
-    slug: ANIME_RATE.RPLUS,
+  [ANIME_RATING.RPLUS]: {
+    slug: ANIME_RATING.RPLUS,
     name: 'R+',
     description: 'Аніме, що містить елементи еротики. (18+)',
   },
-  [ANIME_RATE.RX]: {
-    slug: ANIME_RATE.RX,
+  [ANIME_RATING.RX]: {
+    slug: ANIME_RATING.RX,
     name: 'Rx',
     description: 'Аніме з відвертими еротичними сценами. (18+)',
   },
 };
 
 export const AnimeStatuses: Record<ANIME_STATUS, AnimeStatusType> = {
-  [ANIME_STATUS.CURRENTLY_AIRING]: {
-    slug: ANIME_STATUS.CURRENTLY_AIRING,
+  [ANIME_STATUS.ONGOING]: {
+    slug: ANIME_STATUS.ONGOING,
     name: 'Онґоїнг',
   },
-  [ANIME_STATUS.NOT_YET_AIRED]: {
-    slug: ANIME_STATUS.NOT_YET_AIRED,
+  [ANIME_STATUS.ANNOUNCED]: {
+    slug: ANIME_STATUS.ANNOUNCED,
     name: 'Анонс',
   },
-  [ANIME_STATUS.FINISHED_AIRING]: {
-    slug: ANIME_STATUS.FINISHED_AIRING,
+  [ANIME_STATUS.FINISHED]: {
+    slug: ANIME_STATUS.FINISHED,
     name: 'Вийшов',
   }
 };

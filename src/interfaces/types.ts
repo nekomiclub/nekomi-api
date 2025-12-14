@@ -1,4 +1,4 @@
-import { ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from './IAnime';
+import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from './IAnime';
 import { z } from 'zod';
 
 
@@ -17,7 +17,7 @@ export interface MyAnimeListNode {
 
   media_type?: ANIME_TYPE
   num_episodes?: number
-  rating?: ANIME_RATE
+  rating?: ANIME_RATING
   status?: ANIME_STATUS
   synopsis?: string
 
@@ -79,7 +79,7 @@ export interface HikkaMALIntegration {
   translated_ua: boolean
   season: ANIME_SEASON
   source: string
-  rating: ANIME_RATE
+  rating: ANIME_RATING
   year: number
 }
 

@@ -6,5 +6,9 @@
   "ERROR_DOCUMENT_NOT_INITIALIZED": {
     "status": 500,
     "message": "You cannot have access to document-related methods, if constructor is not initialized (no document)"
+  },
+  "ERROR_TYPE_INVALID": {
+    "status": 400,
+    "message": "Type invalid"
   }
 }

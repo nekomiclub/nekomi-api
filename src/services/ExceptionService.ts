@@ -70,10 +70,10 @@ export class ErrorConstructor extends Error {
 
 
 export class NekoError extends ErrorConstructor {
-  constructor(code: string) {
-    const message = errorsList[code] as IError;
+  constructor(code: string, message?: string) {
+    const error = errorsList[code] as IError;
 
-    if (!message) {
+    if (!error) {
       const status = 500;
       const statusMessage = statusesList[status];
 
@@ -81,9 +81,9 @@ export class NekoError extends ErrorConstructor {
       return;
     }
 
-    const statusMessage = statusesList[message.status] ?? statusesList[500];
+    const statusMessage = statusesList[error.status] ?? statusesList[500];
 
-    super(code, message.message, message.status, statusMessage);
+    super(code, message ?? error.message, error.status, statusMessage);
   }
 
   /** Refine error object to POJO */

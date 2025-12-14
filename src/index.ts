@@ -1,8 +1,9 @@
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
+import LoadCatalog from './utils/load-catalog';
 import Logger from './services/LoggerService';
 import bodyParser from 'body-parser';
-import conf, { TestMode } from './config';
+import conf from './config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -46,29 +47,25 @@ async function runtime() {
 
 
     //* === HTTP Server
-    if (!TestMode) {
-      await new Promise(res => {
-        app.listen(conf.env.PORT, conf.env.HOST, () => {
-          Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}. [commit: ${conf.commit}]`);
+    await new Promise(res => {
+      app.listen(conf.env.PORT, conf.env.HOST, () => {
+        Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}. [commit: ${conf.commit}]`);
 
-          res(1);
-        });
+        res(1);
       });
-    }
+    });
 
-    if (!TestMode) {
-      console.log(`
-    ----------------------------
-    NEKOMI-API STARTED UP
-    
-    Date: ${conf.startedAt} UTC
-    Commit: ${conf.commit}
-    Mode: ${conf.startedMode}
-    HTTP: http://${conf.env.HOST}:${conf.env.PORT}
-    ----------------------------\n\n`);
-    }
+    console.log(`
+      ----------------------------
+      NEKOMI-API STARTED UP
+      
+      Date: ${conf.startedAt} UTC
+      Commit: ${conf.commit}
+      Mode: ${conf.startedMode}
+      HTTP: http://${conf.env.HOST}:${conf.env.PORT}
+      ----------------------------\n\n`);
 
-    // await LoadCatalog();
+    if (conf.env.ENV === 'production') await LoadCatalog();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

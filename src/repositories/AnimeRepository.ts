@@ -1,9 +1,9 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATE, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
-import conf, { TestMode } from '~/config';
+import conf from '~/config';
 import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
@@ -24,40 +24,50 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 
 const schema = new Schema<RepositoryType>({
   id: String,
-  created_at: String,
-  episodes: Schema.Types.Mixed,
-  episodes_meta: Schema.Types.Mixed,
-  episodes_released: Number,
-  genres: Schema.Types.Mixed,
+  mal_id: Number,
+  imdb_id: String,
+  slug: String,
+  hikka_slug: String,
+
   hero_poster: String,
   hero_poster_author: String,
-  hikka_slug: String,
-  hikka_sync: String,
-  imdb_id: String,
-  is_DMCA_restricted: Boolean,
-  mal_id: Number,
-  myanimelist_sync: String,
-  pictures: Schema.Types.Mixed,
   posters: Schema.Types.Mixed,
-  rate: String,
-  related: Schema.Types.Mixed,
-  schedule: Schema.Types.Mixed,
-  score: Number,
-  scored_by: Number,
-  season: String,
-  slug: String,
-  status: String,
-  studios: Schema.Types.Mixed,
-  synopsis_en: String,
-  synopsis_ua: String,
+
+  year: Number,
+  episodes_total: Number,
+  episodes_released: Number,
+
   title_en: String,
   title_ja: String,
   title_ua: String,
   title_synonims: Schema.Types.Mixed,
+
+  synopsis_en: String,
+  synopsis_ua: String,
+
+  score: Number,
+  scored_by: Number,
+
+  related: Schema.Types.Mixed,
+  studios: Schema.Types.Mixed,
+  pictures: Schema.Types.Mixed,
+  schedule: Schema.Types.Mixed,
+  episodes: Schema.Types.Mixed,
+  episodes_meta: Schema.Types.Mixed,
+
+  genres: Schema.Types.Mixed,
+  rating: String,
+  status: String,
+  season: String,
   type: String,
+
   updated_at: String,
-  year: Number,
-  shikimori_sync: String
+  created_at: String,
+  hikka_sync: String,
+  myanimelist_sync: String,
+  shikimori_sync: String,
+
+  is_DMCA_restricted: Boolean,
 }, { strict: false });
 
 const model = mongoose.model<RepositoryType>('anime', schema);
@@ -130,7 +140,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async create(props?: ICreateProps): Promise<IAnime> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = TestMode ? `~testing-${createId()}` : createId();
+    const id = this.testmode ? `~testing-${createId()}` : createId();
     const title = `Untitled ${id.toLowerCase()}`;
     const slug = createSlug(title);
 
@@ -148,6 +158,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       posters: [],
 
       year: getUTC().year,
+      episodes_total: null,
       episodes_released: null,
 
       title_en: title,
@@ -169,8 +180,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       episodes_meta: [],
 
       genres: [],
-      rate: ANIME_RATE.G,
-      status: ANIME_STATUS.NOT_YET_AIRED,
+      rating: ANIME_RATING.G,
+      status: ANIME_STATUS.ANNOUNCED,
       season: ANIME_SEASON.FALL,
       type: ANIME_TYPE.UNKNOWN,
 
@@ -226,7 +237,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Set slug
    *
    * @returns accepted slug (if slug was occupied, will append it to it) 
-   * @testing
+   * @tested
    */
   async setSlug(slug: string, opts?: ISetSlugOptions): Promise<string> {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -256,7 +267,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /** 
    * Set hikka.io slug
    * 
-   * @testing
+   * @tested
    */
   async setHikkaSlug(slug: string | null) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -264,6 +275,49 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (slug === null || !slug.length) slug = null;
 
     this.set('hikka_slug', slug);
+  }
+
+
+
+  /**
+   * Set year
+   * 
+   * @testing
+   */
+  setYear(year: number) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set('year', year);
+  }
+
+
+
+  /**
+   * Set episodes total
+   * 
+   * @testing
+   */
+  setEpisodesTotal(episodes: number | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    if (episodes === 0) episodes = null;
+
+    this.set('episodes_total', episodes);
+  }
+
+
+
+  /**
+   * Set episodes released
+   * 
+   * @testing
+   */
+  setEpisodesReleased(episodes: number | null) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    if (episodes === 0) episodes = null;
+
+    this.set('episodes_released', episodes);
   }
 
 
@@ -287,7 +341,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Set title
    * Updating english title will cumulative update the slug
    * 
-   * @testing
+   * @tested
    */
   async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -336,7 +390,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set synopsis
    * 
-   * @testing
+   * @tested
    */
   setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -367,7 +421,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set score & scored by
    * 
-   * @testing
+   * @tested
    */
   setScore({ score, scoredBy }: ISetScoreProps) {
     if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
@@ -488,15 +542,26 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
   /**
-   * Set rate
+   * Set rating
    * 
    * @tested
    */
-  setRate(rate: ANIME_RATE) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  setRating = (rating: ANIME_RATING) => this.setTypedValue(rating, 'rating');
 
-    this.set('rate', rate);
-  }
+  /** Parse string to type value */
+  parseRating = (rating: string) => this.parseStringToType(rating, ANIME_RATING);
+
+
+
+  /**
+   * Set status
+   * 
+   * @testing
+   */
+  setStatus = (status: ANIME_STATUS) => this.setTypedValue(status, 'status');
+
+  /** Parse string to type value */
+  parseStatus = (status: string) => this.parseStringToType(status, ANIME_STATUS);
 
 
 
@@ -505,11 +570,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setSeason(season: ANIME_SEASON) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  setSeason = (season: ANIME_SEASON) => this.setTypedValue(season, 'season');
 
-    this.set('season', season);
-  }
+  /** Parse string to type value */
+  parseSeason = (season: string) => this.parseStringToType(season, ANIME_SEASON);
 
 
 
@@ -518,11 +582,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setType(type: ANIME_TYPE) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  setType = (type: ANIME_TYPE) => this.setTypedValue(type, 'type');
 
-    this.set('type', type);
-  }
+  /** Parse string to type value */
+  parseType = (type: string) => this.parseStringToType(type, ANIME_TYPE);
 
 
 
@@ -617,6 +680,36 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   // async removePicture(id: string) {
   //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
   // }
+
+
+
+  /** 
+   * Parse string value to enum type
+   * 
+   * @param value string value to be parsed
+   * @param list object to parse
+   */
+  parseStringToType<E>(value: string, list: object): E {
+    for (const key in list) {
+      if (list[key] === value) return list[key];
+    }
+
+    throw new NekoError('ERROR_TYPE_INVALID', `Cannot parse ${value} to listed type`);
+  }
+
+
+
+  /** 
+   * Set typed value (rate, media, etc)
+   * 
+   * @param value typed value
+   * @param key document key
+   */
+  protected setTypedValue(value: string, key: keyof Pick<IAnime, 'rating' | 'type' | 'status' | 'season'>) {
+    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+
+    this.set(key, value as any);
+  }
 }
 
 

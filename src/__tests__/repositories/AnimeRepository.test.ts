@@ -1,7 +1,7 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
-import { ANIME_GENRE, ANIME_RATE, ANIME_SEASON, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { shouldfail } from '~/utils/testing-utils';
@@ -299,12 +299,12 @@ describe('AnimeRepository', () => {
 
 
   /**
-   * [+] Should set rate
+   * [+] Should set rating
    */
-  it('should set rate', () => {
-    // Set rate
-    animeServiceMain.setRate(ANIME_RATE.RPLUS);
-    expect(animeServiceMain.document?.rate).toBe(ANIME_RATE.RPLUS);
+  it('should set rating', () => {
+    // Set rating
+    animeServiceMain.setRating(ANIME_RATING.RPLUS);
+    expect(animeServiceMain.document?.rating).toBe(ANIME_RATING.RPLUS);
   });
 
 
