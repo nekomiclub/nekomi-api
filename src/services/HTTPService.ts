@@ -1,4 +1,5 @@
 import Logger from './LoggerService';
+import axios from 'axios';
 import express from 'express';
 import { HandleRequest } from './ExceptionService';
 import { IncomingHttpHeaders } from 'http';
@@ -34,3 +35,11 @@ export function traceRequest() {
     return next();
   };
 }
+
+
+
+
+/** Axios instance */
+export const $http = axios.create({
+  timeout: 10000
+});

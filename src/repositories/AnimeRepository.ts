@@ -1,14 +1,14 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf from '~/config';
 import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
+import { ISODateString, RepositoryQueriesType } from '~/intf/types';
 import { NekoError } from '~/service/ExceptionService';
-import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -48,7 +48,7 @@ const schema = new Schema<RepositoryType>({
   score: Number,
   scored_by: Number,
 
-  related: Schema.Types.Mixed,
+  relations: Schema.Types.Mixed,
   studios: Schema.Types.Mixed,
   pictures: Schema.Types.Mixed,
   schedule: Schema.Types.Mixed,
@@ -112,8 +112,8 @@ interface ISetScoreProps {
 export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   private testmode = false;
 
-  constructor(query?: string, props?: IConstructorProps) {
-    super(model, queries, query);
+  constructor(props?: IConstructorProps) {
+    super(model, queries);
 
     if (props?.testmode) this.testmode = props.testmode;
   }
@@ -125,7 +125,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   }
 
   async save() {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     await this.update();
 
@@ -154,7 +154,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       hikka_slug: null,
 
       hero_poster: conf.vars.defaultPoster,
-      hero_poster_author: null,
+      hero_poster_author: conf.vars.INTERNAL_ID,
       posters: [],
 
       year: getUTC().year,
@@ -172,7 +172,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       score: 0,
       scored_by: 0,
 
-      related: [],
+      relations: [],
       studios: [],
       pictures: [],
       schedule: [],
@@ -180,10 +180,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       episodes_meta: [],
 
       genres: [],
-      rating: ANIME_RATING.G,
-      status: ANIME_STATUS.ANNOUNCED,
-      season: ANIME_SEASON.FALL,
-      type: ANIME_TYPE.UNKNOWN,
+      rating: null,
+      status: null,
+      season: null,
+      type: null,
 
       updated_at: getUTC().ISO,
       created_at: getUTC().ISO,
@@ -209,7 +209,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setMalId(id: number | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (id === null || id < 0) id = null;
 
@@ -224,7 +224,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setIMDBId(id: string | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (id === null || !id.length) id = null;
 
@@ -240,7 +240,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setSlug(slug: string, opts?: ISetSlugOptions): Promise<string> {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     let isDocumentExist = false;
     slug = createSlug(trimString(slug));
@@ -270,7 +270,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setHikkaSlug(slug: string | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (slug === null || !slug.length) slug = null;
 
@@ -285,7 +285,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @testing
    */
   setYear(year: number) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('year', year);
   }
@@ -298,7 +298,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @testing
    */
   setEpisodesTotal(episodes: number | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (episodes === 0) episodes = null;
 
@@ -313,7 +313,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @testing
    */
   setEpisodesReleased(episodes: number | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (episodes === 0) episodes = null;
 
@@ -328,7 +328,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setHeroPosterAuthor(id: string | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (id === null || !id.length) id = null;
 
@@ -344,7 +344,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (title_en) {
       title_en = trimString(title_en);
@@ -393,7 +393,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   setSynopsis({ synopsis_en, synopsis_ua }: ISetSynopsisProps) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (synopsis_en || synopsis_en === null) {
       if (synopsis_en) {
@@ -424,7 +424,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   setScore({ score, scoredBy }: ISetScoreProps) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (score) {
       AnimeValidators.score.parse(score);
@@ -446,8 +446,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * 
   //  * @todo
   //  */
-  // async appendRelated(id: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // async appendRelation(id: string) {
+  //   throw new NekoError('sys:not_implemented');
   // }
 
   // /**
@@ -455,8 +455,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * 
   //  * @todo
   //  */
-  // async removeRelated(id: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  // async removeRelation(id: string) {
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -465,14 +465,14 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Set related documents
    * 
    * @notice use till new Append/Remove methods are not available
-   * @tested
+   * @testing
    */
-  setRelated(related: string[] | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  setRelations(relations: IAnimeRelation[] | null) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    if (related === null) related = [];
+    if (relations === null) relations = [];
 
-    this.set('related', related);
+    this.set('relations', relations);
   }
 
 
@@ -483,7 +483,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async appendStudio(id: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -494,7 +494,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async removeStudio(id: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -503,10 +503,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Set studios
    * 
    * @notice use till new Append/Remove methods are not available
-   * @tested
+   * @testing
    */
-  setStudios(studios: string[] | null) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  setStudios(studios: IAnimeStudio[] | null) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (studios === null) studios = [];
 
@@ -521,7 +521,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   setSchedule(schedule: IAnimeSchedule[]) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('schedule', schedule);
   }
@@ -534,7 +534,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   setGenres(genres: ANIME_GENRE[]) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('genres', genres);
   }
@@ -546,10 +546,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setRating = (rating: ANIME_RATING) => this.setTypedValue(rating, 'rating');
+  setRating = (rating: ANIME_RATING | null) => this.setTypedValue(rating, 'rating');
 
   /** Parse string to type value */
-  parseRating = (rating: string) => this.parseStringToType(rating, ANIME_RATING);
+  parseRating = (rating: string | null) => this.parseStringToType<ANIME_RATING>(rating, ANIME_RATING);
 
 
 
@@ -558,10 +558,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @testing
    */
-  setStatus = (status: ANIME_STATUS) => this.setTypedValue(status, 'status');
+  setStatus = (status: ANIME_STATUS | null) => this.setTypedValue(status, 'status');
 
   /** Parse string to type value */
-  parseStatus = (status: string) => this.parseStringToType(status, ANIME_STATUS);
+  parseStatus = (status: string | null) => this.parseStringToType<ANIME_STATUS>(status, ANIME_STATUS);
 
 
 
@@ -570,10 +570,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setSeason = (season: ANIME_SEASON) => this.setTypedValue(season, 'season');
+  setSeason = (season: ANIME_SEASON | null) => this.setTypedValue(season, 'season');
 
   /** Parse string to type value */
-  parseSeason = (season: string) => this.parseStringToType(season, ANIME_SEASON);
+  parseSeason = (season: string | null) => this.parseStringToType<ANIME_SEASON>(season, ANIME_SEASON);
 
 
 
@@ -582,10 +582,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setType = (type: ANIME_TYPE) => this.setTypedValue(type, 'type');
+  setType = (type: ANIME_TYPE | null) => this.setTypedValue(type, 'type');
 
   /** Parse string to type value */
-  parseType = (type: string) => this.parseStringToType(type, ANIME_TYPE);
+  parseType = (type: string | null) => this.parseStringToType<ANIME_TYPE>(type, ANIME_TYPE);
 
 
 
@@ -595,7 +595,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @tested
    */
   setIsDMCARestcited(flag: boolean) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('is_DMCA_restricted', flag);
   }
@@ -609,7 +609,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async editEpisode(episode: IAnimeEpisode): Promise<IAnimeEpisode> {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -620,7 +620,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async removeEpisode(order: number, dubberId: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -632,7 +632,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async editEpisodeMeta(meta: IAnimeEpisodeMeta): Promise<IAnimeEpisodeMeta> {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -643,7 +643,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async removeEpisodeMeta(order: number) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -655,7 +655,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async uploadHeroPoster(file: File): Promise<string> {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
+  // // TODO: remove hero poster author
   // }
 
 
@@ -667,7 +668,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async uploadPicture(file: File): Promise<string> {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
 
 
@@ -678,8 +679,21 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   //  * @todo
   //  */
   // async removePicture(id: string) {
-  //   throw new NekoError('ERROR_NOT_IMPLEMENTED');
+  //   throw new NekoError('sys:not_implemented');
   // }
+
+
+
+  /**
+   * Set sync timestamp
+   * 
+   * @testing
+   */
+  setSync(key: keyof Pick<IAnime, 'hikka_sync' | 'myanimelist_sync' | 'shikimori_sync'>, ts: ISODateString | null) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set(key, ts);
+  }
 
 
 
@@ -689,12 +703,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @param value string value to be parsed
    * @param list object to parse
    */
-  parseStringToType<E>(value: string, list: object): E {
+  parseStringToType<E>(value: string | null, list: object): E {
     for (const key in list) {
       if (list[key] === value) return list[key];
     }
 
-    throw new NekoError('ERROR_TYPE_INVALID', `Cannot parse ${value} to listed type`);
+    throw new NekoError('sys:type_invalid', `Cannot parse ${value} to listed type`);
   }
 
 
@@ -705,8 +719,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @param value typed value
    * @param key document key
    */
-  protected setTypedValue(value: string, key: keyof Pick<IAnime, 'rating' | 'type' | 'status' | 'season'>) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+  protected setTypedValue(value: string | null, key: keyof Pick<IAnime, 'rating' | 'type' | 'status' | 'season'>) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set(key, value as any);
   }

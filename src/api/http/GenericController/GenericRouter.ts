@@ -1,11 +1,11 @@
-import GenericGetPing from './GenericGetPing.route';
+import GenericGetPingRoute from './GenericGetPing.route';
 import express from 'express';
 
 
 
 const GenericRouter = express.Router();
 
-GenericRouter.get(['/', '/ping'], GenericGetPing);
+GenericRouter.get(['/', '/ping'], GenericGetPingRoute);
 
 
 

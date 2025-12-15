@@ -16,8 +16,8 @@ const endpoint = HTTPEndpoint(async (req, res) => {
 
 
 
-const GenericGetPing = [
+const GenericGetPingRoute = [
   endpoint
 ];
 
-export default GenericGetPing;
+export default GenericGetPingRoute;

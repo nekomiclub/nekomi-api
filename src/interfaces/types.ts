@@ -83,16 +83,6 @@ export interface HikkaMALIntegration {
   year: number
 }
 
-export interface HikkaAnime {
-  title_ua: string
-  title_en: string
-  title_ja: string
-  synonyms: string[]
-  synopsis_ua: string | null
-  synopsis_en: string
-  // ... 
-}
-
 export const ZodBooleanish = z.string().refine((value) => value === 'true' || value === 'false', {
   message: 'Value must be a boolean',
 }).transform((value) => value === 'true');

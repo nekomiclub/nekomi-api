@@ -34,8 +34,8 @@ const model = mongoose.model<IDubber>('dubber', new Schema({
 
 
 export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
-  constructor(query?: string) {
-    super(model, queries, query);
+  constructor() {
+    super(model, queries);
   }
 }
 

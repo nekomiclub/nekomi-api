@@ -105,23 +105,7 @@ const URL = {
 };
 
 const vars = {
-  /** Use it ONLY FOR INTERNAL CHANGE PURPOSES, or you will be fired :) */
-  INTERNAL_ROOT_USER_ID: 'nekomiclub',
-
-  /** Nekomi cookie with fullkekw usapi session */
-  sessionCookie: 'SEC_31N',
-
-  /** Nekomi cookie expiration offset */
-  sessionCookieExpireOffset: 2592000000,
-
-  /** Mock data header */
-  mockHeader: 'X-MockData',
-
-  /** CSRF Token header name */
-  csrfHeader: 'X-CSRF-Token',
-
-  /** CSRF token expiration */
-  CSRF_EXPIRE: 180000,
+  INTERNAL_ID: 'nekomiclub',
 
   /** Default avatar */
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',

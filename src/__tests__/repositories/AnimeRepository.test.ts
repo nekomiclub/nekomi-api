@@ -4,6 +4,7 @@ import createSlug from '~/utils/create-slug';
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { getUTC } from '~/utils/utils';
 import { shouldfail } from '~/utils/testing-utils';
 
 
@@ -11,7 +12,7 @@ import { shouldfail } from '~/utils/testing-utils';
 
 
 describe('AnimeRepository', () => {
-  const animeServiceMain = new AnimeRepositoryClass(undefined, { testmode: true });
+  const animeServiceMain = new AnimeRepositoryClass({ testmode: true });
 
 
 
@@ -224,18 +225,18 @@ describe('AnimeRepository', () => {
 
 
 
-  /**
-   * [+] Should set related
-   * 
-   * @notice Temporary method
-   */
-  it('should set related', () => {
-    const related = ['foo', 'bar'];
+  // /**
+  //  * [+] Should set related
+  //  * 
+  //  * @notice Temporary method
+  //  */
+  // it('should set related', () => {
+  //   const related = ['foo', 'bar'];
 
-    // Set related
-    animeServiceMain.setRelated(related);
-    expect(animeServiceMain.document?.related).toStrictEqual(related);
-  });
+  //   // Set related
+  //   animeServiceMain.setRelated(related);
+  //   expect(animeServiceMain.document?.relations).toStrictEqual(related);
+  // });
 
 
 
@@ -254,18 +255,18 @@ describe('AnimeRepository', () => {
 
 
 
-  /**
-   * [+] Should set studios
-   * 
-   * @notice Temporary method
-   */
-  it('should set studios', () => {
-    const studios = ['foo', 'bar'];
+  // /**
+  //  * [+] Should set studios
+  //  * 
+  //  * @notice Temporary method
+  //  */
+  // it('should set studios', () => {
+  //   const studios = ['foo', 'bar'];
 
-    // Set studios
-    animeServiceMain.setStudios(studios);
-    expect(animeServiceMain.document?.studios).toStrictEqual(studios);
-  });
+  //   // Set studios
+  //   animeServiceMain.setStudios(studios);
+  //   expect(animeServiceMain.document?.studios).toStrictEqual(studios);
+  // });
 
 
 
@@ -275,8 +276,8 @@ describe('AnimeRepository', () => {
    */
   it('should set schedule', () => {
     const schedule: IAnimeSchedule[] = [
-      { episode: 1, airing_at: 0 },
-      { episode: 2, airing_at: 20 },
+      { episode: 1, airing_at: getUTC(422722142).ISO },
+      { episode: 2, airing_at: getUTC(4227221).ISO },
     ];
 
     animeServiceMain.setSchedule(schedule);

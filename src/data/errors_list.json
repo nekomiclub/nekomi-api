@@ -1,14 +1,18 @@
 {
-  "ERROR_NOT_IMPLEMENTED": {
+  "sys:not_implemented": {
     "status": 501,
     "message": "Requested feature is not implemented yet"
   },
-  "ERROR_DOCUMENT_NOT_INITIALIZED": {
+  "sys:document_not_initialized": {
     "status": 500,
     "message": "You cannot have access to document-related methods, if constructor is not initialized (no document)"
   },
-  "ERROR_TYPE_INVALID": {
+  "sys:type_invalid": {
     "status": 400,
     "message": "Type invalid"
+  },
+  "sys:not_found": {
+    "status": 404,
+    "message": "Requested entity is not found"
   }
 }

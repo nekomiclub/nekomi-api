@@ -31,8 +31,8 @@ const model = mongoose.model<RepositoryType>('user', new Schema({
 
 
 export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
-  constructor(query?: string) {
-    super(model, queries, query);
+  constructor() {
+    super(model, queries);
   }
 }
 

@@ -28,21 +28,19 @@ export interface IAnime {
   score: number
   scored_by: number
 
-  /** Related animes IDs */
-  related: string[] // Protected
-
-  /** Studios IDs */
-  studios: string[]
+  /** Related anime documents */
+  relations: IAnimeRelation[] // Protected
+  studios: IAnimeStudio[]
   pictures: string[] // Protected
   schedule: IAnimeSchedule[]
   episodes: IAnimeEpisode[] // Protected
   episodes_meta: IAnimeEpisodeMeta[] // Protected
 
   genres: ANIME_GENRE[]
-  rating: ANIME_RATING
-  status: ANIME_STATUS
-  season: ANIME_SEASON
-  type: ANIME_TYPE
+  rating: ANIME_RATING | null
+  status: ANIME_STATUS | null
+  season: ANIME_SEASON | null
+  type: ANIME_TYPE | null
 
   updated_at: ISODateString // Protected
   created_at: ISODateString // Protected
@@ -54,15 +52,24 @@ export interface IAnime {
   is_DMCA_restricted?: boolean // Protected
 }
 
-/** @deprecated pending refactoring */
-export interface IAnimeEpisode {
-  dubberID: string
-  order: number
-  qualities: {
-    /** Primary quality */
-    q1080: string
+export interface IAnimeRelation {
+  mal_id: number
+  type: string // anime, manga, etc..
+  relation: string // Prequel, Sequel, etc...
+}
 
+export interface IAnimeStudio {
+  mal_id: number
+  name: string
+}
+
+export interface IAnimeEpisode {
+  episode: number
+  dubberId: string
+
+  qualities: {
     q4k: string | null
+    q1080: string | null
     q720: string | null
     q480: string | null
     q240: string | null
@@ -80,7 +87,7 @@ export interface IAnimeEpisodeMeta {
 
 export interface IAnimeSchedule {
   episode: number
-  airing_at: number
+  airing_at: ISODateString
 }
 
 

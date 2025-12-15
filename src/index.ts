@@ -1,3 +1,5 @@
+import AnimeBulkUpdate from './algorithms/AnimeBulkUpdate';
+import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import LoadCatalog from './utils/load-catalog';
@@ -42,6 +44,7 @@ async function runtime() {
 
 
     //* === HTTP Routing
+    app.use('/anime', AnimeRouter);
     app.use('/', GenericRouter);
 
 
@@ -56,15 +59,16 @@ async function runtime() {
     });
 
     console.log(`
-      ----------------------------
-      NEKOMI-API STARTED UP
-      
-      Date: ${conf.startedAt} UTC
-      Commit: ${conf.commit}
-      Mode: ${conf.startedMode}
-      HTTP: http://${conf.env.HOST}:${conf.env.PORT}
-      ----------------------------\n\n`);
+    ----------------------------
+    NEKOMI-API STARTED UP
+    
+    Date: ${conf.startedAt} UTC
+    Commit: ${conf.commit}
+    Mode: ${conf.startedMode}
+    HTTP: http://${conf.env.HOST}:${conf.env.PORT}
+    ----------------------------\n\n`);
 
+    await AnimeBulkUpdate();
     if (conf.env.ENV === 'production') await LoadCatalog();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);

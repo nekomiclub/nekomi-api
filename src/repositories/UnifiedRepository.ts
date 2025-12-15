@@ -1,4 +1,4 @@
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, QueryFilter } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
 
@@ -20,25 +20,21 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
     /** Document find queries preserve function */
     private readonly queries: (query: string) => RepositoryQueriesType<RepositoryType>,
+  ) { }
 
-    /** Document query */
-    query?: string,
-  ) {
-    if (query) {
-      new Promise(res => {
-        (async function () {
-          this._doc = await model.findOne(this.queries(query));
-          res(1);
-        })();
-      });
-    }
+
+  async init(query: string) {
+    const document = await this.model.findOne(this.queries(query));
+    if (!document) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
+
+    this._doc = document;
   }
 
 
 
   async getOne(query: string): Promise<RepositoryType> {
     const result = await this.model.findOne(this.queries(query));
-    if (!result) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!result) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
 
     return result;
   }
@@ -47,6 +43,14 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
   async safeGetOne(query: string): Promise<RepositoryType | null> {
     const result = await this.model.findOne(this.queries(query));
+
+    return result;
+  }
+
+
+
+  async getOneByQuery<T = any>(query: QueryFilter<T>): Promise<RepositoryType | null> {
+    const result = await this.model.findOne(query);
 
     return result;
   }
@@ -79,9 +83,9 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
 
-  /** @requires query specified in the constructor */
+  /** @requires init() */
   protected set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // TODO: Implement deep array/object diff
 
@@ -97,9 +101,9 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
 
-  /** @requires query specified in the constructor */
+  /** @requires init() */
   protected async update() {
-    if (!this._doc) throw new NekoError('ERROR_DOCUMENT_NOT_INITIALIZED');
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     await this._doc.save();
   }

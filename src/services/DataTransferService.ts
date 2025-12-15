@@ -26,7 +26,7 @@ export default class DocumentDTO {
   static anime(object: HydratedDocument<IAnime> | IAnime, exposed?: boolean): IAnime {
     const keys: (keyof IAnime)[] = [
       'posters',
-      'related',
+      'relations',
       'pictures',
       'episodes',
       'episodes_meta',
