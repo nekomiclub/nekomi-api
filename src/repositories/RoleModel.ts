@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 
-/** @deprecated rework into ABAC */
+/** @deprecated rework into RBAC */
 export const RoleModel = mongoose.model<IRole>('role', new Schema({
   capabilities: Array,
   code: String,

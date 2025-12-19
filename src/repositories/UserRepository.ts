@@ -14,19 +14,25 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 
 
 
-const model = mongoose.model<RepositoryType>('user', new Schema({
+const schema = new Schema<RepositoryType>({
   id: String,
-  libs: Array,
-  statistics: Object,
-  roles: Array,
-  avatar: String,
   username: String,
-  subscribes: Array,
-  watchProgress: Array,
-  telegramData: Object,
-  telegramLinkToken: String,
-  banner: String,
-}));
+  avatar: String,
+  cover: String,
+
+  roles: [String],
+  libs: [Schema.Types.Mixed],
+
+  total_viewtime: Number,
+  view_progress: [Schema.Types.Mixed],
+  dubber_team_member: String,
+  telegram_id: Number,
+
+  created_at: Date,
+  updated_at: Date,
+}, { strict: false, versionKey: false, _id: false });
+
+const model = mongoose.model<RepositoryType>('user', schema);
 
 
 

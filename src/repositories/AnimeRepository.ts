@@ -31,7 +31,7 @@ const schema = new Schema<RepositoryType>({
 
   hero_poster: String,
   hero_poster_author: String,
-  posters: Schema.Types.Mixed,
+  posters: [Schema.Types.Mixed],
 
   year: Number,
   episodes_total: Number,
@@ -40,7 +40,7 @@ const schema = new Schema<RepositoryType>({
   title_en: String,
   title_ja: String,
   title_ua: String,
-  title_synonims: Schema.Types.Mixed,
+  title_synonims: [Schema.Types.Mixed],
 
   synopsis_en: String,
   synopsis_ua: String,
@@ -48,14 +48,14 @@ const schema = new Schema<RepositoryType>({
   score: Number,
   scored_by: Number,
 
-  relations: Schema.Types.Mixed,
-  studios: Schema.Types.Mixed,
-  pictures: Schema.Types.Mixed,
-  schedule: Schema.Types.Mixed,
-  episodes: Schema.Types.Mixed,
-  episodes_meta: Schema.Types.Mixed,
+  relations: [Schema.Types.Mixed],
+  studios: [Schema.Types.Mixed],
+  pictures: [Schema.Types.Mixed],
+  schedule: [Schema.Types.Mixed],
+  episodes: [Schema.Types.Mixed],
+  episodes_meta: [Schema.Types.Mixed],
 
-  genres: Schema.Types.Mixed,
+  genres: [Schema.Types.Mixed],
   rating: String,
   status: String,
   season: String,
@@ -68,7 +68,7 @@ const schema = new Schema<RepositoryType>({
   shikimori_sync: String,
 
   is_DMCA_restricted: Boolean,
-}, { strict: false });
+}, { strict: false, versionKey: false, _id: false });
 
 const model = mongoose.model<RepositoryType>('anime', schema);
 

@@ -9,8 +9,10 @@ export interface IAnime {
   slug: string
   hikka_slug: string | null
 
-  hero_poster: string
-  hero_poster_author: string | null
+  /** @deprecated to rework */
+  hero_poster: any
+  /** @deprecated to rework */
+  hero_poster_author: any
   posters: string[] // Protected
 
   year: number
@@ -31,7 +33,8 @@ export interface IAnime {
   /** Related anime documents */
   relations: IAnimeRelation[] // Protected
   studios: IAnimeStudio[]
-  pictures: string[] // Protected
+  /** @deprecated to rename */
+  pictures: any // Protected
   schedule: IAnimeSchedule[]
   episodes: IAnimeEpisode[] // Protected
   episodes_meta: IAnimeEpisodeMeta[] // Protected
@@ -46,7 +49,8 @@ export interface IAnime {
   created_at: ISODateString // Protected
   hikka_sync: ISODateString | null // Protected
   myanimelist_sync: ISODateString | null // Protected
-  shikimori_sync: ISODateString | null // Protected
+  /** @deprecated to remove */
+  shikimori_sync: any // Protected
 
   /** Is anime restricted under DMCA */
   is_DMCA_restricted?: boolean // Protected

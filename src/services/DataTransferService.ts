@@ -46,8 +46,7 @@ export default class DocumentDTO {
 
   static dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
     const keys: (keyof IDubber)[] = [
-      'members',
-      'membersInvited',
+
     ];
 
     // Convert HydratedDocument into plain object
@@ -59,12 +58,13 @@ export default class DocumentDTO {
   static user(object: HydratedDocument<IUser> | IUser, exposed?: boolean): IUser {
     const keys: (keyof IUser)[] = [
       'roles',
-      'statistics',
       'libs',
-      'watchProgress',
-      'telegramLinkToken',
-      'subscribes',
-      'telegramData'
+      'total_viewtime',
+      'view_progress',
+      'dubber_team_member',
+      'telegram_id',
+      'created_at',
+      'updated_at',
     ];
 
     // Convert HydratedDocument into plain object

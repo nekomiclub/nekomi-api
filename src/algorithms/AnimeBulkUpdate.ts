@@ -208,7 +208,7 @@ export default async function AnimeBulkUpdate() {
           const idsRes = await IdsMoeAPI.getIds(animeService.document!.mal_id!);
 
           idsMoeId = idsRes.imdb;
-        } catch (e) { }
+        } catch (e) { null; }
 
         const imdbId: string | undefined = idsMoeId ?? ANIME_LISTS_CACHE?.find(el => el.mal_id === animeService.document!.mal_id!)?.imdb_id;
 
@@ -227,7 +227,7 @@ export default async function AnimeBulkUpdate() {
 
       // TODO: Upload posters
       if (posters?.length) {
-
+        null;
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: UAPosters update failed, skipping... [id: ${document.id}]`, e);
@@ -241,7 +241,7 @@ export default async function AnimeBulkUpdate() {
 
       // TODO: Upload screenshots
       if (shikimoriRes.screenshots?.length) {
-
+        null;
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Shikimori update failed, skipping... [id: ${document.id}]`, e);

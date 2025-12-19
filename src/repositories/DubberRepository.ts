@@ -13,23 +13,13 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 };
 
 
-const model = mongoose.model<IDubber>('dubber', new Schema({
+
+const schema = new Schema<RepositoryType>({
   id: String,
-  code: String,
-  name: String,
-  socials: Object,
-  support: Object,
-  createdAt: Number,
-  description: String,
-  members: Array,
-  avatar: String,
-  membersInvited: Array,
-  statistics: Object,
-  nameEng: String,
-  nameUkr: String,
-  slug: String,
-  banner: String,
-}));
+  slug: String
+}, { strict: false, versionKey: false, _id: false });
+
+const model = mongoose.model<RepositoryType>('dubber', schema);
 
 
 

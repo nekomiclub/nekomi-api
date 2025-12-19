@@ -1,85 +1,45 @@
+import { ISODateString } from './types';
+
+
+
 export interface IUser {
   id: string
   username: string
   avatar: string
-  banner: string
+  cover: string
 
-  /** @private */
-  statistics: IUserStatistics
+  roles: string[] // Protected
+  libs: IUserLib[] // Protected
 
-  /** @private */
-  libs: IUserLib[]
+  /** Total user viewtime in seconds */
+  total_viewtime: number // Protected
+  view_progress: IUserViewProgress[] // Protected
+  dubber_team_member: string | null // Protected
+  telegram_id: number | null // Protected
 
-  /** @private */
-  roles: string[]
-
-  /** @private */
-  watchProgress: IUserWatchProgress[]
-
-  /** @private */
-  telegramData: IUserTelegramData | null
-
-  /** 
-   * Access token to verify user telegram link request
-   * @private 
-   */
-  telegramLinkToken: string | null
-
-  /** Events subscribes */
-  subscribes: string[]
+  created_at: ISODateString // Protected
+  updated_at: ISODateString // Protected
 }
 
-/** User nekomi statistics */
-export interface IUserStatistics {
-  isTelegramLinked: boolean
-
-  dubber_team_member: string | null
-
-  /** UTC-0 timestamp */
-  accountCreated: number
-
-  /** Viewtime in seconds */
-  viewtime: number
-}
-
-/** User watch progress item */
-export interface IUserWatchProgress {
-  titleID: string
-  dubberID: string
-  episodeOrder: number
+export interface IUserViewProgress {
+  anime_id: string
+  dubber_id: string
+  episode: number
+  updated_at: ISODateString
 
   /** Watch progress in seconds */
   progress: number
-
-  /** Last update UTC-0 timestamp */
-  updatedAt: number
 }
 
-export interface IUserTelegramData {
-  id: number
-}
-
-export type UserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans' | 'custom'
+export type UserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans'
 
 export interface IUserLib {
   id: string
   type: UserLibType
+  anime_ids: string[]
 
-  /** UTC-0 timestamp */
-  createdAt: number
-
-  /** Titles IDs */
-  titles: string[]
-
-  settings: {
-    name: string
-
-    /** Visibility to others */
-    hidden: boolean
-
-    /** Protection from settings changes */
-    immortal: boolean
-  }
+  is_public: boolean
+  created_at: ISODateString
 }
 
 
