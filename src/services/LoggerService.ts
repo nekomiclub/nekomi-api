@@ -7,7 +7,12 @@ import { getUTC } from '~/utils/utils';
 const fileFormat = format.combine(
   format.timestamp({ format: () => `${getUTC().fulldate} ${getUTC().time}` }),
   format.errors({ stack: true }),
-  format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}]\t${message}`),
+  format.printf(({ level, message, timestamp, ...etc }) => {
+    const msg = `[${timestamp}] [${level.toUpperCase()}]\t${message}`;
+    const stack = etc?.stack ? ` ${etc?.stack}` : '';
+
+    return ''.concat(msg, stack);
+  }),
 );
 
 
@@ -22,8 +27,12 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: format.combine(
         format.timestamp({ format: () => getUTC().time }),
-        format.errors({ stack: true }),
-        format.printf(({ level, message, timestamp }) => `[${timestamp}] [${level.toUpperCase()}] ${message}`),
+        format.printf(({ level, message, timestamp, ...etc }) => {
+          const msg = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+          const stack = etc?.stack ? ` ${etc?.stack}` : '';
+
+          return ''.concat(msg, stack);
+        }),
         format.colorize({ all: true, colors: { http: 'grey' } })
       )
     }),

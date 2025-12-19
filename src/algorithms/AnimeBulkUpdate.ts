@@ -1,15 +1,121 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import IAnime, { ANIME_GENRE, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
-import { Hikka } from '~/api/external/hikka.api';
+import axios from 'axios';
+import fs from 'fs';
+import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
 import { IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
-import { Jikan } from '~/api/external/jikan.api';
+import { ISODateString } from '~/intf/types';
+import { IdsMoeAPI } from '~/api/external/idsmoe.api';
+import { JikanAPI } from '~/api/external/jikan.api';
+import { ShikimoriAPI } from '~/api/external/shikimori.api';
 import { getUTC } from '~/utils/utils';
 
 
 
+interface ICache<T> {
+  updated_at: ISODateString
+  data: T
+}
+
+interface IAnimeListCacheItem {
+  mal_id?: number
+  imdb_id?: string
+}
+
+interface IUAPoster {
+  url: string
+  author: string
+}
+
+interface IUAPostersCacheItem {
+  hikka_url: string // can be empty
+  posters: IUAPoster[]
+}
+
+type AnimeListsCacheType = ICache<IAnimeListCacheItem[]>;
+type UAPostersCacheType = ICache<IUAPostersCacheItem[]>;
+
+
+
+let cacheAwaitI = 0;
+let isCacheRevalidated = false;
 let UPDATE_YEAR = getUTC().year;
+let ANIME_LISTS_CACHE: IAnimeListCacheItem[] | null = null;
+let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
+
+
+
+// Get cache
+async function getCache() {
+  if (isCacheRevalidated) return;
+
+  const CACHE_FOLDER = `./.cache`;
+  const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/abu-alc.json`;
+  const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/abu-upc.json`;
+  const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
+
+  // Ensure that cache folder exists
+  if (!fs.existsSync(CACHE_FOLDER)) fs.mkdirSync(CACHE_FOLDER);
+
+  if (!fs.existsSync(ANIME_LISTS_CACHE_PATH)) fs.writeFileSync(ANIME_LISTS_CACHE_PATH, JSON.stringify({ updated_at: getUTC(0).ISO, data: [] } as ICache<any>, null, 2));
+  if (!fs.existsSync(UAPOSTERS_CACHE_PATH)) fs.writeFileSync(UAPOSTERS_CACHE_PATH, JSON.stringify({ updated_at: getUTC(0).ISO, data: [] } as ICache<any>, null, 2));
+
+  const alc = JSON.parse(fs.readFileSync(ANIME_LISTS_CACHE_PATH).toString()) as AnimeListsCacheType;
+  const upc = JSON.parse(fs.readFileSync(UAPOSTERS_CACHE_PATH).toString()) as UAPostersCacheType;
+
+
+
+  // Revalidate annime lists cache 
+  if (getUTC(alc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT) {
+    try {
+      const data = await axios.get('https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json');
+      const cache: AnimeListsCacheType = {
+        updated_at: getUTC().ISO,
+        data: data.data
+      };
+
+      fs.writeFileSync(ANIME_LISTS_CACHE_PATH, JSON.stringify(cache, null, 2));
+
+      ANIME_LISTS_CACHE = data.data;
+      Logger.debug(`[AnimeBulkUpdate]: Cache for ALC revalidated`);
+    } catch (e) {
+      Logger.error(`[AnimeBulkUpdate]: An error occured while updating cache for ALC`, e);
+    }
+  } else {
+    ANIME_LISTS_CACHE = (JSON.parse(fs.readFileSync(ANIME_LISTS_CACHE_PATH).toString()) as AnimeListsCacheType).data;
+  }
+
+
+
+  // Revalidate uaposters cache 
+  if (getUTC(upc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT) {
+    try {
+      const data = await axios.get('https://raw.githubusercontent.com/DrBryanMan/UAPosters/refs/heads/main/PostersList.json');
+      const cache: UAPostersCacheType = {
+        updated_at: getUTC().ISO,
+        data: data.data
+      };
+
+      fs.writeFileSync(UAPOSTERS_CACHE_PATH, JSON.stringify(cache, null, 2));
+
+      UAPOSTERS_CACHE = data.data;
+      Logger.debug(`[AnimeBulkUpdate]: Cache for UPC revalidated`);
+    } catch (e) {
+      Logger.error(`[AnimeBulkUpdate]: An error occured while updating cache for UPC`, e);
+    }
+  } else {
+    UAPOSTERS_CACHE = (JSON.parse(fs.readFileSync(UAPOSTERS_CACHE_PATH).toString()) as UAPostersCacheType).data;
+  }
+
+
+
+
+  Logger.debug(`[AnimeBulkUpdate]: Cache updated!`);
+
+  isCacheRevalidated = true;
+}
 
 
 
@@ -25,6 +131,9 @@ let UPDATE_YEAR = getUTC().year;
  * 6. Pull ashdi episodes
  */
 export default async function AnimeBulkUpdate() {
+  await getCache();
+  await awaitCache();
+
   try {
     const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
     if (!document) return UPDATE_YEAR -= 1;
@@ -36,7 +145,7 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull hikka
     try {
-      const hikkaRes = await Hikka.getAnime(document.hikka_slug!);
+      const hikkaRes = await HikkaAPI.getAnime(document.hikka_slug!);
 
       animeService.setMalId(hikkaRes.mal_id);
 
@@ -66,14 +175,14 @@ export default async function AnimeBulkUpdate() {
 
       hikkaPosterUrl = hikkaRes.image;
     } catch (e) {
-      Logger.warn(`[AnimeBulkUpdate]: Hikka update failed, skipping... [id: ${document.id}]`, e);
+      Logger.error(`[AnimeBulkUpdate]: Hikka update failed, skipping... [id: ${document.id}]`, e);
     }
 
 
 
     // * Pull myanimelist (jikan)
     try {
-      const jikanRes = await Jikan.getAnime(document.mal_id!);
+      const jikanRes = await JikanAPI.getAnime(animeService.document!.mal_id!);
 
       // Parse studios
       const studios = parseJikanStudios(jikanRes.studios);
@@ -85,39 +194,67 @@ export default async function AnimeBulkUpdate() {
 
       animeService.setSync('myanimelist_sync', getUTC().ISO);
     } catch (e) {
-      Logger.warn(`[AnimeBulkUpdate]: MyAnimeList update failed, skipping... [id: ${document.id}]`, e);
+      Logger.error(`[AnimeBulkUpdate]: MyAnimeList (Jikan) update failed, skipping... [id: ${document.id}]`, e);
     }
 
 
 
     // * Pull imdb
-    try {
-      if (document.imdb_id) return;
+    if (!animeService.document?.imdb_id) {
+      try {
+        let idsMoeId: string | null = null;
 
-      // TODO: Pull id from ids.moe, if not exist, pull https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json, cache and use it, if not pass by
-    } catch (e) {
-      Logger.warn(`[AnimeBulkUpdate]: IMDB update failed, skipping... [id: ${document.id}]`, e);
+        try {
+          const idsRes = await IdsMoeAPI.getIds(animeService.document!.mal_id!);
+
+          idsMoeId = idsRes.imdb;
+        } catch (e) { }
+
+        const imdbId: string | undefined = idsMoeId ?? ANIME_LISTS_CACHE?.find(el => el.mal_id === animeService.document!.mal_id!)?.imdb_id;
+
+        if (imdbId) await animeService.setIMDBId(imdbId);
+      } catch (e) {
+        Logger.warn(`[AnimeBulkUpdate]: IMDB update failed, skipping... [id: ${document.id}]`, e);
+      }
     }
+
 
 
 
     // * Pull uaposters
     try {
-      // TODO: Pull https://raw.githubusercontent.com/DrBryanMan/UAPosters/refs/heads/main/PostersList.json, cache and use it
+      const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url.includes(animeService.document!.hikka_slug!))?.posters;
 
-      Logger.warn(`[AnimeBulkUpdate]: UAPosters update is not yet implemented, skipping... [id: ${document.id}]`);
+      // TODO: Upload posters
+      if (posters?.length) {
+
+      }
     } catch (e) {
-      Logger.warn(`[AnimeBulkUpdate]: UAPosters update failed, skipping... [id: ${document.id}]`, e);
+      Logger.error(`[AnimeBulkUpdate]: UAPosters update failed, skipping... [id: ${document.id}]`, e);
     }
 
 
 
-    // * Pull ashdi
+    // * Pull shikimori
     try {
-      Logger.warn(`[AnimeBulkUpdate]: Ashdi update is not yet implemented, skipping... [id: ${document.id}]`);
+      const shikimoriRes = await ShikimoriAPI.getAnime(animeService.document!.mal_id!);
+
+      // TODO: Upload screenshots
+      if (shikimoriRes.screenshots?.length) {
+
+      }
     } catch (e) {
-      Logger.warn(`[AnimeBulkUpdate]: Ashdi update failed, skipping... [id: ${document.id}]`, e);
+      Logger.error(`[AnimeBulkUpdate]: Shikimori update failed, skipping... [id: ${document.id}]`, e);
     }
+
+
+
+    // // * Pull ashdi
+    // try {
+    //   Logger.warn(`[AnimeBulkUpdate]: Ashdi update is not yet implemented, skipping... [id: ${document.id}]`);
+    // } catch (e) {
+    //   Logger.error(`[AnimeBulkUpdate]: Ashdi update failed, skipping... [id: ${document.id}]`, e);
+    // }
 
 
 
@@ -132,11 +269,24 @@ export default async function AnimeBulkUpdate() {
 
 
 
+async function awaitCache() {
+  if (ANIME_LISTS_CACHE && UAPOSTERS_CACHE) return;
+
+  await new Promise(res => {
+    cacheAwaitI += 1;
+    Logger.verbose(`[AnimeBulkUpdate]: Awaiting cache (x${cacheAwaitI})`);
+
+    setTimeout(async () => {
+      await awaitCache();
+      res(1);
+    }, 3000);
+  });
+}
+
 function parseHikkaGenres(input: IHikkaGenre[]): ANIME_GENRE[] {
   const genres: ANIME_GENRE[] = [];
 
   input?.forEach(genre => {
-    console.log(genre);
     if (Object.values(ANIME_GENRE).includes(genre.slug.toLowerCase() as ANIME_GENRE)) genres.push(genre.slug.toLowerCase() as ANIME_GENRE);
   });
 

@@ -28,6 +28,7 @@ const env = {
   CSRF: String(process.env['CSRF-Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
   ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
+  IDS_MOE_KEY: String(process.env['IDS_MOE_KEY']),
 
   ISDEV: process.env['ISDEV'] == 'true',
   ISDOCKER: process.env['ISDOCKER'] == 'true',
@@ -102,6 +103,8 @@ const URL = {
   ashdiAPI: 'https://base.ashdi.vip',
   imdbAPI: 'https://api.imdbapi.dev',
   jikanAPI: 'https://api.jikan.moe',
+  idsmoeAPI: 'https://api.ids.moe',
+  shikimoriAPi: 'https://shikimori.one/api',
 };
 
 const vars = {

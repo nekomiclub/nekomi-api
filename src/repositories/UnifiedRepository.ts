@@ -91,7 +91,7 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
     // Write diff
     if (typeof value === 'string' || typeof value === 'number') this.diff.push(`[${String(key)}]: ${this._doc[key]} > ${value}`);
-    else if (Array.isArray(value)) this.diff.push(`[${String(key)}]: ${(this._doc[key] as Array<any>).length} > ${(value as Array<any>).length}`);
+    else if (Array.isArray(value)) this.diff.push(`[${String(key)}]: ${(this._doc[key] as Array<any>)?.length} > ${(value as Array<any>)?.length}`);
     else this.diff.push(`[${String(key)}]: object changed`);
 
     this._doc.markModified(key);

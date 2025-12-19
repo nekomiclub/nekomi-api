@@ -14,7 +14,7 @@ interface GetTitleProps {
 
 const baseURL = conf.URL.ashdiAPI;
 
-export class Ashdi {
+export class AshdiAPI {
   static async getTitle({ imdbId }: GetTitleProps): Promise<IAshdiTitle> {
     const url = `${baseURL}/api/product/read_one.php?imdb=${imdbId}&api_key=${conf.env.ASHDI_API_KEY}`;
     Logger.http(`[Ashdi]: GET - ${url}`);

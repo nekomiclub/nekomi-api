@@ -21,9 +21,9 @@ interface IJikanGetAnimeEpisodes {
 
 const baseURL = conf.URL.jikanAPI;
 
-export class Jikan {
+export class JikanAPI {
   static async getAnime(malId: number): Promise<IJikanAnime> {
-    const url = `${baseURL}/v4/anime/${malId}/episodes`;
+    const url = `${baseURL}/v4/anime/${malId}/full`;
     Logger.http(`[Jikan]: GET - ${url}`);
 
     const { data } = await axios.get<IJikanGetAnime>(url);

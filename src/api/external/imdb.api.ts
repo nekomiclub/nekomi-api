@@ -14,7 +14,7 @@ interface GetSearchTitlesProps {
 
 const baseURL = conf.URL.imdbAPI;
 
-export class IMDB {
+export class IMDBAPI {
   static async searchTitles({ query }: GetSearchTitlesProps): Promise<IMDBTitle[]> {
     const url = `${baseURL}/v2/search/titles?query=${query}`;
     Logger.http(`[IMDB]: GET - ${url}`);

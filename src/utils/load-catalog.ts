@@ -36,7 +36,7 @@ interface IHikkaAnime {
 
 export default async function LoadCatalog() {
   try {
-    const PATH = './data/catalog.json';
+    const PATH = './.cache/catalog.json';
     if (!fs.existsSync(PATH)) throw new ErrorConstructor(`lc:file_not_exist', 'Catalog file is not exist at "${PATH}"`);
 
     const catalog = JSON.parse(fs.readFileSync(PATH).toString()) as IHikkaAnime[];
