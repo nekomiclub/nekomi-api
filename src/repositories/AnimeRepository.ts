@@ -76,7 +76,7 @@ interface IConstructorProps {
 }
 
 interface ISetSlugOptions {
-  /** @testmode */
+  /** @test is document exist */
   _documentExist?: boolean
 }
 

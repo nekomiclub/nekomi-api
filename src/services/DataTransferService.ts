@@ -23,6 +23,13 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 export default class DocumentDTO {
+  static parse<T = any>(object: HydratedDocument<any> | any): T {
+    // Convert HydratedDocument into plain object
+    if ('toObject' in object) object = object.toObject();
+
+    return excludeKeys(object, []);
+  }
+
   static anime(object: HydratedDocument<IAnime> | IAnime, exposed?: boolean): IAnime {
     const keys: (keyof IAnime)[] = [
       'posters',

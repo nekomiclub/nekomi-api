@@ -14,5 +14,9 @@
   "sys:not_found": {
     "status": 404,
     "message": "Requested entity is not found"
+  },
+  "sys:already_exist": {
+    "status": 400,
+    "message": "Object already exist"
   }
 }

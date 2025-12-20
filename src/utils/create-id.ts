@@ -1,3 +1,4 @@
+import * as uuid from 'uuid';
 import { nanoid } from 'nanoid';
 
 
@@ -9,4 +10,8 @@ import { nanoid } from 'nanoid';
  */
 export default function createId(length?: number) {
   return nanoid(length ?? 8).replaceAll('_', 'u').replaceAll('-', 'd');
+}
+
+export function createUUID() {
+  return uuid.v4();
 }
