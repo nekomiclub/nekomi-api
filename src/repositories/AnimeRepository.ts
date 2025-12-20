@@ -175,6 +175,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       relations: [],
       studios: [],
       pictures: [],
+      screenshots: [],
       schedule: [],
       episodes: [],
       episodes_meta: [],

@@ -1,6 +1,22 @@
-import { ISODateString } from './types';
+import { CDNString, ISODateString } from './types';
 
 
+
+export interface IAnimePosterNode {
+  small: CDNString
+  medium: CDNString
+  original: CDNString
+
+  is_hero: boolean
+  pull_hash: string
+}
+
+export interface IAnimeScreenshotNode {
+  preview: CDNString
+  original: CDNString
+
+  pull_hash: string
+}
 
 export interface IAnime {
   id: string
@@ -9,11 +25,11 @@ export interface IAnime {
   slug: string
   hikka_slug: string | null
 
-  /** @deprecated to rework */
+  /** @deprecated to remove */
   hero_poster: any
-  /** @deprecated to rework */
+  /** @deprecated to remove */
   hero_poster_author: any
-  posters: string[] // Protected
+  posters: IAnimePosterNode[] // Protected
 
   year: number
   episodes_total: number | null
@@ -33,8 +49,10 @@ export interface IAnime {
   /** Related anime documents */
   relations: IAnimeRelation[] // Protected
   studios: IAnimeStudio[]
-  /** @deprecated to rename */
+  /** @deprecated use screenshots instead */
   pictures: any // Protected
+  /** @since new */
+  screenshots: IAnimeScreenshotNode[]
   schedule: IAnimeSchedule[]
   episodes: IAnimeEpisode[] // Protected
   episodes_meta: IAnimeEpisodeMeta[] // Protected

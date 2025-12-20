@@ -1,87 +1,16 @@
-import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from './IAnime';
 import { z } from 'zod';
 
 
 
+/** ISO Date string */
 export type ISODateString = string;
+
+/** Nekomi CDN string */
+export type CDNString = string;
 
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
 
-export const DaysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
-export type DayOfWeek = typeof DaysOfWeek[number];
 
-/** {@link https://github.com/SuperMarcus/myanimelist-api-specification?tab=readme-ov-file#animeobject | specs} */
-export interface MyAnimeListNode {
-  id: number
-  title: string
-
-  media_type?: ANIME_TYPE
-  num_episodes?: number
-  rating?: ANIME_RATING
-  status?: ANIME_STATUS
-  synopsis?: string
-
-  main_picture: {
-    medium: string
-    large: string
-  }
-
-  studios?: {
-    id: number
-    name: string
-  }[]
-
-  genres?: {
-    id: number
-    name: string
-  }[]
-
-  /** Score */
-  mean?: number
-
-  /** Scored by */
-  num_scoring_users?: number
-
-  broadcast?: {
-    day_of_the_week: DayOfWeek
-
-    /** e.g 12:30 */
-    start_time: string
-  }
-
-  related_anime?: {
-    node: MyAnimeListNode
-  }[],
-
-  alternative_titles?: {
-    en: string
-    ja: string
-    synonyms: string[]
-  }
-}
-
-/** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
-export interface HikkaMALIntegration {
-  data_type: string
-  media_type: ANIME_TYPE
-  title_ua: string
-  title_en: string
-  title_ja: string
-  episodes_released: number
-  episodes_total: number
-  image: string
-  status: ANIME_STATUS
-  scored_by: number
-  score: number
-  slug: string
-  start_date: number
-  end_date: number
-  translated_ua: boolean
-  season: ANIME_SEASON
-  source: string
-  rating: ANIME_RATING
-  year: number
-}
 
 export const ZodBooleanish = z.string().refine((value) => value === 'true' || value === 'false', {
   message: 'Value must be a boolean',

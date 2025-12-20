@@ -1,3 +1,5 @@
+import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
+
 export interface IHikkaAnime {
   data_type: 'anime';
   companies: IHikkaCompany[];
@@ -90,4 +92,27 @@ export interface IHikkaAnimeStats {
 export interface IHikkaScheduleItem {
   date: number;
   episode: number;
+}
+/** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
+
+export interface IHikkaMALIntegration {
+  data_type: string;
+  media_type: ANIME_TYPE;
+  title_ua: string;
+  title_en: string;
+  title_ja: string;
+  episodes_released: number;
+  episodes_total: number;
+  image: string;
+  status: ANIME_STATUS;
+  scored_by: number;
+  score: number;
+  slug: string;
+  start_date: number;
+  end_date: number;
+  translated_ua: boolean;
+  season: ANIME_SEASON;
+  source: string;
+  rating: ANIME_RATING;
+  year: number;
 }

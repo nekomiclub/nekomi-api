@@ -1,15 +1,26 @@
-import { ISODateString } from './types';
+import { CDNString, ISODateString } from './types';
+
+
+
+export enum USER_RESTRICTION {
+  BANNED = 'user:banned',
+  UPLOAD_AVATAR = 'user:upload_avatar',
+  USERNAME_CHANGE = 'user:username_change',
+}
 
 
 
 export interface IUser {
   id: string
   username: string
-  avatar: string
-  cover: string
+  email: string // Protected
+  avatar: CDNString
+  cover: CDNString
 
   roles: string[] // Protected
   libs: IUserLib[] // Protected
+  restrictions: USER_RESTRICTION[] // Protected
+  sessions: IUserSession[] // Protected
 
   /** Total user viewtime in seconds */
   total_viewtime: number // Protected
@@ -19,6 +30,7 @@ export interface IUser {
 
   created_at: ISODateString // Protected
   updated_at: ISODateString // Protected
+  username_changed_at: ISODateString // Protected
 }
 
 export interface IUserViewProgress {
@@ -39,6 +51,23 @@ export interface IUserLib {
   anime_ids: string[]
 
   is_public: boolean
+  created_at: ISODateString
+}
+
+interface IUserSession {
+  id: string
+  ip: string
+
+  // /** Session active till timestamp, when it reached client must send refresh request */
+  // active_till: ISODateString
+
+  // /** Session unactive timestamp, when it reached session must be deleted */
+  // expire: ISODateString
+
+  // /** Timestamp after this session must be deleted anyway */
+  // max_age: ISODateString
+
+  is_limited: boolean
   created_at: ISODateString
 }
 
