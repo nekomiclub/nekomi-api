@@ -29,8 +29,6 @@ const schema = new Schema<RepositoryType>({
   slug: String,
   hikka_slug: String,
 
-  hero_poster: String,
-  hero_poster_author: String,
   posters: [Schema.Types.Mixed],
 
   year: Number,
@@ -50,7 +48,7 @@ const schema = new Schema<RepositoryType>({
 
   relations: [Schema.Types.Mixed],
   studios: [Schema.Types.Mixed],
-  pictures: [Schema.Types.Mixed],
+  screenshots: [Schema.Types.Mixed],
   schedule: [Schema.Types.Mixed],
   episodes: [Schema.Types.Mixed],
   episodes_meta: [Schema.Types.Mixed],
@@ -65,10 +63,9 @@ const schema = new Schema<RepositoryType>({
   created_at: String,
   hikka_sync: String,
   myanimelist_sync: String,
-  shikimori_sync: String,
 
   is_DMCA_restricted: Boolean,
-}, { strict: false, versionKey: false, _id: false });
+}, { strict: false, versionKey: false });
 
 const model = mongoose.model<RepositoryType>('anime', schema);
 
@@ -153,9 +150,15 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       slug,
       hikka_slug: null,
 
-      hero_poster: conf.vars.defaultPoster,
-      hero_poster_author: conf.vars.INTERNAL_ID,
-      posters: [],
+      posters: [
+        {
+          small: conf.vars.defaultPoster,
+          medium: conf.vars.defaultPoster,
+          original: conf.vars.defaultPoster,
+          pull_hash: '',
+          is_hero: true,
+        }
+      ],
 
       year: getUTC().year,
       episodes_total: null,
@@ -174,7 +177,6 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
       relations: [],
       studios: [],
-      pictures: [],
       screenshots: [],
       schedule: [],
       episodes: [],
@@ -190,7 +192,6 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       created_at: getUTC().ISO,
       hikka_sync: null,
       myanimelist_sync: null,
-      shikimori_sync: null,
     };
 
     const document = new model(payload);
@@ -319,21 +320,6 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (episodes === 0) episodes = null;
 
     this.set('episodes_released', episodes);
-  }
-
-
-
-  /**
-   * Set hero poster author
-   * 
-   * @tested
-   */
-  async setHeroPosterAuthor(id: string | null) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    if (id === null || !id.length) id = null;
-
-    this.set('hero_poster_author', id);
   }
 
 
@@ -557,7 +543,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set status
    * 
-   * @testing
+   * @tested
    */
   setStatus = (status: ANIME_STATUS | null) => this.setTypedValue(status, 'status');
 
@@ -688,9 +674,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set sync timestamp
    * 
-   * @testing
+   * @tested
    */
-  setSync(key: keyof Pick<IAnime, 'hikka_sync' | 'myanimelist_sync' | 'shikimori_sync'>, ts: ISODateString | null) {
+  setSync(key: keyof Pick<IAnime, 'hikka_sync' | 'myanimelist_sync'>, ts: ISODateString | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set(key, ts);
@@ -703,6 +689,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @param value string value to be parsed
    * @param list object to parse
+   * 
+   * @tested cumulative
    */
   parseStringToType<E>(value: string | null, list: object): E {
     for (const key in list) {
@@ -719,6 +707,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @param value typed value
    * @param key document key
+   * 
+   * @tested cumulative
    */
   protected setTypedValue(value: string | null, key: keyof Pick<IAnime, 'rating' | 'type' | 'status' | 'season'>) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');

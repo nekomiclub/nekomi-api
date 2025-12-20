@@ -1,7 +1,7 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { getUTC } from '~/utils/utils';
@@ -113,14 +113,20 @@ describe('AnimeRepository', () => {
 
 
 
-  /**
-   * [+] Should set hero poster author
-   * [-] Should ensure that user exist
-   */
-  it('should set hero poster author', async () => {
-    // Set hero poster author
-    await animeServiceMain.setHeroPosterAuthor('nekomiclub');
-    expect(animeServiceMain.document?.hero_poster_author).toBe('nekomiclub');
+  it('should set year', async () => {
+
+  });
+
+
+
+  it('should set episodes total', async () => {
+
+  });
+
+
+
+  it('should set episodes released', async () => {
+
   });
 
 
@@ -311,6 +317,17 @@ describe('AnimeRepository', () => {
 
 
   /**
+   * [+] Should set status
+   */
+  it('should set status', () => {
+    // Set status
+    animeServiceMain.setStatus(ANIME_STATUS.FINISHED);
+    expect(animeServiceMain.document?.status).toBe(ANIME_STATUS.FINISHED);
+  });
+
+
+
+  /**
    * [+] Should set season
    */
   it('should set season', () => {
@@ -322,7 +339,7 @@ describe('AnimeRepository', () => {
 
 
   /**
-   * [-] Should set type
+   * [+] Should set type
    */
   it('should set type', () => {
     // Set type
@@ -333,7 +350,17 @@ describe('AnimeRepository', () => {
 
 
   /**
-   * [-] Should set isDMCARestricted
+   * [+] Should parse type
+   */
+  it('should parse type', () => {
+    // Parse type
+    expect(animeServiceMain.parseType('special')).toBe(ANIME_TYPE.SPECIAL);
+  });
+
+
+
+  /**
+   * [+] Should set isDMCARestricted
    */
   it('should set isDMCARestricted', () => {
     // Set isDMCARestricted
@@ -376,4 +403,17 @@ describe('AnimeRepository', () => {
   //  * [-] Should remove picture
   //  */
   // it('should remove picture', () => { });
+
+
+
+  /**
+   * [+] Should set sync
+   */
+  it('should set sync', () => {
+    // Set sync
+    const ts = getUTC().ISO;
+
+    animeServiceMain.setSync('hikka_sync', ts);
+    expect(animeServiceMain.document?.hikka_sync).toBe(ts);
+  });
 });

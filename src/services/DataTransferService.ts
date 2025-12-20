@@ -27,14 +27,13 @@ export default class DocumentDTO {
     const keys: (keyof IAnime)[] = [
       'posters',
       'relations',
-      'pictures',
+      'screenshots',
       'episodes',
       'episodes_meta',
       'updated_at',
       'created_at',
       'hikka_sync',
       'myanimelist_sync',
-      'shikimori_sync',
       'is_DMCA_restricted',
     ];
 
@@ -65,6 +64,10 @@ export default class DocumentDTO {
       'telegram_id',
       'created_at',
       'updated_at',
+      'username_changed_at',
+      'email',
+      'restrictions',
+      'sessions',
     ];
 
     // Convert HydratedDocument into plain object

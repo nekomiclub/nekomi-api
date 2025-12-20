@@ -31,7 +31,7 @@ const schema = new Schema<RepositoryType>({
 
   created_at: Date,
   updated_at: Date,
-}, { strict: false, versionKey: false, _id: false });
+}, { strict: false, versionKey: false });
 
 const model = mongoose.model<RepositoryType>('user', schema);
 

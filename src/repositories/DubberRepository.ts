@@ -17,7 +17,7 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 const schema = new Schema<RepositoryType>({
   id: String,
   slug: String
-}, { strict: false, versionKey: false, _id: false });
+}, { strict: false, versionKey: false });
 
 const model = mongoose.model<RepositoryType>('dubber', schema);
 
