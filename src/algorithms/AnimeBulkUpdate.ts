@@ -52,8 +52,8 @@ async function getCache() {
   if (isCacheRevalidated) return;
 
   const CACHE_FOLDER = `./.cache`;
-  const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/abu-alc.json`;
-  const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/abu-upc.json`;
+  const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
+  const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
   const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
 
   // Ensure that cache folder exists

@@ -1,3 +1,4 @@
+import GenericGetCSRF from './GenericGetCSRF.route';
 import GenericGetPingRoute from './GenericGetPing.route';
 import express from 'express';
 
@@ -5,7 +6,10 @@ import express from 'express';
 
 const GenericRouter = express.Router();
 
+
+
 GenericRouter.get(['/', '/ping'], GenericGetPingRoute);
+GenericRouter.get('/csrf', GenericGetCSRF);
 
 
 

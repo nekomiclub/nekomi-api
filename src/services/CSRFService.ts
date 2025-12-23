@@ -1,6 +1,6 @@
 import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
-import conf from '~/config';
+import conf, { DevelopmentMode } from '~/config';
 import jwt from 'jsonwebtoken';
 import { ICSRFToken, ISODateString } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
@@ -10,6 +10,11 @@ import { getUTC } from '~/utils/utils';
 interface IAcceptedToken {
   token: string
   acceptedAt: ISODateString
+}
+
+interface IVerify {
+  isVerified: boolean
+  origin: string
 }
 
 
@@ -37,8 +42,13 @@ class CSRFServiceClass {
 
   /** 
    * Verify token using it's origin
+   * If requested origin provided, will match their similarity
+   * 
+   * @development you can pass "~dev" in development mode to use fresh api CSRF token
    */
-  async verify(token: string, requestedOrigin: string): Promise<boolean> {
+  async verify(token: string, requestedOrigin?: string): Promise<boolean> {
+    if (DevelopmentMode && token === '~dev') token = this.signToken(null);
+
     // Ensure that token is unique
     if (this.checkTokenUniqueness(token)) return false;
     this.pushToken(token);
@@ -46,8 +56,8 @@ class CSRFServiceClass {
     try {
       const { origin } = TokenService.decode<ICSRFToken>(token).payload;
 
-      // Ensure that requested origin match token origin
-      if (requestedOrigin !== origin) return false;
+      // Ensure that origin match requested if second was provided
+      if (requestedOrigin && requestedOrigin !== origin) return false;
 
       const agent = await CSRFAgentRepository.getOne(origin);
 
@@ -62,14 +72,14 @@ class CSRFServiceClass {
   /** 
    * Sign CSRF token
    */
-  signToken(): string {
+  signToken(expiresIn?: number | null): string {
     const payload: ICSRFToken = {
       origin: conf.domain
     };
 
     return jwt.sign(payload, conf.env.CSRF_Token, {
       algorithm: 'RS256',
-      expiresIn: CSRF_TOKEN_LIFESPAN_MS / 1000,
+      expiresIn: expiresIn ?? CSRF_TOKEN_LIFESPAN_MS / 1000,
       subject: 'CSRF'
     });
   }
