@@ -2,7 +2,7 @@ import { ISODateString } from './types';
 
 
 
-export interface IXSRFAgent {
+export interface ICSRFAgent {
   id: string
   origin: string
   public_key: string
@@ -11,4 +11,4 @@ export interface IXSRFAgent {
 
 
 
-export default IXSRFAgent;
+export default ICSRFAgent;

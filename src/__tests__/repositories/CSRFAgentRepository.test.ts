@@ -1,11 +1,11 @@
-import { XSRFAgentRepositoryClass } from '~/repo/XSRFAgentRepository';
+import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { shouldfail } from '~/utils/testing-utils';
 
 
 
-describe('XSRF Agent Repository', () => {
-  const agentRepository = new XSRFAgentRepositoryClass({ testmode: true });
+describe('CSRF Agent Repository', () => {
+  const agentRepository = new CSRFAgentRepositoryClass({ testmode: true });
 
 
 

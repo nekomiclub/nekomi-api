@@ -1,3 +1,4 @@
+import { JwtPayload } from 'jsonwebtoken';
 import { z } from 'zod';
 
 
@@ -9,6 +10,18 @@ export type ISODateString = string;
 export type CDNString = string;
 
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
+
+export interface ICSRFToken {
+  origin: string
+}
+
+export interface IJWTokenPayload<T = object> {
+  payload: JwtPayload & T;
+
+  /** Will be null if verify method is not specified */
+  verified: boolean | null;
+}
+
 
 
 

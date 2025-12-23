@@ -1,5 +1,5 @@
 import DocumentDTO from '~/service/DataTransferService';
-import IXSRFAgent from '~/intf/IXSRFAgent';
+import ICSRFAgent from '~/intf/ICSRFAgent';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import crypto from 'crypto';
@@ -11,7 +11,7 @@ import { getUTC } from '~/utils/utils';
 
 
 /** Repository type. Reffers to the model interface */
-type RepositoryType = IXSRFAgent;
+type RepositoryType = ICSRFAgent;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
   return { $or: [{ id: query }, { origin: query }] };
@@ -26,7 +26,7 @@ const schema = new Schema<RepositoryType>({
   public_key: String
 }, { strict: false, versionKey: false });
 
-const model = mongoose.model<RepositoryType>('xsrf-agent', schema);
+const model = mongoose.model<RepositoryType>('csrf-agent', schema);
 
 
 
@@ -45,13 +45,13 @@ interface ICreateProps {
 }
 
 interface ICreate {
-  document: IXSRFAgent
+  document: ICSRFAgent
   privateKey: string
 }
 
 
 
-export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
+export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   private testmode = false;
 
   constructor(props?: IConstructorProps) {
@@ -69,7 +69,7 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     await this.update();
 
-    Logger.debug(`[XSRFAgent]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    Logger.debug(`[CSRFAgent]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
   }
 
 
@@ -80,7 +80,7 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
       const url = new URL(`http://${origin}`);
       origin = url.hostname;
     } catch (e) {
-      throw new NekoError(`sys:type_invalid`, `XSRF Agent origin must be valid URL domain`);
+      throw new NekoError(`sys:type_invalid`, `CSRF Agent origin must be valid URL domain`);
     }
 
     // Ensure that origin is unique
@@ -93,7 +93,7 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
       isOriginExist = Boolean(exist);
     }
 
-    if (isOriginExist) throw new NekoError('sys:already_exist', `XSRF Agent with origin ${origin} already exist`);
+    if (isOriginExist) throw new NekoError('sys:already_exist', `CSRF Agent with origin ${origin} already exist`);
 
 
 
@@ -101,7 +101,7 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     const { privateKey, publicKey } = this.generateKeypairs();
 
-    const payload: IXSRFAgent = {
+    const payload: ICSRFAgent = {
       id: createUUID(),
       created_at: getUTC().ISO,
       origin,
@@ -113,9 +113,9 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     if (saveDocument) await document.save();
 
-    Logger.info(`[XSRFAgent]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
+    Logger.info(`[CSRFAgent]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
 
-    return { document: DocumentDTO.parse<IXSRFAgent>(document), privateKey };
+    return { document: DocumentDTO.parse<ICSRFAgent>(document), privateKey };
   }
 
 
@@ -132,7 +132,7 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     this.set('public_key', publicKey);
 
-    Logger.debug(`[XSRFAgent]: New keypairs been issued for agent. [id: ${this._doc.id}]`);
+    Logger.debug(`[CSRFAgent]: New keypairs been issued for agent. [id: ${this._doc.id}]`);
 
     return privateKey;
   }
@@ -157,6 +157,6 @@ export class XSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
 
 
-const XSRFAgentRepository = new XSRFAgentRepositoryClass();
+const CSRFAgentRepository = new CSRFAgentRepositoryClass();
 
-export default XSRFAgentRepository;
+export default CSRFAgentRepository;

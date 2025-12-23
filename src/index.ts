@@ -1,4 +1,3 @@
-import AnimeBulkUpdate from './algorithms/AnimeBulkUpdate';
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
@@ -68,8 +67,11 @@ async function runtime() {
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
 
-    await AnimeBulkUpdate();
     if (conf.env.ENV === 'production') await LoadCatalog();
+
+    // console.log(CSRFService.signToken());
+
+    // console.log(await CSRFService.verify(CSRFService.signToken(), 'api.nekomi.club'));
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

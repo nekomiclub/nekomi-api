@@ -25,7 +25,7 @@ const env = {
   DATABASE_USR: String(process.env['DATABASE_USR']),
   DATABASE_PWD: String(process.env['DATABASE_PWD']),
 
-  CSRF: String(process.env['CSRF-Token']),
+  CSRF_Token: String(process.env['CSRF_Token']),
   MALClientID: String(process.env['MAL-Client-ID']),
   ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
   IDS_MOE_KEY: String(process.env['IDS_MOE_KEY']),
@@ -142,6 +142,7 @@ const conf = {
   logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
+  domain: 'api.nekomi.club',
   URL,
   env,
   vars,
