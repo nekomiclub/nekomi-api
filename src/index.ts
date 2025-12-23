@@ -1,13 +1,13 @@
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
-import LoadCatalog from './utils/load-catalog';
 import Logger from './services/LoggerService';
 import bodyParser from 'body-parser';
 import conf from './config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { MLoadAgents, MLoadCatalog } from './utils/migration-utils';
 import { traceRequest } from './services/HTTPService';
 
 
@@ -67,11 +67,8 @@ async function runtime() {
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
 
-    if (conf.env.ENV === 'production') await LoadCatalog();
-
-    // console.log(CSRFService.signToken());
-
-    // console.log(await CSRFService.verify(CSRFService.signToken(), 'api.nekomi.club'));
+    if (conf.env.ENV === 'production') await MLoadCatalog();
+    if (conf.env.ENV === 'production') await MLoadAgents();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

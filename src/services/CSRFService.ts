@@ -39,12 +39,11 @@ class CSRFServiceClass {
    * Verify token using it's origin
    */
   async verify(token: string, requestedOrigin: string): Promise<boolean> {
+    // Ensure that token is unique
+    if (this.checkTokenUniqueness(token)) return false;
     this.pushToken(token);
 
     try {
-      // Ensure that token is unique
-      if (this.checkTokenUniqueness(token)) return false;
-
       const { origin } = TokenService.decode<ICSRFToken>(token).payload;
 
       // Ensure that requested origin match token origin

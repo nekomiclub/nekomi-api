@@ -40,6 +40,11 @@ interface ICreateProps {
   /** Save the document in the database. @default true */
   saveDocument?: boolean
 
+  /** Must be removed after 3.0.0 */
+  _implicitSetPKI?: string
+  /** Must be removed after 3.0.0 */
+  _implicitSetCreatedAt?: string
+
   /** @test is origin exist */
   _isOriginExist?: boolean
 }
@@ -74,7 +79,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
 
 
-  async create({ origin, saveDocument, _isOriginExist }: ICreateProps): Promise<ICreate> {
+  async create({ origin, saveDocument, _isOriginExist, _implicitSetCreatedAt, _implicitSetPKI }: ICreateProps): Promise<ICreate> {
     // Ensure that origin valid
     try {
       const url = new URL(`http://${origin}`);
@@ -103,9 +108,9 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     const payload: ICSRFAgent = {
       id: createUUID(),
-      created_at: getUTC().ISO,
+      created_at: _implicitSetCreatedAt ?? getUTC().ISO,
       origin,
-      public_key: publicKey
+      public_key: _implicitSetPKI ?? publicKey
     };
 
     const document = new model(payload);

@@ -3,7 +3,9 @@ import createSlug from './create-slug';
 import fs from 'fs';
 import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
+import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { ErrorConstructor } from '~/service/ExceptionService';
+import { getUTC } from './utils';
 
 
 
@@ -32,9 +34,16 @@ interface IHikkaAnime {
   watch: any[]
 }
 
+interface IAgent {
+  id: string
+  origin: string
+  createdAt: number
+  publicKey: string
+}
 
 
-export default async function LoadCatalog() {
+
+export async function MLoadCatalog() {
   try {
     const PATH = './.cache/catalog.json';
     if (!fs.existsSync(PATH)) throw new ErrorConstructor(`lc:file_not_exist', 'Catalog file is not exist at "${PATH}"`);
@@ -44,7 +53,7 @@ export default async function LoadCatalog() {
     catalog.slice(0, 100).forEach(async item => {
       try {
         const as = new AnimeRepositoryClass();
-        if (await as.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[LoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
+        if (await as.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
 
         await as.create();
 
@@ -63,12 +72,33 @@ export default async function LoadCatalog() {
 
         await as.save();
 
-        Logger.info(`[LoadCatalog]: Item loaded [id: ${as.document?.id}]`);
+        Logger.info(`[MLoadCatalog]: Item loaded [id: ${as.document?.id}]`);
       } catch (e) {
-        Logger.error(`[LoadCatalog]: Error parsing item ${item.slug}`, e);
+        Logger.error(`[MLoadCatalog]: Error parsing item ${item.slug}`, e);
       }
     });
   } catch (e) {
-    Logger.error(`[LoadCatalog]: An error occured while loading catalog`, e);
+    Logger.error(`[MLoadCatalog]: An error occured while loading catalog`, e);
+  }
+}
+
+export async function MLoadAgents() {
+  try {
+    const PATH = './.cache/agents.json';
+    if (!fs.existsSync(PATH)) throw new ErrorConstructor(`lc:file_not_exist', 'Agents file is not exist at "${PATH}"`);
+
+    const agents = JSON.parse(fs.readFileSync(PATH).toString()) as IAgent[];
+
+    for (const key in agents) {
+      const agent = agents[key];
+
+      try {
+        await new CSRFAgentRepositoryClass().create({ origin: agent.origin, _implicitSetCreatedAt: getUTC(agent.createdAt).ISO, _implicitSetPKI: agent.publicKey });
+      } catch (e) {
+        Logger.error(`[MLoadAgents]: An error occured while loading agent ${agent.origin}`, e);
+      }
+    }
+  } catch (e) {
+    Logger.error(`[MLoadAgents]: An error occured while loading agents`, e);
   }
 }
