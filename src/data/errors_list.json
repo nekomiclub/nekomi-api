@@ -18,5 +18,9 @@
   "sys:already_exist": {
     "status": 400,
     "message": "Object already exist"
+  },
+  "sys:invalid_payload": {
+    "status": 400,
+    "message": "Payload invalid or validation failed"
   }
 }

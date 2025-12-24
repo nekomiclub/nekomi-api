@@ -1,6 +1,9 @@
 import Logger from './LoggerService';
 import express from 'express';
 import fs from 'fs';
+import { AxiosError } from 'axios';
+import { DevelopmentMode, TestMode } from '~/config';
+import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils';
 
 
@@ -101,7 +104,7 @@ export class NekoError extends ErrorConstructor {
 
 /** 
  * Handle request errors like:
- * HTTPErrorConstructor, Axios, express-validator & uncaught
+ * ErrorConstructor, Axios, Zod & uncaught
  */
 export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
   try {
@@ -110,59 +113,42 @@ export async function HandleRequest(req: express.Request, res: express.Response,
   } catch (e) {
     const date = `${getUTC().fulldate} UTC ${getUTC().time}`;
 
-    // if (e instanceof HTTPError) {
-    //   const emsg = `[HTTP/${e.status}]: ${e.code} - ${e.message}`;
+    if (e instanceof ErrorConstructor) {
+      return res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
+    } else if (e instanceof ZodError) {
+      if (DevelopmentMode && !TestMode) console.log(`Validation error`, e.errors);
+      if (TestMode) Logger.error(`(TESTING) Validation error`, e.errors);
 
-    //   if (e.status >= 500) {
-    //     Logger.error(emsg);
-    //   } else {
-    //     if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
-    //     if (TestMode) Logger.error(`(TESTING) ${emsg}`);
-    //   }
+      return res.status(400).json({ message: 'Invalid payload', code: 'sys:invalid_payload', errors: e.errors, date });
+    } else if (e instanceof AxiosError) {
+      const status = e.response?.data.status ?? e.status ?? 502;
+      const code = e.response?.data.code ?? e.code ?? 'sys:http';
+      const message = e.response?.data.message ?? e.response?.data.msg ?? e.message ?? 'Message is not provided';
 
-    //   return res.status(e.status).json({ ...e, date });
-    // } else if (e instanceof AxiosError) {
-    //   const status = e.response?.data.status || e.status || 502;
-    //   const code = e.response?.data.code || e.code || 'HTTP_ERROR';
-    //   const message = e.response?.data.message || e.response?.data.msg || e.message || 'Message not provided';
+      const emsg = `[AXIOS (${status})]: ${code} - ${message}`;
 
-    //   const emsg = `[AXIOS/${status}]: ${code} - ${message.replaceAll('127.0.0.1', 'local.addr')}`;
+      let reqURL = e.config?.url;
 
-    //   let reqURL = e.config?.url;
+      if (code === 'ECONNREFUSED') {
+        const message = `[AXIOS (503)]: Connection refused`;
+        Logger.error(`[AXIOS (503)]: Connection to ${reqURL} refused`);
 
-    //   if (code === 'ECONNREFUSED') {
-    //     const message = `[AXIOS/503]: Connection refused`;
-    //     Logger.error(`[AXIOS/503]: Connection to ${reqURL} refused`);
+        return res.status(503).json({ message, code, reqURL, date });
+      } else {
+        if (status >= 500) {
+          Logger.error(`${emsg}. URL: ${reqURL}`);
+        } else {
+          if (DevelopmentMode && !TestMode) console.log(emsg);
+          if (TestMode) Logger.error(`(TESTING) ${emsg}`, e);
+        }
+      }
 
-    //     return res.status(503).json({ message, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
-    //   } else {
-    //     if (status >= 500) {
-    //       Logger.error(`${emsg}. URL: ${reqURL}`);
-    //     } else {
-    //       if (DevelopmentMode && !TestMode) console.log(chalk.red(emsg));
-    //       if (TestMode) Logger.error(`(TESTING) ${emsg}`);
-    //     }
-    //   }
+      return res.status(status).json({ message: emsg, code, reqURL, date });
+    } else {
+      const emsg = `[Uncaught]: Uncaught error occured`;
+      Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
-    //   return res.status(status).json({ message: emsg, code, reqURL: reqURL?.replaceAll('127.0.0.1', 'local.addr'), date });
-    // } else if (e instanceof ZodError) {
-    //   if (DevelopmentMode && !TestMode) console.log(chalk.red(`Validation error`, e));
-
-    //   return res.status(400).json({ message: 'Invalid payload, match it with endpoint documentation.', code: ERR_GENERIC.INVALID_PAYLOAD, date });
-    // } else {
-    //   console.error(e);
-
-    //   const emsg = `[Uncaught]: Uncaught error occured`;
-    //   Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
-
-    //   return res.status(500).json({ message: emsg, date });
-    // }
-
-    console.error(e);
-
-    const emsg = `[Uncaught]: Uncaught error occured`;
-    Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
-
-    return res.status(500).json({ message: emsg, date });
+      return res.status(500).json({ message: emsg, date });
+    }
   }
 }
