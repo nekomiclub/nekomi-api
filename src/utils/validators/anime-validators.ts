@@ -1,4 +1,5 @@
 import z from 'zod';
+import { getUTC } from '~/utils/utils';
 
 
 
@@ -13,6 +14,12 @@ const l = {
 
   MIN_SCORED_BY: 0,
   MAX_SCORED_BY: 999999999,
+
+  MIN_YEAR: 1980,
+  MAX_YEAR: getUTC().year + 3,
+
+  MIN_EPISODES_TOTAL: 0,
+  MAX_EPISODES_TOTAL: 99999,
 };
 
 const AnimeValidators = {
@@ -23,6 +30,8 @@ const AnimeValidators = {
   synopsis: z.string().max(l.MAX_SYNOPSIS_LENGTH),
   score: z.number().min(l.MIN_SCORE).max(l.MAX_SCORE),
   scoredBy: z.number().min(l.MIN_SCORED_BY).max(l.MAX_SCORED_BY),
+  year: z.number().min(l.MIN_YEAR).max(l.MAX_YEAR),
+  episodes: z.number().min(l.MIN_EPISODES_TOTAL).max(l.MAX_EPISODES_TOTAL)
 };
 
 

@@ -1,9 +1,9 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
-import createId from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { createNanoId } from '~/utils/create-id';
 import { getUTC } from '~/utils/utils';
 import { shouldfail } from '~/utils/testing-utils';
 
@@ -12,7 +12,7 @@ import { shouldfail } from '~/utils/testing-utils';
 
 
 describe('AnimeRepository', () => {
-  const animeServiceMain = new AnimeRepositoryClass({ testmode: true });
+  const animeServiceMain = new AnimeRepositoryClass();
 
 
 
@@ -79,7 +79,7 @@ describe('AnimeRepository', () => {
    */
   it('should set slug', async () => {
     // Set slug
-    const testslug = `testing-${createSlug(createId())}`;
+    const testslug = `testing-${createSlug(createNanoId())}`;
     await animeServiceMain.setSlug(testslug);
     expect(animeServiceMain.document?.slug).toBe(testslug);
 
@@ -94,7 +94,7 @@ describe('AnimeRepository', () => {
 
 
     // Trim slug
-    const trimSlugId = createSlug(createId());
+    const trimSlugId = createSlug(createNanoId());
     await animeServiceMain.setSlug(`      ${trimSlugId}     `);
     expect(animeServiceMain.document?.slug).toBe(trimSlugId);
   });
@@ -113,20 +113,41 @@ describe('AnimeRepository', () => {
 
 
 
+  /**
+   * [+] Should set year
+   * [+] Should validate year
+   */
   it('should set year', async () => {
+    animeServiceMain.setYear(1998);
+    expect(animeServiceMain.document?.year).toBe(1998);
 
+    shouldfail(() => { animeServiceMain.setYear(AnimeValidators.limits.MAX_YEAR + 5); });
   });
 
 
 
+  /**
+   * [+] Should set episodes total
+   * [+] Should validate episodes total
+   */
   it('should set episodes total', async () => {
+    animeServiceMain.setEpisodesTotal(12);
+    expect(animeServiceMain.document?.episodes_total).toBe(12);
 
+    shouldfail(() => { animeServiceMain.setEpisodesTotal(AnimeValidators.limits.MAX_EPISODES_TOTAL + 5); });
   });
 
 
 
+  /**
+   * [+] Should set episodes released
+   * [+] Should validate episodes released
+   */
   it('should set episodes released', async () => {
+    animeServiceMain.setEpisodesReleased(10);
+    expect(animeServiceMain.document?.episodes_released).toBe(10);
 
+    shouldfail(() => { animeServiceMain.setEpisodesReleased(AnimeValidators.limits.MAX_EPISODES_TOTAL + 5); });
   });
 
 
@@ -142,7 +163,7 @@ describe('AnimeRepository', () => {
    */
   it('should set title', async () => {
     // Set title & synonyms
-    const titleEnId = createId().toLowerCase();
+    const titleEnId = createNanoId().toLowerCase();
     const title_en = `    ${titleEnId}   `;
     const title_ja = '    one  two';
     const title_ua = '    lol   ';

@@ -4,14 +4,13 @@ import { nanoid } from 'nanoid';
 
 
 /** 
- * Create ID
- * 
- * @param length id length. @default 8
+ * Create UUID
  */
-export default function createId(length?: number) {
-  return nanoid(length ?? 8).replaceAll('_', 'u').replaceAll('-', 'd');
+export default function createId() {
+  return uuid.v4();
 }
 
-export function createUUID() {
-  return uuid.v4();
+/** Create tiny id */
+export function createNanoId(length?: number) {
+  return nanoid(length ?? 8).replaceAll('_', 'u').replaceAll('-', 'd');
 }

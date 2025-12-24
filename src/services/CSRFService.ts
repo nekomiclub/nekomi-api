@@ -1,6 +1,6 @@
 import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
-import conf, { DevelopmentMode } from '~/config';
+import conf, { DevelopmentMode, TestMode } from '~/config';
 import jwt from 'jsonwebtoken';
 import { ICSRFToken, ISODateString } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
@@ -47,7 +47,7 @@ class CSRFServiceClass {
    * @development you can pass "~dev" in development mode to use fresh api CSRF token
    */
   async verify(token: string, requestedOrigin?: string): Promise<boolean> {
-    if (DevelopmentMode && token === '~dev') token = this.signToken(null);
+    if ((DevelopmentMode || TestMode) && token === '~dev') token = this.signToken(null);
 
     // Ensure that token is unique
     if (this.checkTokenUniqueness(token)) return false;

@@ -2,11 +2,11 @@ import DocumentDTO from '~/service/DataTransferService';
 import ICSRFAgent from '~/intf/ICSRFAgent';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
+import createId from '~/utils/create-id';
 import crypto from 'crypto';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
-import { createUUID } from '~/utils/create-id';
 import { getUTC } from '~/utils/utils';
 
 
@@ -107,7 +107,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     const { privateKey, publicKey } = this.generateKeypairs();
 
     const payload: ICSRFAgent = {
-      id: createUUID(),
+      id: createId(),
       created_at: _implicitSetCreatedAt ?? getUTC().ISO,
       origin,
       public_key: _implicitSetPKI ?? publicKey

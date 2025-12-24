@@ -4,7 +4,7 @@ import path from 'path';
 import { config as dotenvCfg } from 'dotenv';
 
 
-import createId from './utils/create-id';
+import { createNanoId } from './utils/create-id';
 import { execSync } from 'child_process';
 import { getUTC } from './utils/utils';
 
@@ -61,7 +61,8 @@ const env = {
 };
 
 export const ProductionMode = env.ENV === 'production';
-export const DevelopmentMode = !ProductionMode || env.ENV === 'development';
+export const TestMode = Boolean(process.env.VITEST);
+export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'development';
 
 const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
 
@@ -82,7 +83,7 @@ if (!env.ISDOCKER) {
   }
 }
 
-const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createId()}`;
+const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createNanoId()}`;
 
 
 const URL = {

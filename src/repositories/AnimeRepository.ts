@@ -3,8 +3,8 @@ import DocumentDTO from '~/service/DataTransferService';
 import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
-import conf from '~/config';
-import createId from '~/utils/create-id';
+import conf, { TestMode } from '~/config';
+import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
 import { ISODateString, RepositoryQueriesType } from '~/intf/types';
@@ -72,7 +72,7 @@ const model = mongoose.model<RepositoryType>('anime', schema);
 
 
 interface IConstructorProps {
-  testmode?: boolean
+  _?: any
 }
 
 interface ISetSlugOptions {
@@ -107,12 +107,8 @@ interface ISetScoreProps {
 
 
 export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
-  private testmode = false;
-
   constructor(props?: IConstructorProps) {
     super(model, queries);
-
-    if (props?.testmode) this.testmode = props.testmode;
   }
 
 
@@ -137,7 +133,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async create(props?: ICreateProps): Promise<IAnime> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = this.testmode ? `~testing-${createId()}` : createId();
+    const id = TestMode ? `~testing-${createNanoId()}` : createId();
     const title = `Untitled ${id.toLowerCase()}`;
     const slug = createSlug(title);
 
@@ -248,7 +244,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     slug = createSlug(trimString(slug));
 
     // Define is document exist
-    if (this.testmode) {
+    if (TestMode) {
       isDocumentExist = Boolean(opts?._documentExist);
     } else {
       const exist = await this.safeGetOne(slug);
@@ -257,7 +253,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       if (exist && exist.id !== this._doc.id) isDocumentExist = true;
     }
 
-    if (isDocumentExist) slug += `-${createId(4)}`;
+    if (isDocumentExist) slug += `-${createNanoId(4)}`;
 
     this.set('slug', slug);
 
@@ -284,10 +280,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set year
    * 
-   * @testing
+   * @tested
    */
   setYear(year: number) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    AnimeValidators.year.parse(year);
 
     this.set('year', year);
   }
@@ -297,12 +295,13 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set episodes total
    * 
-   * @testing
+   * @tested
    */
   setEpisodesTotal(episodes: number | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    if (episodes === 0) episodes = null;
+    if (episodes === 0 || episodes === null) episodes = null;
+    else AnimeValidators.episodes.parse(episodes);
 
     this.set('episodes_total', episodes);
   }
@@ -312,12 +311,13 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set episodes released
    * 
-   * @testing
+   * @tested
    */
   setEpisodesReleased(episodes: number | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    if (episodes === 0) episodes = null;
+    if (episodes === 0 || episodes === null) episodes = null;
+    else AnimeValidators.episodes.parse(episodes);
 
     this.set('episodes_released', episodes);
   }
