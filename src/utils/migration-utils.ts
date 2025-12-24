@@ -5,6 +5,8 @@ import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAn
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { ErrorConstructor } from '~/service/ExceptionService';
+import { ROLE_PERMISSION } from '~/intf/IRole';
+import { RoleRepositoryClass } from '~/repo/RoleRepository';
 import { getUTC } from './utils';
 
 
@@ -100,5 +102,19 @@ export async function MLoadAgents() {
     }
   } catch (e) {
     Logger.error(`[MLoadAgents]: An error occured while loading agents`, e);
+  }
+}
+
+export async function MLoadRoles() {
+  try {
+    await new RoleRepositoryClass().create({ name: 'Користувач', slug: 'user' });
+    const rootRole = new RoleRepositoryClass();
+
+    await rootRole.create({ name: 'Користувач', slug: 'root' });
+    rootRole.appendPermission(ROLE_PERMISSION.ABSOLUTE);
+
+    await rootRole.save();
+  } catch (e) {
+    Logger.error(`[MLoadRoles]: An error occured while loading agents`, e);
   }
 }

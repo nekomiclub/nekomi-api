@@ -122,7 +122,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     await this.update();
 
-    Logger.debug(`[AnimeService]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    Logger.debug(`[AnimeRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
   }
 
 
