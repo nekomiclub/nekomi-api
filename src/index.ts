@@ -15,8 +15,6 @@ import { traceRequest } from './services/HTTPService';
 //* === Declare HTTP server
 export const app = express();
 
-
-
 async function runtime() {
   try {
     //* === Clear up console

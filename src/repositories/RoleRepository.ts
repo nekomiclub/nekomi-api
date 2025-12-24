@@ -59,12 +59,15 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
+  /** @todo Detach name and slug specification */
   async create({ name, slug, saveDocument }: ICreateProps): Promise<RepositoryType> {
     saveDocument = saveDocument ?? true;
 
     const id = TestMode ? `~testing-${createNanoId()}` : createId();
     const exist = await this.safeGetOne(slug);
     if (exist) throw new NekoError('sys:already_exist', `Role with slug (${slug}) is already exist`);
+
+
 
     const payload: IRole = {
       id,

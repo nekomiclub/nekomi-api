@@ -25,6 +25,7 @@ export interface IJWTokenPayload<T = object> {
 
 
 
+/** Transform stringified false > boolean false */
 export const ZodBooleanish = z.string().refine((value) => value === 'true' || value === 'false', {
   message: 'Value must be a boolean',
 }).transform((value) => value === 'true');

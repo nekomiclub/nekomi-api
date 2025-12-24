@@ -8,6 +8,14 @@ export enum USER_RESTRICTION {
   USERNAME_CHANGE = 'user:username_change',
 }
 
+export enum USER_LIB_TYPE {
+  FAVORITE = 'favorite',
+  WATCHING = 'watching',
+  WATCHED = 'watched',
+  DELAYED = 'delayed',
+  PLANS = 'plans',
+}
+
 
 
 export interface IUser {
@@ -43,11 +51,9 @@ export interface IUserViewProgress {
   progress: number
 }
 
-export type UserLibType = 'favorite' | 'watching' | 'watched' | 'delayed' | 'plans'
-
 export interface IUserLib {
   id: string
-  type: UserLibType
+  type: USER_LIB_TYPE
   anime_ids: string[]
 
   is_public: boolean

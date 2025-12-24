@@ -52,7 +52,7 @@ export async function MLoadCatalog() {
 
     const catalog = JSON.parse(fs.readFileSync(PATH).toString()) as IHikkaAnime[];
 
-    catalog.slice(0, 100).forEach(async item => {
+    catalog.forEach(async item => {
       try {
         const as = new AnimeRepositoryClass();
         if (await as.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);

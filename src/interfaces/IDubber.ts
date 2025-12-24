@@ -1,75 +1,47 @@
-export type DubberRoleType = 'leader' | 'editor' | 'member'
+import { CDNString, ISODateString } from './types';
+
+
+
+export type DubberRoleType = 'leader' | 'editor' | 'member' | 'pending'
+
+
 
 export interface IDubber {
   id: string
   slug: string
 
+  avatar: CDNString
+  cover: CDNString
 
+  about: string | null
+  name: string
 
-  // avatar: string
-  // description: string | null
-  // banner: string
-  // nameEng: string
-  // nameUkr: string
+  members: IDubberMember[] // Private
 
-  // /** @private */
-  // members: IDubberMember[]
+  created_at: ISODateString
 
-  // /** Invited members IDs
-  //  * @private
-  //  */
-  // membersInvited: string[]
+  socials: {
+    telegram?: string
+    instagram?: string
+    youtube?: string
+    tiktok?: string
+  }
 
-
-  // statistics: {
-  //   /** UTC-0 timestamp */
-  //   createdAt: number
-  // }
-
-  // socials: {
-  //   telegram: string | null
-  //   instagram: string | null
-  //   youtube: string | null
-  //   tiktok: string | null
-  // }
-
-  // support: {
-  //   diaka: string | null
-  //   monobank: string | null
-  //   privatbank: string | null
-  //   bymeacoffee: string | null
-  //   patreon: string | null
-  // }
-
-
-
-  // /** Creation UTC0 timestamp
-  //  * @deprecated use statistics.created_at instead
-  //  */
-  // createdAt: number
-
-  // /** @deprecated redundant */
-  // name: string
-
-  // /** @deprecated use slug instead */
-  // code: string
+  support: {
+    diaka?: string
+    monobank?: string
+    privatbank?: string
+    bymeacoffee?: string
+    patreon?: string
+  }
 }
 
 export interface IDubberMember {
   id: string
   role: DubberRoleType
-
-  /** UTC-0 timestamp */
-  memberSince: number
+  member_since: ISODateString
 }
 
-export interface IDubberCompact {
-  id: string
-  slug: string
-  nameUkr: string
-  nameEng: string
-  avatarURL: string
-}
 
 
 export default IDubber;

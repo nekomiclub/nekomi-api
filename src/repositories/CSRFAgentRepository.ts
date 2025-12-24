@@ -40,9 +40,9 @@ interface ICreateProps {
   /** Save the document in the database. @default true */
   saveDocument?: boolean
 
-  /** Must be removed after 3.0.0 */
+  /** //! Must be removed after 3.0.0 release */
   _implicitSetPKI?: string
-  /** Must be removed after 3.0.0 */
+  /** //! Must be removed after 3.0.0 release */
   _implicitSetCreatedAt?: string
 
   /** @test is origin exist */
