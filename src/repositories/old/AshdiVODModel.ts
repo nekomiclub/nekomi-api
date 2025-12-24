@@ -4,7 +4,7 @@ import { IAshdiVOD } from '~/intf/IAshdiVOD';
 
 
 /** @deprecated */
-export const AshdiVODModel = mongoose.model<IAshdiVOD>('ashdi_vod', new Schema({
+export const AshdiVODModel = mongoose.model<IAshdiVOD>('ashdi_vods_olds', new Schema({
   createdAt: Number,
   imdbId: String,
   malIds: Array,

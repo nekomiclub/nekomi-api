@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT USER SERVICE */
-export const UserModel = mongoose.model('users_old', new Schema({
+export const UserModel = mongoose.model('users_olds', new Schema({
   id: String,
   libs: Array,
   statistics: Object,

@@ -8,7 +8,7 @@ import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
-import { getUTC } from '~/utils/utils';
+import { getUTC, trimString } from '~/utils/utils';
 
 
 
@@ -56,7 +56,10 @@ const model = mongoose.model<RepositoryType>('dubber', schema);
 
 
 interface ICreateProps {
+  /** //! Must be removed after 3.0.0 release */
   _implicitCreatedAt?: string
+  /** //! Must be removed after 3.0.0 release */
+  _implicitId?: string
 
   /** Save the document in the database. @default true */
   saveDocument?: boolean
@@ -87,7 +90,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = props?._implicitId ? props._implicitId : TestMode ? `~testing-${createNanoId()}` : createId();
     const name = `Dubber ${createNanoId()}`;
     const slug = createSlug(name);
 
@@ -141,6 +144,23 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('slug', slug);
+  }
+
+
+
+  /**
+   * Set about
+   * 
+   * @testing
+   */
+  setAbout(about: string | null) {
+    if (about || about === null) {
+      if (about) {
+        about = trimString(about);
+      }
+
+      this.set('about', about);
+    }
   }
 
 
