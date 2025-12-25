@@ -1,8 +1,11 @@
+import DocumentDTO from '~/service/DataTransferService';
 import IUser, { IUserViewProgress } from '~/intf/IUser';
+import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
+import { getUTC } from '~/utils/utils';
 
 
 
@@ -50,6 +53,27 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
+  get document(): RepositoryType | null {
+    return this._doc ? DocumentDTO.user(this._doc, true) : null;
+  }
+
+  async save() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set('updated_at', getUTC().ISO);
+    await this.update();
+
+    Logger.debug(`[UserRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+  }
+
+
+
+  async create() {
+
+  }
+
+
+
   async setUsername(username: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
   }
@@ -58,6 +82,12 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
   async setAvatar(url: string) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+  }
+
+
+
+  setEmail() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
   }
 
@@ -135,6 +165,18 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   // async setCover(file: File) {
   //   if (!this._doc) throw new NekoError('sys:document_not_initialized');
   // }
+
+
+
+  appendRestriction() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+  }
+
+
+
+  removeRestriction() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+  }
 }
 
 

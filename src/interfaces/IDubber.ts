@@ -19,6 +19,7 @@ export interface IDubber {
   members: IDubberMember[] // Private
 
   created_at: ISODateString
+  updated_at: ISODateString
 
   socials: {
     telegram?: string

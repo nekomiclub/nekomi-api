@@ -34,6 +34,7 @@ const schema = new Schema<RepositoryType>({
   members: [Schema.Types.Mixed],
 
   created_at: String,
+  updated_at: String,
 
   socials: {
     telegram: String,
@@ -79,6 +80,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   async save() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
+    this.set('updated_at', getUTC().ISO);
     await this.update();
 
     Logger.debug(`[DubberRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
@@ -104,6 +106,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       avatar: conf.vars.defaultAvatar,
       cover: conf.vars.defaultBanner,
       created_at: props?._implicitCreatedAt ?? getUTC().ISO,
+      updated_at: getUTC().ISO,
       members: [],
       socials: {},
       support: {}

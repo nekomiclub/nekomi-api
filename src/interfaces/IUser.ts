@@ -22,6 +22,7 @@ export interface IUser {
   id: string
   username: string
   email: string // Protected
+
   avatar: CDNString
   cover: CDNString
 

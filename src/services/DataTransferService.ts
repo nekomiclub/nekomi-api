@@ -52,7 +52,7 @@ export default class DocumentDTO {
 
   static dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
     const keys: (keyof IDubber)[] = [
-
+      'members'
     ];
 
     // Convert HydratedDocument into plain object
