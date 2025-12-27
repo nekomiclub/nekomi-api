@@ -1,5 +1,5 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import fs from 'fs';
@@ -145,8 +145,7 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
-    // const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
-    const document = await AnimeRepository.getOneByQuery<IAnime>({ id: '2iEasiqg' });
+    const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
     if (!document) return UPDATE_YEAR -= 1;
 
     const animeService = new AnimeRepositoryClass();
@@ -300,68 +299,53 @@ export default async function AnimeBulkUpdate() {
 
 
 
+    // * Pull hikka poster
+    try {
+
+    } catch (e) {
+
+    }
+
+
+
     // * Pull shikimori
     try {
       const shikimoriRes = await ShikimoriAPI.getAnime(animeService.document!.mal_id!);
+      const screenshots = shikimoriRes.screenshots;
 
-      // if (shikimoriRes.screenshots?.length) {
-      //   const postersOld = animeService.document?.posters ?? [];
-      //   const nodes: IAnimePosterNode[] = [];
-      //   const authors: { authorId: string, hash: string }[] = [];
-
-
-
-      //   for (const key in posters) {
-      //     const poster = posters[key];
-      //     const authorId: string | null = UAPOSTERS_AUTHOR_MAP[poster.author] ?? null; // TODO: Map author name to id
-
-      //     const res = await axios.get(`https://drbryanman.github.io/UAPosters/${poster.url}`, { responseType: 'arraybuffer' });
-      //     const buffer = Buffer.from(res.data);
-      //     const hash = buffer2hash(buffer);
-
-      //     if (authorId) authors.push({ authorId, hash });
-
-      //     // Skip upload if node exist
-      //     const exist = postersOld.find(el => el.pull_hash === hash);
-      //     if (exist) {
-      //       nodes.push(exist);
-      //       continue;
-      //     }
-
-      //     const node = await animeService.uploadPoster(buffer, 'nekomiclub');
-
-      //     nodes.push(node);
-      //   }
-
-      //   // Delete deprecated nodes
-      //   const deprecatedNodes = postersOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
-
-      //   for (const key in deprecatedNodes) {
-      //     const node = deprecatedNodes[key];
-
-      //     await animeService.removePoster(node.pull_hash, 'nekomiclub');
-      //   }
-
-      //   // Define hero poster
-      //   if (!nodes.some(el => el.is_hero)) {
-      //     const uaposters = authors.find(el => el.authorId === UAPOSTERS_AUTHOR_MAP['uaposters']);
-      //     let node: IAnimePosterNode | undefined;
-
-      //     // Prioritize hero poster from uaposters
-      //     if (uaposters) {
-      //       node = nodes.find(el => el.pull_hash === uaposters.hash);
-      //     }
-
-      //     // Get node for first recognized author
-      //     if (!node) node = nodes.find(el => el.pull_hash === authors[0].hash)!;
+      if (screenshots?.length) {
+        const screenshotsOld = animeService.document?.screenshots ?? [];
+        const nodes: IAnimeScreenshotNode[] = [];
 
 
-      //     const author = authors.find(el => el.hash === node.pull_hash);
-      //     if (author) await animeService.setHeroPosterAuthor(author.authorId ?? '');
+        for (const key in screenshots) {
+          const screenshot = screenshots[key];
 
-      //     await animeService.setIsPosterHero(node.pull_hash, true);
-      //   }
-      // }
+          const res = await axios.get(`https://shikimori.one${screenshot.original}`, { responseType: 'arraybuffer' });
+          const buffer = Buffer.from(res.data);
+          const hash = buffer2hash(buffer);
+
+          // Skip upload if node exist
+          const exist = screenshotsOld.find(el => el.pull_hash === hash);
+          if (exist) {
+            nodes.push(exist);
+            continue;
+          }
+
+          const node = await animeService.uploadScreenshot(buffer, 'nekomiclub');
+
+          nodes.push(node);
+        }
+
+        // Delete deprecated nodes
+        const deprecatedNodes = screenshotsOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
+
+        for (const key in deprecatedNodes) {
+          const node = deprecatedNodes[key];
+
+          await animeService.removeScreenshot(node.pull_hash, 'nekomiclub');
+        }
+      }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Shikimori update failed, skipping... [id: ${document.id}]`, e);
     }
@@ -377,7 +361,6 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    // console.log(animeService.document);
     await animeService.save();
 
     Logger.info(`[AnimeBulkUpdate]: Anime document bulk update succeeded. [id: ${document.id}]`);

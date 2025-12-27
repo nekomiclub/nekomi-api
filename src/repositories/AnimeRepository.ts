@@ -1,6 +1,6 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/config';
@@ -654,7 +654,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Upload poster
    * 
    * @autosave
-   * @todo
+   * @testing
    */
   async uploadPoster(buffer: Buffer, uploaderId: string): Promise<IAnimePosterNode> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
@@ -689,7 +689,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * Remove poster
    * 
    * @autosave
-   * @todo
+   * @testing
    */
   async removePoster(hash: string, userId: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
@@ -715,7 +715,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set is poster hero
    * 
-   * @todo
+   * @testing
    */
   async setIsPosterHero(hash: string, isHero?: boolean) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
@@ -732,26 +732,57 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  // /**
-  //  * Upload anime picture
-  //  * 
-  //  * @returns picture id
-  //  * @todo
-  //  */
-  // async uploadPicture(file: File): Promise<string> {
-  //   throw new NekoError('sys:not_implemented');
-  // }
+  /**
+   * Upload screenshot
+   * 
+   * @autosave
+   * @testing
+   */
+  async uploadScreenshot(buffer: Buffer, uploaderId: string): Promise<IAnimeScreenshotNode> {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_SCREENSHOT_SOURCE, uploaderId });
+
+    const screenshot = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_SCREENSHOT_SOURCE);
+    const screenshotM = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_SCREENSHOT_M);
+
+    if (!screenshot || !screenshotM) throw new NekoError('nus:object_not_found', `screenshot: ${Boolean(screenshot)}; screenshotM: ${Boolean(screenshotM)}`);
+
+    const node: IAnimeScreenshotNode = {
+      pull_hash: screenshot.hash,
+      original: screenshot.url,
+      preview: screenshotM.url,
+    };
+
+    this._doc.screenshots.push(node);
+    this._doc.markModified('screenshots');
+
+    await this.save();
+
+    return node;
+  }
 
 
 
-  // /**
-  //  * Remove picture
-  //  * 
-  //  * @todo
-  //  */
-  // async removePicture(id: string) {
-  //   throw new NekoError('sys:not_implemented');
-  // }
+  /**
+   * Remove screenshot
+   * 
+   * @autosave
+   * @testing
+   */
+  async removeScreenshot(hash: string, userId: string) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const screenshot = this._doc.screenshots.find(el => el.pull_hash === hash);
+    if (!screenshot) return;
+
+    await NekomiUploadService.deleteFile(NekomiUploadService.getId(screenshot.original), userId);
+
+    this._doc.screenshots = this._doc.screenshots.filter(el => el.pull_hash !== hash);
+    this._doc.markModified('screenshots');
+
+    await this.save();
+  }
 
 
 
