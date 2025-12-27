@@ -1,5 +1,5 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { ANIME_GENRE, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import fs from 'fs';
@@ -10,7 +10,7 @@ import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
 import { ShikimoriAPI } from '~/api/external/shikimori.api';
-import { getUTC } from '~/utils/utils';
+import { buffer2hash, getUTC } from '~/utils/utils';
 
 
 
@@ -47,14 +47,24 @@ let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
 
 
 
+const CACHE_FOLDER = `./.cache`;
+const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
+const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
+const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
+
+
+
+const UAPOSTERS_AUTHOR_MAP = {
+  'Візуали': 'visuals',
+  'uaposters': 'uaposters',
+  'Олехандро': 'olexandro',
+};
+
+
+
 // Get cache
 async function getCache() {
   if (isCacheRevalidated) return;
-
-  const CACHE_FOLDER = `./.cache`;
-  const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
-  const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
-  const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
 
   // Ensure that cache folder exists
   if (!fs.existsSync(CACHE_FOLDER)) fs.mkdirSync(CACHE_FOLDER);
@@ -135,7 +145,8 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
-    const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    // const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    const document = await AnimeRepository.getOneByQuery<IAnime>({ id: '2iEasiqg' });
     if (!document) return UPDATE_YEAR -= 1;
 
     const animeService = new AnimeRepositoryClass();
@@ -225,9 +236,63 @@ export default async function AnimeBulkUpdate() {
     try {
       const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url.includes(animeService.document!.hikka_slug!))?.posters;
 
-      // TODO: Upload posters
       if (posters?.length) {
-        null;
+        const postersOld = animeService.document?.posters ?? [];
+        const nodes: IAnimePosterNode[] = [];
+        const authors: { authorId: string, hash: string }[] = [];
+
+
+
+        for (const key in posters) {
+          const poster = posters[key];
+          const authorId: string | null = UAPOSTERS_AUTHOR_MAP[poster.author] ?? null; // TODO: Map author name to id
+
+          const res = await axios.get(`https://drbryanman.github.io/UAPosters/${poster.url}`, { responseType: 'arraybuffer' });
+          const buffer = Buffer.from(res.data);
+          const hash = buffer2hash(buffer);
+
+          if (authorId) authors.push({ authorId, hash });
+
+          // Skip upload if node exist
+          const exist = postersOld.find(el => el.pull_hash === hash);
+          if (exist) {
+            nodes.push(exist);
+            continue;
+          }
+
+          const node = await animeService.uploadPoster(buffer, 'nekomiclub');
+
+          nodes.push(node);
+        }
+
+        // Delete deprecated nodes
+        const deprecatedNodes = postersOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
+
+        for (const key in deprecatedNodes) {
+          const node = deprecatedNodes[key];
+
+          await animeService.removePoster(node.pull_hash, 'nekomiclub');
+        }
+
+        // Define hero poster
+        if (!nodes.some(el => el.is_hero)) {
+          const uaposters = authors.find(el => el.authorId === UAPOSTERS_AUTHOR_MAP['uaposters']);
+          let node: IAnimePosterNode | undefined;
+
+          // Prioritize hero poster from uaposters
+          if (uaposters) {
+            node = nodes.find(el => el.pull_hash === uaposters.hash);
+          }
+
+          // Get node for first recognized author
+          if (!node) node = nodes.find(el => el.pull_hash === authors[0].hash)!;
+
+
+          const author = authors.find(el => el.hash === node!.pull_hash);
+          if (author) await animeService.setHeroPosterAuthor(author.authorId);
+
+          await animeService.setIsPosterHero(node.pull_hash, true);
+        }
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: UAPosters update failed, skipping... [id: ${document.id}]`, e);
@@ -239,10 +304,64 @@ export default async function AnimeBulkUpdate() {
     try {
       const shikimoriRes = await ShikimoriAPI.getAnime(animeService.document!.mal_id!);
 
-      // TODO: Upload screenshots
-      if (shikimoriRes.screenshots?.length) {
-        null;
-      }
+      // if (shikimoriRes.screenshots?.length) {
+      //   const postersOld = animeService.document?.posters ?? [];
+      //   const nodes: IAnimePosterNode[] = [];
+      //   const authors: { authorId: string, hash: string }[] = [];
+
+
+
+      //   for (const key in posters) {
+      //     const poster = posters[key];
+      //     const authorId: string | null = UAPOSTERS_AUTHOR_MAP[poster.author] ?? null; // TODO: Map author name to id
+
+      //     const res = await axios.get(`https://drbryanman.github.io/UAPosters/${poster.url}`, { responseType: 'arraybuffer' });
+      //     const buffer = Buffer.from(res.data);
+      //     const hash = buffer2hash(buffer);
+
+      //     if (authorId) authors.push({ authorId, hash });
+
+      //     // Skip upload if node exist
+      //     const exist = postersOld.find(el => el.pull_hash === hash);
+      //     if (exist) {
+      //       nodes.push(exist);
+      //       continue;
+      //     }
+
+      //     const node = await animeService.uploadPoster(buffer, 'nekomiclub');
+
+      //     nodes.push(node);
+      //   }
+
+      //   // Delete deprecated nodes
+      //   const deprecatedNodes = postersOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
+
+      //   for (const key in deprecatedNodes) {
+      //     const node = deprecatedNodes[key];
+
+      //     await animeService.removePoster(node.pull_hash, 'nekomiclub');
+      //   }
+
+      //   // Define hero poster
+      //   if (!nodes.some(el => el.is_hero)) {
+      //     const uaposters = authors.find(el => el.authorId === UAPOSTERS_AUTHOR_MAP['uaposters']);
+      //     let node: IAnimePosterNode | undefined;
+
+      //     // Prioritize hero poster from uaposters
+      //     if (uaposters) {
+      //       node = nodes.find(el => el.pull_hash === uaposters.hash);
+      //     }
+
+      //     // Get node for first recognized author
+      //     if (!node) node = nodes.find(el => el.pull_hash === authors[0].hash)!;
+
+
+      //     const author = authors.find(el => el.hash === node.pull_hash);
+      //     if (author) await animeService.setHeroPosterAuthor(author.authorId ?? '');
+
+      //     await animeService.setIsPosterHero(node.pull_hash, true);
+      //   }
+      // }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Shikimori update failed, skipping... [id: ${document.id}]`, e);
     }
@@ -258,8 +377,8 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    console.log(animeService.document);
-    // await animeService.save();
+    // console.log(animeService.document);
+    await animeService.save();
 
     Logger.info(`[AnimeBulkUpdate]: Anime document bulk update succeeded. [id: ${document.id}]`);
   } catch (e) {

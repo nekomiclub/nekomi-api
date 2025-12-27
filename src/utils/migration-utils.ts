@@ -77,7 +77,9 @@ export async function MLoadCatalog() {
 
     const catalog = JSON.parse(fs.readFileSync(PATH).toString()) as IHikkaAnime[];
 
-    catalog.forEach(async item => {
+    for (const key in catalog) {
+      const item = catalog[key];
+
       try {
         const as = new AnimeRepositoryClass();
         if (await as.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
@@ -103,7 +105,7 @@ export async function MLoadCatalog() {
       } catch (e) {
         Logger.error(`[MLoadCatalog]: Error parsing item ${item.slug}`, e);
       }
-    });
+    }
   } catch (e) {
     Logger.error(`[MLoadCatalog]: An error occured while loading catalog`, e);
   }

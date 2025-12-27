@@ -69,7 +69,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
-    const payload: IRole = {
+    const payload: RepositoryType = {
       id,
       name,
       slug,

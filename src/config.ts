@@ -93,7 +93,7 @@ const URL = {
   nekomi_media: env.NEKOMI_MEDIA_URL,
   nekomi_api: env.NEKOMI_API_URL,
   nekomi_bot: env.NEKOMI_BOT_URL,
-  nekomi_uploads: env.NEKOMI_UPLOADS_URL,
+  nekomi_upload_service: env.NEKOMI_UPLOADS_URL,
   fullkekw_authority: env.FULLKEKW_AUTHORITY_URL,
   fullkekw_userapi: env.FULLKEKW_USERAPI_URL,
   fullkekw_account: env.FULLKEKW_USERAPI_URL,

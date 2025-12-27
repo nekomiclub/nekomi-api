@@ -123,7 +123,7 @@ export async function HandleRequest(req: express.Request, res: express.Response,
     } else if (e instanceof AxiosError) {
       const status = e.response?.data.status ?? e.status ?? 502;
       const code = e.response?.data.code ?? e.code ?? 'sys:http';
-      const message = e.response?.data.message ?? e.response?.data.msg ?? e.message ?? 'Message is not provided';
+      const message = e.response?.data.message ?? e.message ?? 'Message is not provided';
 
       const emsg = `[AXIOS (${status})]: ${code} - ${message}`;
 

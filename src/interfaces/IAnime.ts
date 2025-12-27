@@ -26,6 +26,7 @@ export interface IAnime {
   hikka_slug: string | null
 
   posters: IAnimePosterNode[] // Protected
+  hero_poster_author: string | null
 
   year: number
   episodes_total: number | null

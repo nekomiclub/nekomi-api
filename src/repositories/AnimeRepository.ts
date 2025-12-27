@@ -1,6 +1,6 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/config';
@@ -8,7 +8,9 @@ import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
 import { ISODateString, RepositoryQueriesType } from '~/intf/types';
+import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
+import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -140,7 +142,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-    const payload: IAnime = {
+    const payload: RepositoryType = {
       id,
       mal_id: null,
       imdb_id: null,
@@ -156,6 +158,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
           is_hero: true,
         }
       ],
+      hero_poster_author: 'nekomiclub',
 
       year: getUTC().year,
       episodes_total: null,
@@ -636,16 +639,96 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  // /**
-  //  * Upload hero poster
-  //  * 
-  //  * @returns hero poster id
-  //  * @todo
-  //  */
-  // async uploadHeroPoster(file: File): Promise<string> {
-  //   throw new NekoError('sys:not_implemented');
-  // // TODO: remove hero poster author
-  // }
+  /**
+   * Set hero poster author
+   * 
+   * @todo
+   */
+  async setHeroPosterAuthor(id: string) {
+
+  }
+
+
+
+  /**
+   * Upload poster
+   * 
+   * @autosave
+   * @todo
+   */
+  async uploadPoster(buffer: Buffer, uploaderId: string): Promise<IAnimePosterNode> {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_POSTER_SOURCE, uploaderId });
+
+    const poster = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_POSTER_SOURCE);
+    const posterM = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_POSTER_M);
+    const posterS = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_POSTER_S);
+
+    if (!poster || !posterM || !posterS) throw new NekoError('nus:object_not_found', `poster: ${Boolean(poster)}; posterM: ${Boolean(posterM)}; posterS: ${Boolean(posterS)}`);
+
+    const node: IAnimePosterNode = {
+      is_hero: false,
+      pull_hash: poster.hash,
+      original: poster.url,
+      medium: posterM.url,
+      small: posterS.url
+    };
+
+    this._doc.posters.push(node);
+    this._doc.markModified('posters');
+
+    await this.save();
+
+    return node;
+  }
+
+
+
+  /**
+   * Remove poster
+   * 
+   * @autosave
+   * @todo
+   */
+  async removePoster(hash: string, userId: string) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const poster = this._doc.posters.find(el => el.pull_hash === hash);
+    if (!poster) return;
+
+    await NekomiUploadService.deleteFile(NekomiUploadService.getId(poster.original), userId);
+
+    this._doc.posters = this._doc.posters.filter(el => el.pull_hash !== hash);
+    this._doc.markModified('posters');
+
+    // Define hero poster
+    if (!this._doc.posters.some(el => el.is_hero)) {
+      console.log('define hero poster');
+    }
+
+    await this.save();
+  }
+
+
+
+  /**
+   * Set is poster hero
+   * 
+   * @todo
+   */
+  async setIsPosterHero(hash: string, isHero?: boolean) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const poster = this._doc.posters.find(el => el.pull_hash === hash);
+    if (!poster) throw new NekoError('sys:not_found', `Poster with hash (${hash}) is not found`);
+
+    if (isHero !== undefined) {
+      poster.is_hero = isHero;
+    }
+
+    this._doc.markModified('posters');
+  }
 
 
 

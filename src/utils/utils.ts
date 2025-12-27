@@ -1,3 +1,7 @@
+import crypto from 'crypto';
+
+
+
 /** 
  * Get UTC date
  * 
@@ -51,4 +55,12 @@ export function trimString(input: string) {
 /** Get random number between min and max */
 export function randomBetween(min: number, max: number): number {
   return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
+
+
+export function buffer2hash(data: Buffer) {
+  const hash = crypto.createHash('sha256');
+  hash.update(data);
+  return hash.digest('hex');
 }

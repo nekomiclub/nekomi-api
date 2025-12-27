@@ -98,7 +98,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
 
 
-    const payload: IDubber = {
+    const payload: RepositoryType = {
       id,
       name,
       slug,

@@ -57,6 +57,14 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
 
+  async getManyByQuery<T = any>(query: QueryFilter<T>): Promise<RepositoryType[]> {
+    const results = await this.model.find(query);
+
+    return results;
+  }
+
+
+
   async getMany(query: string): Promise<RepositoryType[]> {
     const results = await this.model.find(this.queries(query));
 

@@ -22,5 +22,9 @@
   "sys:invalid_payload": {
     "status": 400,
     "message": "Payload invalid or validation failed"
+  },
+  "nus:object_not_found": {
+    "status": 500,
+    "message": "Requested object is not found in nekomi-upload-service response"
   }
 }

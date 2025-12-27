@@ -106,7 +106,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     const { privateKey, publicKey } = this.generateKeypairs();
 
-    const payload: ICSRFAgent = {
+    const payload: RepositoryType = {
       id: createId(),
       created_at: _implicitSetCreatedAt ?? getUTC().ISO,
       origin,
