@@ -3,6 +3,7 @@ import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
+import conf from '~/config';
 import fs from 'fs';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
@@ -262,7 +263,7 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await animeService.uploadPoster(buffer, 'nekomiclub');
+          const node = await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID);
 
           nodes.push(node);
         }
@@ -273,7 +274,7 @@ export default async function AnimeBulkUpdate() {
         for (const key in deprecatedNodes) {
           const node = deprecatedNodes[key];
 
-          await animeService.removePoster(node.pull_hash, 'nekomiclub');
+          await animeService.removePoster(node.pull_hash, conf.vars.INTERNAL_ID);
         }
 
         // Define hero poster
@@ -308,7 +309,7 @@ export default async function AnimeBulkUpdate() {
         const res = await axios.get(hikkaPosterUrl, { responseType: 'arraybuffer' });
         const buffer = Buffer.from(res.data);
 
-        await animeService.uploadPoster(buffer, 'nekomiclub');
+        await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID);
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Pull fallback poster failed, skipping... [id: ${document.id}]`, e);
@@ -340,7 +341,7 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await animeService.uploadScreenshot(buffer, 'nekomiclub');
+          const node = await animeService.uploadScreenshot(buffer, conf.vars.INTERNAL_ID);
 
           nodes.push(node);
         }
@@ -351,7 +352,7 @@ export default async function AnimeBulkUpdate() {
         for (const key in deprecatedNodes) {
           const node = deprecatedNodes[key];
 
-          await animeService.removeScreenshot(node.pull_hash, 'nekomiclub');
+          await animeService.removeScreenshot(node.pull_hash, conf.vars.INTERNAL_ID);
         }
       }
     } catch (e) {

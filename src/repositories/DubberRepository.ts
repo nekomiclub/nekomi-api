@@ -6,7 +6,9 @@ import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
+import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
+import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
 import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC, trimString } from '~/utils/utils';
 
@@ -88,6 +90,18 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
 
 
+  async deleteOne(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
+  async deleteMany(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
   /** @todo Detach name specification */
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
@@ -104,7 +118,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       slug,
       about: null,
       avatar: conf.vars.defaultAvatar,
-      cover: conf.vars.defaultBanner,
+      cover: conf.vars.defaultCover,
       created_at: props?._implicitCreatedAt ?? getUTC().ISO,
       updated_at: getUTC().ISO,
       members: [],
@@ -143,8 +157,11 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
    * 
    * ! Implicitly set slug. Must be removed after 3.0.0 release
    */
-  _setSlug(slug: string) {
+  async _setSlug(slug: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const exist = await this.safeGetOne(slug);
+    if (exist) throw new NekoError('sys:already_exist', `Dubber with slug "${slug}" is already exist`);
 
     this.set('slug', slug);
   }
@@ -214,27 +231,61 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
 
   /**
-   * Set avatar url
+   * Upload avatar
    * 
-   * @todo must be refactored into native cover upload
+   * @autosave
+   * @testing
    */
-  async setAvatar(url: string) {
+  async uploadAvatar(buffer: Buffer, userId: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('avatar', url);
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: userId });
+
+    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
+    if (!avatar) throw new NekoError('nus:object_not_found', `Dubber avatar is not found in upload objects`);
+
+    // Delete old avatar
+    try {
+      if (this._doc.avatar !== conf.vars.defaultAvatar) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), userId);
+      }
+    } catch (e) {
+      Logger.warn(`[DubberRepository]: Cannot delete dubber old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('avatar', avatar.url);
+
+    await this.save();
   }
 
 
 
   /**
-   * Set cover url
+   * Upload cover
    * 
-   * @todo must be refactored into native cover upload
+   * @autosave
+   * @testing
    */
-  async setCover(url: string) {
+  async uploadCover(buffer: Buffer, userId: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('cover', url);
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: userId });
+
+    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
+    if (!cover) throw new NekoError('nus:object_not_found', `Dubber cover is not found in upload objects`);
+
+    // Delete old cover
+    try {
+      if (this._doc.cover !== conf.vars.defaultCover) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), userId);
+      }
+    } catch (e) {
+      Logger.warn(`[DubberRepository]: Cannot delete dubber old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('cover', cover.url);
+
+    await this.save();
   }
 }
 

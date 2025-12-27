@@ -132,6 +132,18 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
+  async deleteOne(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
+  async deleteMany(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
   /** 
    * Creates new anime document and initialize service part of repository
    */
@@ -160,7 +172,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
           is_hero: true,
         }
       ],
-      hero_poster_author: 'nekomiclub',
+      hero_poster_author: conf.vars.INTERNAL_ID,
 
       year: getUTC().year,
       episodes_total: null,

@@ -1,5 +1,7 @@
 import DubberModel from '~/repo/old/DubberModel';
 import Logger from '~/service/LoggerService';
+import axios from 'axios';
+import conf from '~/config';
 import createSlug from './create-slug';
 import fs from 'fs';
 import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
@@ -81,27 +83,27 @@ export async function MLoadCatalog() {
       const item = catalog[key];
 
       try {
-        const as = new AnimeRepositoryClass();
-        if (await as.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
+        const repo = new AnimeRepositoryClass();
+        if (await repo.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
 
-        await as.create();
+        await repo.create();
 
-        await as.setTitle({ title_ja: item.title_ja, title_en: item.title_en, title_ua: item.title_ua });
-        await as.setHikkaSlug(item.slug);
+        await repo.setTitle({ title_ja: item.title_ja, title_en: item.title_en, title_ua: item.title_ua });
+        await repo.setHikkaSlug(item.slug);
 
-        as.setScore({ score: item.score, scoredBy: item.scored_by });
-        as.setYear(item.year);
-        as.setEpisodesTotal(item.episodes_total);
-        as.setEpisodesReleased(item.episodes_released);
+        repo.setScore({ score: item.score, scoredBy: item.scored_by });
+        repo.setYear(item.year);
+        repo.setEpisodesTotal(item.episodes_total);
+        repo.setEpisodesReleased(item.episodes_released);
 
-        as.setType(as.parseStringToType(item.media_type, ANIME_TYPE));
-        as.setStatus(as.parseStringToType(item.status, ANIME_STATUS));
-        as.setSeason(as.parseStringToType(item.season, ANIME_SEASON));
-        as.setRating(as.parseStringToType(item.rating, ANIME_RATING));
+        repo.setType(repo.parseStringToType(item.media_type, ANIME_TYPE));
+        repo.setStatus(repo.parseStringToType(item.status, ANIME_STATUS));
+        repo.setSeason(repo.parseStringToType(item.season, ANIME_SEASON));
+        repo.setRating(repo.parseStringToType(item.rating, ANIME_RATING));
 
-        await as.save();
+        await repo.save();
 
-        Logger.info(`[MLoadCatalog]: Item loaded [id: ${as.document?.id}]`);
+        Logger.info(`[MLoadCatalog]: Item loaded [id: ${repo.document?.id}]`);
       } catch (e) {
         Logger.error(`[MLoadCatalog]: Error parsing item ${item.slug}`, e);
       }
@@ -149,8 +151,8 @@ export async function MLoadRoles() {
 
   try {
     await new RoleRepositoryClass().create({ name: 'Користувач', slug: 'user' });
-    const rootRole = new RoleRepositoryClass();
 
+    const rootRole = new RoleRepositoryClass();
     await rootRole.create({ name: 'Користувач', slug: 'root' });
     rootRole.appendPermission(ROLE_PERMISSION.ABSOLUTE);
 
@@ -166,7 +168,7 @@ export async function MLoadRoles() {
 
 
 export async function MLoadDubbers() {
-  if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);
+  // if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);
 
   try {
     const dubbers = await DubberModel.find();
@@ -180,9 +182,7 @@ export async function MLoadDubbers() {
         await repo.create({ _implicitId: dubber.id, _implicitCreatedAt: getUTC(dubber.statistics.createdAt!).ISO });
 
         await repo.setName(dubber.nameUkr!);
-        repo._setSlug(dubber.slug!);
-        repo.setAvatar(dubber.avatar!);
-        repo.setCover(dubber.banner!);
+        await repo._setSlug(dubber.slug!);
         repo.setAbout(dubber.description!);
 
         repo._setMembers(dubber.members.map(el => {
@@ -202,6 +202,28 @@ export async function MLoadDubbers() {
         if (dubber.support?.monobank) repo.setSupport('monobank', dubber.support!.monobank!);
         if (dubber.support?.bymeacoffee) repo.setSupport('bymeacoffee', dubber.support!.bymeacoffee!);
         if (dubber.support?.patreon) repo.setSupport('patreon', dubber.support!.patreon!);
+
+        // Upload avatar
+        try {
+          if (dubber.avatar !== conf.vars.defaultAvatar) {
+            const res = await axios.get(dubber.avatar!, { responseType: 'arraybuffer' });
+
+            await repo.uploadAvatar(res.data, conf.vars.INTERNAL_ID);
+          }
+        } catch (e) {
+          Logger.error(`[MLoadDubbers]: Cannot load avatar for dubber "${dubber.id}"`);
+        }
+
+        // Upload cover
+        try {
+          if (dubber.banner !== conf.vars.defaultCover) {
+            const res = await axios.get(dubber.banner!, { responseType: 'arraybuffer' });
+
+            await repo.uploadCover(res.data, conf.vars.INTERNAL_ID);
+          }
+        } catch (e) {
+          Logger.error(`[MLoadDubbers]: Cannot load avatar for dubber "${dubber.id}"`);
+        }
 
         await repo.save();
       } catch (e) {

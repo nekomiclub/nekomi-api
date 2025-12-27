@@ -115,7 +115,7 @@ const vars = {
   defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',
 
   /** Default banner */
-  defaultBanner: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
+  defaultCover: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
 
   /** Default anime poster */
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',

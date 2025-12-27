@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
-export const DubberModel = mongoose.model('dubbers_old', new Schema({
+export const DubberModel = mongoose.model('dubbers_olds', new Schema({
   id: String,
   code: String,
   name: String,

@@ -81,6 +81,18 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
+  async deleteOne(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
+  async deleteMany(id: string): Promise<void> {
+    throw new NekoError('sys:not_implemented');
+  }
+
+
+
   /**
    * Create new user document
    */
@@ -95,7 +107,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       email: `example-${createNanoId()}@nekomi.club`,
 
       avatar: conf.vars.defaultAvatar,
-      cover: conf.vars.defaultBanner,
+      cover: conf.vars.defaultCover,
 
       roles: ['user'],
       libs: [
