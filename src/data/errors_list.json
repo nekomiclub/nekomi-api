@@ -23,8 +23,16 @@
     "status": 400,
     "message": "Payload invalid or validation failed"
   },
+  "sys:action_prevented": {
+    "status": 403,
+    "message": "You cannot do this type of actions"
+  },
   "nus:object_not_found": {
     "status": 500,
     "message": "Requested object is not found in nekomi-upload-service response"
+  },
+  "user:username_timeout": {
+    "status": 400,
+    "message": "You cannot change username at the moment, try again later"
   }
 }

@@ -15,7 +15,7 @@
 
 | NAME     | DESCRIPTION                                           | CAPABILITIES |
 | -------- | ----------------------------------------------------- | ------------ |
-| **Root** | Root role. Can bypass everything, can impact anything | absolute     |
-| User     | User can only modify own profile if not restricted    | basic        |
+| **root** | Root role. Can bypass everything, can impact anything | absolute     |
+| user     | User can only modify own profile if not restricted    | basic        |
 
 ### [Return](../README.md)

@@ -119,6 +119,8 @@ const vars = {
 
   /** Default anime poster */
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
+
+  USERNAME_UPDATE_TIMEOUT: 60000 * 60 * 24 * 7
 };
 
 /** Funny thing to rickroll some endpoints */
