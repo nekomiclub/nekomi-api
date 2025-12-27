@@ -123,6 +123,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
+    this.diff = [];
+
     await this.update();
 
     Logger.debug(`[AnimeRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);

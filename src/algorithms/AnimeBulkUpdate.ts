@@ -145,13 +145,16 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
-    const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    // const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    const document = await AnimeRepository.getOneByQuery<IAnime>({ id: 'uKiM7NOm' });
     if (!document) return UPDATE_YEAR -= 1;
 
     const animeService = new AnimeRepositoryClass();
     await animeService.init(document.id);
 
     let hikkaPosterUrl: string | null = null;
+
+
 
     // * Pull hikka
     try {
@@ -301,9 +304,14 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull hikka poster
     try {
+      if (!animeService.document?.posters.length && hikkaPosterUrl) {
+        const res = await axios.get(hikkaPosterUrl, { responseType: 'arraybuffer' });
+        const buffer = Buffer.from(res.data);
 
+        await animeService.uploadPoster(buffer, 'nekomiclub');
+      }
     } catch (e) {
-
+      Logger.error(`[AnimeBulkUpdate]: Pull fallback poster failed, skipping... [id: ${document.id}]`, e);
     }
 
 
@@ -361,7 +369,8 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    await animeService.save();
+    console.log(animeService.document);
+    // await animeService.save();
 
     Logger.info(`[AnimeBulkUpdate]: Anime document bulk update succeeded. [id: ${document.id}]`);
   } catch (e) {

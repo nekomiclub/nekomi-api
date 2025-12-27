@@ -10,7 +10,7 @@ export default class UnifiedRepositoryClass<RepositoryType> {
   protected _doc: HydratedDocument<RepositoryType> | undefined;
 
   /** Changes diff */
-  readonly diff: string[] = [];
+  protected diff: string[] = [];
 
 
 
