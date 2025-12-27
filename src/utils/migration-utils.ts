@@ -114,6 +114,8 @@ export async function MLoadCatalog() {
   Logger.info(`[MLoadCatalog]: Catalog loaded`);
 }
 
+
+
 export async function MLoadAgents() {
   if (checkMigrationStatus('MLoadAgents')) return Logger.debug(`[MLoadAgents]: Skipping due to it's finish`);
 
@@ -140,6 +142,8 @@ export async function MLoadAgents() {
   Logger.info(`[MLoadAgents]: Agents loaded`);
 }
 
+
+
 export async function MLoadRoles() {
   if (checkMigrationStatus('MLoadRoles')) return Logger.debug(`[MLoadRoles]: Skipping due to it's finish`);
 
@@ -158,6 +162,8 @@ export async function MLoadRoles() {
   finishMigration('MLoadRoles');
   Logger.info(`[MLoadRoles]: Roles loaded`);
 }
+
+
 
 export async function MLoadDubbers() {
   if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);

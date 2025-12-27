@@ -1,3 +1,4 @@
+import AnimeModel from '~/repo/old/AnimeModel';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
@@ -145,8 +146,7 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
-    // const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
-    const document = await AnimeRepository.getOneByQuery<IAnime>({ id: 'uKiM7NOm' });
+    const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
     if (!document) return UPDATE_YEAR -= 1;
 
     const animeService = new AnimeRepositoryClass();
@@ -213,8 +213,8 @@ export default async function AnimeBulkUpdate() {
 
 
     // * Pull imdb
-    if (!animeService.document?.imdb_id) {
-      try {
+    try {
+      if (!animeService.document?.imdb_id) {
         let idsMoeId: string | null = null;
 
         try {
@@ -226,9 +226,9 @@ export default async function AnimeBulkUpdate() {
         const imdbId: string | undefined = idsMoeId ?? ANIME_LISTS_CACHE?.find(el => el.mal_id === animeService.document!.mal_id!)?.imdb_id;
 
         if (imdbId) await animeService.setIMDBId(imdbId);
-      } catch (e) {
-        Logger.warn(`[AnimeBulkUpdate]: IMDB update failed, skipping... [id: ${document.id}]`, e);
       }
+    } catch (e) {
+      Logger.warn(`[AnimeBulkUpdate]: IMDB update failed, skipping... [id: ${document.id}]`, e);
     }
 
 
@@ -360,6 +360,21 @@ export default async function AnimeBulkUpdate() {
 
 
 
+    // * Pull old ID with mal id
+    try {
+      if (animeService.document?.mal_id) {
+        const oldDocument = await AnimeModel.findOne({ malId: animeService.document?.mal_id });
+
+        if (oldDocument) {
+          animeService._implicitSetId(oldDocument.uuid);
+        }
+      }
+    } catch (e) {
+      Logger.error(`[AnimeBulkUpdate]: Pull old id failed, skipping... [id: ${document.id}]`, e);
+    }
+
+
+
     // // * Pull ashdi
     // try {
     //   Logger.warn(`[AnimeBulkUpdate]: Ashdi update is not yet implemented, skipping... [id: ${document.id}]`);
@@ -369,8 +384,7 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    console.log(animeService.document);
-    // await animeService.save();
+    await animeService.save();
 
     Logger.info(`[AnimeBulkUpdate]: Anime document bulk update succeeded. [id: ${document.id}]`);
   } catch (e) {
