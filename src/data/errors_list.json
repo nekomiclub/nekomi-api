@@ -27,6 +27,10 @@
     "status": 403,
     "message": "You cannot do this type of actions"
   },
+  "sys:middleware_required": {
+    "status": 500,
+    "message": "Request cannot be processed due to middlewares misconfiguration"
+  },
   "nus:object_not_found": {
     "status": 500,
     "message": "Requested object is not found in nekomi-upload-service response"
@@ -45,7 +49,11 @@
   },
   "auth:token_invalid": {
     "status": 401,
-    "message": "Provided token is invalid or undefined"
+    "message": "Provided token is invalid or not provided"
+  },
+  "auth:csrf_invalid": {
+    "status": 401,
+    "message": "CSRF token in invalid or not provided"
   },
   "auth:failed": {
     "status": 403,

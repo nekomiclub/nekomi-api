@@ -14,7 +14,9 @@ interface IAcceptedToken {
 
 interface IVerify {
   verified: boolean
-  origin?: string | null
+
+  /** Will always be specified when verified is true */
+  origin?: string
 }
 
 
@@ -77,7 +79,7 @@ class CSRFServiceClass {
    */
   signToken(expiresIn?: number | null): string {
     const payload: ICSRFToken = {
-      origin: conf.domain
+      origin: conf.domains.NEKOMI_API_DOMAIN
     };
 
     return jwt.sign(payload, conf.env.CSRF_Token, {

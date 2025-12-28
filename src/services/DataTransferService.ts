@@ -22,15 +22,17 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
-export default class DocumentDTO {
-  static parse<T = any>(object: HydratedDocument<any> | any): T {
+class DocumentDTOClass {
+  parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();
 
     return excludeKeys(object, []);
   }
 
-  static anime(object: HydratedDocument<IAnime> | IAnime, exposed?: boolean): IAnime {
+
+
+  anime(object: HydratedDocument<IAnime> | IAnime, exposed?: boolean): IAnime {
     const keys: (keyof IAnime)[] = [
       'posters',
       'relations',
@@ -50,7 +52,9 @@ export default class DocumentDTO {
     return excludeKeys(object, exposed ? [] : keys);
   }
 
-  static dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
+
+
+  dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
     const keys: (keyof IDubber)[] = [
       'members'
     ];
@@ -61,7 +65,9 @@ export default class DocumentDTO {
     return excludeKeys(object, exposed ? [] : keys);
   }
 
-  static user(object: HydratedDocument<IUser> | IUser, exposed?: boolean): IUser {
+
+
+  user(object: HydratedDocument<IUser> | IUser, exposed?: boolean): IUser {
     const keys: (keyof IUser)[] = [
       'roles',
       'libs',
@@ -84,3 +90,9 @@ export default class DocumentDTO {
     return excludeKeys(object, exposed ? [] : keys);
   }
 }
+
+
+
+const DocumentDTO = new DocumentDTOClass();
+
+export default DocumentDTO;

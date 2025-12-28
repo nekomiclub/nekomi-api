@@ -4,6 +4,14 @@ import conf, { ProductionMode } from '~/config';
 import express from 'express';
 import { HandleRequestError, NekoError } from '~/service/ExceptionService';
 import { IncomingHttpHeaders } from 'http';
+import { MiddlewareType } from '~/service/MiddlewareService';
+
+
+
+interface IHandleRequestProps {
+  /** Ensure that request was passed throught middlewares, otherwise throw an error */
+  middlewares?: MiddlewareType[]
+}
 
 
 
@@ -13,8 +21,17 @@ import { IncomingHttpHeaders } from 'http';
  * 
  * Callback should return response object
  */
-export const HandleRequest = (callback: (req: express.Request, res: express.Response) => Promise<express.Response>) => {
-  return async (req: express.Request, res: express.Response) => await HandleRequestError(req, res, callback);
+export const HandleRequest = (callback: (req: express.Request, res: express.Response) => Promise<express.Response>, props?: IHandleRequestProps) => {
+  return async (req: express.Request, res: express.Response) => {
+    await HandleRequestError(req, res, async () => {
+      // Ensure that each required middleware has been passed
+      props?.middlewares?.forEach(mw => {
+        if (!req._nekomi.middlewaresPassed.includes(mw)) throw new NekoError(`sys:middleware_required`, `Required middleware "${mw}" is not passed`);
+      });
+
+      await callback(req, res);
+    });
+  };
 };
 
 
@@ -47,10 +64,15 @@ export function getRequestIP(headers: IncomingHttpHeaders): string {
 
 /**
  * Trace HTTP requests middleware
+ * Define internal data
  */
 export function traceRequest() {
   return HandleMiddleware(async (req) => {
     const ip = getRequestIP(req.headers);
+
+    req._nekomi = {
+      middlewaresPassed: []
+    };
 
     Logger.http(`[Request/${ip}]: ${req.method} ${req.url}`);
   });
@@ -65,7 +87,21 @@ export function traceRequest() {
  */
 export function getSessionToken(req: express.Request): string {
   const token = req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
-  if (!token) throw new NekoError('auth:token_invalid');
+  if (!token) throw new NekoError('auth:token_invalid', `Session cookie is not provided`);
+
+  return token;
+}
+
+
+
+/** 
+ * Get CSRF token
+ * 
+ * @throws auth:csrf_invalid if csrf token header is missing
+ */
+export function getCSRFToken(req: express.Request): string {
+  const token = req.header('X-CSRF-Token');
+  if (!token) throw new NekoError('auth:csrf_invalid', `CSRF header is not provided`);
 
   return token;
 }

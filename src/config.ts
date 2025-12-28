@@ -36,19 +36,6 @@ const env = {
   ISDOCKER: process.env['ISDOCKER'] == 'true',
   ENV: String(process.env['ENV']) as 'development' | 'production',
 
-  // DOMAINS & MICROSERVICE API ENDPOINTS (29.06.2025)
-  PROXY_DOMAIN: String(process.env['PROXY_DOMAIN']),
-  NEKOMI_DOMAIN: String(process.env['NEKOMI_DOMAIN']),
-  NEKOMI_WEBSOCKET_DOMAIN: String(process.env['NEKOMI_WEBSOCKET_DOMAIN']),
-  NEKOMI_AUTH_DOMAIN: String(process.env['NEKOMI_AUTH_DOMAIN']),
-  NEKOMI_BOT_DOMAIN: String(process.env['NEKOMI_BOT_DOMAIN']),
-  NEKOMI_MEDIA_DOMAIN: String(process.env['NEKOMI_MEDIA_DOMAIN']),
-  NEKOMI_API_DOMAIN: String(process.env['NEKOMI_API_DOMAIN']),
-  NEKOMI_ADMIN_DOMAIN: String(process.env['NEKOMI_ADMIN_DOMAIN']),
-  FULLKEKW_USERAPI_DOMAIN: String(process.env['FULLKEKW_USERAPI_DOMAIN']),
-  FULLKEKW_AUTHORITY_DOMAIN: String(process.env['FULLKEKW_AUTHORITY_DOMAIN']),
-  FULLKEKW_ACCOUNT_DOMAIN: String(process.env['FULLKEKW_ACCOUNT_DOMAIN']),
-
   NEKOMI_API_URL: String(process.env['NEKOMI_API_URL']),
   PROXY_URL: String(process.env['PROXY_URL']),
   TELEGRAM_BOT_URL: String(process.env['TELEGRAM_BOT_URL']),
@@ -110,6 +97,19 @@ const URL = {
   shikimoriAPi: 'https://shikimori.one/api',
 };
 
+const domains = {
+  NEKOMI_DOMAIN: `nekomi.club`,
+  NEKOMI_WEBSOCKET_DOMAIN: `websocket.nekomi.club`,
+  NEKOMI_AUTH_DOMAIN: `auth.nekomi.club`,
+  NEKOMI_BOT_DOMAIN: `bot.nekomi.club`,
+  NEKOMI_MEDIA_DOMAIN: `media.nekomi.club`,
+  NEKOMI_API_DOMAIN: `api.nekomi.club`,
+  NEKOMI_ADMIN_DOMAIN: `admin.nekomi.club`,
+  FULLKEKW_USERAPI_DOMAIN: `usapi.nekomi.club`,
+  FULLKEKW_AUTHORITY_DOMAIN: `authority.nekomi.club`,
+  FULLKEKW_ACCOUNT_DOMAIN: `account.nekomi.club`,
+};
+
 const vars = {
   INTERNAL_ID: 'nekomiclub',
 
@@ -130,7 +130,7 @@ const vars = {
   SESSION_REFRESH_BY_MS: ms('7day'),
 
   SESSION_COOKIE_NAME: 'SEC_31N',
-  SESSION_COOKIE_DOMAIN: '*.nekomi.club',
+  SESSION_COOKIE_DOMAIN: `*.${domains.NEKOMI_DOMAIN}`,
   SESSION_COOKIE_AGE_MS: ms('12week'),
 };
 
@@ -156,10 +156,10 @@ const conf = {
   logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
-  domain: 'api.nekomi.club',
   URL,
   env,
   vars,
+  domains,
 
   rickrollEndpoints
 };
