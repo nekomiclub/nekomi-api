@@ -10,6 +10,8 @@ export interface IAnimePosterNode {
   authorId: string | null
   is_hero: boolean
   pull_hash: string
+
+  _unprocessedAuthorName?: string
 }
 
 export interface IAnimeScreenshotNode {

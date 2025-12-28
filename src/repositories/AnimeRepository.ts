@@ -702,7 +702,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @autosave
    * @testing
    */
-  async uploadPoster(buffer: Buffer, uploaderId: string, authorId: string | null): Promise<IAnimePosterNode> {
+  async uploadPoster(buffer: Buffer, uploaderId: string, authorId: string | null, _unprocessedAuthorName?: string): Promise<IAnimePosterNode> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_POSTER_SOURCE, uploaderId });
@@ -720,6 +720,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       authorId,
       is_hero: false,
       pull_hash: poster.hash,
+      _unprocessedAuthorName
     };
 
     this._doc.posters.push(node);

@@ -1,4 +1,5 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
+import AnimeValidators from '~/utils/validators/anime-validators';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/config';
@@ -150,8 +151,13 @@ export default async function AnimeBulkUpdate() {
   try {
     const startedAt = getUTC().timestamp;
 
-    const document = await AnimeRepository.getOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
-    if (!document) return UPDATE_YEAR -= 1;
+    const document = await AnimeRepository.safeGetOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    if (!document) {
+      if (UPDATE_YEAR > AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR -= 1;
+      if (UPDATE_YEAR === AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR = getUTC().year + 1;
+
+      return;
+    }
 
     const repo = new AnimeRepositoryClass();
     await repo.init({ id: document.id });
@@ -272,7 +278,7 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId);
+          const node = await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId, !authorId ? poster.author : undefined);
 
           nodes.push(node);
         }
