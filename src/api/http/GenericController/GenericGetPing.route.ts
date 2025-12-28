@@ -1,12 +1,12 @@
 import conf from '~/config';
-import { HTTPEndpoint } from '~/service/HTTPService';
+import { HandleRequest } from '~/utils/http-utils';
 
 
 
 /**
  * Ping API
  */
-const endpoint = HTTPEndpoint(async (req, res) => {
+const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'pong!',
     commit: conf.commit,

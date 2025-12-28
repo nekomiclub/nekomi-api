@@ -1,6 +1,6 @@
 import Logger from '~/service/LoggerService';
 import conf from '~/config';
-import { $http } from '~/service/HTTPService';
+import { $http } from '~/utils/http-utils';
 import { IHikkaAnime } from '~/intf/external-api/IHikka.api';
 import { IHikkaMALIntegration } from '~/intf/external-api/IHikka.api';
 

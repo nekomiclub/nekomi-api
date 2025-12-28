@@ -1,6 +1,6 @@
 import CSRFService from '~/service/CSRFService';
 import z from 'zod';
-import { HTTPEndpoint } from '~/service/HTTPService';
+import { HandleRequest } from '~/utils/http-utils';
 
 
 
@@ -24,7 +24,7 @@ const BodySchema = z.object({
 /**
  * Verify CSRF
  */
-const endpoint = HTTPEndpoint(async (req, res) => {
+const endpoint = HandleRequest(async (req, res) => {
   const { token, origin } = BodySchema.parse(req.body);
 
   const { verified, origin: tokenOrigin } = await CSRFService.verify(token, origin);

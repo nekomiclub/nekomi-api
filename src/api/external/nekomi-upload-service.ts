@@ -1,7 +1,7 @@
 import FormData from 'form-data';
 import Logger from '~/service/LoggerService';
 import conf from '~/config';
-import { $http } from '~/service/HTTPService';
+import { $http } from '~/utils/http-utils';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 
 

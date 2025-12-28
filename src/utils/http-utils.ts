@@ -1,24 +1,40 @@
-import Logger from './LoggerService';
+import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf, { ProductionMode } from '~/config';
 import express from 'express';
-import { HandleRequest, NekoError } from './ExceptionService';
+import { HandleRequestError, NekoError } from '~/service/ExceptionService';
 import { IncomingHttpHeaders } from 'http';
 
 
 
-/** Express endpoint that accept callback as a prop */
-export const HTTPEndpoint = (callback: (req: express.Request, res: express.Response) => Promise<express.Response>) => {
-  return async (req: express.Request, res: express.Response) => {
-    return await HandleRequest(req, res, async () => {
-      return await callback(req, res);
-    });
-  };
+/** 
+ * Express endpoint handler with build-in error handling
+ * Function cannot be async, unlike a callback 
+ * 
+ * Callback should return response object
+ */
+export const HandleRequest = (callback: (req: express.Request, res: express.Response) => Promise<express.Response>) => {
+  return async (req: express.Request, res: express.Response) => await HandleRequestError(req, res, callback);
 };
 
 
 
-/** Get request IP from HTTP headers */
+/**
+ * Express middleware handler with built-in error handling
+ * Function cannot be async, unlike a callback 
+ */
+export function HandleMiddleware(callback: (req: express.Request, res: express.Response) => any) {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    // Proceed to next middleware if request succeeded, otherwise do not
+    if (await HandleRequestError(req, res, callback)) return next();
+  };
+}
+
+
+
+/** 
+ * Get request IP from HTTP headers
+ */
 export function getRequestIP(headers: IncomingHttpHeaders): string {
   return (
     headers['cf-connecting-ip'] ?? headers['CF-Connecting-IP']
@@ -29,14 +45,15 @@ export function getRequestIP(headers: IncomingHttpHeaders): string {
 
 
 
+/**
+ * Trace HTTP requests middleware
+ */
 export function traceRequest() {
-  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const IP = getRequestIP(req.headers);
+  return HandleMiddleware(async (req) => {
+    const ip = getRequestIP(req.headers);
 
-    Logger.http(`[Request/${IP}]: ${req.method} ${req.url}`);
-
-    return next();
-  };
+    Logger.http(`[Request/${ip}]: ${req.method} ${req.url}`);
+  });
 }
 
 
@@ -44,7 +61,7 @@ export function traceRequest() {
 /** 
  * Get current session
  * 
- * @throws E401 if session cookie is missing
+ * @throws auth:token_invalid if session cookie is missing
  */
 export function getSessionToken(req: express.Request): string {
   const token = req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
@@ -75,7 +92,6 @@ export function setSessionCookie(token: string, res: express.Response) {
 export function removeSessionCookie(res: express.Response) {
   return res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 }
-
 
 
 

@@ -1,5 +1,5 @@
 import SessionService from '~/service/SessionService';
-import { HTTPEndpoint, getSessionToken, setSessionCookie } from '~/service/HTTPService';
+import { HandleRequest, getSessionToken, setSessionCookie } from '~/utils/http-utils';
 
 
 
@@ -18,7 +18,7 @@ interface IResponse {
 /**
  * Refresh session access
  */
-const endpoint = HTTPEndpoint(async (req, res) => {
+const endpoint = HandleRequest(async (req, res) => {
   const sessionToken = getSessionToken(req);
   const session = new SessionService();
   const { user, session: sessionData } = await session.parse(sessionToken);

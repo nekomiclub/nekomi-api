@@ -88,16 +88,6 @@ export class NekoError extends ErrorConstructor {
 
     super(code, message ?? error.message, error.status, statusMessage);
   }
-
-  /** Refine error object to POJO */
-  refine() {
-    return {
-      status: this.status,
-      error: this.error,
-      message: this.message,
-      code: this.code
-    };
-  }
 }
 
 
@@ -106,20 +96,26 @@ export class NekoError extends ErrorConstructor {
  * Handle request errors like:
  * ErrorConstructor, Axios, Zod & uncaught
  */
-export async function HandleRequest(req: express.Request, res: express.Response, cb: (req: express.Request, res: express.Response) => any | Promise<any>) {
+export async function HandleRequestError(req: express.Request, res: express.Response, callback: (req: express.Request, res: express.Response) => any | Promise<any>): Promise<boolean> {
   try {
     // Run callback
-    await cb(req, res);
+    await callback(req, res);
+
+    return true;
   } catch (e) {
     const date = `${getUTC().fulldate} UTC ${getUTC().time}`;
 
     if (e instanceof ErrorConstructor) {
-      return res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
+      res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
+
+      return false;
     } else if (e instanceof ZodError) {
       if (DevelopmentMode && !TestMode) console.log(`Validation error`, e.errors);
       if (TestMode) Logger.error(`(TESTING) Validation error`, e.errors);
 
-      return res.status(400).json({ message: 'Invalid payload', code: 'sys:invalid_payload', errors: e.errors, date });
+      res.status(400).json({ message: 'Invalid payload', code: 'sys:invalid_payload', errors: e.errors, date });
+
+      return false;
     } else if (e instanceof AxiosError) {
       const status = e.response?.data.status ?? e.status ?? 502;
       const code = e.response?.data.code ?? e.code ?? 'sys:http';
@@ -133,7 +129,9 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         const message = `[AXIOS (503)]: Connection refused`;
         Logger.error(`[AXIOS (503)]: Connection to ${reqURL} refused`);
 
-        return res.status(503).json({ message, code, reqURL, date });
+        res.status(503).json({ message, code, reqURL, date });
+
+        return false;
       } else {
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${reqURL}`);
@@ -143,12 +141,16 @@ export async function HandleRequest(req: express.Request, res: express.Response,
         }
       }
 
-      return res.status(status).json({ message: emsg, code, reqURL, date });
+      res.status(status).json({ message: emsg, code, reqURL, date });
+
+      return false;
     } else {
       const emsg = `[Uncaught]: Uncaught error occured`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
-      return res.status(500).json({ message: emsg, date });
+      res.status(500).json({ message: emsg, date });
     }
+
+    return false;
   }
 }

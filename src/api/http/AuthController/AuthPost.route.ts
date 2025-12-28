@@ -6,7 +6,7 @@ import z from 'zod';
 import { AUTH_METHOD } from '~/intf/IAuth';
 import { DevelopmentMode } from '~/config';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
-import { HTTPEndpoint, setSessionCookie } from '~/service/HTTPService';
+import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
 import { IUserSession, USER_RESTRICTION } from '~/intf/IUser';
 
 
@@ -40,7 +40,7 @@ const BodyParser = z.object({
 /**
  * Authorize user
  */
-const endpoint = HTTPEndpoint(async (req, res) => {
+const endpoint = HandleRequest(async (req, res) => {
   const { method, token } = BodyParser.parse(req.body);
 
 

@@ -1,5 +1,5 @@
 import SessionService from '~/service/SessionService';
-import { HTTPEndpoint, getSessionToken, removeSessionCookie } from '~/service/HTTPService';
+import { HandleRequest, getSessionToken, removeSessionCookie } from '~/utils/http-utils';
 
 
 
@@ -12,7 +12,7 @@ interface IResponse {
 /**
  * Logout session
  */
-const endpoint = HTTPEndpoint(async (req, res) => {
+const endpoint = HandleRequest(async (req, res) => {
   const params = req.params as { sessionId?: string };
   const currentSession = getSessionToken(req);
 

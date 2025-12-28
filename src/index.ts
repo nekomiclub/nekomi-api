@@ -9,7 +9,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles, MLoadUsers } from './utils/migration-utils';
-import { traceRequest } from './services/HTTPService';
+import { traceRequest } from './utils/http-utils';
 
 
 
