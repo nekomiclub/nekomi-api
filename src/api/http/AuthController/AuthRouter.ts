@@ -10,7 +10,7 @@ const AuthRouter = express.Router();
 
 
 AuthRouter.get('/', AuthGetRefreshRoute);
-AuthRouter.get('/logout', AuthGetLogoutRoute);
+AuthRouter.get(['/logout', '/logout/:sessionId'], AuthGetLogoutRoute);
 
 AuthRouter.post('/', AuthPostRoute);
 

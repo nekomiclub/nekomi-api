@@ -2,7 +2,7 @@ import Logger from './LoggerService';
 import axios from 'axios';
 import conf, { ProductionMode } from '~/config';
 import express from 'express';
-import { HandleRequest } from './ExceptionService';
+import { HandleRequest, NekoError } from './ExceptionService';
 import { IncomingHttpHeaders } from 'http';
 
 
@@ -37,6 +37,20 @@ export function traceRequest() {
 
     return next();
   };
+}
+
+
+
+/** 
+ * Get current session
+ * 
+ * @throws E401 if session cookie is missing
+ */
+export function getSessionToken(req: express.Request): string {
+  const token = req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
+  if (!token) throw new NekoError('auth:token_invalid');
+
+  return token;
 }
 
 

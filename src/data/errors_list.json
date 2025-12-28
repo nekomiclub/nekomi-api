@@ -50,5 +50,13 @@
   "auth:failed": {
     "status": 403,
     "message": "Authorization failed"
+  },
+  "auth:session_not_exist": {
+    "status": 404,
+    "message": "Requested session is not exist"
+  },
+  "auth:session_limited": {
+    "status": 403,
+    "message": "Your session cannot do this type of action due to temporary limitations"
   }
 }
