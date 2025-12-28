@@ -35,6 +35,7 @@ export class JikanAPI {
     const url = `${baseURL}/v4/anime/${malId}/episodes`;
     Logger.http(`[Jikan]: GET - ${url}`);
 
+    // TODO: Implement pagination
     const { data } = await axios.get<IJikanGetAnimeEpisodes>(url);
 
     return data.data;

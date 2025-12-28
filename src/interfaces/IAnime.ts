@@ -7,6 +7,7 @@ export interface IAnimePosterNode {
   medium: CDNString
   original: CDNString
 
+  authorId: string | null
   is_hero: boolean
   pull_hash: string
 }
@@ -96,7 +97,10 @@ export interface IAnimeEpisode {
 export interface IAnimeEpisodeMeta {
   episode: number
   title: string
-  cover: string | null
+  aired: ISODateString | null
+  score: number | null // 1 - 5
+  filler: boolean
+  recap: boolean
 }
 
 export interface IAnimeSchedule {

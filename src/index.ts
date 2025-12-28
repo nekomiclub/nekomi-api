@@ -69,8 +69,6 @@ async function runtime() {
     if (conf.env.ENV === 'production') await MLoadRoles();
     if (conf.env.ENV === 'production') await MLoadDubbers();
     if (conf.env.ENV === 'production') await MLoadCatalog();
-
-    await MLoadDubbers();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

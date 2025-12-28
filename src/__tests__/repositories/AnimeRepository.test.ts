@@ -307,7 +307,7 @@ describe('AnimeRepository', () => {
       { episode: 2, airing_at: getUTC(4227221).ISO },
     ];
 
-    animeServiceMain.setSchedule(schedule);
+    animeServiceMain._setSchedule(schedule);
     expect(animeServiceMain.document?.schedule).toStrictEqual(schedule);
   });
 

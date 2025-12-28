@@ -144,5 +144,8 @@ export interface IJikanTheme {
 export interface IJikanAnimeEpisodeMeta {
   mal_id: number // order
   title: string
-  aired: string | null
+  aired: string | null // ISO
+  score: number | null // 1 - 5
+  filler: boolean
+  recap: boolean
 }

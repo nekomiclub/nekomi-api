@@ -1,6 +1,7 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DocumentDTO from '~/service/DataTransferService';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import DubberRepository from './DubberRepository';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/config';
@@ -32,6 +33,7 @@ const schema = new Schema<RepositoryType>({
   hikka_slug: String,
 
   posters: [Schema.Types.Mixed],
+  hero_poster_author: String,
 
   year: Number,
   episodes_total: Number,
@@ -168,7 +170,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
           small: conf.vars.defaultPoster,
           medium: conf.vars.defaultPoster,
           original: conf.vars.defaultPoster,
-          pull_hash: '',
+          authorId: null,
+          pull_hash: 'null',
           is_hero: true,
         }
       ],
@@ -480,10 +483,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set related documents
    * 
-   * @notice use till new Append/Remove methods are not available
-   * @testing
+   * ! Must be refactored into append/remove methods after 3.0.0
    */
-  setRelations(relations: IAnimeRelation[] | null) {
+  _setRelations(relations: IAnimeRelation[] | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (relations === null) relations = [];
@@ -518,10 +520,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set studios
    * 
-   * @notice use till new Append/Remove methods are not available
-   * @testing
+   * ! Must be refactored into append/remove methods after 3.0.0
    */
-  setStudios(studios: IAnimeStudio[] | null) {
+  _setStudios(studios: IAnimeStudio[] | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (studios === null) studios = [];
@@ -534,9 +535,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set schedule
    * 
+   * ! Must be refactored into append/remove methods after 3.0.0
    * @tested
    */
-  setSchedule(schedule: IAnimeSchedule[]) {
+  _setSchedule(schedule: IAnimeSchedule[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('schedule', schedule);
@@ -665,12 +667,30 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
   /**
+   * Set episodes meta
+   * 
+   * ! Must be refactored into append/remove methods after 3.0.0
+   */
+  _setEpisodesMeta(eps: IAnimeEpisodeMeta[]) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set('episodes_meta', eps);
+  }
+
+
+
+  /**
    * Set hero poster author
    * 
-   * @todo
+   * @testing
    */
   async setHeroPosterAuthor(id: string) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
+    // Ensure that dubber is exist
+    await DubberRepository.getOne(id);
+
+    this.set('hero_poster_author', id);
   }
 
 
@@ -681,7 +701,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * @autosave
    * @testing
    */
-  async uploadPoster(buffer: Buffer, uploaderId: string): Promise<IAnimePosterNode> {
+  async uploadPoster(buffer: Buffer, uploaderId: string, authorId: string | null): Promise<IAnimePosterNode> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_POSTER_SOURCE, uploaderId });
@@ -693,11 +713,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (!poster || !posterM || !posterS) throw new NekoError('nus:object_not_found', `poster: ${Boolean(poster)}; posterM: ${Boolean(posterM)}; posterS: ${Boolean(posterS)}`);
 
     const node: IAnimePosterNode = {
-      is_hero: false,
-      pull_hash: poster.hash,
       original: poster.url,
       medium: posterM.url,
-      small: posterS.url
+      small: posterS.url,
+      authorId,
+      is_hero: false,
+      pull_hash: poster.hash,
     };
 
     this._doc.posters.push(node);

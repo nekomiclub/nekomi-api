@@ -90,11 +90,11 @@ export interface IHikkaAnimeStats {
 }
 
 export interface IHikkaScheduleItem {
-  date: number;
+  airing_at: number;
   episode: number;
 }
-/** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
 
+/** {@link https://api.hikka.io/docs#/Integrations/mal_anime_integrations_mal_anime__mal_id__get | docs} */
 export interface IHikkaMALIntegration {
   data_type: string;
   media_type: ANIME_TYPE;

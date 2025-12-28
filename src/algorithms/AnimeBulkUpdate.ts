@@ -1,13 +1,13 @@
 import AnimeModel from '~/repo/old/AnimeModel';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { ANIME_GENRE, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/config';
 import fs from 'fs';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
-import { IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
+import { IJikanAnimeEpisodeMeta, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
 import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
@@ -57,9 +57,10 @@ const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
 
 
 const UAPOSTERS_AUTHOR_MAP = {
-  'Візуали': 'visuals',
-  'uaposters': 'uaposters',
-  'Олехандро': 'olexandro',
+  'Візуали': '48a9b773-32c0-4c6f-b522-e5d6a0aa66a2',
+  'uaposters': '442b01b5-1387-4486-90dc-efee5049ef2c',
+  'Олехандро': '9f5e809e-1816-41f8-98db-6b07e7b6851d',
+  'Лунсар': '7fb630e1-d6a8-456a-866a-796c299cdb89',
 };
 
 
@@ -183,7 +184,7 @@ export default async function AnimeBulkUpdate() {
 
       // Parse schedule
       const schedule = parseHikkaSchedule(hikkaRes.schedule);
-      if (schedule.length) animeService.setSchedule(schedule);
+      if (schedule.length) animeService._setSchedule(schedule);
 
       animeService.setSync('hikka_sync', getUTC().ISO);
 
@@ -200,11 +201,14 @@ export default async function AnimeBulkUpdate() {
 
       // Parse studios
       const studios = parseJikanStudios(jikanRes.studios);
-      if (studios.length) animeService.setStudios(studios);
+      if (studios.length) animeService._setStudios(studios);
 
       // Parse relations
       const relations = parseJikanRelations(jikanRes.relations);
-      if (relations.length) animeService.setRelations(relations);
+      if (relations.length) animeService._setRelations(relations);
+
+      const jikanEpsRes = await JikanAPI.getAnimeEpisodeMeta(animeService.document!.mal_id!);
+      if (jikanEpsRes.length) animeService._setEpisodesMeta(parseJikanEpisodes(jikanEpsRes));
 
       animeService.setSync('myanimelist_sync', getUTC().ISO);
     } catch (e) {
@@ -237,7 +241,7 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull uaposters
     try {
-      const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url.includes(animeService.document!.hikka_slug!))?.posters;
+      const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url?.includes(animeService.document!.hikka_slug!))?.posters;
 
       if (posters?.length) {
         const postersOld = animeService.document?.posters ?? [];
@@ -263,7 +267,7 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID);
+          const node = await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId);
 
           nodes.push(node);
         }
@@ -309,7 +313,7 @@ export default async function AnimeBulkUpdate() {
         const res = await axios.get(hikkaPosterUrl, { responseType: 'arraybuffer' });
         const buffer = Buffer.from(res.data);
 
-        await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID);
+        await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID, null);
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Pull fallback poster failed, skipping... [id: ${document.id}]`, e);
@@ -366,9 +370,7 @@ export default async function AnimeBulkUpdate() {
       if (animeService.document?.mal_id) {
         const oldDocument = await AnimeModel.findOne({ malId: animeService.document?.mal_id });
 
-        if (oldDocument) {
-          animeService._implicitSetId(oldDocument.uuid);
-        }
+        if (oldDocument) animeService._implicitSetId(oldDocument.uuid);
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Pull old id failed, skipping... [id: ${document.id}]`, e);
@@ -423,7 +425,7 @@ function parseHikkaSchedule(input: IHikkaScheduleItem[]): IAnimeSchedule[] {
   const schedule: IAnimeSchedule[] = [];
 
   input.forEach(item => {
-    schedule.push({ episode: item.episode, airing_at: getUTC(item.date * 1000).ISO });
+    schedule.push({ episode: item.episode, airing_at: getUTC(item.airing_at * 1000).ISO });
   });
 
   return schedule;
@@ -445,4 +447,14 @@ function parseJikanRelations(input: IJikanRelation[]): IAnimeRelation[] {
   });
 
   return relations;
+}
+
+function parseJikanEpisodes(input: IJikanAnimeEpisodeMeta[]): IAnimeEpisodeMeta[] {
+  const eps: IAnimeEpisodeMeta[] = [];
+
+  input.forEach(ep => {
+    eps.push({ aired: ep.aired ? getUTC(ep.aired).ISO : null, episode: ep.mal_id, filler: ep.filler, recap: ep.recap, score: ep.score, title: ep.title });
+  });
+
+  return eps;
 }
