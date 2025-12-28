@@ -1,3 +1,5 @@
+import DocumentDTO from '~/service/DataTransferService';
+import IUser from '~/intf/IUser';
 import SessionService from '~/service/SessionService';
 import { HandleRequest, getSessionToken, setSessionCookie } from '~/utils/http-utils';
 
@@ -5,12 +7,7 @@ import { HandleRequest, getSessionToken, setSessionCookie } from '~/utils/http-u
 
 interface IResponse {
   message: string
-  user: {
-    id: string
-    username: string
-    avatar: string
-    cover: string
-  }
+  user: IUser
 }
 
 
@@ -32,12 +29,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'Access refreshed',
-    user: {
-      id: user.username,
-      username: user.username,
-      avatar: user.avatar,
-      cover: user.cover
-    }
+    user: DocumentDTO.user(user)
   } as IResponse);
 });
 

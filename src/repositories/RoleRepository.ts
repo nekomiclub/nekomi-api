@@ -114,6 +114,25 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
+/**
+ * Parse roles permissions
+ */
+export async function parseRolesPermissions(slugs: string[]): Promise<ROLE_PERMISSION[]> {
+  const permissions: ROLE_PERMISSION[] = [];
+
+  const roles = await RoleRepository.getMany({ slug: { $in: slugs } });
+
+  roles.forEach(role => {
+    role.permissions.forEach(perm => {
+      if (!permissions.includes(perm)) permissions.push(perm);
+    });
+  });
+
+  return permissions;
+}
+
+
+
 const RoleRepository = new RoleRepositoryClass();
 
 export default RoleRepository;

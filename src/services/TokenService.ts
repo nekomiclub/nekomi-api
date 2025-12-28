@@ -46,7 +46,7 @@ class TokenServiceClass {
    * Decode token
    */
   decode<T = object>(token: string): IJWTokenPayload<T> {
-    const payload = jwt.decode(token) as JwtPayload & T;
+    const payload = (jwt.decode(token) ?? {}) as JwtPayload & T;
     if (typeof payload !== 'object') throw new NekoError('sys:type_invalid', `JWT token data is invalid`);
 
     return {

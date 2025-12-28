@@ -5,6 +5,7 @@ import { AxiosError } from 'axios';
 import { DevelopmentMode, TestMode } from '~/config';
 import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils';
+import { removeSessionCookie } from '~/utils/http-utils';
 
 
 
@@ -106,6 +107,9 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
     const date = `${getUTC().fulldate} UTC ${getUTC().time}`;
 
     if (e instanceof ErrorConstructor) {
+      // Remove session cookie if token is invalid (not expired!)
+      if (e.code === 'auth:session_token_invalid') removeSessionCookie(res);
+
       res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
 
       return false;

@@ -47,23 +47,23 @@
     "status": 400,
     "message": "Authorization method is invalid"
   },
-  "auth:token_invalid": {
-    "status": 400,
-    "message": "Authorization token is invalid"
-  },
   "auth:token_miss": {
     "status": 401,
     "message": "Authorization token is not provided"
   },
-  "auth:token_expired": {
-    "status": 403,
-    "message": "Authorization token is expired"
+  "auth:session_token_invalid": {
+    "status": 400,
+    "message": "Session token is invalid"
   },
-  "auth:csrf_invalid": {
+  "auth:session_token_expired": {
+    "status": 403,
+    "message": "Session token is expired"
+  },
+  "auth:csrf_token_invalid": {
     "status": 401,
     "message": "CSRF token is invalid"
   },
-  "auth:csrf_miss": {
+  "auth:csrf_token_miss": {
     "status": 401,
     "message": "CSRF token is not provided"
   },
