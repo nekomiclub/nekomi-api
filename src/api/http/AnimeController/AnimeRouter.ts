@@ -5,6 +5,8 @@ import express from 'express';
 
 const AnimeRouter = express.Router();
 
+
+
 AnimeRouter.get('/:query', AnimeGetDocumentRoute);
 
 

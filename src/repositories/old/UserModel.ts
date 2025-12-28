@@ -90,7 +90,7 @@ export interface UserLib {
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT USER SERVICE */
-export const UserModel = mongoose.model<User>('users_olds', new Schema({
+export const UserModelOld = mongoose.model<User>('users_olds', new Schema({
   id: String,
   libs: Array,
   statistics: Object,
@@ -104,4 +104,4 @@ export const UserModel = mongoose.model<User>('users_olds', new Schema({
   banner: String,
 }));
 
-export default UserModel;
+export default UserModelOld;

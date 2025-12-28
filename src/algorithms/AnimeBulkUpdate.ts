@@ -1,9 +1,9 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/config';
 import fs from 'fs';
+import { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
 import { IJikanAnimeEpisodeMeta, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
@@ -147,7 +147,7 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
-    const document = await AnimeRepository.getOneByQuery<IAnime>({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    const document = await AnimeRepository.getOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
     if (!document) return UPDATE_YEAR -= 1;
 
     const animeService = new AnimeRepositoryClass();

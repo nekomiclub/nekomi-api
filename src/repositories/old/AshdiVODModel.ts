@@ -4,7 +4,7 @@ import { IAshdiVOD } from '~/intf/IAshdiVOD';
 
 
 /** @deprecated */
-export const AshdiVODModel = mongoose.model<IAshdiVOD>('ashdi_vods_olds', new Schema({
+export const AshdiVODModelOld = mongoose.model<IAshdiVOD>('ashdi_vods_olds', new Schema({
   createdAt: Number,
   imdbId: String,
   malIds: Array,
@@ -12,4 +12,4 @@ export const AshdiVODModel = mongoose.model<IAshdiVOD>('ashdi_vods_olds', new Sc
   updatedAt: Number,
 }));
 
-export default AshdiVODModel;
+export default AshdiVODModelOld;

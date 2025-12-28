@@ -1,4 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
+import { QueryFilter } from 'mongoose';
 import { z } from 'zod';
 
 
@@ -9,6 +10,7 @@ export type ISODateString = string;
 /** Nekomi CDN string */
 export type CDNString = string;
 
+export type RepositoryGetQueryType<M> = string | QueryFilter<keyof M>
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
 
 export interface ICSRFToken {

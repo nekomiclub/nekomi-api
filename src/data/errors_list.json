@@ -34,5 +34,21 @@
   "user:username_timeout": {
     "status": 400,
     "message": "You cannot change username at the moment, try again later"
+  },
+  "user:banned": {
+    "status": 403,
+    "message": "You have been banned by the administration"
+  },
+  "auth:method_invalid": {
+    "status": 400,
+    "message": "Provided authorization method is invalid"
+  },
+  "auth:token_invalid": {
+    "status": 401,
+    "message": "Provided token is invalid or undefined"
+  },
+  "auth:failed": {
+    "status": 403,
+    "message": "Authorization failed"
   }
 }

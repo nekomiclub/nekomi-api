@@ -63,23 +63,13 @@ export interface IUserLib {
   created_at: ISODateString
 }
 
-interface IUserSession {
+export interface IUserSession {
   id: string
-  ip: string
-
-  // /** Session active till timestamp, when it reached client must send refresh request */
-  // active_till: ISODateString
-
-  // /** Session unactive timestamp, when it reached session must be deleted */
-  // expire: ISODateString
-
-  // /** Timestamp after this session must be deleted anyway */
-  // max_age: ISODateString
 
   is_limited: boolean
+
+  expires_at: ISODateString
   created_at: ISODateString
 }
-
-
 
 export default IUser;

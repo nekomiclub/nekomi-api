@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT DUBBER SERVICE */
-export const DubberModel = mongoose.model('dubbers_olds', new Schema({
+export const DubberModelOld = mongoose.model('dubbers_olds', new Schema({
   id: String,
   code: String,
   name: String,
@@ -21,4 +21,4 @@ export const DubberModel = mongoose.model('dubbers_olds', new Schema({
   banner: String,
 }));
 
-export default DubberModel;
+export default DubberModelOld;

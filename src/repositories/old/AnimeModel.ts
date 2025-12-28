@@ -557,7 +557,7 @@ export const AnimeMonthSeasons: ANIME_SEASON[] = [
 
 
 /** @private DO NOT USE IT ANYWHERE ELSE EXCEPT ANIME SERVICE */
-export const AnimeModel = mongoose.model<Anime>('animes_olds', new Schema({
+export const AnimeModelOld = mongoose.model<Anime>('animes_olds', new Schema({
   uuid: String,
   broadcast: Object,
   description: String,
@@ -593,4 +593,4 @@ export const AnimeModel = mongoose.model<Anime>('animes_olds', new Schema({
 
 
 
-export default AnimeModel;
+export default AnimeModelOld;

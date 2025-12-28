@@ -4,9 +4,19 @@ import { HTTPEndpoint } from '~/service/HTTPService';
 
 
 
+interface IResponse {
+  message: string
+  verified: boolean
+  origin?: string | null
+}
+
+
+
 const BodySchema = z.object({
   token: z.string(),
-  requestedOrigin: z.string().optional()
+
+  /** Required origin */
+  origin: z.string().optional(),
 });
 
 
@@ -15,20 +25,23 @@ const BodySchema = z.object({
  * Verify CSRF
  */
 const endpoint = HTTPEndpoint(async (req, res) => {
-  const { token, requestedOrigin } = BodySchema.parse(req.body);
+  const { token, origin } = BodySchema.parse(req.body);
 
-  const verified = await CSRFService.verify(token, requestedOrigin);
+  const { verified, origin: tokenOrigin } = await CSRFService.verify(token, origin);
+
+
 
   return res.status(200).json({
-    message: 'Token validated',
-    verified
-  });
+    message: 'Token accepted',
+    verified,
+    origin: tokenOrigin
+  } as IResponse);
 });
 
 
 
-const GenericGetCSRF = [
+const GenericGetCSRFRoute = [
   endpoint
 ];
 
-export default GenericGetCSRF;
+export default GenericGetCSRFRoute;

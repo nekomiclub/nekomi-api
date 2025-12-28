@@ -1,11 +1,10 @@
 import { HydratedDocument, Model, QueryFilter } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
-import { RepositoryQueriesType } from '~/intf/types';
+import { RepositoryGetQueryType, RepositoryQueriesType } from '~/intf/types';
 
 
 
-/** Unified repository to provide CRUD access to models */
-export default class UnifiedRepositoryClass<RepositoryType> {
+export class UnifiedModelClass<RepositoryType> {
   /** Current document */
   protected _doc: HydratedDocument<RepositoryType> | undefined;
 
@@ -15,78 +14,17 @@ export default class UnifiedRepositoryClass<RepositoryType> {
 
 
   constructor(
-    /** MongoDB model */
     protected readonly model: Model<RepositoryType>,
-
-    /** Document find queries preserve function */
-    private readonly queries: (query: string) => RepositoryQueriesType<RepositoryType>,
+    protected readonly queries: (query: string) => RepositoryQueriesType<RepositoryType>,
   ) { }
 
 
-  async init(query: string) {
-    const document = await this.model.findOne(this.queries(query));
+
+  async init(query: RepositoryGetQueryType<RepositoryType>) {
+    const document = await this.model.findOne(typeof query === 'string' ? this.queries(query) : query);
     if (!document) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
 
     this._doc = document;
-  }
-
-
-
-  async getOne(query: string): Promise<RepositoryType> {
-    const result = await this.model.findOne(this.queries(query));
-    if (!result) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
-
-    return result;
-  }
-
-
-
-  async safeGetOne(query: string): Promise<RepositoryType | null> {
-    const result = await this.model.findOne(this.queries(query));
-
-    return result;
-  }
-
-
-
-  async getOneByQuery<T = any>(query: QueryFilter<T>): Promise<RepositoryType | null> {
-    const result = await this.model.findOne(query);
-
-    return result;
-  }
-
-
-
-  async getManyByQuery<T = any>(query: QueryFilter<T>): Promise<RepositoryType[]> {
-    const results = await this.model.find(query);
-
-    return results;
-  }
-
-
-
-  async getMany(query: string): Promise<RepositoryType[]> {
-    const results = await this.model.find(this.queries(query));
-
-    return results;
-  }
-
-
-
-  async getAll(): Promise<RepositoryType[]> {
-    return await this.model.find();
-  }
-
-
-
-  async deleteOne(id: string): Promise<void> {
-    await this.model.deleteOne({ id });
-  }
-
-
-
-  async deleteMany(id: string): Promise<void> {
-    await this.model.deleteMany({ id });
   }
 
 
@@ -114,5 +52,84 @@ export default class UnifiedRepositoryClass<RepositoryType> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     await this._doc.save();
+  }
+}
+
+/** Unified repository to provide CRUD access to models */
+export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModelClass<RepositoryType> {
+  constructor(
+    /** MongoDB model */
+    model: Model<RepositoryType>,
+
+    /** Document find queries preserve function */
+    queries: (query: string) => RepositoryQueriesType<RepositoryType>,
+  ) {
+    super(model, queries);
+  }
+
+
+
+
+
+
+  async getOne(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType> {
+    const result = await this.model.findOne(typeof query === 'string' ? this.queries(query) : query);
+    if (!result) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
+
+    return result;
+  }
+
+
+
+  async getMany(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType[]> {
+    const results = await this.model.find(typeof query === 'string' ? this.queries(query) : query);
+
+    return results;
+  }
+
+
+
+  async safeGetOne(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType | null> {
+    try {
+      return await this.getOne(query);
+    } catch (e) {
+      return null;
+    }
+  }
+
+
+
+  /** @deprecated use getOne instead */
+  async getOneByQuery(query: QueryFilter<keyof RepositoryType>): Promise<RepositoryType | null> {
+    const result = await this.model.findOne(query);
+
+    return result;
+  }
+
+
+
+  /** @deprecated use getMany instead */
+  async getManyByQuery(query: QueryFilter<keyof RepositoryType>): Promise<RepositoryType[]> {
+    const results = await this.model.find(query);
+
+    return results;
+  }
+
+
+
+  async getAll(): Promise<RepositoryType[]> {
+    return await this.model.find();
+  }
+
+
+
+  async deleteOne(query: RepositoryGetQueryType<RepositoryType>): Promise<void> {
+    await this.model.deleteOne(typeof query === 'string' ? { id: query } : query);
+  }
+
+
+
+  async deleteMany(query: RepositoryGetQueryType<RepositoryType>): Promise<void> {
+    await this.model.deleteMany(typeof query === 'string' ? { id: query } : query);
   }
 }

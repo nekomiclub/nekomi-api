@@ -1,4 +1,5 @@
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
+import AuthRouter from './api/http/AuthController/AuthRouter';
 import DatabaseService from './services/DatabaseService';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
@@ -42,6 +43,7 @@ async function runtime() {
 
     //* === HTTP Routing
     app.use('/anime', AnimeRouter);
+    app.use('/auth', AuthRouter);
     app.use('/', GenericRouter);
 
 
@@ -70,8 +72,6 @@ async function runtime() {
     if (conf.env.ENV === 'production') await MLoadDubbers();
     if (conf.env.ENV === 'production') await MLoadCatalog();
     if (conf.env.ENV === 'production') await MLoadUsers();
-
-    await MLoadUsers();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

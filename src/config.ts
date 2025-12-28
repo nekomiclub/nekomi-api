@@ -1,18 +1,18 @@
-import chalk from 'chalk';
+import firebaseAdmin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
-import { config as dotenvCfg } from 'dotenv';
-
-
 import { createNanoId } from './utils/create-id';
+import { config as dotenvCfg } from 'dotenv';
 import { execSync } from 'child_process';
 import { getUTC } from './utils/utils';
 
 
 
-// Preflight
-chalk.level = 1;
-dotenvCfg();
+// Configure .env
+dotenvCfg({ quiet: true });
+
+// Initialize firebase
+firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
 
 
 
@@ -29,6 +29,7 @@ const env = {
   MALClientID: String(process.env['MAL-Client-ID']),
   ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
   IDS_MOE_KEY: String(process.env['IDS_MOE_KEY']),
+  USER_SESSION_SK: String(process.env['USER_SESSION_SK']),
 
   ISDEV: process.env['ISDEV'] == 'true',
   ISDOCKER: process.env['ISDOCKER'] == 'true',
@@ -120,7 +121,11 @@ const vars = {
   /** Default anime poster */
   defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
 
-  USERNAME_UPDATE_TIMEOUT: 60000 * 60 * 24 * 7
+  USERNAME_UPDATE_TIMEOUT: 60000 * 60 * 24 * 7,
+  CSRF_TOKEN_LIFETIME_MS: 5000,
+  SESSION_TOKEN_LIFETIME_MS: 60000 * 15,
+  SESSION_LIFETIME_MS: 60000 * 60 * 24 * 31,
+  SESSION_COOKIE_NAME: 'SEC_31N',
 };
 
 /** Funny thing to rickroll some endpoints */

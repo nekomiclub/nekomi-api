@@ -75,6 +75,7 @@ export default class DocumentDTO {
       'email',
       'restrictions',
       'sessions',
+      'subscriptions',
     ];
 
     // Convert HydratedDocument into plain object

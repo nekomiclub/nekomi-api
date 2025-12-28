@@ -13,8 +13,8 @@ interface IAcceptedToken {
 }
 
 interface IVerify {
-  isVerified: boolean
-  origin: string
+  verified: boolean
+  origin?: string | null
 }
 
 
@@ -46,24 +46,27 @@ class CSRFServiceClass {
    * 
    * @development you can pass "~dev" in development mode to use fresh api CSRF token
    */
-  async verify(token: string, requestedOrigin?: string): Promise<boolean> {
+  async verify(token: string, requestedOrigin?: string): Promise<IVerify> {
     if ((DevelopmentMode || TestMode) && token === '~dev') token = this.signToken(null);
 
     // Ensure that token is unique
-    if (this.checkTokenUniqueness(token)) return false;
+    if (this.checkTokenUniqueness(token)) return { verified: false };
     this.pushToken(token);
 
     try {
       const { origin } = TokenService.decode<ICSRFToken>(token).payload;
 
       // Ensure that origin match requested if second was provided
-      if (requestedOrigin && requestedOrigin !== origin) return false;
+      if (requestedOrigin && requestedOrigin !== origin) return { verified: false, origin };
 
       const agent = await CSRFAgentRepository.getOne(origin);
 
-      return TokenService.verifySecret(token, agent.public_key);
+      return {
+        verified: TokenService.verifySecret(token, agent.public_key),
+        origin
+      };
     } catch (e) {
-      return false;
+      return { verified: false };
     }
   }
 

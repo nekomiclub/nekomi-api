@@ -1,5 +1,6 @@
 import Logger from './LoggerService';
 import axios from 'axios';
+import conf, { ProductionMode } from '~/config';
 import express from 'express';
 import { HandleRequest } from './ExceptionService';
 import { IncomingHttpHeaders } from 'http';
@@ -26,6 +27,8 @@ export function getRequestIP(headers: IncomingHttpHeaders): string {
   ) as string;
 }
 
+
+
 export function traceRequest() {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const IP = getRequestIP(req.headers);
@@ -34,6 +37,29 @@ export function traceRequest() {
 
     return next();
   };
+}
+
+
+
+/** 
+ * Set session cookie in response
+ */
+export function setSessionCookie(token: string, res: express.Response) {
+  return res.cookie(conf.vars.SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    maxAge: conf.vars.SESSION_TOKEN_LIFETIME_MS,
+    secure: ProductionMode,
+    domain: ProductionMode ? '.nekomi.club' : undefined
+  });
+}
+
+
+
+/** 
+ * Remove session cookie from response
+ */
+export function removeSessionCookie(res: express.Response) {
+  return res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 }
 
 

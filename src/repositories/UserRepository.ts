@@ -3,7 +3,7 @@ import DubberRepository from './DubberRepository';
 import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
-import UnifiedRepositoryClass from './UnifiedRepository';
+import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
@@ -69,6 +69,27 @@ interface IUpdateLibProps {
 
 
 
+/** Bare user model implementation */
+export class UserModel extends UnifiedModelClass<RepositoryType> {
+  constructor() {
+    super(model, queries);
+  }
+
+
+
+  async save() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set('updated_at', getUTC().ISO);
+    await this.update();
+
+    Logger.debug(`[UserRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+  }
+}
+
+
+
+/** User repository CRUD */
 export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
@@ -155,9 +176,10 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Set username
    * 
+   * @param provided Skip any validation except uniqueness
    * @testing
    */
-  async setUsername(username: string) {
+  async setUsername(username: string, props?: { provided?: boolean }) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Ensure username change is not restricted
@@ -171,70 +193,10 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
     // Ensure username is unique
     const exist = await this.safeGetOne(username);
-    if (exist && exist.id !== this._doc.id) throw new NekoError('sys:already_exist', `User "@${username}" is already exist`);
+    if (exist && exist.id !== this._doc.id) username = `${username}-${createNanoId(3)}`;
 
     this.set('username', username);
     this.set('username_changed_at', getUTC().ISO);
-  }
-
-
-
-  /**
-   * Upload avatar
-   * 
-   * @autosave
-   * @testing
-   */
-  async uploadAvatar(buffer: Buffer) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: this._doc.id });
-
-    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
-    if (!avatar) throw new NekoError('nus:object_not_found', `User avatar is not found in upload objects`);
-
-    // Delete old avatar
-    try {
-      if (this._doc.avatar !== conf.vars.defaultAvatar) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), this._doc.id);
-      }
-    } catch (e) {
-      Logger.warn(`[UserRepository]: Cannot delete user old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
-    }
-
-    this.set('avatar', avatar.url);
-
-    await this.save();
-  }
-
-
-
-  /**
-   * Upload cover
-   * 
-   * @autosave
-   * @testing
-   */
-  async uploadCover(buffer: Buffer) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: this._doc.id });
-
-    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
-    if (!cover) throw new NekoError('nus:object_not_found', `User cover is not found in upload objects`);
-
-    // Delete old cover
-    try {
-      if (this._doc.cover !== conf.vars.defaultCover) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), this._doc.id);
-      }
-    } catch (e) {
-      Logger.warn(`[UserRepository]: Cannot delete user old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
-    }
-
-    this.set('cover', cover.url);
-
-    await this.save();
   }
 
 
@@ -477,6 +439,66 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc.restrictions.includes(slug)) return;
 
     this._doc.restrictions = this._doc.restrictions.filter(el => el !== slug);
+  }
+
+
+
+  /**
+   * Upload avatar
+   * 
+   * @autosave
+   * @testing
+   */
+  async uploadAvatar(buffer: Buffer) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: this._doc.id });
+
+    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
+    if (!avatar) throw new NekoError('nus:object_not_found', `User avatar is not found in upload objects`);
+
+    // Delete old avatar
+    try {
+      if (this._doc.avatar !== conf.vars.defaultAvatar) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), this._doc.id);
+      }
+    } catch (e) {
+      Logger.warn(`[UserRepository]: Cannot delete user old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('avatar', avatar.url);
+
+    await this.save();
+  }
+
+
+
+  /**
+   * Upload cover
+   * 
+   * @autosave
+   * @testing
+   */
+  async uploadCover(buffer: Buffer) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: this._doc.id });
+
+    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
+    if (!cover) throw new NekoError('nus:object_not_found', `User cover is not found in upload objects`);
+
+    // Delete old cover
+    try {
+      if (this._doc.cover !== conf.vars.defaultCover) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), this._doc.id);
+      }
+    } catch (e) {
+      Logger.warn(`[UserRepository]: Cannot delete user old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('cover', cover.url);
+
+    await this.save();
   }
 
 

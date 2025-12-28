@@ -1,8 +1,8 @@
-import AnimeModel from '~/repo/old/AnimeModel';
-import DubberModel from '~/repo/old/DubberModel';
+import AnimeModelOld from '~/repo/old/AnimeModel';
+import DubberModelOld from '~/repo/old/DubberModel';
 import IUS_User, { IUS_USER_RESTRICTION } from '~/intf/IUser-userapi';
 import Logger from '~/service/LoggerService';
-import UserModel from '~/repo/old/UserModel';
+import UserModelOld from '~/repo/old/UserModel';
 import axios from 'axios';
 import conf from '~/config';
 import createSlug from './create-slug';
@@ -93,7 +93,7 @@ export async function MLoadCatalog() {
         const repo = new AnimeRepositoryClass();
         if (await repo.safeGetOne(slug)) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
 
-        const nekoAnime = await AnimeModel.findOne({ slug });
+        const nekoAnime = await AnimeModelOld.findOne({ slug });
 
         await repo.create();
 
@@ -185,7 +185,7 @@ export async function MLoadDubbers() {
   if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);
 
   try {
-    const dubbers = await DubberModel.find();
+    const dubbers = await DubberModelOld.find();
 
     for (const key in dubbers) {
       const dubber = dubbers[key];
@@ -266,7 +266,7 @@ export async function MLoadUsers() {
     for (const key in users) {
       const user = users[key];
 
-      const nekoUser = await UserModel.findOne({ id: user.id });
+      const nekoUser = await UserModelOld.findOne({ id: user.id });
 
       const repo = new UserRepositoryClass();
 
