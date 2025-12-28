@@ -52,7 +52,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   // Retrieve user email
   if (method === AUTH_METHOD.GOOGLE) {
-    if (!token) throw new NekoError('auth:token_invalid');
+    if (!token) throw new NekoError('auth:token_miss');
 
     try {
       const data = await firebase.auth().verifyIdToken(token);

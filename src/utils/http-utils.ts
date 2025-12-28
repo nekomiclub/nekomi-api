@@ -83,11 +83,11 @@ export function traceRequest() {
 /** 
  * Get current session
  * 
- * @throws auth:token_invalid if session cookie is missing
+ * @throws auth:token_miss if session cookie is missing
  */
 export function getSessionToken(req: express.Request): string {
   const token = req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
-  if (!token) throw new NekoError('auth:token_invalid', `Session cookie is not provided`);
+  if (!token) throw new NekoError('auth:token_miss');
 
   return token;
 }
@@ -97,11 +97,11 @@ export function getSessionToken(req: express.Request): string {
 /** 
  * Get CSRF token
  * 
- * @throws auth:csrf_invalid if csrf token header is missing
+ * @throws auth:csrf_miss if csrf token header is missing
  */
 export function getCSRFToken(req: express.Request): string {
   const token = req.header('X-CSRF-Token');
-  if (!token) throw new NekoError('auth:csrf_invalid', `CSRF header is not provided`);
+  if (!token) throw new NekoError('auth:csrf_miss');
 
   return token;
 }

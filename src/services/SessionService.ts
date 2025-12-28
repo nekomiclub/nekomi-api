@@ -179,7 +179,8 @@ export default class SessionService extends UserModel {
    */
   async parse(token: string): Promise<IParseSession> {
     const sessionData = TokenService.parse<ISessionToken>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
-    if (!sessionData.verified || !sessionData.payload.session_id) throw new NekoError('auth:token_invalid');
+    if (!sessionData.payload.session_id) throw new NekoError('auth:token_invalid');
+    if (!sessionData.verified) throw new NekoError('auth:token_expired');
 
     await this.init({ id: sessionData.payload.user_id });
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
