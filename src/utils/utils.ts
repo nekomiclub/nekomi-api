@@ -42,6 +42,17 @@ export function getUTC(ts?: string | number | Date) {
 
 
 /** 
+ * Get time diff between startedAt and now in msec
+ * 
+ * @returns `{startedAt - now}ms`
+ */
+export function endWithin(startedAt: number): string {
+  return `${getUTC().timestamp - startedAt}ms`;
+}
+
+
+
+/** 
  * Trim string and remove all excess spaces
  * 
  * @example "   Hello  World  " > "Hello World"

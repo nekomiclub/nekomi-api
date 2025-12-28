@@ -120,8 +120,6 @@ export async function MLoadCatalog() {
         Logger.error(`[MLoadCatalog]: Error parsing item ${item.slug}`, e);
       }
     }
-
-
   } catch (e) {
     Logger.error(`[MLoadCatalog]: An error occured while loading catalog`, e);
   }
@@ -168,11 +166,12 @@ export async function MLoadRoles() {
 
     const rootRole = new RoleRepositoryClass();
     await rootRole.create({ name: 'Користувач', slug: 'root' });
+
     rootRole.appendPermission(ROLE_PERMISSION.ABSOLUTE);
 
     await rootRole.save();
   } catch (e) {
-    Logger.error(`[MLoadRoles]: An error occured while loading agents`, e);
+    Logger.error(`[MLoadRoles]: An error occured while loading roles`, e);
   }
 
   finishMigration('MLoadRoles');
@@ -193,11 +192,11 @@ export async function MLoadDubbers() {
       try {
         const repo = new DubberRepositoryClass();
 
-        await repo.create({ _implicitId: dubber.id, _implicitCreatedAt: getUTC(dubber.statistics.createdAt!).ISO });
+        await repo.create({ _implicitId: dubber.id, _implicitCreatedAt: getUTC(dubber.statistics.createdAt).ISO });
 
-        await repo.setName(dubber.nameUkr!);
-        await repo._setSlug(dubber.slug!);
-        repo.setAbout(dubber.description!);
+        await repo.setName(dubber.nameUkr);
+        await repo._setSlug(dubber.slug);
+        repo.setAbout(dubber.description);
 
         repo._setMembers(dubber.members.map(el => {
           return {
@@ -207,33 +206,39 @@ export async function MLoadDubbers() {
           };
         }));
 
-        if (dubber.socials?.telegram) repo.setSocial('telegram', dubber.socials!.telegram!);
-        if (dubber.socials?.instagram) repo.setSocial('instagram', dubber.socials!.instagram!);
-        if (dubber.socials?.youtube) repo.setSocial('youtube', dubber.socials!.youtube!);
-        if (dubber.socials?.tiktok) repo.setSocial('tiktok', dubber.socials!.tiktok!);
+        if (dubber.socials.telegram) repo.setSocial('telegram', dubber.socials.telegram);
+        if (dubber.socials.instagram) repo.setSocial('instagram', dubber.socials.instagram);
+        if (dubber.socials.youtube) repo.setSocial('youtube', dubber.socials.youtube);
+        if (dubber.socials.tiktok) repo.setSocial('tiktok', dubber.socials.tiktok);
 
-        if (dubber.support?.diaka) repo.setSupport('diaka', dubber.support!.diaka!);
-        if (dubber.support?.monobank) repo.setSupport('monobank', dubber.support!.monobank!);
-        if (dubber.support?.bymeacoffee) repo.setSupport('bymeacoffee', dubber.support!.bymeacoffee!);
-        if (dubber.support?.patreon) repo.setSupport('patreon', dubber.support!.patreon!);
+        if (dubber.support.diaka) repo.setSupport('diaka', dubber.support.diaka);
+        if (dubber.support.monobank) repo.setSupport('monobank', dubber.support.monobank);
+        if (dubber.support.bymeacoffee) repo.setSupport('bymeacoffee', dubber.support.bymeacoffee);
+        if (dubber.support.patreon) repo.setSupport('patreon', dubber.support.patreon);
+
+
 
         // Upload avatar
         try {
           if (dubber.avatar !== conf.vars.defaultAvatar) {
-            const res = await axios.get(dubber.avatar!, { responseType: 'arraybuffer' });
+            const res = await axios.get(dubber.avatar, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(res.data);
 
-            await repo.uploadAvatar(res.data, conf.vars.INTERNAL_ID);
+            await repo.uploadAvatar(buffer, conf.vars.INTERNAL_ID);
           }
         } catch (e) {
           Logger.error(`[MLoadDubbers]: Cannot load avatar for dubber "${dubber.id}"`);
         }
 
+
+
         // Upload cover
         try {
           if (dubber.banner !== conf.vars.defaultCover) {
-            const res = await axios.get(dubber.banner!, { responseType: 'arraybuffer' });
+            const res = await axios.get(dubber.banner, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(res.data);
 
-            await repo.uploadCover(res.data, conf.vars.INTERNAL_ID);
+            await repo.uploadCover(buffer, conf.vars.INTERNAL_ID);
           }
         } catch (e) {
           Logger.error(`[MLoadDubbers]: Cannot load avatar for dubber "${dubber.id}"`);
@@ -265,11 +270,9 @@ export async function MLoadUsers() {
 
     for (const key in users) {
       const user = users[key];
-
       const nekoUser = await UserModelOld.findOne({ id: user.id });
 
       const repo = new UserRepositoryClass();
-
       await repo.create({ _implicitId: user.id, _implicitCreatedAt: getUTC(user.statistics.createdAt).ISO });
 
       await repo.setUsername(user.username);
@@ -282,23 +285,29 @@ export async function MLoadUsers() {
         if (el === IUS_USER_RESTRICTION.USERNAME_CHANGE) repo.appendRestriction(USER_RESTRICTION.USERNAME_CHANGE);
       });
 
+
+
       // Upload avatar
       try {
         if (user.avatarURL !== conf.vars.defaultAvatar) {
-          const res = await axios.get(user.avatarURL!, { responseType: 'arraybuffer' });
+          const res = await axios.get(user.avatarURL, { responseType: 'arraybuffer' });
+          const buffer = Buffer.from(res.data);
 
-          await repo.uploadAvatar(res.data);
+          await repo.uploadAvatar(buffer);
         }
       } catch (e) {
         Logger.error(`[MLoadUsers]: Cannot load avatar for user "${user.id}"`, e);
       }
 
+
+
       if (nekoUser) {
         if (nekoUser.roles.includes('root')) await repo.grantRole('root');
 
         repo._setTotalViewtime(nekoUser.statistics.viewtime);
-        repo.setDubberTeamMember(nekoUser.statistics.dubber_team_member);
         repo._setSubscriptions(nekoUser.subscribes);
+
+        await repo.setDubberTeamMember(nekoUser.statistics.dubber_team_member);
 
         if (nekoUser.telegramData?.id) repo.setTelegramId(nekoUser.telegramData.id);
 
@@ -331,12 +340,13 @@ export async function MLoadUsers() {
         // Upload cover
         try {
           if (nekoUser.banner !== conf.vars.defaultCover) {
-            const res = await axios.get(nekoUser.banner!, { responseType: 'arraybuffer' });
+            const res = await axios.get(nekoUser.banner, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(res.data);
 
-            await repo.uploadCover(res.data);
+            await repo.uploadCover(buffer);
           }
         } catch (e) {
-          Logger.error(`[MLoadUsers]: Cannot load avatar for user "${user.id}"`, e);
+          Logger.error(`[MLoadUsers]: Cannot load cover for user "${user.id}"`, e);
         }
       } else {
         Logger.warn(`[MLoadUsers]: Cannot find nekomi user for user api id "${user.id}"`);

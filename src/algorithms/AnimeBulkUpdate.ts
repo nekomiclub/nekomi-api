@@ -3,6 +3,7 @@ import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/config';
 import fs from 'fs';
+import ms from 'ms';
 import { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
@@ -11,7 +12,7 @@ import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
 import { ShikimoriAPI } from '~/api/external/shikimori.api';
-import { buffer2hash, getUTC } from '~/utils/utils';
+import { buffer2hash, endWithin, getUTC } from '~/utils/utils';
 
 
 
@@ -51,7 +52,7 @@ let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
 const CACHE_FOLDER = `./.cache`;
 const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
 const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
-const CACHE_REVALIDATION_TIMEOUT = 60000 * 60 * 24 * 3; // 3d
+const CACHE_REVALIDATION_TIMEOUT_MS = ms('3day');
 
 
 
@@ -79,8 +80,8 @@ async function getCache() {
 
 
 
-  // Revalidate annime lists cache 
-  if (getUTC(alc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT) {
+  // Revalidate anime lists cache 
+  if (getUTC(alc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT_MS) {
     try {
       const data = await axios.get('https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json');
       const cache: AnimeListsCacheType = {
@@ -102,7 +103,7 @@ async function getCache() {
 
 
   // Revalidate uaposters cache 
-  if (getUTC(upc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT) {
+  if (getUTC(upc.updated_at).timestamp < getUTC().timestamp - CACHE_REVALIDATION_TIMEOUT_MS) {
     try {
       const data = await axios.get('https://raw.githubusercontent.com/DrBryanMan/UAPosters/refs/heads/main/PostersList.json');
       const cache: UAPostersCacheType = {
@@ -147,13 +148,17 @@ export default async function AnimeBulkUpdate() {
   await awaitCache();
 
   try {
+    const startedAt = getUTC().timestamp;
+
     const document = await AnimeRepository.getOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
     if (!document) return UPDATE_YEAR -= 1;
 
-    const animeService = new AnimeRepositoryClass();
-    await animeService.init(document.id);
+    const repo = new AnimeRepositoryClass();
+    await repo.init({ id: document.id });
 
-    let hikkaPosterUrl: string | null = null;
+    const hikkaSlug = repo.document!.hikka_slug!;
+    let malId = -1;
+    let hikkaPosterUrl = conf.vars.defaultPoster;
 
 
 
@@ -161,32 +166,33 @@ export default async function AnimeBulkUpdate() {
     try {
       const hikkaRes = await HikkaAPI.getAnime(document.hikka_slug!);
 
-      animeService.setMalId(hikkaRes.mal_id);
+      repo.setMalId(hikkaRes.mal_id);
 
-      await animeService.setTitle({ title_en: hikkaRes.title_en, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
+      await repo.setTitle({ title_en: hikkaRes.title_en, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
 
-      animeService.setSynopsis({ synopsis_en: hikkaRes.synopsis_en, synopsis_ua: hikkaRes.synopsis_ua });
-      animeService.setEpisodesReleased(hikkaRes.episodes_released);
-      animeService.setEpisodesTotal(hikkaRes.episodes_total);
+      repo.setSynopsis({ synopsis_en: hikkaRes.synopsis_en, synopsis_ua: hikkaRes.synopsis_ua });
+      repo.setEpisodesReleased(hikkaRes.episodes_released);
+      repo.setEpisodesTotal(hikkaRes.episodes_total);
 
-      animeService.setType(animeService.parseType(hikkaRes.media_type));
-      animeService.setStatus(animeService.parseStatus(hikkaRes.status));
-      animeService.setSeason(animeService.parseSeason(hikkaRes.season));
-      animeService.setRating(animeService.parseRating(hikkaRes.rating));
+      repo.setType(repo.parseType(hikkaRes.media_type));
+      repo.setStatus(repo.parseStatus(hikkaRes.status));
+      repo.setSeason(repo.parseSeason(hikkaRes.season));
+      repo.setRating(repo.parseRating(hikkaRes.rating));
 
-      animeService.setScore({ score: hikkaRes.score, scoredBy: hikkaRes.scored_by });
-      animeService.setYear(hikkaRes.year);
+      repo.setScore({ score: hikkaRes.score, scoredBy: hikkaRes.scored_by });
+      repo.setYear(hikkaRes.year);
 
       // Parse genres
       const genres = parseHikkaGenres(hikkaRes.genres);
-      if (genres.length) animeService.setGenres(genres);
+      if (genres.length) repo._setGenres(genres);
 
       // Parse schedule
       const schedule = parseHikkaSchedule(hikkaRes.schedule);
-      if (schedule.length) animeService._setSchedule(schedule);
+      if (schedule.length) repo._setSchedule(schedule);
 
-      animeService.setSync('hikka_sync', getUTC().ISO);
+      repo.setSync('hikka_sync', getUTC().ISO);
 
+      malId = hikkaRes.mal_id;
       hikkaPosterUrl = hikkaRes.image;
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Hikka update failed, skipping... [id: ${document.id}]`, e);
@@ -196,20 +202,20 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull myanimelist (jikan)
     try {
-      const jikanRes = await JikanAPI.getAnime(animeService.document!.mal_id!);
+      const jikanRes = await JikanAPI.getAnime(malId);
 
       // Parse studios
       const studios = parseJikanStudios(jikanRes.studios);
-      if (studios.length) animeService._setStudios(studios);
+      if (studios.length) repo._setStudios(studios);
 
       // Parse relations
       const relations = parseJikanRelations(jikanRes.relations);
-      if (relations.length) animeService._setRelations(relations);
+      if (relations.length) repo._setRelations(relations);
 
-      const jikanEpsRes = await JikanAPI.getAnimeEpisodeMeta(animeService.document!.mal_id!);
-      if (jikanEpsRes.length) animeService._setEpisodesMeta(parseJikanEpisodes(jikanEpsRes));
+      const jikanEpsRes = await JikanAPI.getAnimeEpisodeMeta(malId);
+      if (jikanEpsRes.length) repo._setEpisodesMeta(parseJikanEpisodes(jikanEpsRes));
 
-      animeService.setSync('myanimelist_sync', getUTC().ISO);
+      repo.setSync('myanimelist_sync', getUTC().ISO);
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: MyAnimeList (Jikan) update failed, skipping... [id: ${document.id}]`, e);
     }
@@ -218,18 +224,18 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull imdb
     try {
-      if (!animeService.document?.imdb_id) {
+      if (!repo.document?.imdb_id) {
         let idsMoeId: string | null = null;
 
         try {
-          const idsRes = await IdsMoeAPI.getIds(animeService.document!.mal_id!);
+          const idsRes = await IdsMoeAPI.getIds(malId);
 
           idsMoeId = idsRes.imdb;
         } catch (e) { null; }
 
-        const imdbId: string | undefined = idsMoeId ?? ANIME_LISTS_CACHE?.find(el => el.mal_id === animeService.document!.mal_id!)?.imdb_id;
+        const imdbId: string | undefined = idsMoeId ?? ANIME_LISTS_CACHE?.find(el => el.mal_id === malId)?.imdb_id;
 
-        if (imdbId) await animeService.setIMDBId(imdbId);
+        if (imdbId) await repo.setIMDBId(imdbId);
       }
     } catch (e) {
       Logger.warn(`[AnimeBulkUpdate]: IMDB update failed, skipping... [id: ${document.id}]`, e);
@@ -240,10 +246,10 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull uaposters
     try {
-      const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url?.includes(animeService.document!.hikka_slug!))?.posters;
+      const posters = UAPOSTERS_CACHE?.find(el => el.hikka_url?.includes(hikkaSlug))?.posters;
 
       if (posters?.length) {
-        const postersOld = animeService.document?.posters ?? [];
+        const postersOld = repo.document?.posters ?? [];
         const nodes: IAnimePosterNode[] = [];
         const authors: { authorId: string, hash: string }[] = [];
 
@@ -266,10 +272,12 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId);
+          const node = await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId);
 
           nodes.push(node);
         }
+
+
 
         // Delete deprecated nodes
         const deprecatedNodes = postersOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
@@ -277,8 +285,10 @@ export default async function AnimeBulkUpdate() {
         for (const key in deprecatedNodes) {
           const node = deprecatedNodes[key];
 
-          await animeService.removePoster(node.pull_hash, conf.vars.INTERNAL_ID);
+          await repo.removePoster(node.pull_hash, conf.vars.INTERNAL_ID);
         }
+
+
 
         // Define hero poster
         if (!nodes.some(el => el.is_hero)) {
@@ -291,13 +301,13 @@ export default async function AnimeBulkUpdate() {
           }
 
           // Get node for first recognized author
-          if (!node) node = nodes.find(el => el.pull_hash === authors[0].hash)!;
+          if (!node) node = nodes.find(el => el.pull_hash === authors[0]?.hash) ?? nodes[0];
 
 
           const author = authors.find(el => el.hash === node!.pull_hash);
-          if (author) await animeService.setHeroPosterAuthor(author.authorId);
+          if (author) await repo.setHeroPosterAuthor(author.authorId);
 
-          await animeService.setIsPosterHero(node.pull_hash, true);
+          await repo.setIsPosterHero(node.pull_hash, true);
         }
       }
     } catch (e) {
@@ -308,11 +318,11 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull hikka poster
     try {
-      if (!animeService.document?.posters.length && hikkaPosterUrl) {
+      if (!repo.document?.posters.length && hikkaPosterUrl) {
         const res = await axios.get(hikkaPosterUrl, { responseType: 'arraybuffer' });
         const buffer = Buffer.from(res.data);
 
-        await animeService.uploadPoster(buffer, conf.vars.INTERNAL_ID, null);
+        await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, null);
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Pull fallback poster failed, skipping... [id: ${document.id}]`, e);
@@ -322,11 +332,11 @@ export default async function AnimeBulkUpdate() {
 
     // * Pull shikimori
     try {
-      const shikimoriRes = await ShikimoriAPI.getAnime(animeService.document!.mal_id!);
+      const shikimoriRes = await ShikimoriAPI.getAnime(malId);
       const screenshots = shikimoriRes.screenshots;
 
       if (screenshots?.length) {
-        const screenshotsOld = animeService.document?.screenshots ?? [];
+        const screenshotsOld = repo.document?.screenshots ?? [];
         const nodes: IAnimeScreenshotNode[] = [];
 
 
@@ -344,10 +354,12 @@ export default async function AnimeBulkUpdate() {
             continue;
           }
 
-          const node = await animeService.uploadScreenshot(buffer, conf.vars.INTERNAL_ID);
+          const node = await repo.uploadScreenshot(buffer, conf.vars.INTERNAL_ID);
 
           nodes.push(node);
         }
+
+
 
         // Delete deprecated nodes
         const deprecatedNodes = screenshotsOld.filter(el => !nodes.some(node => el.pull_hash === node.pull_hash));
@@ -355,7 +367,7 @@ export default async function AnimeBulkUpdate() {
         for (const key in deprecatedNodes) {
           const node = deprecatedNodes[key];
 
-          await animeService.removeScreenshot(node.pull_hash, conf.vars.INTERNAL_ID);
+          await repo.removeScreenshot(node.pull_hash, conf.vars.INTERNAL_ID);
         }
       }
     } catch (e) {
@@ -373,12 +385,24 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    await animeService.save();
+    await repo.save();
 
-    Logger.info(`[AnimeBulkUpdate]: Anime document bulk update succeeded. [id: ${document.id}]`);
+    Logger.info(`[AnimeBulkUpdate]: Anime document bulk updated within ${endWithin(startedAt)}. [id: ${document.id}]`);
   } catch (e) {
     Logger.error(`[AnimeBulkUpdate]: Cannot update the document`, e);
   }
+}
+
+
+
+/** 
+ * Anime bulk update CRON
+ */
+export async function AnimeBulkUpdateCRON() {
+  setTimeout(async () => {
+    await AnimeBulkUpdate();
+    AnimeBulkUpdateCRON();
+  }, ms('5sec'));
 }
 
 

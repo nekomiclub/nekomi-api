@@ -8,6 +8,7 @@ import conf from './config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { AnimeBulkUpdateCRON } from './algorithms/AnimeBulkUpdate';
 import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles, MLoadUsers } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
@@ -72,6 +73,8 @@ async function runtime() {
     if (conf.env.ENV === 'production') await MLoadDubbers();
     if (conf.env.ENV === 'production') await MLoadCatalog();
     if (conf.env.ENV === 'production') await MLoadUsers();
+
+    if (conf.env.ENV === 'production') await AnimeBulkUpdateCRON();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

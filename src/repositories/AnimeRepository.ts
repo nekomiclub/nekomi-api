@@ -549,9 +549,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set genres
    * 
+   * ! Must be refactored into append/remove methods after 3.0.0
    * @tested
    */
-  setGenres(genres: ANIME_GENRE[]) {
+  _setGenres(genres: ANIME_GENRE[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('genres', genres);

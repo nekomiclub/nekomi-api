@@ -320,7 +320,7 @@ describe('AnimeRepository', () => {
   it('should set genres', () => {
     const genres: ANIME_GENRE[] = [ANIME_GENRE.ACTION, ANIME_GENRE.COMEDY];
 
-    animeServiceMain.setGenres(genres);
+    animeServiceMain._setGenres(genres);
     expect(animeServiceMain.document?.genres).toStrictEqual(genres);
   });
 
