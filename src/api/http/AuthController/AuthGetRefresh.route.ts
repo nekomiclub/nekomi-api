@@ -1,4 +1,17 @@
-import { HTTPEndpoint } from '~/service/HTTPService';
+import SessionService from '~/service/SessionService';
+import { HTTPEndpoint, getSessionToken, setSessionCookie } from '~/service/HTTPService';
+
+
+
+interface IResponse {
+  message: string
+  user: {
+    id: string
+    username: string
+    avatar: string
+    cover: string
+  }
+}
 
 
 
@@ -6,11 +19,31 @@ import { HTTPEndpoint } from '~/service/HTTPService';
  * Refresh session access
  */
 const endpoint = HTTPEndpoint(async (req, res) => {
-  return res.status(200).json({ message: 'ok' });
+  const sessionToken = getSessionToken(req);
+  const session = new SessionService();
+  const { user, session: sessionData } = await session.parse(sessionToken);
+
+  const refreshedSessionToken = await session.refresh(sessionData.id);
+  await session.save();
+
+
+
+  setSessionCookie(refreshedSessionToken, res);
+
+  return res.status(200).json({
+    message: 'Access refreshed',
+    user: {
+      id: user.username,
+      username: user.username,
+      avatar: user.avatar,
+      cover: user.cover
+    }
+  } as IResponse);
 });
 
 
 
+/** @deprecated redudant */
 const AuthGetRefreshRoute = [
   endpoint
 ];

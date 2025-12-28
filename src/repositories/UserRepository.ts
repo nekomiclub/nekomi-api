@@ -75,6 +75,10 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
     super(model, queries);
   }
 
+  get document(): RepositoryType | null {
+    return this._doc ? DocumentDTO.user(this._doc, true) : null;
+  }
+
 
 
   async save() {

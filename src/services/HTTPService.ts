@@ -61,9 +61,9 @@ export function getSessionToken(req: express.Request): string {
 export function setSessionCookie(token: string, res: express.Response) {
   return res.cookie(conf.vars.SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    maxAge: conf.vars.SESSION_TOKEN_LIFETIME_MS,
+    maxAge: conf.vars.SESSION_COOKIE_AGE_MS,
     secure: ProductionMode,
-    domain: ProductionMode ? '.nekomi.club' : undefined
+    domain: ProductionMode ? conf.vars.SESSION_COOKIE_DOMAIN : undefined,
   });
 }
 
