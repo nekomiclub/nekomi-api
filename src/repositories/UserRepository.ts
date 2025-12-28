@@ -1,4 +1,3 @@
-import AnimeRepository from './AnimeRepository';
 import DocumentDTO from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
 import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
@@ -8,7 +7,9 @@ import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
+import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
+import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
 import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
@@ -26,19 +27,25 @@ const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
 const schema = new Schema<RepositoryType>({
   id: String,
   username: String,
+  email: String,
+
   avatar: String,
   cover: String,
 
   roles: [String],
   libs: [Schema.Types.Mixed],
+  restrictions: [Schema.Types.Mixed],
+  sessions: [Schema.Types.Mixed],
+  subscriptions: [Schema.Types.Mixed],
 
   total_viewtime: Number,
   view_progress: [Schema.Types.Mixed],
   dubber_team_member: String,
   telegram_id: Number,
 
-  created_at: Date,
-  updated_at: Date,
+  created_at: String,
+  updated_at: String,
+  username_changed_at: String,
 }, { strict: false, versionKey: false });
 
 const model = mongoose.model<RepositoryType>('user', schema);
@@ -51,6 +58,9 @@ interface ICreateProps {
 
   /** //! Must be removed after 3.0.0 release */
   _implicitId?: string
+
+  /** //! Must be removed after 3.0.0 release */
+  _implicitCreatedAt?: string
 }
 
 interface IUpdateLibProps {
@@ -111,23 +121,24 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
       roles: ['user'],
       libs: [
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: getUTC().ISO },
+        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
       ],
       restrictions: [],
       sessions: [],
+      subscriptions: [],
 
       total_viewtime: 0,
       view_progress: [],
       dubber_team_member: null,
       telegram_id: null,
 
-      created_at: getUTC().ISO,
+      created_at: props?._implicitCreatedAt ?? getUTC().ISO,
       updated_at: getUTC().ISO,
-      username_changed_at: '',
+      username_changed_at: getUTC(0).ISO,
     };
 
     const document = new model(payload);
@@ -153,7 +164,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 
     // Ensure that user username is not on cooldown
-    const usernameTimeoutTs = getUTC(this._doc.username_changed_at).timestamp + 0;
+    const usernameTimeoutTs = getUTC(this._doc.username_changed_at).timestamp + conf.vars.USERNAME_UPDATE_TIMEOUT;
     if (usernameTimeoutTs > getUTC().timestamp) throw new NekoError('user:username_timeout', `You can change username only after ${getUTC(usernameTimeoutTs).ISO}`);
 
     // TODO: Validate username & serialize
@@ -171,10 +182,29 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Upload avatar
    * 
-   * @todo
+   * @autosave
+   * @testing
    */
   async uploadAvatar(buffer: Buffer) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: this._doc.id });
+
+    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
+    if (!avatar) throw new NekoError('nus:object_not_found', `User avatar is not found in upload objects`);
+
+    // Delete old avatar
+    try {
+      if (this._doc.avatar !== conf.vars.defaultAvatar) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), this._doc.id);
+      }
+    } catch (e) {
+      Logger.warn(`[UserRepository]: Cannot delete user old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('avatar', avatar.url);
+
+    await this.save();
   }
 
 
@@ -182,10 +212,29 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Upload cover
    * 
-   * @todo
+   * @autosave
+   * @testing
    */
   async uploadCover(buffer: Buffer) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: this._doc.id });
+
+    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
+    if (!cover) throw new NekoError('nus:object_not_found', `User cover is not found in upload objects`);
+
+    // Delete old cover
+    try {
+      if (this._doc.cover !== conf.vars.defaultCover) {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), this._doc.id);
+      }
+    } catch (e) {
+      Logger.warn(`[UserRepository]: Cannot delete user old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
+    }
+
+    this.set('cover', cover.url);
+
+    await this.save();
   }
 
 
@@ -255,6 +304,19 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     // TODO: Validate viewtime span
 
     const viewtime = this._doc.total_viewtime + sec;
+
+    this.set('total_viewtime', viewtime);
+  }
+
+
+
+  /**
+   * Set total viewtime
+   * 
+   * ! Must be removed after 3.0.0 release
+   */
+  _setTotalViewtime(viewtime: number) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('total_viewtime', viewtime);
   }
@@ -351,18 +413,17 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Append anime document in lib
    * 
-   * @param id Lib id
    * @testing
    */
-  async appendLibAnime(id: string, animeId: string) {
+  async appendLibAnime(libId: string, animeId: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const lib = this._doc.libs.find(el => el.id === id);
-    if (!lib) throw new NekoError(`sys:not_found`, `Lib "${id}" is not found`);
+    const lib = this._doc.libs.find(el => el.id === libId);
+    if (!lib) throw new NekoError(`sys:not_found`, `Lib "${libId}" is not found`);
 
-    const anime = await AnimeRepository.getOne(animeId);
+    // const anime = await AnimeRepository.getOne(animeId);
 
-    lib.anime_ids.push(anime.id);
+    lib.anime_ids.push(animeId);
 
     this._doc.markModified('libs');
   }
@@ -372,14 +433,14 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Remove anime document from lib
    * 
-   * @param id Lib id
+   * @param libId Lib id
    * @testing
    */
-  removeLibAnime(id: string, animeId: string) {
+  removeLibAnime(libId: string, animeId: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const lib = this._doc.libs.find(el => el.id === id);
-    if (!lib) throw new NekoError(`sys:not_found`, `Lib "${id}" is not found`);
+    const lib = this._doc.libs.find(el => el.id === libId);
+    if (!lib) throw new NekoError(`sys:not_found`, `Lib "${libId}" is not found`);
 
     lib.anime_ids = lib.anime_ids.filter(el => el !== animeId);
 
@@ -416,6 +477,19 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc.restrictions.includes(slug)) return;
 
     this._doc.restrictions = this._doc.restrictions.filter(el => el !== slug);
+  }
+
+
+
+  /**
+   * Set subscriptions
+   * 
+   * ! Must be refactored into append/remove methods
+   */
+  _setSubscriptions(subs: string[]) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set('subscriptions', subs);
   }
 }
 

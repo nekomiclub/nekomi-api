@@ -7,7 +7,7 @@ import conf from './config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles } from './utils/migration-utils';
+import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles, MLoadUsers } from './utils/migration-utils';
 import { traceRequest } from './services/HTTPService';
 
 
@@ -69,6 +69,9 @@ async function runtime() {
     if (conf.env.ENV === 'production') await MLoadRoles();
     if (conf.env.ENV === 'production') await MLoadDubbers();
     if (conf.env.ENV === 'production') await MLoadCatalog();
+    if (conf.env.ENV === 'production') await MLoadUsers();
+
+    await MLoadUsers();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

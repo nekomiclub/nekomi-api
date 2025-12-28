@@ -1,4 +1,3 @@
-import AnimeModel from '~/repo/old/AnimeModel';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import IAnime, { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
@@ -361,19 +360,6 @@ export default async function AnimeBulkUpdate() {
       }
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: Shikimori update failed, skipping... [id: ${document.id}]`, e);
-    }
-
-
-
-    // * Pull old ID with mal id
-    try {
-      if (animeService.document?.mal_id) {
-        const oldDocument = await AnimeModel.findOne({ malId: animeService.document?.mal_id });
-
-        if (oldDocument) animeService._implicitSetId(oldDocument.uuid);
-      }
-    } catch (e) {
-      Logger.error(`[AnimeBulkUpdate]: Pull old id failed, skipping... [id: ${document.id}]`, e);
     }
 
 

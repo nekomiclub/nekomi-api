@@ -1,5 +1,8 @@
+import AnimeModel from '~/repo/old/AnimeModel';
 import DubberModel from '~/repo/old/DubberModel';
+import IUS_User, { IUS_USER_RESTRICTION } from '~/intf/IUser-userapi';
 import Logger from '~/service/LoggerService';
+import UserModel from '~/repo/old/UserModel';
 import axios from 'axios';
 import conf from '~/config';
 import createSlug from './create-slug';
@@ -11,6 +14,8 @@ import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { ErrorConstructor } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { RoleRepositoryClass } from '~/repo/RoleRepository';
+import { USER_RESTRICTION } from '~/intf/IUser';
+import { UserRepositoryClass } from '~/repo/UserRepository';
 import { getUTC } from './utils';
 
 
@@ -83,13 +88,20 @@ export async function MLoadCatalog() {
       const item = catalog[key];
 
       try {
+        const slug = createSlug(item.title_en);
+
         const repo = new AnimeRepositoryClass();
-        if (await repo.safeGetOne(createSlug(item.title_en))) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
+        if (await repo.safeGetOne(slug)) return Logger.verbose(`[MLoadCatalog]: Item ${item.slug} skipped due to it's existance in the db`);
+
+        const nekoAnime = await AnimeModel.findOne({ slug });
 
         await repo.create();
 
         await repo.setTitle({ title_ja: item.title_ja, title_en: item.title_en, title_ua: item.title_ua });
         await repo.setHikkaSlug(item.slug);
+
+        // Set prev id retrieved by slug
+        if (nekoAnime) repo._implicitSetId(nekoAnime.uuid);
 
         repo.setScore({ score: item.score, scoredBy: item.scored_by });
         repo.setYear(item.year);
@@ -108,6 +120,8 @@ export async function MLoadCatalog() {
         Logger.error(`[MLoadCatalog]: Error parsing item ${item.slug}`, e);
       }
     }
+
+
   } catch (e) {
     Logger.error(`[MLoadCatalog]: An error occured while loading catalog`, e);
   }
@@ -168,7 +182,7 @@ export async function MLoadRoles() {
 
 
 export async function MLoadDubbers() {
-  // if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);
+  if (checkMigrationStatus('MLoadDubbers')) return Logger.debug(`[MLoadDubbers]: Skipping due to it's finish`);
 
   try {
     const dubbers = await DubberModel.find();
@@ -236,4 +250,106 @@ export async function MLoadDubbers() {
 
   finishMigration('MLoadDubbers');
   Logger.info(`[MLoadDubbers]: Dubbers loaded`);
+}
+
+
+
+export async function MLoadUsers() {
+  if (checkMigrationStatus('MLoadUsers')) return Logger.debug(`[MLoadUsers]: Skipping due to it's finish`);
+
+  try {
+    const PATH = './.cache/users.json';
+    if (!fs.existsSync(PATH)) throw new ErrorConstructor(`lc:file_not_exist', 'Users file is not exist at "${PATH}"`);
+
+    const users = JSON.parse(fs.readFileSync(PATH).toString()) as IUS_User[];
+
+    for (const key in users) {
+      const user = users[key];
+
+      const nekoUser = await UserModel.findOne({ id: user.id });
+
+      const repo = new UserRepositoryClass();
+
+      await repo.create({ _implicitId: user.id, _implicitCreatedAt: getUTC(user.statistics.createdAt).ISO });
+
+      await repo.setUsername(user.username);
+      await repo.setEmail(user.email);
+
+      // Map user restrictions
+      user.restrictions.forEach(el => {
+        if (el === IUS_USER_RESTRICTION.BANNED) repo.appendRestriction(USER_RESTRICTION.BANNED);
+        if (el === IUS_USER_RESTRICTION.UPLOAD_AVATAR) repo.appendRestriction(USER_RESTRICTION.UPLOAD_AVATAR);
+        if (el === IUS_USER_RESTRICTION.USERNAME_CHANGE) repo.appendRestriction(USER_RESTRICTION.USERNAME_CHANGE);
+      });
+
+      // Upload avatar
+      try {
+        if (user.avatarURL !== conf.vars.defaultAvatar) {
+          const res = await axios.get(user.avatarURL!, { responseType: 'arraybuffer' });
+
+          await repo.uploadAvatar(res.data);
+        }
+      } catch (e) {
+        Logger.error(`[MLoadUsers]: Cannot load avatar for user "${user.id}"`, e);
+      }
+
+      if (nekoUser) {
+        if (nekoUser.roles.includes('root')) await repo.grantRole('root');
+
+        repo._setTotalViewtime(nekoUser.statistics.viewtime);
+        repo.setDubberTeamMember(nekoUser.statistics.dubber_team_member);
+        repo._setSubscriptions(nekoUser.subscribes);
+
+        if (nekoUser.telegramData?.id) repo.setTelegramId(nekoUser.telegramData.id);
+
+        // Map watch progress
+        nekoUser.watchProgress.forEach(el => {
+          repo.setViewProgress({
+            anime_id: el.titleID,
+            dubber_id: el.dubberID,
+            episode: el.episodeOrder,
+            progress: el.progress,
+          });
+        });
+
+        // Map libs
+        for (const key in nekoUser.libs) {
+          const nekoLib = nekoUser.libs[key];
+          const lib = repo.document?.libs.find(el => el.type === nekoLib.type);
+          if (!lib) {
+            Logger.warn(`[MLoadUsers]: Cannot find user "${nekoLib.type}" lib`);
+            continue;
+          }
+
+          for (const key in nekoLib.titles) {
+            const id = nekoLib.titles[key];
+
+            await repo.appendLibAnime(lib.id, id);
+          }
+        }
+
+        // Upload cover
+        try {
+          if (nekoUser.banner !== conf.vars.defaultCover) {
+            const res = await axios.get(nekoUser.banner!, { responseType: 'arraybuffer' });
+
+            await repo.uploadCover(res.data);
+          }
+        } catch (e) {
+          Logger.error(`[MLoadUsers]: Cannot load avatar for user "${user.id}"`, e);
+        }
+      } else {
+        Logger.warn(`[MLoadUsers]: Cannot find nekomi user for user api id "${user.id}"`);
+      }
+
+
+
+      await repo.save();
+    }
+  } catch (e) {
+    Logger.error(`[MLoadUsers]: An error occured while loading users`, e);
+  }
+
+  finishMigration('MLoadUsers');
+  Logger.info(`[MLoadUsers]: Users loaded`);
 }

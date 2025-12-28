@@ -5,6 +5,7 @@ import { CDNString, ISODateString } from './types';
 export enum USER_RESTRICTION {
   BANNED = 'user:banned',
   UPLOAD_AVATAR = 'user:upload_avatar',
+  UPLOAD_COVER = 'user:upload_cover',
   USERNAME_CHANGE = 'user:username_change',
 }
 
@@ -30,6 +31,7 @@ export interface IUser {
   libs: IUserLib[] // Protected
   restrictions: USER_RESTRICTION[] // Protected
   sessions: IUserSession[] // Protected
+  subscriptions: string[] // Protected
 
   /** Total user viewtime in seconds */
   total_viewtime: number // Protected
