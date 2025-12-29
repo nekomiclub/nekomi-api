@@ -33,7 +33,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
     return res.status(200).json({
       message: 'Session logged out'
-    } as IResponse);
+    } satisfies IResponse);
   } else {
     // Logout other session
     await session.logout(targetSessionId, currentSessionId);
@@ -41,7 +41,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
     return res.status(200).json({
       message: `Session "${targetSessionId}" logged out`
-    } as IResponse);
+    } satisfies IResponse);
   }
 });
 

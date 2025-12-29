@@ -1,8 +1,10 @@
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import AuthRouter from './api/http/AuthController/AuthRouter';
 import DatabaseService from './services/DatabaseService';
+import DubberRouter from './api/http/DubberController/DubberRouter';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
+import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
 import conf from './config';
 import cookieParser from 'cookie-parser';
@@ -44,6 +46,8 @@ async function runtime() {
 
     //* === HTTP Routing
     app.use('/anime', AnimeRouter);
+    app.use('/dubber', DubberRouter);
+    app.use('/user', UserRouter);
     app.use('/auth', AuthRouter);
     app.use('/', GenericRouter);
 
@@ -67,6 +71,8 @@ async function runtime() {
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
+
+
 
     if (conf.env.ENV === 'production') await MLoadAgents();
     if (conf.env.ENV === 'production') await MLoadRoles();

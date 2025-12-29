@@ -124,6 +124,9 @@ class MiddlewareClass {
   CheckCSRF = (origins?: string[]) => HandleMiddleware(async (req) => {
     const token = getCSRFToken(req);
 
+    // In development mode append nekomi api origin to pass "~dev" token
+    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
+
     const origin = await this.service.checkCSRF(token, origins);
 
 

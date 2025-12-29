@@ -35,7 +35,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Token accepted',
     verified,
     origin: tokenOrigin
-  } as IResponse);
+  } satisfies IResponse);
 });
 
 

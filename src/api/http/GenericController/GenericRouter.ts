@@ -10,6 +10,7 @@ const GenericRouter = express.Router();
 
 GenericRouter.get(['/', '/ping'], GenericGetPingRoute);
 GenericRouter.get('/csrf', GenericGetCSRFRoute);
+GenericRouter.get('/home');
 
 
 

@@ -230,9 +230,9 @@ describe('AnimeRepository', () => {
 
     // Score & scored by must be in range
     shouldfail(() => animeServiceMain.setScore({ score: AnimeValidators.limits.MAX_SCORE + 5 }));
-    shouldfail(() => animeServiceMain.setScore({ score: AnimeValidators.limits.MIN_SCORE - 5 }));
+    shouldfail(() => animeServiceMain.setScore({ score: -1 }));
     shouldfail(() => animeServiceMain.setScore({ scoredBy: AnimeValidators.limits.MAX_SCORED_BY + 5 }));
-    shouldfail(() => animeServiceMain.setScore({ scoredBy: AnimeValidators.limits.MIN_SCORED_BY - 5 }));
+    shouldfail(() => animeServiceMain.setScore({ scoredBy: -1 }));
   });
 
 

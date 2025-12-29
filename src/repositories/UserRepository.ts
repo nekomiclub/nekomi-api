@@ -4,6 +4,7 @@ import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/int
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
+import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
@@ -140,19 +141,19 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
     const payload: RepositoryType = {
       id,
-      username: `user-${createNanoId()}`,
-      email: `example-${createNanoId()}@nekomi.club`,
+      username: `user_${createNanoId(4)}`,
+      email: `example_${createNanoId(4)}@nekomi.club`,
 
       avatar: conf.vars.defaultAvatar,
       cover: conf.vars.defaultCover,
 
       roles: ['user'],
       libs: [
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createId(), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
       ],
       restrictions: [],
       sessions: [],
@@ -195,11 +196,17 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     const usernameTimeoutTs = getUTC(this._doc.username_changed_at).timestamp + conf.vars.USERNAME_UPDATE_TIMEOUT;
     if (usernameTimeoutTs > getUTC().timestamp) throw new NekoError('user:username_timeout', `You can change username only after ${getUTC(usernameTimeoutTs).ISO}`);
 
-    // TODO: Validate username & serialize
+    // Validate username
+    if (props?.provided) UserValidators.username.parse(username);
+    else UserValidators.usernameFull.parse(username);
 
     // Ensure username is unique
     const exist = await this.safeGetOne(username);
-    if (exist && exist.id !== this._doc.id) username = `${username}-${createNanoId(3)}`;
+
+    if (exist && exist.id !== this._doc.id) {
+      if (props?.provided) username = `${username}_${createNanoId(5)}`;
+      else throw new NekoError('sys:already_exist', `User "@${username}" already exist`);
+    }
 
     this.set('username', username);
     this.set('username_changed_at', getUTC().ISO);
@@ -215,9 +222,11 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async setEmail(email: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // TODO: Validate email
+    // Validate email
+    UserValidators.email.parse(email);
 
-    const exist = await this.getOneByQuery({ email });
+    // Ensure email is not exist
+    const exist = await this.getOne({ email });
     if (exist && exist.id !== this._doc.id) throw new NekoError('sys:already_exist', `User with email "${email}" is already exist`);
 
     this.set('email', email);
@@ -269,7 +278,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   increaseTotalViewtime(sec: number) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // TODO: Validate viewtime span
+    if (sec > UserValidators.limits.MAX_INCREASE_VIEWTIME_S) sec = UserValidators.limits.MAX_INCREASE_VIEWTIME_S;
 
     const viewtime = this._doc.total_viewtime + sec;
 

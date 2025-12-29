@@ -30,7 +30,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Access refreshed',
     user: DocumentDTO.user(user)
-  } as IResponse);
+  } satisfies IResponse);
 });
 
 
