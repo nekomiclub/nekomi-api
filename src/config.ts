@@ -1,93 +1,31 @@
-import firebaseAdmin from 'firebase-admin';
-import fs from 'fs';
-import ms from 'ms';
-import path from 'path';
-import { createNanoId } from './utils/create-id';
 import { config as dotenvCfg } from 'dotenv';
-import { execSync } from 'child_process';
-import { getUTC } from './utils/utils';
-
-
-
-export const ProductionMode = process.env['ENV'] === 'production';
-export const TestMode = Boolean(process.env.VITEST);
-export const DevelopmentMode = !ProductionMode || !TestMode || process.env['ENV'] === 'development';
-
-
 
 // Configure .env
 dotenvCfg({ quiet: true });
 
+import firebaseAdmin from 'firebase-admin';
+import ms from 'ms';
+import { getUTC, parseEnv } from './utils/utils';
+
+
+
+const env = parseEnv();
+
+export const ProductionMode = env.ENV === 'deploy';
+export const TestMode = Boolean(env.VITEST);
+export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'local';
+
+
+
 // Initialize firebase
-if (!TestMode) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
+firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
 
-
-
-const env = {
-  PORT: Number(process.env['PORT']),
-  HOST: String(process.env['HOST']),
-
-  DATABASE_HOST: String(process.env['DATABASE_HOST']),
-  DATABASE_NAME: String(process.env['DATABASE_NAME']),
-  DATABASE_USR: String(process.env['DATABASE_USR']),
-  DATABASE_PWD: String(process.env['DATABASE_PWD']),
-
-  CSRF_Token: String(process.env['CSRF_Token']),
-  MALClientID: String(process.env['MAL-Client-ID']),
-  ASHDI_API_KEY: String(process.env['ASHDI_API_KEY']),
-  IDS_MOE_KEY: String(process.env['IDS_MOE_KEY']),
-  USER_SESSION_SK: String(process.env['USER_SESSION_SK']),
-
-  ISDEV: process.env['ISDEV'] == 'true',
-  ISDOCKER: process.env['ISDOCKER'] == 'true',
-  ENV: String(process.env['ENV']) as 'development' | 'production',
-
-  NEKOMI_API_URL: String(process.env['NEKOMI_API_URL']),
-  PROXY_URL: String(process.env['PROXY_URL']),
-  TELEGRAM_BOT_URL: String(process.env['TELEGRAM_BOT_URL']),
-  NEKOMI_NEXTJS_URL: String(process.env['NEKOMI_NEXTJS_URL']),
-  NEKOMI_WEBSOCKET_URL: String(process.env['NEKOMI_WEBSOCKET_URL']),
-  NEKOMI_MEDIA_URL: String(process.env['NEKOMI_MEDIA_URL']),
-  NEKOMI_BOT_URL: String(process.env['NEKOMI_BOT_URL']),
-  NEKOMI_UPLOADS_URL: String(process.env['NEKOMI_UPLOADS_URL']),
-  FULLKEKW_AUTHORITY_URL: String(process.env['FULLKEKW_AUTHORITY_URL']),
-  FULLKEKW_USERAPI_URL: String(process.env['FULLKEKW_USERAPI_URL']),
-  FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
-};
-
-const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
-
-
-
-// Retrieve git commit
-const commitFilePath = `${logsDir}/git-commit.txt`;
-
-if (!env.ISDOCKER) {
-  try {
-    const commit = execSync(`git rev-parse --short HEAD`).toString().replace('\n', '');
-
-    fs.writeFileSync(commitFilePath, commit, 'utf-8');
-
-    console.info(`[System]: Git commit retrieved: ${commit}`);
-  } catch (e) {
-    console.error(`[System]: Cannot retrieve git commit`, e);
-  }
-}
-
-const commit = fs.existsSync(commitFilePath) ? fs.readFileSync(commitFilePath, 'utf-8') : `NO_COMMIT_${createNanoId()}`;
 
 
 const URL = {
-  proxy: env.PROXY_URL,
   nekomi_site: env.NEKOMI_NEXTJS_URL,
-  nekomi_ws: env.NEKOMI_WEBSOCKET_URL,
-  nekomi_media: env.NEKOMI_MEDIA_URL,
   nekomi_api: env.NEKOMI_API_URL,
-  nekomi_bot: env.NEKOMI_BOT_URL,
-  nekomi_upload_service: env.NEKOMI_UPLOADS_URL,
-  fullkekw_authority: env.FULLKEKW_AUTHORITY_URL,
-  fullkekw_userapi: env.FULLKEKW_USERAPI_URL,
-  fullkekw_account: env.FULLKEKW_USERAPI_URL,
+  nekomi_upload_service: env.NEKOMI_UPLOAD_SERVICE_URL,
 
   hikka: 'https://hikka.io',
   MALAPI: `https://api.myanimelist.net`,
@@ -101,15 +39,10 @@ const URL = {
 
 const domains = {
   NEKOMI_DOMAIN: `nekomi.club`,
-  NEKOMI_WEBSOCKET_DOMAIN: `websocket.nekomi.club`,
   NEKOMI_AUTH_DOMAIN: `auth.nekomi.club`,
   NEKOMI_BOT_DOMAIN: `bot.nekomi.club`,
-  NEKOMI_MEDIA_DOMAIN: `media.nekomi.club`,
   NEKOMI_API_DOMAIN: `api.nekomi.club`,
   NEKOMI_ADMIN_DOMAIN: `admin.nekomi.club`,
-  FULLKEKW_USERAPI_DOMAIN: `usapi.nekomi.club`,
-  FULLKEKW_AUTHORITY_DOMAIN: `authority.nekomi.club`,
-  FULLKEKW_ACCOUNT_DOMAIN: `account.nekomi.club`,
 };
 
 const vars = {
@@ -154,8 +87,6 @@ const rickrollEndpoints: RegExp[] = [
 
 const conf = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
-  commit,
-  logsDir,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
   startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
   URL,

@@ -19,9 +19,9 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-const DubberPutAvatarRoute = [
+const UserPutAvatarRoute = [
   ...UserControllerACUploadMiddlewares,
   endpoint
 ];
 
-export default DubberPutAvatarRoute;
+export default UserPutAvatarRoute;

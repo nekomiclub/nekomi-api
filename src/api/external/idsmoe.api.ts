@@ -14,7 +14,7 @@ export class IdsMoeAPI {
 
     const { data } = await axios.get<IdsMoeKeys>(url, {
       headers: {
-        'Authorization': `Bearer ${conf.env.IDS_MOE_KEY}`
+        'Authorization': `Bearer ${conf.env.IDS_MOE_SK}`
       }
     });
 

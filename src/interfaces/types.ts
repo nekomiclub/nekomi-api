@@ -1,6 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { QueryFilter } from 'mongoose';
-import { z } from 'zod';
 
 
 
@@ -23,11 +22,3 @@ export interface IJWTokenPayload<T = object> {
   /** Will be null if verify method is not specified */
   verified: boolean | null;
 }
-
-
-
-
-/** Transform stringified false > boolean false */
-export const ZodBooleanish = z.string().refine((value) => value === 'true' || value === 'false', {
-  message: 'Value must be a boolean',
-}).transform((value) => value === 'true');

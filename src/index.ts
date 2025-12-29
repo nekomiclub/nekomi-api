@@ -56,7 +56,7 @@ async function runtime() {
     //* === HTTP Server
     await new Promise(res => {
       app.listen(conf.env.PORT, conf.env.HOST, () => {
-        Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}. [commit: ${conf.commit}]`);
+        Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}`);
 
         res(1);
       });
@@ -67,20 +67,19 @@ async function runtime() {
     NEKOMI-API STARTED UP
     
     Date: ${conf.startedAt} UTC
-    Commit: ${conf.commit}
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
 
 
 
-    if (conf.env.ENV === 'production') await MLoadAgents();
-    if (conf.env.ENV === 'production') await MLoadRoles();
-    if (conf.env.ENV === 'production') await MLoadDubbers();
-    if (conf.env.ENV === 'production') await MLoadCatalog();
-    if (conf.env.ENV === 'production') await MLoadUsers();
+    if (conf.env.ENV === 'deploy') await MLoadAgents();
+    if (conf.env.ENV === 'deploy') await MLoadRoles();
+    if (conf.env.ENV === 'deploy') await MLoadDubbers();
+    if (conf.env.ENV === 'deploy') await MLoadCatalog();
+    if (conf.env.ENV === 'deploy') await MLoadUsers();
 
-    if (conf.env.ENV === 'production') await AnimeBulkUpdateCRON();
+    if (conf.env.ENV === 'deploy') await AnimeBulkUpdateCRON();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

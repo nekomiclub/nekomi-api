@@ -1,4 +1,3 @@
-import conf from '~/config';
 import winston, { format } from 'winston';
 import { getUTC } from '~/utils/utils';
 
@@ -21,7 +20,6 @@ const logger = winston.createLogger({
   level: 'debug',
   defaultMeta: {
     service: 'nekomi-api',
-    commit: conf.commit
   },
   transports: [
     new winston.transports.Console({

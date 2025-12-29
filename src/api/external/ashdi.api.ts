@@ -16,7 +16,7 @@ const baseURL = conf.URL.ashdiAPI;
 
 export class AshdiAPI {
   static async getTitle({ imdbId }: GetTitleProps): Promise<IAshdiTitle> {
-    const url = `${baseURL}/api/product/read_one.php?imdb=${imdbId}&api_key=${conf.env.ASHDI_API_KEY}`;
+    const url = `${baseURL}/api/product/read_one.php?imdb=${imdbId}&api_key=${conf.env.ASHDI_API_SK}`;
     Logger.http(`[Ashdi]: GET - ${url}`);
 
     const { data } = await axios.get<IAshdiTitle>(url);

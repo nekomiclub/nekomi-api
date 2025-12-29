@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "npx nodemon",
-    "start": "npx tsx ./src/index.ts",
+    "start": "node ./build/src/index.js",
+    "build": "npx rimraf ./build && npm run lint && npx tsc --build && npx tsc-alias",
     "test": "npx vitest --run --silent",
-    "build": "npm run lint && npx tsc --build",
-    "husky": "npm run lint && npx tsc && npm run test && git add .",
+    "husky": "npm run lint && npx tsc --noEmit && npm run test && git add .",
     "lint": "npx eslint . --fix"
   },
   "devDependencies": {
@@ -30,8 +30,10 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "husky": "^9.1.7",
     "nodemon": "^2.0.20",
+    "rimraf": "^6.1.2",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.7.2",
     "typescript": "^4.9.5",
     "vite-tsconfig-paths": "^5.1.4",

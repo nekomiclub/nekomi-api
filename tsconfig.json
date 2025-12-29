@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2020",
     "lib": [
       "ES6",
       "ESNext"
     ],
     "module": "ESNext",
-    "rootDir": "./",
     "moduleResolution": "node",
     "types": [
       "node"
     ],
     "allowJs": true,
+    "rootDir": "./",
     "outDir": "./build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,7 +19,6 @@
     "noImplicitAny": false,
     "noImplicitThis": false,
     "skipLibCheck": true,
-    "noEmit": true,
     "paths": {
       "~/intf/*": [
         "./src/interfaces/*",
@@ -53,4 +52,8 @@
     "experimentalSpecifierResolution": "node",
     "transpileOnly": true,
   },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
+  }
 }

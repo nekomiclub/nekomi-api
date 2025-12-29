@@ -82,7 +82,7 @@ class CSRFServiceClass {
       origin: conf.domains.NEKOMI_API_DOMAIN
     };
 
-    return jwt.sign(payload, conf.env.CSRF_Token, {
+    return jwt.sign(payload, conf.env.CSRF_SK, {
       algorithm: 'RS256',
       expiresIn: expiresIn ?? CSRF_TOKEN_LIFESPAN_MS / 1000,
       subject: 'CSRF'

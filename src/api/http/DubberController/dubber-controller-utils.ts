@@ -1,12 +1,30 @@
+import conf from '~/config';
 import express from 'express';
+import multer from 'multer';
 import { CDNString } from '~/intf/types';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
+import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 
 
 
+export interface IDubberControllerACUploadResponse {
+  message: string
+  url: CDNString
+}
+
 type UploadMethodType = keyof Pick<DubberRepositoryClass, 'uploadAvatar' | 'uploadCover'>
+
+
+
+const upload = multer();
+
+export const DubberControllerACUploadMiddlewares = [
+  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
+  upload.single('file'),
+];
 
 
 
