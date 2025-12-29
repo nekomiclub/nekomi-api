@@ -9,11 +9,17 @@ import { getUTC } from './utils/utils';
 
 
 
+export const ProductionMode = process.env['ENV'] === 'production';
+export const TestMode = Boolean(process.env.VITEST);
+export const DevelopmentMode = !ProductionMode || !TestMode || process.env['ENV'] === 'development';
+
+
+
 // Configure .env
 dotenvCfg({ quiet: true });
 
 // Initialize firebase
-firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
+if (!TestMode) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
 
 
 
@@ -48,10 +54,6 @@ const env = {
   FULLKEKW_USERAPI_URL: String(process.env['FULLKEKW_USERAPI_URL']),
   FULLKEKW_ACCOUNT_URL: String(process.env['FULLKEKW_ACCOUNT_URL']),
 };
-
-export const ProductionMode = env.ENV === 'production';
-export const TestMode = Boolean(process.env.VITEST);
-export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'development';
 
 const logsDir = env.ISDOCKER ? '/logs' : `${path.resolve()}/logs`;
 
