@@ -6,10 +6,10 @@ import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
+import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -233,10 +233,11 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   /**
    * Upload avatar
    * 
+   * @returns avatar url
    * @autosave
    * @testing
    */
-  async uploadAvatar(buffer: Buffer, userId: string) {
+  async uploadAvatar(buffer: Buffer, userId: string): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: userId });
@@ -256,6 +257,8 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     this.set('avatar', avatar.url);
 
     await this.save();
+
+    return avatar.url;
   }
 
 
@@ -263,10 +266,11 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   /**
    * Upload cover
    * 
+   * @returns cover url
    * @autosave
    * @testing
    */
-  async uploadCover(buffer: Buffer, userId: string) {
+  async uploadCover(buffer: Buffer, userId: string): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: userId });
@@ -286,6 +290,8 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     this.set('cover', cover.url);
 
     await this.save();
+
+    return cover.url;
   }
 }
 

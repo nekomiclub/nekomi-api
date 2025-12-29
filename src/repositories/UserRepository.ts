@@ -8,10 +8,10 @@ import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/config';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
+import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
 
@@ -66,6 +66,12 @@ interface ICreateProps {
 
 interface IUpdateLibProps {
   is_public?: boolean
+}
+
+interface IUploadACProps {
+  type: NUS_UPLOAD_TYPE
+  key: keyof Pick<IUser, 'avatar' | 'cover'>
+  defaultUrl: string
 }
 
 
@@ -461,29 +467,18 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Upload avatar
    * 
+   * @returns CDNString
    * @autosave
    * @testing
    */
-  async uploadAvatar(buffer: Buffer) {
+  async uploadAvatar(buffer: Buffer): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: this._doc.id });
-
-    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
-    if (!avatar) throw new NekoError('nus:object_not_found', `User avatar is not found in upload objects`);
-
-    // Delete old avatar
-    try {
-      if (this._doc.avatar !== conf.vars.defaultAvatar) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), this._doc.id);
-      }
-    } catch (e) {
-      Logger.warn(`[UserRepository]: Cannot delete user old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
-    }
-
-    this.set('avatar', avatar.url);
-
-    await this.save();
+    return await this._uploadAC(buffer, {
+      type: NUS_UPLOAD_TYPE.PHOTO_AVATAR,
+      key: 'avatar',
+      defaultUrl: conf.vars.defaultAvatar
+    });
   }
 
 
@@ -491,29 +486,52 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Upload cover
    * 
+   * @returns CDNString
    * @autosave
    * @testing
    */
-  async uploadCover(buffer: Buffer) {
+  async uploadCover(buffer: Buffer): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: this._doc.id });
+    return await this._uploadAC(buffer, {
+      type: NUS_UPLOAD_TYPE.PHOTO_COVER,
+      key: 'cover', defaultUrl:
+        conf.vars.defaultCover
+    });
+  }
 
-    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
-    if (!cover) throw new NekoError('nus:object_not_found', `User cover is not found in upload objects`);
 
-    // Delete old cover
-    try {
-      if (this._doc.cover !== conf.vars.defaultCover) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), this._doc.id);
+
+  /**
+   * Upload avatar/cover
+   * 
+   * @returns CDNString
+   * @autosave
+   * @private
+   */
+  private async _uploadAC(buffer: Buffer, { type, defaultUrl, key }: IUploadACProps): Promise<CDNString> {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type, uploaderId: this._doc.id });
+
+    const object = objects.find(el => el.type === type);
+    if (!object) throw new NekoError('nus:object_not_found', `User "${type}" object is not found in upload objects`);
+
+
+
+    // Delete old object
+    if (this._doc[key] !== defaultUrl) {
+      try {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), this._doc.id);
+      } catch (e) {
+        Logger.warn(`[UserRepository]: Cannot delete user old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
       }
-    } catch (e) {
-      Logger.warn(`[UserRepository]: Cannot delete user old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
     }
 
-    this.set('cover', cover.url);
-
+    this.set(key, object.url);
     await this.save();
+
+    return object.url;
   }
 
 
