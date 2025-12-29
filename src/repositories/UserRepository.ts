@@ -64,8 +64,24 @@ interface ICreateProps {
   _implicitCreatedAt?: string
 }
 
+interface ISetUsernameProps {
+  /** Bypass user change restriction */
+  bypassRestriction?: boolean
+  provided?: boolean
+}
+
 interface IUpdateLibProps {
   is_public?: boolean
+}
+
+interface IUploadAvatarProps {
+  /** Bypass user change restriction */
+  bypassRestriction?: boolean
+}
+
+interface IUploadCoverProps {
+  /** Bypass user change restriction */
+  bypassRestriction?: boolean
 }
 
 interface IUploadACProps {
@@ -131,8 +147,9 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
+  /** @unavailable */
   async deleteMany(id: string): Promise<void> {
-    throw new NekoError('sys:not_implemented');
+    throw new NekoError('sys:not_implemented', `Method is unavailable`);
   }
 
 
@@ -192,11 +209,11 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * @param provided Skip any validation except uniqueness
    * @testing
    */
-  async setUsername(username: string, props?: { provided?: boolean }) {
+  async setUsername(username: string, props?: ISetUsernameProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Ensure username change is not restricted
-    if (this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 
     // Ensure that user username is not on cooldown
     const usernameTimeoutTs = getUTC(this._doc.username_changed_at).timestamp + conf.vars.USERNAME_UPDATE_TIMEOUT;
@@ -474,8 +491,13 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * @autosave
    * @testing
    */
-  async uploadAvatar(buffer: Buffer): Promise<CDNString> {
+  async uploadAvatar(buffer: Buffer, props?: IUploadAvatarProps): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    // Ensure avatar upload is not restricted
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.UPLOAD_AVATAR)) throw new NekoError(`sys:action_prevented`, `Avatar upload is restricted by the administration`);
+
+
 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_AVATAR,
@@ -493,8 +515,13 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * @autosave
    * @testing
    */
-  async uploadCover(buffer: Buffer): Promise<CDNString> {
+  async uploadCover(buffer: Buffer, props?: IUploadCoverProps): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    // Ensure cover upload is not restricted
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.UPLOAD_COVER)) throw new NekoError(`sys:action_prevented`, `Cover upload is restricted by the administration`);
+
+
 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_COVER,
