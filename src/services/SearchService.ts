@@ -1,104 +1,71 @@
-import AnimeModel from '~/core/models/AnimeModel';
-import DocumentDTO from '~/core/services/DTOService';
-import DubberService from '~/core/services/DubberService';
-import Fuse from 'fuse.js';
-import UserModel from '~/core/models/UserModel';
-import { Anime } from '~/core/interfaces/Anime.intf';
-import { Dubber } from '~/core/interfaces/Dubber.intf';
-import { E500 } from './ErrorService';
-import { Logger } from './LoggerService';
-import { User } from '~/core/interfaces/User.intf';
+import AnimeRepository from '~/repo/AnimeRepository';
+import DubberRepository from '~/repo/DubberRepository';
+import Fuse, { FuseOptionKey } from 'fuse.js';
+import UnifiedRepositoryClass from '~/repo/UnifiedRepository';
+import UserRepository from '~/repo/UserRepository';
+import express from 'express';
+import z from 'zod';
+import { IPagination } from '~/utils/pagination';
 
 
 
-interface SearchProps {
-  query: string
-  engine: SearchEngineType
-
-  /** @default 10 */
-  limit?: number
+interface ISearchResponse<T> {
+  results: T[]
+  pagination?: IPagination
 }
 
-export type SearchEngineType = 'user' | 'dubber' | 'anime';
+
+
+class SearchServiceClass<T extends object> {
+  private engine: Fuse<T> | null = null;
+  private documents: T[] = [];
 
 
 
-class SearchService {
-  private UserEngine: Fuse<User> | null = null;
-  private DubberEngine: Fuse<Dubber> | null = null;
-  private AnimeEngine: Fuse<Anime> | null = null;
-
-
-
-  async init() {
-    await Promise.all([
-      this.update('user'),
-      this.update('dubber'),
-      this.update('anime'),
-    ]);
+  constructor(
+    readonly repository: UnifiedRepositoryClass<T>,
+    readonly searchKeys: FuseOptionKey<T>[],
+  ) {
+    this.update();
   }
 
-  /** Update search engine */
-  async update(type: SearchEngineType) {
-    if (type === 'user') {
-      const list = (await UserModel.find()).map(doc => DocumentDTO.user(doc, true));
 
-      const keys: (keyof User)[] = [
-        'id',
-        'username',
-      ];
 
-      this.UserEngine = new Fuse(list, {
-        keys,
-        shouldSort: true,
-        ignoreLocation: true
-      });
-    } else if (type === 'dubber') {
-      const list = await new DubberService().getAll(true);
+  /**
+   * Update cache
+   */
+  async update() {
+    const documents = await this.repository.getAll();
 
-      const keys: (keyof Dubber)[] = [
-        'id',
-        'slug',
-        'nameEng',
-        'nameUkr'
-      ];
-
-      this.DubberEngine = new Fuse(list, {
-        keys,
-        shouldSort: true,
-        ignoreLocation: true
-      });
-    } else if (type === 'anime') {
-      const list = (await AnimeModel.find()).map(doc => DocumentDTO.anime(doc, true));
-
-      this.AnimeEngine = new Fuse(list, {
-        keys: ['names.eng', 'names.ukr', 'names.alt', 'slug', 'id'],
-        shouldSort: true,
-        ignoreLocation: true
-      });
-    } else throw new E500(`[SearchService]: Can not update not exist engine - ${type}`);
-
-    Logger.debug(`[SearchService]: Engine updated. [engine: ${type}]`);
+    this.documents = documents;
+    this.engine = new Fuse(documents, {
+      keys: this.searchKeys,
+      shouldSort: true,
+      ignoreLocation: true
+    });
   }
 
-  search({ limit, query, engine }: SearchProps) {
-    limit = limit ?? 10;
-    let SearchEngine: Fuse<any>;
 
-    if (engine === 'user') {
-      if (!this.UserEngine) throw new E500('Search not ready');
-      SearchEngine = this.UserEngine;
-    } else if (engine === 'dubber') {
-      if (!this.DubberEngine) throw new E500('Search not ready');
-      SearchEngine = this.DubberEngine;
-    } else if (engine === 'anime') {
-      if (!this.AnimeEngine) throw new E500('Search not ready');
-      SearchEngine = this.AnimeEngine;
-    } else throw new E500(`[SearchService]: Can not search not exist engine - ${engine}`);
 
-    const results = SearchEngine.search(query, {
-      limit
-    }).map(el => el.item);
+  /** 
+   * Search item. Will return EXPOSED items
+   */
+  async search(query: string, limit: number): Promise<T[]> {
+    // Await engine if it is not ready
+    if (!this.engine) {
+      await new Promise(res => {
+        const int = setInterval(() => {
+          if (!this.engine) return;
+
+          res(1);
+          clearInterval(int);
+        }, 100);
+      });
+    }
+
+
+
+    const results = this.engine?.search(query, { limit }).map(el => el.item) ?? [];
 
     return results;
   }
@@ -106,5 +73,48 @@ class SearchService {
 
 
 
-const Search = new SearchService();
-export default Search;
+export const UserSearch = new SearchServiceClass(UserRepository, ['username']);
+export const DubberSearch = new SearchServiceClass(DubberRepository, ['slug', 'name']);
+export const AnimeSearch = new SearchServiceClass(AnimeRepository, ['title_en', 'title_ja', 'title_ua', 'title_synonims', 'slug']);
+
+
+
+const RESULTS_DEFAULT_LIMIT = 15;
+const MAX_RESULTS_LIMIT = 30;
+
+
+
+const SearchQueryParamsSchema = z.object({
+  q: z.string(),
+  limit: z.number().min(1).max(MAX_RESULTS_LIMIT).default(RESULTS_DEFAULT_LIMIT),
+  page: z.number().min(1).default(1)
+});
+
+
+
+export async function RequestSearch<T extends object>(req: express.Request, repository: UnifiedRepositoryClass<T>, search: SearchServiceClass<T>, dto?: (el: T) => T): Promise<ISearchResponse<T>> {
+  const { q: query, limit, page } = SearchQueryParamsSchema.parse(req.query);
+
+  let results: T[] = [];
+  let pagination: IPagination | undefined;
+
+
+
+  if (query === '~all') {
+    results = (await repository.getAll()).slice(0, limit); // TODO: Implement pagination
+
+    pagination = { limit, page };
+  } else {
+    results = await search.search(query, limit);
+  }
+
+  // Pass results throught dto if it is provided
+  if (dto) results = results.map(el => dto(el));
+
+
+
+  return {
+    results,
+    pagination
+  };
+}

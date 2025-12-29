@@ -8,7 +8,8 @@ RUN npm install
 
 COPY . .
 
-ENV ISDOCKER=true
+ENV ENV="deploy"
+ENV DOCKER="true"
 
 # Run
 EXPOSE 43080

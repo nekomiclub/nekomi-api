@@ -1,0 +1,90 @@
+{
+  "sys:not_implemented": {
+    "status": 501,
+    "message": "Requested feature is not implemented yet"
+  },
+  "sys:not_ready": {
+    "status": 425,
+    "message": "Too early, try again later"
+  },
+  "sys:document_not_initialized": {
+    "status": 500,
+    "message": "You cannot have access to document-related methods, if constructor is not initialized (no document)"
+  },
+  "sys:type_invalid": {
+    "status": 400,
+    "message": "Type invalid"
+  },
+  "sys:not_found": {
+    "status": 404,
+    "message": "Requested entity is not found"
+  },
+  "sys:already_exist": {
+    "status": 400,
+    "message": "Object already exist"
+  },
+  "sys:invalid_payload": {
+    "status": 400,
+    "message": "Payload invalid or validation failed"
+  },
+  "sys:validation_failed": {
+    "status": 400,
+    "message": "Validation failed"
+  },
+  "sys:action_prevented": {
+    "status": 403,
+    "message": "You cannot do this type of actions"
+  },
+  "sys:middleware_required": {
+    "status": 500,
+    "message": "Request cannot be processed due to middlewares misconfiguration"
+  },
+  "nus:object_not_found": {
+    "status": 500,
+    "message": "Requested object is not found in nekomi-upload-service response"
+  },
+  "user:username_timeout": {
+    "status": 400,
+    "message": "You cannot change username at the moment, try again later"
+  },
+  "user:banned": {
+    "status": 403,
+    "message": "You have been banned by the administration"
+  },
+  "auth:method_invalid": {
+    "status": 400,
+    "message": "Authorization method is invalid"
+  },
+  "auth:token_miss": {
+    "status": 401,
+    "message": "Authorization token is not provided"
+  },
+  "auth:session_token_invalid": {
+    "status": 400,
+    "message": "Session token is invalid"
+  },
+  "auth:session_token_expired": {
+    "status": 403,
+    "message": "Session token is expired"
+  },
+  "auth:csrf_token_invalid": {
+    "status": 401,
+    "message": "CSRF token is invalid"
+  },
+  "auth:csrf_token_miss": {
+    "status": 401,
+    "message": "CSRF token is not provided"
+  },
+  "auth:failed": {
+    "status": 403,
+    "message": "Authorization failed"
+  },
+  "auth:session_not_exist": {
+    "status": 404,
+    "message": "Requested session is not exist"
+  },
+  "auth:session_limited": {
+    "status": 403,
+    "message": "Your session cannot do this type of action due to temporary limitations"
+  }
+}

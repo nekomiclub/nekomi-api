@@ -1,153 +1,141 @@
-import FullkekwAuthority from '~/core/services/API/FullkekwAuthority.api';
-import FullkekwUser from '~/core/services/API/FullkekwUser.api';
-import User from '~/core/interfaces/User.intf';
-import UserService from '~/core/services/UserService';
-import { AxiosError } from 'axios';
-import { ERROR_AUTH_CSRF_INVALID, ERROR_AUTH_NO_RIGHTS, ERROR_AUTH_SESSION_EXPIRED, ERROR_MOCK_UNDEFINED } from './Exceptions';
-import { FullkekwAuthority_TokenVerify } from '~/core/interfaces/API/FullkekwAuthorityAPI.intf';
-import { FullkekwUser_Verify } from '~/core/interfaces/API/FullkekwUserAPI.intf';
-import { Logger } from './LoggerService';
-import { RoleCapability } from '~/core/interfaces/Role.intf';
-import { TestMode, config } from '~/config';
-import { parseRoles } from '~/core/services/RoleService';
+import CSRFService from './CSRFService';
+import DocumentDTO from './DataTransferService';
+import IUser from '~/intf/IUser';
+import SessionService from './SessionService';
+import TokenService from './TokenService';
+import conf, { DevelopmentMode, TestMode } from '~/config';
+import { HandleMiddleware, getCSRFToken, getSessionToken, setSessionCookie } from '~/utils/http-utils';
+import { ISessionToken } from '~/intf/IAuth';
+import { NekoError } from './ExceptionService';
+import { ROLE_PERMISSION } from '~/intf/IRole';
+import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
 
-interface CheckAccessProps {
-  token: string
+export type MiddlewareType = keyof MiddlewareService;
 
-  capabilities?: RoleCapability[]
-  mock?: FullkekwUser_Verify
+
+
+interface ICheckAccess {
+  user: IUser
+  sessionId: string
+  sessionToken: string
+
+  /** Will be null if required permissions are not specified */
+  permissions: ROLE_PERMISSION[] | null
 }
 
-interface CheckCSRFProps {
-  token: string
-
-  origins?: string[]
-  mock?: FullkekwAuthority_TokenVerify
-}
-
-export type TMiddlewareName = 'checkAccess' | 'checkCSRF';
 
 
-
-export class MiddlewareService {
-  /** 
+export default class MiddlewareService {
+  /**
    * Check user authorization
-   * If capabilities are not specified, will only parse authorization token
-   * Will verify user authorization & fetch actual username / avatar
-   * 
-   * @param token Authorization token
-   * @param capabilities Required capabilities. Will pass if user have every required capability or capabilities is not specified 
-   * @tested as part of GET /user
-   * 
-   * @returns user
+   * Will simply parse user if permissions are not specified, otherwise will ensure that user have required permission
+   * Will refresh user access 
    */
-  async checkAccess({ token, capabilities, mock }: CheckAccessProps): Promise<{ user: User, capabilities: RoleCapability[] }> {
-    capabilities = capabilities ?? [];
+  async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
+    const session = new SessionService();
 
-    const session: FullkekwUser_Verify = {
-      id: '',
-      avatar: '',
-      username: '',
-      capabilities: []
+    const { payload } = TokenService.decode<ISessionToken>(token);
+    if (!payload.session_id || !payload.user_id) throw new NekoError('auth:session_token_invalid');
+
+    let userPermissions: ROLE_PERMISSION[] | null = null;
+
+    await session.init({ id: payload.user_id });
+    const sessionToken = await session.refresh(payload.session_id);
+
+    // Ensure permissions
+    if (permissions?.length) {
+      userPermissions = await parseRolesPermissions(session.document!.roles);
+
+      // Pass any checks for root 
+      if (!userPermissions.includes(ROLE_PERMISSION.ABSOLUTE)) {
+        permissions.forEach(perm => {
+          if (!userPermissions?.includes(perm)) throw new NekoError('sys:action_prevented', `Lack of permission: ${perm}`);
+        });
+      }
+    }
+
+
+
+    return {
+      user: DocumentDTO.user(session.document!),
+      permissions: userPermissions,
+      sessionId: payload.session_id,
+      sessionToken,
     };
-
-
-
-    if (!TestMode) {
-      try {
-        const sessionData = await FullkekwUser.refreshAuth({ sessionCookie: token });
-
-        session.id = sessionData.id;
-        session.username = sessionData.username;
-        session.avatar = sessionData.avatar;
-      } catch (e) {
-        if (e instanceof AxiosError && (e.response?.data.code === 'session:not_exist' || e.response?.data.code === 'session:not_verified')) throw ERROR_AUTH_SESSION_EXPIRED;
-
-        throw e;
-      }
-    } else {
-      if (!mock) throw ERROR_MOCK_UNDEFINED;
-
-      session.id = mock.id;
-      session.capabilities = mock.capabilities;
-      session.username = mock.username;
-      session.avatar = mock.avatar;
-    }
-
-    const user = await new UserService().getById(session.id, true);
-
-    // Sync with fullkekw-userapi
-    try {
-      if (user.avatar !== session.avatar || user.username !== session.username) {
-        const userService = new UserService();
-        await userService.init(user.id);
-
-        if (user.avatar !== session.avatar) userService.setAvatar(session.avatar);
-        if (user.username !== session.username) userService.setUsername(session.username);
-
-        Logger.info(`[MiddlewareService]: User synced with fullkekw-userapi`);
-
-        await userService.save();
-      }
-    } catch (e) {
-      Logger.fail(`[MiddlewareService]: Cannot sync user with fullkekw-userapi. [userId: ${session.id}]`, e);
-    }
-
-    // Pass if no capabilities required
-    if (!capabilities.length) return { user, capabilities: [] };
-
-    const caps = TestMode ? session.capabilities : await parseRoles(user.roles);
-
-    // Pass if user is root
-    if (caps.includes('root')) return { user, capabilities: caps };
-
-    capabilities.forEach(cap => {
-      if (!caps.includes(cap)) throw ERROR_AUTH_NO_RIGHTS;
-    });
-
-    // Pass if everything is ok
-    return { user, capabilities: caps };
   }
 
 
 
-  /** 
-   * Check CSRF token
+  /**
+   * Parse & verify CSRF token
+   * If origins provided, will match token origin with allowed
    * 
-   * @param token CSRF token
-   * @param origins Will check if token origin match one of specified origins, if empty will only verify
-   * 
-   * @returns CSRF origin
+   * @param token In development or test mode "~dev" value can be passed to use fresh nekomi-api token
+   * @returns origin
    */
-  async checkCSRF({ token, origins, mock }: CheckCSRFProps): Promise<string> {
-    origins = origins ?? [];
+  async checkCSRF(token: string, origins: string[] = []): Promise<string> {
+    token = (DevelopmentMode || TestMode) && token === '~dev' ? CSRFService.signToken(null) : token;
 
-    const csrf: FullkekwAuthority_TokenVerify = {
-      origin: '',
-      verified: false
-    };
+    const csrf = await CSRFService.verify(token);
 
-    if (!TestMode) {
-      const data = await FullkekwAuthority.verifyToken({ token });
+    if (!csrf.verified) throw new NekoError('auth:csrf_token_invalid');
 
-      csrf.origin = data.origin;
-      csrf.verified = data.verified;
-    } else {
-      if (!mock) throw ERROR_MOCK_UNDEFINED;
-
-      csrf.origin = mock.origin;
-      csrf.verified = mock.verified;
+    // Pass verifying if origin is nekomi admin
+    if (csrf.origin !== conf.domains.NEKOMI_ADMIN_DOMAIN) {
+      if (origins.length !== 0 && !origins.includes(csrf.origin!)) throw new NekoError('auth:csrf_token_invalid', `Origin is not allowed`);
     }
 
-    if (!csrf.verified) throw ERROR_AUTH_CSRF_INVALID;
-
-    // Bypass checks if origin is nekomi admin
-    if (csrf.origin !== config.DOMAIN.nekomi_admin) {
-      if (origins.length !== 0 && !origins.includes(csrf.origin)) throw ERROR_AUTH_CSRF_INVALID;
-    }
-
-    return csrf.origin;
+    return csrf.origin!;
   }
 }
+
+
+
+class MiddlewareClass {
+  private service = new MiddlewareService();
+
+
+
+  /** Middleware wrapper for {@link MiddlewareService.checkAccess} */
+  CheckAccess = (permissions?: ROLE_PERMISSION[]) => HandleMiddleware(async (req, res) => {
+    const token = getSessionToken(req);
+
+    const { user, sessionToken, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
+
+    setSessionCookie(sessionToken, res);
+
+
+
+    req._nekomi.middlewaresPassed?.push('checkAccess');
+    req._nekomi.sessionToken = sessionToken;
+
+    req._nekomi.user = {
+      id: user.id,
+      sessionId,
+      permissions: userPermissions,
+    };
+  });
+
+
+
+  /** Middleware wrapper for {@link MiddlewareService.checkCSRF} */
+  CheckCSRF = (origins?: string[]) => HandleMiddleware(async (req) => {
+    const token = getCSRFToken(req);
+
+    // In development mode append nekomi api origin to pass "~dev" token
+    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
+
+    const origin = await this.service.checkCSRF(token, origins);
+
+
+
+    req._nekomi.middlewaresPassed?.push('checkCSRF');
+    req._nekomi.csrfOrigin = origin;
+  });
+}
+
+
+
+export const Middleware = new MiddlewareClass();

@@ -1,57 +1,18 @@
-import * as uuid from 'uuid';
-import { convert as convertSlug } from 'url-slug';
+import crypto from 'crypto';
+import z, { ZodError } from 'zod';
 
 
 
 /** 
- * Trim string and remove all excess spaces
+ * Get UTC date
  * 
- * @example "   Hello  World  " > "Hello World"
+ * @param ts ISO/UTC string, timestamp or Date
  */
-export function trimString(input: string) {
-  return input.trim().replace(/\s+/g, ' ');
-}
-
-
-
-/** Get random between min and max */
-export function randomNumberBetween(min: number, max: number): number {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-}
-
-
-
-/** Get UTC date
- * @param timestamp Timestamp to start from. Default - now
- */
-export function getUTC(timestamp?: number | string | null): {
-  year: number
-  /** January is first month, december is 12 */
-  month: number
-  date: number
-  weekDay: number
-  hrs: number
-  mins: number
-  secs: number
-  ms: number
-  timestamp: number
-  /** Time
-   * @returns 'hh:mm'
-   */
-  time: string
-  /** Accurate time
-   * @returns 'hh:mm:ss.mss'
-   */
-  timeAccurate: string
-  /** European fulldate
-   * @returns 'dd.mm.yyyy'
-   */
-  fulldate: string
-} {
-  const now = timestamp ? new Date(timestamp) : new Date();
+export function getUTC(ts?: string | number | Date) {
+  const now = new Date(ts ?? new Date());
 
   const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const month = String(now.getUTCMonth()).padStart(2, '0');
   const date = String(now.getUTCDate()).padStart(2, '0');
   const weekDay = now.getUTCDay();
   const hrs = String(now.getUTCHours()).padStart(2, '0');
@@ -70,92 +31,96 @@ export function getUTC(timestamp?: number | string | null): {
     ms: +ms,
     timestamp: now.getTime(),
     fulldate: `${date}.${month}.${year}`,
-    time: `${hrs}:${mins}`,
-    timeAccurate: `${hrs}:${mins}:${secs}.${ms}`,
+    time: `${hrs}:${mins}:${secs}`,
+
+    /** Stringified values (with pads) */
+    str: { month, hrs, mins, secs, ms },
+
+    ISO: now.toISOString(),
   };
 }
 
 
 
 /** 
- * Parse DAY, MON DD, YYYY
+ * Get time diff between startedAt and now in msec
  * 
- * @example "Fri, Jan 3, 2025" > {timestamp}
+ * @returns `{startedAt - now}ms`
  */
-export function parseIMDBDate(dateString: string): number {
-  const months = {
-    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-  };
-
-  const dateParts = dateString.split(' ');
-
-  const day = parseInt(dateParts[2]);
-  const month = months[dateParts[1]];
-  const year = parseInt(dateParts[3]);
-
-
-  return +new Date(year, month, day);
+export function endWithin(startedAt: number): string {
+  return `${getUTC().timestamp - startedAt}ms`;
 }
 
 
 
 /** 
- * Create slug from string
+ * Trim string and remove all excess spaces
  * 
- * @example "Solo | Leveling 2" > "solo-leveling-2"
+ * @example "   Hello  World  " > "Hello World"
  */
-export function createSlug(input: string) {
-  return convertSlug(input, {
-    camelCase: true,
-    separator: '-'
-  });
+export function trimString(input: string) {
+  return input.trim().replace(/\s+/g, ' ');
 }
 
 
 
-/** Create ID with specified length */
-export function createStringID(length: number) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  const charactersLength = characters.length;
+/** Get random number between min and max */
+export function randomBetween(min: number, max: number): number {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
 
-  let result = '';
-  let counter = 0;
 
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
+
+export function buffer2hash(data: Buffer) {
+  const hash = crypto.createHash('sha256');
+  hash.update(data);
+  return hash.digest('hex');
+}
+
+
+
+const EnvSchema = z.object({
+  PORT: z.coerce.number(),
+  HOST: z.string(),
+
+  ENV: z.enum(['local', 'deploy']),
+  DOCKER: z.coerce.boolean().optional(),
+  VITEST: z.coerce.boolean().optional(),
+
+  DATABASE_HOST: z.string(),
+  DATABASE_NAME: z.string(),
+  DATABASE_USR: z.string(),
+  DATABASE_PWD: z.string(),
+
+  CSRF_SK: z.string(),
+  MAL_CLIENT_SK: z.string(),
+  ASHDI_API_SK: z.string(),
+  IDS_MOE_SK: z.string(),
+  USER_SESSION_SK: z.string(),
+
+  NEKOMI_API_URL: z.string().url(),
+  NEKOMI_NEXTJS_URL: z.string().url(),
+  NEKOMI_UPLOAD_SERVICE_URL: z.string().url(),
+});
+
+export function parseEnv(): z.infer<typeof EnvSchema> {
+  try {
+    return EnvSchema.parse(process.env);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      console.error(`
+
+
+-----------------------------------------
+
+ENVIRONMENT ERROR: ${JSON.stringify(e.errors, null, 2)}
+
+-----------------------------------------
+
+  
+        `);
+
+      throw '';
+    } else throw e;
   }
-
-  return result;
-}
-
-
-
-export function createUUID(): string {
-  return uuid.v4();
-}
-
-
-
-/** Parse object types from pseudo ("123", "false") to real
- * "false" > boolean
- * "123" > number
- * "null" > null
- * "undefined" > undefined
- */
-export function parseObjectTypes<T = any>(object: object): T {
-  const result = { ...object } as T;
-
-  for (const key in object) {
-    const value = object[key];
-
-    if (value === 'true') result[key] = true;
-    else if (value === 'false') result[key] = false;
-    else if (value === 'null') result[key] = null;
-    else if (value === 'undefined') result[key] = undefined;
-    else if (!isNaN(+value)) result[key] = +value;
-  }
-
-  return result;
 }

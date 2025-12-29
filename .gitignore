@@ -5,3 +5,7 @@ logs
 .cache
 .dump
 .env
+.vscode
+data
+firebase.json
+build
