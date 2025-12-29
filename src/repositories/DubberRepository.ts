@@ -68,6 +68,14 @@ interface ICreateProps {
   saveDocument?: boolean
 }
 
+interface IUploadACProps {
+  type: NUS_UPLOAD_TYPE
+  key: keyof Pick<IDubber, 'avatar' | 'cover'>
+  defaultUrl: string
+  userId: string
+}
+
+
 
 
 export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
@@ -233,32 +241,19 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   /**
    * Upload avatar
    * 
-   * @returns avatar url
+   * @returns CDNString
    * @autosave
    * @testing
    */
   async uploadAvatar(buffer: Buffer, userId: string): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_AVATAR, uploaderId: userId });
-
-    const avatar = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_AVATAR);
-    if (!avatar) throw new NekoError('nus:object_not_found', `Dubber avatar is not found in upload objects`);
-
-    // Delete old avatar
-    try {
-      if (this._doc.avatar !== conf.vars.defaultAvatar) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.avatar), userId);
-      }
-    } catch (e) {
-      Logger.warn(`[DubberRepository]: Cannot delete dubber old avatar (${this._doc.avatar}) [id: ${this._doc.id}]`);
-    }
-
-    this.set('avatar', avatar.url);
-
-    await this.save();
-
-    return avatar.url;
+    return await this._uploadAC(buffer, {
+      type: NUS_UPLOAD_TYPE.PHOTO_AVATAR,
+      key: 'avatar',
+      defaultUrl: conf.vars.defaultAvatar,
+      userId
+    });
   }
 
 
@@ -266,32 +261,53 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   /**
    * Upload cover
    * 
-   * @returns cover url
+   * @returns CDNString
    * @autosave
    * @testing
    */
   async uploadCover(buffer: Buffer, userId: string): Promise<CDNString> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const { objects } = await NekomiUploadService.uploadFile({ buffer, type: NUS_UPLOAD_TYPE.PHOTO_COVER, uploaderId: userId });
+    return await this._uploadAC(buffer, {
+      type: NUS_UPLOAD_TYPE.PHOTO_COVER,
+      key: 'cover',
+      defaultUrl: conf.vars.defaultCover,
+      userId
+    });
+  }
 
-    const cover = objects.find(el => el.type === NUS_UPLOAD_TYPE.PHOTO_COVER);
-    if (!cover) throw new NekoError('nus:object_not_found', `Dubber cover is not found in upload objects`);
 
-    // Delete old cover
-    try {
-      if (this._doc.cover !== conf.vars.defaultCover) {
-        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc.cover), userId);
+
+  /**
+   * Upload avatar/cover
+   * 
+   * @returns CDNString
+   * @autosave
+   * @private
+   */
+  private async _uploadAC(buffer: Buffer, { type, defaultUrl, key, userId }: IUploadACProps): Promise<CDNString> {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    const { objects } = await NekomiUploadService.uploadFile({ buffer, type, uploaderId: userId });
+
+    const object = objects.find(el => el.type === type);
+    if (!object) throw new NekoError('nus:object_not_found', `Dubber "${type}" object is not found in upload objects`);
+
+
+
+    // Delete old object
+    if (this._doc[key] !== defaultUrl) {
+      try {
+        await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), userId);
+      } catch (e) {
+        Logger.warn(`[DubberRepository]: Cannot delete dubber old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
       }
-    } catch (e) {
-      Logger.warn(`[DubberRepository]: Cannot delete dubber old cover (${this._doc.cover}) [id: ${this._doc.id}]`);
     }
 
-    this.set('cover', cover.url);
-
+    this.set(key, object.url);
     await this.save();
 
-    return cover.url;
+    return object.url;
   }
 }
 

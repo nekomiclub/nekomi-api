@@ -33,7 +33,7 @@ export const UserControllerACUploadMiddlewares = [
  * 
  * @returns CDNString
  */
-export default async function HandleACUpload(req: express.Request, repo: UserRepositoryClass, method: UploadMethodType): Promise<CDNString> {
+export default async function HandleUserControllerACUpload(req: express.Request, repo: UserRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
   const { id: targetId } = req.params as { id: string };
 
