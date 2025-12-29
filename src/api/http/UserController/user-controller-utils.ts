@@ -40,8 +40,6 @@ export default async function HandleUserControllerACUpload(req: express.Request,
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);
 
-
-
   if (userId === targetId) {
     // Update current user
 
@@ -53,6 +51,8 @@ export default async function HandleUserControllerACUpload(req: express.Request,
       await repo.init({ id: targetId });
     } else throw new NekoError('sys:action_prevented');
   }
+
+
 
   return repo[method](file.buffer);
 }

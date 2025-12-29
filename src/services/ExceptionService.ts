@@ -117,7 +117,7 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
       if (DevelopmentMode && !TestMode) console.log(`Validation error`, e.errors);
       if (TestMode) Logger.error(`(TESTING) Validation error`, e.errors);
 
-      res.status(400).json({ message: 'Invalid payload', code: 'sys:invalid_payload', errors: e.errors, date });
+      res.status(400).json({ message: 'Invalid payload', code: 'sys:validation_failed', errors: e.errors, date });
 
       return false;
     } else if (e instanceof AxiosError) {

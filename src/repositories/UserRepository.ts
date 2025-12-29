@@ -404,6 +404,9 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     const lib = this._doc.libs.find(el => el.id === libId);
     if (!lib) throw new NekoError(`sys:not_found`, `Lib "${libId}" is not found`);
 
+    if (lib.anime_ids.includes(animeId)) throw new NekoError('sys:already_exist', `Anime "${animeId}" is already exist in lib "${libId}"`);
+
+    // ! Uncomment after 3.0.0 release
     // const anime = await AnimeRepository.getOne(animeId);
 
     lib.anime_ids.push(animeId);

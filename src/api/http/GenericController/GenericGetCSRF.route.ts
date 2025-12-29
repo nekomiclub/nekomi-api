@@ -13,7 +13,7 @@ interface IResponse {
 
 
 const BodySchema = z.object({
-  token: z.string(),
+  token: z.string().nonempty(),
 
   /** Required origin */
   origin: z.string().optional(),
