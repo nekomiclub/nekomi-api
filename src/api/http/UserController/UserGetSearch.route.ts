@@ -1,6 +1,6 @@
 import DTOService from '~/service/DataTransferService';
 import IUser from '~/intf/IUser';
-import conf from '~/config';
+import conf from '~/conf';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { RequestSearch, UserSearch } from '~/service/SearchService';

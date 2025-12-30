@@ -1,6 +1,6 @@
 import AnimeRepository from '~/repo/AnimeRepository';
 import DTOService from '~/service/DataTransferService';
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';

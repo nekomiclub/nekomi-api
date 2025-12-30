@@ -1,5 +1,5 @@
 import Logger from './LoggerService';
-import conf from '~/config';
+import conf from '~/conf';
 import mongoose from 'mongoose';
 import ms from 'ms';
 

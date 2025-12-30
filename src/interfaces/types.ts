@@ -21,15 +21,14 @@ export interface IJWTokenPayload<T = object> {
 }
 
 export interface IHomeFeedHero {
-  id: string;
+  id: string
+  slug: string
+  title: string
+  synopsys: string | null
 
-  // TODO: Will be available when document will be fetched from DB
-  // slug: string;
-  // title: string;
-  // about: string;
-
-  cover: CDNString;
-  video: CDNString | null;
+  poster: CDNString
+  cover: CDNString
+  video: CDNString | null
 }
 
 // eslint-disable-next-line

@@ -1,1 +1,1 @@
-npm run husky
+npm run lint && npx tsc --noEmit && npm run test && git add .

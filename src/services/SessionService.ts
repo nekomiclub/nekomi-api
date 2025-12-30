@@ -1,7 +1,7 @@
 import IUser, { IUserSession } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
-import conf, { DevelopmentMode } from '~/config';
+import conf, { DevelopmentMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import ms from 'ms';
 import { ISODateString } from '~/intf/types';

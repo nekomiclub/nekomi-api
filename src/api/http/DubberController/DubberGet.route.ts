@@ -1,7 +1,7 @@
 import DTOService from '~/service/DataTransferService';
 import IDubber, { DubberCardType, DubberRoleType } from '~/intf/IDubber';
 import UserRepository from '~/repo/UserRepository';
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { HandleRequest } from '~/utils/http-utils';

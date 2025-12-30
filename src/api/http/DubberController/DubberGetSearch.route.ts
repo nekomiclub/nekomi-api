@@ -1,6 +1,6 @@
 import DTOService from '~/service/DataTransferService';
 import IDubber from '~/intf/IDubber';
-import conf from '~/config';
+import conf from '~/conf';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { DubberSearch, RequestSearch } from '~/service/SearchService';
 import { HandleRequest } from '~/utils/http-utils';

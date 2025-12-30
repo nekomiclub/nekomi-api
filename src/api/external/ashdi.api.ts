@@ -1,6 +1,6 @@
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
-import conf from '~/config';
+import conf from '~/conf';
 import { IAshdiDub, IAshdiTitle } from '~/intf/external-api/IAshdi.api';
 
 

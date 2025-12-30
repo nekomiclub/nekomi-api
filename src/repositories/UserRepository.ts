@@ -5,7 +5,7 @@ import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import UserValidators from '~/utils/validators/user-validators';
-import conf, { TestMode } from '~/config';
+import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
 import { CDNString, RepositoryQueriesType } from '~/intf/types';

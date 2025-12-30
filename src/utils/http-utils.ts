@@ -1,6 +1,6 @@
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
-import conf, { ProductionMode } from '~/config';
+import conf, { ProductionMode } from '~/conf';
 import express from 'express';
 import { HandleRequestError, NekoError } from '~/service/ExceptionService';
 import { IncomingHttpHeaders } from 'http';

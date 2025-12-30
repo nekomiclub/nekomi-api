@@ -114,6 +114,7 @@ export interface IAnimeSchedule {
 
 export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
   title: string
+  poster: CDNString
   genres: AnimeGenreType[]
 }
 

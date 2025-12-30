@@ -1,6 +1,7 @@
 import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber, { DubberCardType } from '~/intf/IDubber';
 import IUser, { UserCardType } from '~/intf/IUser';
+import conf from '~/conf';
 import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
 
@@ -70,12 +71,13 @@ class DTOServiceClass {
 
 
 
-  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score }: IAnime): AnimeCardType {
+  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score, posters }: IAnime): AnimeCardType {
     return {
       id,
       slug,
       episodes_total,
       score,
+      poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
       title: title_ua ?? title_en,
       genres: genres.map(el => ANIME_GENRES[el]),
     };

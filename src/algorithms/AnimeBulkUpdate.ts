@@ -2,7 +2,7 @@ import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import AnimeValidators from '~/utils/validators/anime-validators';
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
-import conf from '~/config';
+import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
 import { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';

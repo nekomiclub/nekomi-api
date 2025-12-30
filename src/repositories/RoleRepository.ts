@@ -6,7 +6,7 @@ import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
-import { TestMode } from '~/config';
+import { TestMode } from '~/conf';
 
 
 

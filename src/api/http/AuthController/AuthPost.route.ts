@@ -5,7 +5,7 @@ import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
 import firebase from 'firebase-admin';
 import z from 'zod';
 import { AUTH_METHOD } from '~/intf/IAuth';
-import { DevelopmentMode } from '~/config';
+import { DevelopmentMode } from '~/conf';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
 import { IUserSession, USER_RESTRICTION } from '~/intf/IUser';

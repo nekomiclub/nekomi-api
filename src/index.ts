@@ -6,7 +6,7 @@ import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
 import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
-import conf from './config';
+import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -37,7 +37,11 @@ async function runtime() {
     app.use(traceRequest());
 
     app.use(cors({
-      origin: ['http://127.0.0.1:3001'],
+      origin: ProductionMode ? [
+        conf.URL.nekomiSite
+      ] : [
+        'http://127.0.0.1:3001',
+      ],
       credentials: true,
     }));
 

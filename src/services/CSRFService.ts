@@ -1,6 +1,6 @@
 import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
-import conf, { DevelopmentMode, TestMode } from '~/config';
+import conf, { DevelopmentMode, TestMode } from '~/conf';
 import jwt from 'jsonwebtoken';
 import { CSRFTokenType } from '~/intf/IAuth';
 import { ISODateString } from '~/intf/types';

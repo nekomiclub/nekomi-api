@@ -1,4 +1,4 @@
-import conf from '~/config';
+import conf from '~/conf';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IJWTokenPayload } from '~/intf/types';
 import { NekoError } from './ExceptionService';

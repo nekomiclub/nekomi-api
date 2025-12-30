@@ -1,6 +1,6 @@
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
-import conf from '~/config';
+import conf from '~/conf';
 import { IdsMoeKeys } from '~/intf/external-api/IdsMoe.api';
 
 

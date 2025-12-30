@@ -1,6 +1,6 @@
 import DTOService from '~/service/DataTransferService';
 import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { HandleRequest } from '~/utils/http-utils';
@@ -121,12 +121,23 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_details) {
     if (isEligible(`get_details`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
-      anime_misc.posters = anime.posters.map(el => DTOService.animePoster(el));
       anime_misc.hero_poster_author = anime.hero_poster_author;
       anime_misc.screenshots = anime.screenshots.map(el => DTOService.animeScreenshot(el));
 
       const relations = await repo.getMany({ mal_id: { $in: anime.relations.map(el => el.mal_id) } });
       anime_misc.relations = relations.map(el => DTOService.toAnimeCard(el));
+
+      if (anime.posters.length) {
+        anime_misc.posters = anime.posters.map(el => DTOService.animePoster(el));
+      } else {
+        anime_misc.posters = [{
+          authorId: conf.vars.INTERNAL_ID,
+          is_hero: true,
+          original: conf.vars.defaultPoster,
+          medium: conf.vars.defaultPoster,
+          small: conf.vars.defaultPoster,
+        }];
+      }
     }
   }
 

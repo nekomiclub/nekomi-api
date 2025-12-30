@@ -4,7 +4,7 @@ import IUS_User, { IUS_USER_RESTRICTION } from '~/intf/IUser-userapi';
 import Logger from '~/service/LoggerService';
 import UserModelOld from '~/repo/old/UserModel';
 import axios from 'axios';
-import conf from '~/config';
+import conf from '~/conf';
 import createSlug from './create-slug';
 import fs from 'fs';
 import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';

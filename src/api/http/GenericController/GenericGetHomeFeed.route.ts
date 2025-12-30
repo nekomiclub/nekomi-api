@@ -2,12 +2,13 @@ import AnimeRepository from '~/repo/AnimeRepository';
 import CacheService from '~/service/CacheService';
 import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
-import conf from '~/config';
+import conf from '~/conf';
 import ms from 'ms';
 import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';
 import { IHomeFeedHero } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
+import { removeMarkdown } from '~/utils/utils';
 
 
 
@@ -34,7 +35,12 @@ const feedCacheId = `~feed`;
  */
 const endpoint = HandleRequest(async (req, res) => {
   const cache = FeedCacheService.get(feedCacheId);
-  const feed: IFeed = cache ?? {};
+  const feed: IFeed = cache ?? {
+    hero: [],
+    highest_rate: [],
+    hot: [],
+    updated_recently: []
+  } satisfies IFeed;
 
 
 
@@ -48,9 +54,14 @@ const endpoint = HandleRequest(async (req, res) => {
 
       feed.hero = heroDocuments.map(el => {
         const hero = conf.StaticData.HomeFeed.hero.find(hero => hero.id === el.id)!;
+        const synopsys = el.synopsis_ua ?? el.synopsis_en;
 
         return {
           id: el.id,
+          slug: el.slug,
+          title: el.title_ua ?? el.title_en,
+          synopsys: synopsys && removeMarkdown(synopsys),
+          poster: el.posters.find(el => el.is_hero)?.original ?? el.posters[0]?.original ?? conf.vars.defaultPoster,
           cover: hero.cover,
           video: hero.video,
         };

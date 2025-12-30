@@ -5,8 +5,9 @@ dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
+import parseEnv from './utils/parse-env';
 import { IHomeFeedHero } from './interfaces/types';
-import { getUTC, parseEnv } from './utils/utils';
+import { getUTC } from './utils/utils';
 
 
 
@@ -24,9 +25,9 @@ firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./fireb
 
 
 const URL = {
-  nekomi_site: env.NEKOMI_NEXTJS_URL,
-  nekomi_api: env.NEKOMI_API_URL,
-  nekomi_upload_service: env.NEKOMI_UPLOAD_SERVICE_URL,
+  nekomiSite: env.NEKOMI_NEXTJS_URL,
+  nekomiApi: env.NEKOMI_API_URL,
+  nekomiUploadService: env.NEKOMI_UPLOAD_SERVICE_URL,
 
   hikka: 'https://hikka.io',
   MALAPI: `https://api.myanimelist.net`,
@@ -91,7 +92,11 @@ const StaticData = {
       // ! Production
 
       {
-        id: 'uKiM7NOm', // frieren-beyond-journey-s-end
+        id: 'uKiM7NOm',
+        slug: 'frieren-beyond-journey-s-end',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
         cover: 'https://cdn.nekomi.club/dandadan.webp',
         video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
       },
@@ -99,17 +104,20 @@ const StaticData = {
       // Development
 
       {
-        id: 'uKiM7NOm', // frieren-beyond-journey-s-end
+        id: 'uKiM7NOm',
+        slug: 'frieren-beyond-journey-s-end',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
         cover: 'https://cdn.nekomi.club/dandadan.webp',
         video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
       },
       {
-        id: '2iEasiqg', // chainsaw-man-movie-reze-hen-c4febd
-        cover: 'https://cdn.nekomi.club/dandadan.webp',
-        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
-      },
-      {
-        id: 'voGf1ADS', // hunter-x-hunter
+        id: '2iEasiqg',
+        slug: 'chainsaw-man-the-movie-reze-arc',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
         cover: 'https://cdn.nekomi.club/dandadan.webp',
         video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
       }

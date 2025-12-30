@@ -2,7 +2,7 @@ import DTOService from '~/service/DataTransferService';
 import IDubber, { IDubberMember } from '~/intf/IDubber';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
-import conf, { TestMode } from '~/config';
+import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';

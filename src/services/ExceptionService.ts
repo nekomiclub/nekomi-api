@@ -2,7 +2,7 @@ import Logger from './LoggerService';
 import express from 'express';
 import fs from 'fs';
 import { AxiosError } from 'axios';
-import { DevelopmentMode, TestMode } from '~/config';
+import { DevelopmentMode, TestMode } from '~/conf';
 import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils';
 import { removeSessionCookie } from '~/utils/http-utils';

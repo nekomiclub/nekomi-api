@@ -1,4 +1,4 @@
-import conf from '~/config';
+import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
 import z from 'zod';

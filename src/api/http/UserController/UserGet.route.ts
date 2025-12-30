@@ -1,7 +1,7 @@
 import DTOService from '~/service/DataTransferService';
 import IUser, { IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
 import MiddlewareService from '~/service/MiddlewareService';
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
 import { HandleRequest, getSessionToken } from '~/utils/http-utils';

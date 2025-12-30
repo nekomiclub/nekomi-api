@@ -1,4 +1,4 @@
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';

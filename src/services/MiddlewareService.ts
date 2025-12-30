@@ -3,7 +3,7 @@ import DTOService from './DataTransferService';
 import IUser from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
-import conf, { DevelopmentMode, TestMode } from '~/config';
+import conf, { DevelopmentMode, TestMode } from '~/conf';
 import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
