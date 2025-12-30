@@ -115,7 +115,7 @@ export function getCSRFToken(req: express.Request): string {
 export function setSessionCookie(token: string, res: express.Response) {
   return res.cookie(conf.vars.SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    maxAge: conf.vars.SESSION_COOKIE_AGE_MS,
+    maxAge: conf.vars.SESSION_COOKIE_MAX_AGE_MS,
     secure: ProductionMode,
     domain: ProductionMode ? conf.vars.SESSION_COOKIE_DOMAIN : undefined,
   });

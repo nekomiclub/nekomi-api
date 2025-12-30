@@ -60,14 +60,13 @@ const vars = {
 
   USERNAME_UPDATE_TIMEOUT: ms('7days'),
   CSRF_TOKEN_LIFETIME_MS: ms('1min'),
-  SESSION_TOKEN_LIFETIME_MS: ms('15min'),
   SESSION_LIFETIME_MS: ms('31day'),
   SESSION_LIMITATION_TIMEOUT_MS: ms('1day'),
   SESSION_REFRESH_BY_MS: ms('7day'),
 
   SESSION_COOKIE_NAME: 'SEC_31N',
   SESSION_COOKIE_DOMAIN: `*.${domains.NEKOMI_DOMAIN}`,
-  SESSION_COOKIE_AGE_MS: ms('12week'),
+  SESSION_COOKIE_MAX_AGE_MS: ms('12week'),
 };
 
 /** Funny thing to rickroll some endpoints */

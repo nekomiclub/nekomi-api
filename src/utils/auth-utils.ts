@@ -1,8 +1,45 @@
 import MiddlewareService from '~/service/MiddlewareService';
+import SessionService from '~/service/SessionService';
 import express from 'express';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { getCSRFToken, getSessionToken } from './http-utils';
+import { parseRolesPermissions } from '~/repo/RoleRepository';
+
+
+
+interface IGetSessionAuth {
+  userId: string
+  sessionId: string
+  permissions: ROLE_PERMISSION[]
+}
+
+
+
+/**
+ * Get current user & his permissions
+ * Will use preprocessed data if request passed throught CheckAccess middleware
+ * Will update session cookie
+ */
+export async function getSessionAuth(req: express.Request, res: express.Response): Promise<IGetSessionAuth> {
+  if (req._nekomi.middlewaresPassed.includes('checkAccess')) {
+    return {
+      userId: req._nekomi.user?.id ?? '',
+      sessionId: req._nekomi.user?.sessionId ?? '',
+      permissions: req._nekomi.user?.permissions ?? []
+    };
+  } else {
+    const { user, sessionId } = await new SessionService().parse(getSessionToken(req));
+
+    const permissions = await parseRolesPermissions(user.roles);
+
+    return {
+      userId: user.id,
+      sessionId,
+      permissions,
+    };
+  }
+}
 
 
 

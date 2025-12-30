@@ -1,4 +1,4 @@
-import { ISODateString } from './types';
+import z from 'zod';
 
 
 
@@ -8,16 +8,21 @@ export enum AUTH_METHOD {
 
 
 
-export interface ISessionToken {
-  token_id: string
-  user_id: string
-  session_id: string
-  created_at: ISODateString
-}
+export const SessionTokenSchema = z.object({
+  token_id: z.string().nonempty(),
+  user_id: z.string().nonempty(),
+  session_id: z.string().nonempty(),
+});
 
-export interface ICSRFToken {
-  token_id: string
-  origin: string
-  created_at: ISODateString
-}
+export const CSRFTokenSchema = z.object({
+  token_id: z.string().nonempty(),
+  origin: z.string().nonempty(),
+});
+
+
+
+export type SessionTokenType = z.infer<typeof SessionTokenSchema>
+export type CSRFTokenType = z.infer<typeof CSRFTokenSchema>
+
+
 

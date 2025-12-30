@@ -4,10 +4,10 @@ import IUser from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/config';
-import { HandleMiddleware, getCSRFToken, getSessionToken, setSessionCookie } from '~/utils/http-utils';
-import { ISessionToken } from '~/intf/IAuth';
+import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
+import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
@@ -19,7 +19,6 @@ export type MiddlewareType = keyof MiddlewareService;
 interface ICheckAccess {
   user: IUser
   sessionId: string
-  sessionToken: string
 
   /** Will be null if required permissions are not specified */
   permissions: ROLE_PERMISSION[] | null
@@ -34,12 +33,14 @@ export default class MiddlewareService {
    * Will refresh user access 
    */
   async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
+    const { payload } = TokenService.decode<SessionTokenType>(token);
+    if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
+
     const session = new SessionService();
 
-    const { payload } = TokenService.decode<ISessionToken>(token);
-    if (!payload.session_id || !payload.user_id) throw new NekoError('auth:session_token_invalid');
-
     let userPermissions: ROLE_PERMISSION[] | null = null;
+
+
 
     await session.init({ id: payload.user_id });
     const sessionToken = await session.refresh(payload.session_id);
@@ -63,7 +64,6 @@ export default class MiddlewareService {
       user: DTOService.user(session.document!),
       permissions: userPermissions,
       sessionId: payload.session_id,
-      sessionToken,
     };
   }
 
@@ -104,18 +104,17 @@ class MiddlewareClass {
 
 
 
-  /** Middleware wrapper for {@link MiddlewareService.checkAccess} */
+  /** 
+   * Middleware wrapper for {@link MiddlewareService.checkAccess} 
+   */
   CheckAccess = (permissions?: ROLE_PERMISSION[]) => HandleMiddleware(async (req, res) => {
     const token = getSessionToken(req);
 
-    const { user, sessionToken, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
-
-    setSessionCookie(sessionToken, res);
+    const { user, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
 
 
 
     req._nekomi.middlewaresPassed?.push('checkAccess');
-    req._nekomi.sessionToken = sessionToken;
 
     req._nekomi.user = {
       id: user.id,

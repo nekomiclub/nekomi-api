@@ -2,10 +2,10 @@ import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/config';
 import jwt from 'jsonwebtoken';
-import { ICSRFToken } from '~/intf/IAuth';
+import { CSRFTokenType } from '~/intf/IAuth';
 import { ISODateString } from '~/intf/types';
+import { calcISO, getUTC } from '~/utils/utils';
 import { createNanoId } from '~/utils/create-id';
-import { getUTC } from '~/utils/utils';
 
 
 
@@ -24,10 +24,7 @@ interface IVerify {
 
 
 /** Defines the time within token will be purged. Calculated as token.acceptedAt + PURGE_TIMEOUT */
-const PURGE_TIMEOUT = 120000;
-
-/** CSRF token lifespan */
-const CSRF_TOKEN_LIFESPAN_MS = 5000;
+const PURGE_TIMEOUT_MS = conf.vars.CSRF_TOKEN_LIFETIME_MS * 2.5;
 
 
 
@@ -39,7 +36,7 @@ class CSRFServiceClass {
   constructor() {
     setInterval(() => {
       this.purgeTokens();
-    }, PURGE_TIMEOUT);
+    }, PURGE_TIMEOUT_MS);
   }
 
 
@@ -58,7 +55,7 @@ class CSRFServiceClass {
     this.pushToken(token);
 
     try {
-      const { origin } = TokenService.decode<ICSRFToken>(token).payload;
+      const { origin } = TokenService.decode<CSRFTokenType>(token).payload;
 
       // Ensure that origin match requested if second was provided
       if (requestedOrigin && requestedOrigin !== origin) return { verified: false, origin };
@@ -82,17 +79,16 @@ class CSRFServiceClass {
    * Sign CSRF token
    */
   signToken(expiresIn?: number | null): string {
-    const payload: ICSRFToken = {
+    const payload: CSRFTokenType = {
       token_id: createNanoId(),
       origin: conf.domains.NEKOMI_API_DOMAIN,
-      created_at: getUTC().ISO
     };
 
     if (expiresIn === null) expiresIn = 3600;
 
     return jwt.sign(payload, conf.env.CSRF_SK, {
       algorithm: 'RS256',
-      expiresIn: expiresIn ?? CSRF_TOKEN_LIFESPAN_MS / 1000,
+      expiresIn: expiresIn ?? conf.vars.CSRF_TOKEN_LIFETIME_MS / 1000,
       subject: 'CSRF'
     });
   }
@@ -126,7 +122,7 @@ class CSRFServiceClass {
    * Purge accepted tokens
    */
   private purgeTokens() {
-    this.tokens = this.tokens.filter(el => getUTC(el.acceptedAt).timestamp + PURGE_TIMEOUT > getUTC().timestamp);
+    this.tokens = this.tokens.filter(el => calcISO(el.acceptedAt, PURGE_TIMEOUT_MS) > getUTC().timestamp);
   }
 }
 

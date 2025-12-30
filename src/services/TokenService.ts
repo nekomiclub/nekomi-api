@@ -18,7 +18,7 @@ class TokenServiceClass {
   sign<T extends object>(method: TOKEN_METHOD, payload: T): string {
     if (method === TOKEN_METHOD.USER_SESSION_TOKEN) {
       return jwt.sign(payload, conf.env.USER_SESSION_SK, {
-        expiresIn: conf.vars.SESSION_TOKEN_LIFETIME_MS / 1000
+        expiresIn: conf.vars.SESSION_COOKIE_MAX_AGE_MS / 1000
       });
     }
 
@@ -46,13 +46,17 @@ class TokenServiceClass {
    * Decode token
    */
   decode<T = object>(token: string): IJWTokenPayload<T> {
-    const payload = (jwt.decode(token) ?? {}) as JwtPayload & T;
-    if (typeof payload !== 'object') throw new NekoError('sys:type_invalid', `JWT token data is invalid`);
+    try {
+      const payload = (jwt.decode(token) ?? {}) as JwtPayload & T;
+      if (typeof payload !== 'object') throw new NekoError('sys:type_invalid', `JWT token data is invalid`);
 
-    return {
-      verified: null,
-      payload,
-    };
+      return {
+        verified: null,
+        payload,
+      };
+    } catch (e) {
+      throw new NekoError(`sys:invalid_payload`, `JWT token data is invalid`);
+    }
   }
 
 

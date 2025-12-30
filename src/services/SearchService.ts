@@ -18,7 +18,6 @@ interface ISearchResponse<T> {
 
 class SearchServiceClass<T extends object> {
   private engine: Fuse<T> | null = null;
-  private documents: T[] = [];
 
 
 
@@ -37,7 +36,6 @@ class SearchServiceClass<T extends object> {
   async update() {
     const documents = await this.repository.getAll();
 
-    this.documents = documents;
     this.engine = new Fuse(documents, {
       keys: this.searchKeys,
       shouldSort: true,
