@@ -1,5 +1,5 @@
 import CSRFService from './CSRFService';
-import DocumentDTO from './DataTransferService';
+import DTOService from './DataTransferService';
 import IUser from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
@@ -59,7 +59,7 @@ export default class MiddlewareService {
 
 
     return {
-      user: DocumentDTO.user(session.document!),
+      user: DTOService.user(session.document!),
       permissions: userPermissions,
       sessionId: payload.session_id,
       sessionToken,

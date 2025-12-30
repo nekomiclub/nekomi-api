@@ -112,6 +112,17 @@ export interface IAnimeSchedule {
 
 
 
+export interface IAnimeCard {
+  id: string
+  slug: string
+  title: string
+  genres: AnimeGenreType[]
+  episodes_total: number | null
+  score: number | null
+}
+
+
+
 type AnimeNamedRecordType<T = string> = {
   slug: T
   name: string
@@ -519,6 +530,7 @@ export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
     name: 'Невідомо',
   },
 };
+
 
 
 

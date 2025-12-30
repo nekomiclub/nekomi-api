@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IDubber from '~/intf/IDubber';
 import conf from '~/config';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
@@ -13,7 +13,7 @@ import { Middleware } from '~/service/MiddlewareService';
  */
 const endpoint = HandleRequest(async (req, res) => {
   const repo = new DubberRepositoryClass();
-  const { results, pagination } = await RequestSearch<IDubber>(req, repo, DubberSearch, DocumentDTO.dubber);
+  const { results, pagination } = await RequestSearch<IDubber>(req, repo, DubberSearch, DTOService.dubber);
 
   return res.status(200).json({
     message: 'Dubbers searched',

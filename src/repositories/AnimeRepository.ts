@@ -1,5 +1,5 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
 import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
@@ -118,7 +118,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.anime(this._doc, true) : null;
+    return this._doc ? DTOService.anime(this._doc, true) : null;
   }
 
   async save() {
@@ -217,7 +217,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     Logger.info(`[AnimeRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.anime(payload, true);
+    return DTOService.anime(payload, true);
   }
 
 

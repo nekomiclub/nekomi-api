@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IUser from '~/intf/IUser';
 import SessionService from '~/service/SessionService';
 import { HandleRequest, getSessionToken, setSessionCookie } from '~/utils/http-utils';
@@ -29,7 +29,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'Access refreshed',
-    user: DocumentDTO.user(user)
+    user: DTOService.user(user)
   } satisfies IResponse);
 });
 

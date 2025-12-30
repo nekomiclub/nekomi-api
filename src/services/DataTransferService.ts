@@ -1,6 +1,7 @@
-import IAnime from '~/intf/IAnime';
+import IAnime, { IAnimeCard } from '~/intf/IAnime';
 import IDubber from '~/intf/IDubber';
 import IUser from '~/intf/IUser';
+import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
 
 
@@ -22,7 +23,7 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
-class DocumentDTOClass {
+class DTOServiceClass {
   parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();
@@ -89,10 +90,23 @@ class DocumentDTOClass {
 
     return excludeKeys(object, exposed ? [] : keys);
   }
+
+
+
+  toAnimeCard(document: IAnime): IAnimeCard {
+    return {
+      id: document.id,
+      slug: document.slug,
+      episodes_total: document.episodes_total,
+      score: document.score,
+      title: document.title_ua ?? document.title_en,
+      genres: document.genres.map(el => ANIME_GENRES[el]),
+    };
+  }
 }
 
 
 
-const DocumentDTO = new DocumentDTOClass();
+const DTOService = new DTOServiceClass();
 
-export default DocumentDTO;
+export default DTOService;

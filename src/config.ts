@@ -5,6 +5,7 @@ dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
+import { IHomeFeedHero } from './interfaces/types';
 import { getUTC, parseEnv } from './utils/utils';
 
 
@@ -85,6 +86,54 @@ const rickrollEndpoints: RegExp[] = [
 
 
 
+const StaticData = {
+  HomeFeed: {
+    hero: (ProductionMode ? [
+      // ! Production
+
+      {
+        id: 'uKiM7NOm', // frieren-beyond-journey-s-end
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      },
+    ] : [
+      // Development
+
+      {
+        id: 'uKiM7NOm', // frieren-beyond-journey-s-end
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      },
+      {
+        id: '2iEasiqg', // chainsaw-man-movie-reze-hen-c4febd
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      },
+      {
+        id: 'voGf1ADS', // hunter-x-hunter
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      }
+    ]) satisfies IHomeFeedHero[],
+
+    hot: (ProductionMode ? [
+      // Production
+
+      'uKiM7NOm',
+      '2iEasiqg',
+      'voGf1ADS',
+    ] : [
+      // Development
+
+      'uKiM7NOm',
+      '2iEasiqg',
+      'voGf1ADS',
+    ]) satisfies string[]
+  }
+};
+
+
+
 const conf = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
@@ -93,6 +142,7 @@ const conf = {
   env,
   vars,
   domains,
+  StaticData,
 
   rickrollEndpoints
 };

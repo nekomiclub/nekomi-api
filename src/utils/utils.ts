@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import z, { ZodError } from 'zod';
+import { ISODateString } from '~/intf/types';
 
 
 
@@ -38,6 +39,18 @@ export function getUTC(ts?: string | number | Date) {
 
     ISO: now.toISOString(),
   };
+}
+
+
+
+/** 
+ * Calculate ISO string with arguments
+ */
+export function calcISO(ISO: ISODateString, ...args: number[]): number {
+  const ts = getUTC(ISO).timestamp;
+  const offset = args.reduce((sum, ms) => sum + ms, 0);
+
+  return ts + offset;
 }
 
 

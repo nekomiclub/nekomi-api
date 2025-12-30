@@ -11,7 +11,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { AnimeBulkUpdateCRON } from './algorithms/AnimeBulkUpdate';
-import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles, MLoadUsers } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -72,12 +71,6 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
-
-    if (conf.env.ENV === 'deploy') await MLoadAgents();
-    if (conf.env.ENV === 'deploy') await MLoadRoles();
-    if (conf.env.ENV === 'deploy') await MLoadDubbers();
-    if (conf.env.ENV === 'deploy') await MLoadCatalog();
-    if (conf.env.ENV === 'deploy') await MLoadUsers();
 
     if (conf.env.ENV === 'deploy') await AnimeBulkUpdateCRON();
   } catch (e) {

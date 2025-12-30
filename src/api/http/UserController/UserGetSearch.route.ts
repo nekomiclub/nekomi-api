@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IUser from '~/intf/IUser';
 import conf from '~/config';
 import { HandleRequest } from '~/utils/http-utils';
@@ -13,7 +13,7 @@ import { UserRepositoryClass } from '~/repo/UserRepository';
  */
 const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
-  const { results, pagination } = await RequestSearch<IUser>(req, repo, UserSearch, DocumentDTO.user);
+  const { results, pagination } = await RequestSearch<IUser>(req, repo, UserSearch, DTOService.user);
 
   return res.status(200).json({
     message: 'Users searched',

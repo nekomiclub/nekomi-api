@@ -1,4 +1,4 @@
-import DocumentDTO from './DataTransferService';
+import DTOService from './DataTransferService';
 import IUser, { IUserSession } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
@@ -190,6 +190,6 @@ export default class SessionService extends UserModel {
     const session = this._doc.sessions.find(el => el.id === sessionData.payload.session_id);
     if (!session) throw new NekoError('auth:session_not_exist', `Session "${sessionData.payload.session_id}" is not exist`);
 
-    return { user: DocumentDTO.user(this._doc, true), session };
+    return { user: DTOService.user(this._doc, true), session };
   }
 }

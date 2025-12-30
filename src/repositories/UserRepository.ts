@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
 import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
 import Logger from '~/service/LoggerService';
@@ -12,7 +12,7 @@ import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { getUTC } from '~/utils/utils';
+import { calcISO, getUTC } from '~/utils/utils';
 
 
 
@@ -101,7 +101,7 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
 
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.user(this._doc, true) : null;
+    return this._doc ? DTOService.user(this._doc, true) : null;
   }
 
 
@@ -127,7 +127,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.user(this._doc, true) : null;
+    return this._doc ? DTOService.user(this._doc, true) : null;
   }
 
   async save() {
@@ -198,7 +198,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[UserRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.user(payload, true);
+    return DTOService.user(payload, true);
   }
 
 
@@ -216,7 +216,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 
     // Ensure that user username is not on cooldown
-    const usernameTimeoutTs = getUTC(this._doc.username_changed_at).timestamp + conf.vars.USERNAME_UPDATE_TIMEOUT;
+    const usernameTimeoutTs = calcISO(this._doc.username_changed_at, conf.vars.USERNAME_UPDATE_TIMEOUT);
     if (usernameTimeoutTs > getUTC().timestamp) throw new NekoError('user:username_timeout', `You can change username only after ${getUTC(usernameTimeoutTs).ISO}`);
 
     // Validate username
@@ -249,7 +249,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     UserValidators.email.parse(email);
 
     // Ensure email is not exist
-    const exist = await this.getOne({ email });
+    const exist = await this.safeGetOne({ email });
     if (exist && exist.id !== this._doc.id) throw new NekoError('sys:already_exist', `User with email "${email}" is already exist`);
 
     this.set('email', email);

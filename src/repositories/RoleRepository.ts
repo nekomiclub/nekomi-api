@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IRole, { ROLE_PERMISSION } from '~/intf/IRole';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
@@ -46,7 +46,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   }
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.parse(this._doc) : null;
+    return this._doc ? DTOService.parse(this._doc) : null;
   }
 
   async save() {
@@ -84,7 +84,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[RoleRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.parse(payload);
+    return DTOService.parse(payload);
   }
 
 

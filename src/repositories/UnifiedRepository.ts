@@ -1,6 +1,18 @@
-import { HydratedDocument, Model, QueryFilter } from 'mongoose';
+import { HydratedDocument, Model, QueryFilter, SortOrder } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryGetQueryType, RepositoryQueriesType } from '~/intf/types';
+
+
+
+interface IGetTopOfManyProps<T> {
+  limit: number
+
+  sort: {
+    [key: string]: SortOrder
+  } & {
+    [K in keyof T]?: SortOrder
+  }
+}
 
 
 
@@ -83,6 +95,14 @@ export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModel
 
   async getMany(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType[]> {
     const results = await this.model.find(typeof query === 'string' ? this.queries(query) : query);
+
+    return results;
+  }
+
+
+
+  async getSortedMany(query: RepositoryGetQueryType<RepositoryType> | undefined, { limit, sort }: IGetTopOfManyProps<RepositoryType>): Promise<RepositoryType[]> {
+    const results = await this.model.find(typeof query === 'string' ? this.queries(query) : query).sort(sort).limit(limit);
 
     return results;
   }

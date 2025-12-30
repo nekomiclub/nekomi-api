@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IDubber, { IDubberMember } from '~/intf/IDubber';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
@@ -84,7 +84,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   }
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.dubber(this._doc, true) : null;
+    return this._doc ? DTOService.dubber(this._doc, true) : null;
   }
 
   async save() {
@@ -140,7 +140,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     Logger.info(`[DubberRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.dubber(payload, true);
+    return DTOService.dubber(payload, true);
   }
 
 

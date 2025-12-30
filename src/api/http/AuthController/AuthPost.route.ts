@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
@@ -105,7 +105,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'User authorized',
-    user: DocumentDTO.user(user),
+    user: DTOService.user(user),
     session: sessionData
   } satisfies IResponse);
 });

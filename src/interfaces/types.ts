@@ -22,3 +22,15 @@ export interface IJWTokenPayload<T = object> {
   /** Will be null if verify method is not specified */
   verified: boolean | null;
 }
+
+export interface IHomeFeedHero {
+  id: string;
+
+  // TODO: Will be available when document will be fetched from DB
+  // slug: string;
+  // title: string;
+  // about: string;
+
+  cover: CDNString;
+  video: CDNString | null;
+}
