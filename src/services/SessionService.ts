@@ -3,7 +3,7 @@ import IUser, { IUserSession } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
 import conf, { DevelopmentMode } from '~/config';
-import createId from '~/utils/create-id';
+import createId, { createNanoId } from '~/utils/create-id';
 import ms from 'ms';
 import { ISODateString } from '~/intf/types';
 import { ISessionToken } from '~/intf/IAuth';
@@ -56,6 +56,7 @@ export default class SessionService extends UserModel {
     };
 
     const token = TokenService.sign<ISessionToken>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+      token_id: createNanoId(),
       user_id: this._doc.id,
       session_id: sessionId,
       created_at: getUTC().ISO
@@ -98,6 +99,7 @@ export default class SessionService extends UserModel {
 
 
     return TokenService.sign<ISessionToken>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+      token_id: createNanoId(),
       user_id: this._doc.id,
       session_id: session.id,
       created_at: getUTC().ISO

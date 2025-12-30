@@ -35,10 +35,13 @@ export const UserControllerACUploadMiddlewares = [
  */
 export default async function HandleUserControllerACUpload(req: express.Request, repo: UserRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
-  const { id: targetId } = req.params as { id: string };
+  const params = req.params as { id?: string };
+  const targetId = params.id ?? userId;
 
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);
+
+
 
   if (userId === targetId) {
     // Update current user

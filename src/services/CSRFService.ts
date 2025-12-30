@@ -2,7 +2,9 @@ import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/config';
 import jwt from 'jsonwebtoken';
-import { ICSRFToken, ISODateString } from '~/intf/types';
+import { ICSRFToken } from '~/intf/IAuth';
+import { ISODateString } from '~/intf/types';
+import { createNanoId } from '~/utils/create-id';
 import { getUTC } from '~/utils/utils';
 
 
@@ -68,6 +70,8 @@ class CSRFServiceClass {
         origin
       };
     } catch (e) {
+      if (DevelopmentMode) console.error(`JWT token is not verified`, e);
+
       return { verified: false };
     }
   }
@@ -79,8 +83,12 @@ class CSRFServiceClass {
    */
   signToken(expiresIn?: number | null): string {
     const payload: ICSRFToken = {
-      origin: conf.domains.NEKOMI_API_DOMAIN
+      token_id: createNanoId(),
+      origin: conf.domains.NEKOMI_API_DOMAIN,
+      created_at: getUTC().ISO
     };
+
+    if (expiresIn === null) expiresIn = 3600;
 
     return jwt.sign(payload, conf.env.CSRF_SK, {
       algorithm: 'RS256',

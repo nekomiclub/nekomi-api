@@ -12,14 +12,14 @@ const DubberRouter = express.Router();
 DubberRouter.get('/search', DubberGetSearchRoute);
 DubberRouter.get('/:query');
 
-DubberRouter.post('/');
+// DubberRouter.post('/');
 
-DubberRouter.patch('/settings/:id');
+// DubberRouter.patch('/settings/:id');
 
 DubberRouter.put('/settings/:id/avatar', DubberPutAvatarRoute);
 DubberRouter.put('/settings/:id/cover', DubberPutCoverRoute);
 
-DubberRouter.delete('/:id');
+// DubberRouter.delete('/:id');
 
 
 

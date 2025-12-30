@@ -72,13 +72,10 @@ class DTOServiceClass {
     const keys: (keyof IUser)[] = [
       'roles',
       'libs',
-      'total_viewtime',
       'view_progress',
-      'dubber_team_member',
       'telegram_id',
       'created_at',
       'updated_at',
-      'username_changed_at',
       'email',
       'restrictions',
       'sessions',

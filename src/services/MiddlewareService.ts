@@ -43,6 +43,7 @@ export default class MiddlewareService {
 
     await session.init({ id: payload.user_id });
     const sessionToken = await session.refresh(payload.session_id);
+    await session.save();
 
     // Ensure permissions
     if (permissions?.length) {
@@ -76,10 +77,15 @@ export default class MiddlewareService {
    * @returns origin
    */
   async checkCSRF(token: string, origins: string[] = []): Promise<string> {
-    token = (DevelopmentMode || TestMode) && token === '~dev' ? CSRFService.signToken(null) : token;
+    // In development mode append nekomi api origin to pass "~dev" token
+    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
+
+    // In development mode issue fresh token for "~dev"
+    if ((DevelopmentMode || TestMode) && token === '~dev') token = CSRFService.signToken(null);
+
+
 
     const csrf = await CSRFService.verify(token);
-
     if (!csrf.verified) throw new NekoError('auth:csrf_token_invalid');
 
     // Pass verifying if origin is nekomi admin
@@ -123,13 +129,7 @@ class MiddlewareClass {
   /** Middleware wrapper for {@link MiddlewareService.checkCSRF} */
   CheckCSRF = (origins?: string[]) => HandleMiddleware(async (req) => {
     const token = getCSRFToken(req);
-
-    // In development mode append nekomi api origin to pass "~dev" token
-    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
-
     const origin = await this.service.checkCSRF(token, origins);
-
-
 
     req._nekomi.middlewaresPassed?.push('checkCSRF');
     req._nekomi.csrfOrigin = origin;

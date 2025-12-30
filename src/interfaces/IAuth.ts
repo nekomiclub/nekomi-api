@@ -9,7 +9,15 @@ export enum AUTH_METHOD {
 
 
 export interface ISessionToken {
-  user_id: string;
-  session_id: string;
-  created_at: ISODateString;
+  token_id: string
+  user_id: string
+  session_id: string
+  created_at: ISODateString
 }
+
+export interface ICSRFToken {
+  token_id: string
+  origin: string
+  created_at: ISODateString
+}
+
