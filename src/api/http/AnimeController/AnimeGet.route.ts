@@ -1,46 +1,19 @@
 import DTOService from '~/service/DataTransferService';
-import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import conf from '~/config';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { HandleRequest } from '~/utils/http-utils';
+import { ISODateString, zBoolean } from '~/intf/types';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
-import { zBoolean } from '~/intf/types';
 
 
 
-type PublicAnimeKeysType = keyof Pick<IAnime, 'id'
-  | 'mal_id'
-  | 'imdb_id'
-  | 'slug'
-  | 'hikka_slug'
-  | 'year'
-  | 'episodes_total'
-  | 'episodes_released'
-  | 'title_en'
-  | 'title_ja'
-  | 'title_ua'
-  | 'title_synonims'
-  | 'synopsis_en'
-  | 'synopsis_ua'
-  | 'score'
-  | 'scored_by'
-  | 'studios'
-  | 'schedule'
-  | 'is_DMCA_restricted'>
+const FullPublicResponseKeys = ['id', 'mal_id', 'imdb_id', 'slug', 'hikka_slug', 'year', 'episodes_total', 'episodes_released', 'title_en', 'title_ja', 'title_ua', 'title_synonims', 'synopsis_en', 'synopsis_ua', 'score', 'scored_by', 'studios', 'schedule', 'is_DMCA_restricted'] as const;
+type FullPublicResponseType = Pick<IAnime, typeof FullPublicResponseKeys[number]>
 
-type ProtectedAnimeKeysType = keyof Pick<IAnime, 'posters'
-  | 'hero_poster_author'
-  | 'screenshots'
-  | 'episodes'
-  | 'episodes_meta'
-  | 'updated_at'
-  | 'created_at'
-  | 'hikka_sync'
-  | 'myanimelist_sync'>
-
-type AnimeFullType = Pick<IAnime, PublicAnimeKeysType> & {
+type FullResponseType = FullPublicResponseType & {
   genres: AnimeGenreType[]
   season: AnimeSeasonType | null
   status: AnimeStatusType | null
@@ -48,17 +21,50 @@ type AnimeFullType = Pick<IAnime, PublicAnimeKeysType> & {
   type: AnimeType | null
 }
 
-/** @method get_details, get_episodes */
-type AnimeMiscType = Partial<Pick<IAnime, ProtectedAnimeKeysType>> & {
+
+
+interface IResponseMisc {
+  /** @method get_details */
   relations?: AnimeCardType[]
+
+
+
+  /** @method get_episodes */
+  episodes?: IAnimeEpisode[]
+
+  /** @method get_episodes */
+  episodes_meta?: IAnimeEpisodeMeta[]
+
+
+
+  /** @method get_details */
+  posters?: Omit<IAnimePosterNode, keyof Pick<IAnimePosterNode, '_unprocessedAuthorName' | 'pull_hash'>>[]
+
+  /** @method get_details */
+  hero_poster_author?: string | null
+
+  /** @method get_details */
+  screenshots?: Omit<IAnimeScreenshotNode, keyof Pick<IAnimeScreenshotNode, 'pull_hash'>>[]
+
+
+
+  /** @method get_timestamps */
+  updated_at?: ISODateString
+
+  /** @method get_timestamps */
+  created_at?: ISODateString
+
+  /** @method get_timestamps */
+  hikka_sync?: ISODateString | null
+
+  /** @method get_timestamps */
+  myanimelist_sync?: ISODateString | null
 }
 
 interface IResponse {
   message: string
 
-  anime_full: AnimeFullType | undefined
-  anime_card: AnimeCardType | undefined
-  anime_misc: AnimeMiscType | undefined
+  anime: IResponseMisc & (FullResponseType & AnimeCardType | object)
 }
 
 
@@ -93,47 +99,24 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const anime = repo.document;
 
-  let anime_full: AnimeFullType | undefined;
+  let anime_full: FullResponseType | undefined;
   let anime_card: AnimeCardType | undefined;
-  let anime_misc: AnimeMiscType = {};
+  let anime_misc: IResponseMisc = {};
 
 
 
   if (view === 'card') anime_card = DTOService.toAnimeCard(anime);
   else if (view === 'full') {
-    anime_full = {
-      id: anime.id,
-      mal_id: anime.mal_id,
-      imdb_id: anime.imdb_id,
-      slug: anime.slug,
-      hikka_slug: anime.hikka_slug,
+    anime_full = DTOService.includeKeys(anime, [...FullPublicResponseKeys]);
 
-      year: anime.year,
-      episodes_total: anime.episodes_total,
-      episodes_released: anime.episodes_released,
+    anime_full!.synopsis_en = anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en;
+    anime_full!.synopsis_ua = anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua;
 
-      title_en: anime.title_en,
-      title_ja: anime.title_ja,
-      title_ua: anime.title_ua,
-      title_synonims: anime.title_synonims,
-
-      synopsis_en: anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en,
-      synopsis_ua: anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua,
-
-      score: anime.score,
-      scored_by: anime.scored_by,
-
-      studios: anime.studios,
-      schedule: anime.schedule,
-
-      genres: anime.genres.map(el => AnimeGenres[el]),
-      rating: anime.rating && AnimeRatings[anime.rating],
-      status: anime.status && AnimeStatuses[anime.status],
-      season: anime.season && AnimeSeasons[anime.season],
-      type: anime.type && AnimeTypes[anime.type],
-
-      is_DMCA_restricted: anime.is_DMCA_restricted,
-    };
+    anime_full!.genres = anime.genres.map(el => AnimeGenres[el]);
+    anime_full!.rating = anime.rating && AnimeRatings[anime.rating];
+    anime_full!.status = anime.status && AnimeStatuses[anime.status];
+    anime_full!.season = anime.season && AnimeSeasons[anime.season];
+    anime_full!.type = anime.type && AnimeTypes[anime.type];
   }
 
   if (get_details) {
@@ -165,16 +148,18 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'Anime retrieved',
-    anime_full,
-    anime_card,
-    anime_misc: Object.keys(anime_misc).length ? anime_misc : undefined
+    anime: {
+      ...anime_full,
+      ...anime_card,
+      ...anime_misc
+    }
   } satisfies IResponse);
 });
 
 
 
-const AnimeGetDocumentRoute = [
+const AnimeGetRoute = [
   endpoint
 ];
 
-export default AnimeGetDocumentRoute;
+export default AnimeGetRoute;

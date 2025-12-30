@@ -1,9 +1,10 @@
+import DTOService from '~/service/DataTransferService';
+import IUser, { IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
 import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/config';
 import z from 'zod';
-import { ArgumentTypes, CDNString, ISODateString, zBoolean } from '~/intf/types';
+import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
 import { HandleRequest, getSessionToken } from '~/utils/http-utils';
-import { IUserViewProgress, USER_RESTRICTION } from '~/intf/IUser';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
@@ -11,41 +12,50 @@ import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
 
-interface IResponse {
-  message: string
-  user: {
-    id: string
-    username: string
-    avatar: CDNString
-    cover: CDNString
-    total_viewtime: number
-    dubber_team_member: string | null
-    roles: string[]
+const FullResponseKeys = ['id', 'username', 'avatar', 'cover', 'total_viewtime', 'dubber_team_member', 'roles'] as const;
+type FullResponseType = Pick<IUser, typeof FullResponseKeys[number]>
 
-    /** @method get_email */
-    email: string | undefined
 
-    /** @method get_username_changed_at */
-    username_changed_at?: ISODateString
-  }
+
+interface IResponseMisc {
+  /** @method get_email */
+  email?: string
+
+
+
+  /** @method get_username_changed_at */
+  username_changed_at?: ISODateString
+
+
 
   /** @method get_permissions */
-  permissions: ROLE_PERMISSION[] | undefined
+  permissions?: ROLE_PERMISSION[]
+
+
 
   /** @method get_restrictions */
-  restrictions: USER_RESTRICTION[] | undefined
+  restrictions?: USER_RESTRICTION[]
+
+
 
   /** @method get_view_progress */
-  view_progress: IUserViewProgress[] | undefined
+  view_progress?: IUserViewProgress[]
+}
+
+interface IResponse {
+  message: string
+  user: IResponseMisc & (FullResponseType | UserCardType | object)
 }
 
 
 
 const ParamsSchema = z.object({
-  query: z.string().nonempty().optional()
+  query: z.string().nonempty().optional(),
 });
 
 const QuerySchema = z.object({
+  view: z.enum(['full', 'card', 'empty']).default('card'),
+
   get_permissions: zBoolean.optional(),
   get_username_changed_at: zBoolean.optional(),
 
@@ -69,15 +79,13 @@ const QuerySchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamsSchema.parse(req.params);
-  const { get_permissions, get_restrictions, get_username_changed_at, get_view_progress, get_email } = QuerySchema.parse(req.query);
+  const { get_permissions, get_restrictions, get_username_changed_at, get_view_progress, get_email, view } = QuerySchema.parse(req.query);
 
   const repo = new UserRepositoryClass();
+  const user_misc: IResponseMisc = {};
 
-  let email: string | undefined;
-  let username_changed_at: ISODateString | undefined;
-  let permissions: ROLE_PERMISSION[] | undefined;
-  let restrictions: USER_RESTRICTION[] | undefined;
-  let view_progress: IUserViewProgress[] | undefined;
+  let user_full: FullResponseType | undefined;
+  let user_card: UserCardType | undefined;
 
   let isUserOwner = false;
   let isUserAdmin = false;
@@ -96,28 +104,31 @@ const endpoint = HandleRequest(async (req, res) => {
     await repo.init({ id: user.id });
   } else await repo.init(query);
 
-  const user = repo.document!;
+  const user = repo.document;
 
 
 
-  if (get_permissions) permissions = await parseRolesPermissions(user.roles);
-  if (get_username_changed_at) username_changed_at = user.username_changed_at;
+  if (view === 'card') user_card = DTOService.toUserCard(user);
+  else if (view === 'full') user_full = DTOService.includeKeys(user, [...FullResponseKeys]);
+
+  if (get_permissions) user_misc.permissions = await parseRolesPermissions(user.roles);
+  if (get_username_changed_at) user_misc.username_changed_at = user.username_changed_at;
 
   if (get_restrictions) {
     if (isEligible(`get_restrictions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, user.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      restrictions = user.restrictions;
+      user_misc.restrictions = user.restrictions;
     }
   }
 
   if (get_email) {
     if (isEligible(`get_email`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      email = user.email;
+      user_misc.email = user.email;
     }
   }
 
   if (get_view_progress) {
     if (isEligible(`get_view_progress`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      view_progress = user.view_progress;
+      user_misc.view_progress = user.view_progress;
     }
   }
 
@@ -126,20 +137,10 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'User retrieved',
     user: {
-      id: user.id,
-      avatar: user.avatar,
-      cover: user.cover,
-      username: user.username,
-      total_viewtime: user.total_viewtime,
-      dubber_team_member: user.dubber_team_member,
-      roles: user.roles,
-
-      email,
-      username_changed_at,
+      ...user_full,
+      ...user_card,
+      ...user_misc,
     },
-    permissions,
-    restrictions,
-    view_progress
   } satisfies IResponse);
 });
 

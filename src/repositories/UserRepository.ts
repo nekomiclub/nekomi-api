@@ -126,8 +126,10 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.user(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.user(this._doc, true);
   }
 
   async save() {

@@ -23,7 +23,22 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
+function includeKeys<T>(object: object, include: string[]): T {
+  const instance = {} as T;
+
+  include.forEach(key => {
+    instance[key] = object[key];
+  });
+
+  return instance;
+}
+
+
+
 class DTOServiceClass {
+  excludeKeys = excludeKeys;
+  includeKeys = includeKeys;
+
   parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();

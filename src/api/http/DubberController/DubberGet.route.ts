@@ -11,35 +11,33 @@ import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 
 
 
-type PublicDubberKeys = keyof Pick<IDubber, 'id'
-  | 'slug'
-  | 'name'
-  | 'about'
-  | 'avatar'
-  | 'cover'
-  | 'socials'
-  | 'support'>
-
-type ProtectedDubberKeys = keyof Pick<IDubber, 'created_at'
-  | 'updated_at'>
-
-type DubberFullType = Pick<IDubber, PublicDubberKeys>
-
-type DubberMiscType = Partial<Pick<IDubber, ProtectedDubberKeys>>
+const FullResponseKeys = ['id', 'slug', 'name', 'about', 'avatar', 'cover', 'socials', 'support'] as const;
+type FullResponseType = Pick<IDubber, typeof FullResponseKeys[number]>
 
 interface IDubberMemberResponse extends UserCardType {
   role: DubberRoleType
   member_since: ISODateString
 }
 
+
+
+interface IResponseMisc {
+  /** @method get_members */
+  members?: IDubberMemberResponse[]
+
+
+
+  /** @method get_timestamps */
+  created_at?: ISODateString
+
+  /** @method get_timestamps */
+  updated_at?: ISODateString
+}
+
 interface IResponse {
   message: string
 
-  dubber_full: DubberFullType | undefined
-  dubber_card: DubberCardType | undefined
-  dubber_misc: DubberMiscType | undefined
-
-  members: IDubberMemberResponse[] | undefined
+  dubber: IResponseMisc & (FullResponseType | DubberCardType | object)
 }
 
 
@@ -70,32 +68,20 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const dubber = repo.document;
 
-  let dubber_full: DubberFullType | undefined;
+  let dubber_full: FullResponseType | undefined;
   let dubber_card: DubberCardType | undefined;
-  let dubber_misc: DubberMiscType = {};
-  let members: IDubberMemberResponse[] | undefined;
+  let dubber_misc: IResponseMisc = {};
 
 
 
   if (view === 'card') dubber_card = DTOService.toDubberCard(dubber);
-  else if (view === 'full') {
-    dubber_full = {
-      id: dubber.id,
-      slug: dubber.slug,
-      name: dubber.name,
-      about: dubber.about,
-      avatar: dubber.avatar,
-      cover: dubber.cover,
-      socials: dubber.socials,
-      support: dubber.support,
-    };
-  }
+  else if (view === 'full') dubber_full = DTOService.includeKeys(dubber, []);
 
   if (get_members) {
     if (isEligible('get_members', await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
       const users = await UserRepository.getMany({ id: { $in: dubber.members.map(el => el.id) } });
 
-      members = users.map(user => {
+      dubber_misc.members = users.map(user => {
         const { id, avatar, username } = DTOService.toUserCard(user);
         const { member_since, role } = dubber.members.find(el => el.id === user.id)!;
 
@@ -121,10 +107,11 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'Dubber retrieved',
-    dubber_full,
-    dubber_card,
-    dubber_misc: Object.keys(dubber_misc).length ? dubber_misc : undefined,
-    members,
+    dubber: {
+      ...dubber_full,
+      ...dubber_card,
+      ...dubber_misc
+    }
   } satisfies IResponse);
 });
 
