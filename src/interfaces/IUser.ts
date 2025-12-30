@@ -69,4 +69,8 @@ export interface IUserSession {
   created_at: ISODateString
 }
 
+export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar'>
+
+
+
 export default IUser;

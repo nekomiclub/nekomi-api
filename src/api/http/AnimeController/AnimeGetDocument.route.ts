@@ -10,7 +10,7 @@ import { zBoolean } from '~/intf/types';
 
 
 
-type PublicAnimeKeysType = | 'id'
+type PublicAnimeKeysType = keyof Pick<IAnime, 'id'
   | 'mal_id'
   | 'imdb_id'
   | 'slug'
@@ -28,9 +28,9 @@ type PublicAnimeKeysType = | 'id'
   | 'scored_by'
   | 'studios'
   | 'schedule'
-  | 'is_DMCA_restricted'
+  | 'is_DMCA_restricted'>
 
-type ProtectedAnimeKeysType = 'posters'
+type ProtectedAnimeKeysType = keyof Pick<IAnime, 'posters'
   | 'hero_poster_author'
   | 'screenshots'
   | 'episodes'
@@ -38,7 +38,7 @@ type ProtectedAnimeKeysType = 'posters'
   | 'updated_at'
   | 'created_at'
   | 'hikka_sync'
-  | 'myanimelist_sync'
+  | 'myanimelist_sync'>
 
 type AnimeFullType = Pick<IAnime, PublicAnimeKeysType> & {
   genres: AnimeGenreType[]

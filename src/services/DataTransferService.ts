@@ -1,6 +1,6 @@
 import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
-import IDubber from '~/intf/IDubber';
-import IUser from '~/intf/IUser';
+import IDubber, { DubberCardType } from '~/intf/IDubber';
+import IUser, { UserCardType } from '~/intf/IUser';
 import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
 
@@ -55,6 +55,40 @@ class DTOServiceClass {
 
 
 
+  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score }: IAnime): AnimeCardType {
+    return {
+      id,
+      slug,
+      episodes_total,
+      score,
+      title: title_ua ?? title_en,
+      genres: genres.map(el => ANIME_GENRES[el]),
+    };
+  }
+
+
+
+  animePoster(object: IAnimePosterNode): IAnimePosterNode {
+    const keys: (keyof IAnimePosterNode)[] = [
+      '_unprocessedAuthorName',
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
+  }
+
+
+
+  animeScreenshot(object: IAnimeScreenshotNode): IAnimeScreenshotNode {
+    const keys: (keyof IAnimeScreenshotNode)[] = [
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
+  }
+
+
+
   dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
     const keys: (keyof IDubber)[] = [
       'members'
@@ -64,6 +98,12 @@ class DTOServiceClass {
     if ('toObject' in object) object = object.toObject();
 
     return excludeKeys(object, exposed ? [] : keys);
+  }
+
+
+
+  toDubberCard({ id, avatar, name, slug }: IDubber): DubberCardType {
+    return { avatar, id, name, slug };
   }
 
 
@@ -90,36 +130,8 @@ class DTOServiceClass {
 
 
 
-  toAnimeCard(document: IAnime): AnimeCardType {
-    return {
-      id: document.id,
-      slug: document.slug,
-      episodes_total: document.episodes_total,
-      score: document.score,
-      title: document.title_ua ?? document.title_en,
-      genres: document.genres.map(el => ANIME_GENRES[el]),
-    };
-  }
-
-
-
-  animePoster(object: IAnimePosterNode): IAnimePosterNode {
-    const keys: (keyof IAnimePosterNode)[] = [
-      '_unprocessedAuthorName',
-      'pull_hash'
-    ];
-
-    return excludeKeys(object, keys);
-  }
-
-
-
-  animeScreenshot(object: IAnimeScreenshotNode): IAnimeScreenshotNode {
-    const keys: (keyof IAnimeScreenshotNode)[] = [
-      'pull_hash'
-    ];
-
-    return excludeKeys(object, keys);
+  toUserCard({ avatar, id, username }: IUser): UserCardType {
+    return { avatar, id, username };
   }
 }
 

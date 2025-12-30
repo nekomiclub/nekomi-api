@@ -1,3 +1,4 @@
+import DubberGetRoute from './DubberGet.route';
 import DubberGetSearchRoute from './DubberGetSearch.route';
 import DubberPutAvatarRoute from './DubberPutAvatar.route';
 import DubberPutCoverRoute from './DubberPutCover.route';
@@ -10,7 +11,7 @@ const DubberRouter = express.Router();
 
 
 DubberRouter.get('/search', DubberGetSearchRoute);
-DubberRouter.get('/:query');
+DubberRouter.get('/:query', DubberGetRoute);
 
 // DubberRouter.post('/');
 

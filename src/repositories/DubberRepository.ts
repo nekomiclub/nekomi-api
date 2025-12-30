@@ -83,8 +83,10 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     super(model, queries);
   }
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.dubber(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.dubber(this._doc, true);
   }
 
   async save() {
