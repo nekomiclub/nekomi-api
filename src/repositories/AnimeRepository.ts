@@ -20,7 +20,11 @@ import { getUTC, trimString } from '~/utils/utils';
 type RepositoryType = IAnime;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
-  return { $or: [{ id: query }, { slug: query }] };
+  const queries: object[] = [{ id: query }, { slug: query }, { imdb_id: query }];
+  const mal_id = Number(query);
+  if (!isNaN(mal_id)) queries.push({ mal_id });
+
+  return { $or: queries };
 };
 
 
@@ -117,8 +121,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.anime(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.anime(this._doc, true);
   }
 
   async save() {

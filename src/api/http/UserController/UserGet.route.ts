@@ -1,7 +1,7 @@
 import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/config';
 import z from 'zod';
-import { ArgumentTypes, CDNString, ISODateString } from '~/intf/types';
+import { ArgumentTypes, CDNString, ISODateString, zBoolean } from '~/intf/types';
 import { HandleRequest, getSessionToken } from '~/utils/http-utils';
 import { IUserViewProgress, USER_RESTRICTION } from '~/intf/IUser';
 import { ROLE_PERMISSION } from '~/intf/IRole';
@@ -46,17 +46,17 @@ const ParamsSchema = z.object({
 });
 
 const QuerySchema = z.object({
-  get_permissions: z.coerce.boolean().optional(),
-  get_username_changed_at: z.coerce.boolean().optional(),
+  get_permissions: zBoolean.optional(),
+  get_username_changed_at: zBoolean.optional(),
 
   /** @requires Authorization (CSRF) */
-  get_view_progress: z.coerce.boolean().optional(),
+  get_view_progress: zBoolean.optional(),
 
   /** @requires Authorization (CSRF) */
-  get_email: z.coerce.boolean().optional(),
+  get_email: zBoolean.optional(),
 
   /** @requires Authorization (CSRF+Session) only for owner & admin */
-  get_restrictions: z.coerce.boolean().optional(),
+  get_restrictions: zBoolean.optional(),
 });
 
 

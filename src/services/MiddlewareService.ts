@@ -30,21 +30,18 @@ export default class MiddlewareService {
   /**
    * Check user authorization
    * Will simply parse user if permissions are not specified, otherwise will ensure that user have required permission
-   * Will refresh user access 
    */
   async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
     const { payload } = TokenService.decode<SessionTokenType>(token);
     if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
     const session = new SessionService();
+    await session.init({ id: payload.user_id });
+    await session.parse(token);
 
     let userPermissions: ROLE_PERMISSION[] | null = null;
 
 
-
-    await session.init({ id: payload.user_id });
-    const sessionToken = await session.refresh(payload.session_id);
-    await session.save();
 
     // Ensure permissions
     if (permissions?.length) {

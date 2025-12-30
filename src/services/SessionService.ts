@@ -193,7 +193,7 @@ export default class SessionService extends UserModel {
    */
   async parse(token: string): Promise<IParseSession> {
     const sessionData = TokenService.parse<SessionTokenType>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
-    if (!SessionTokenSchema.safeParse(sessionData).success || !sessionData.verified) throw new NekoError('auth:session_token_invalid');
+    if (!SessionTokenSchema.safeParse(sessionData.payload).success || !sessionData.verified) throw new NekoError('auth:session_token_invalid');
 
     await this.init({ id: sessionData.payload.user_id });
     if (!this._doc) throw new NekoError('sys:document_not_initialized');

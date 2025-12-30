@@ -1,4 +1,4 @@
-import IAnime, { IAnimeCard } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber from '~/intf/IDubber';
 import IUser from '~/intf/IUser';
 import { ANIME_GENRES } from '~/repo/old/AnimeModel';
@@ -90,7 +90,7 @@ class DTOServiceClass {
 
 
 
-  toAnimeCard(document: IAnime): IAnimeCard {
+  toAnimeCard(document: IAnime): AnimeCardType {
     return {
       id: document.id,
       slug: document.slug,
@@ -99,6 +99,27 @@ class DTOServiceClass {
       title: document.title_ua ?? document.title_en,
       genres: document.genres.map(el => ANIME_GENRES[el]),
     };
+  }
+
+
+
+  animePoster(object: IAnimePosterNode): IAnimePosterNode {
+    const keys: (keyof IAnimePosterNode)[] = [
+      '_unprocessedAuthorName',
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
+  }
+
+
+
+  animeScreenshot(object: IAnimeScreenshotNode): IAnimeScreenshotNode {
+    const keys: (keyof IAnimeScreenshotNode)[] = [
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
   }
 }
 

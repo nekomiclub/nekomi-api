@@ -2,8 +2,8 @@ import AnimeRepository from '~/repo/AnimeRepository';
 import DTOService from '~/service/DataTransferService';
 import conf from '~/config';
 import z from 'zod';
+import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';
-import { IAnimeCard } from '~/intf/IAnime';
 import { IPagination } from '~/utils/pagination';
 import { IUserLib } from '~/intf/IUser';
 import { Middleware } from '~/service/MiddlewareService';
@@ -16,7 +16,7 @@ import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 interface IResponse {
   message: string
   lib: IUserLib
-  catalog: IAnimeCard[]
+  catalog: AnimeCardType[]
   pagination: IPagination
 }
 
@@ -45,7 +45,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
-  const catalog: IAnimeCard[] = documents.map(el => DTOService.toAnimeCard(el));
+  const catalog: AnimeCardType[] = documents.map(el => DTOService.toAnimeCard(el));
   const pagination = {
     page: -1,
     limit: -1,

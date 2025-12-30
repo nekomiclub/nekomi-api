@@ -35,13 +35,12 @@ export interface IUser {
   libs: IUserLib[] // Protected
   restrictions: USER_RESTRICTION[] // Protected
   view_progress: IUserViewProgress[] // Protected
+  created_at: ISODateString // Protected
+  updated_at: ISODateString // Protected
 
   sessions: IUserSession[] // Private
   subscriptions: string[] // Private
   telegram_id: number | null // Private
-
-  created_at: ISODateString // Private
-  updated_at: ISODateString // Private
 }
 
 export interface IUserViewProgress {

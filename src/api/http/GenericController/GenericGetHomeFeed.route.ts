@@ -4,8 +4,8 @@ import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import conf from '~/config';
 import ms from 'ms';
+import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';
-import { IAnimeCard } from '~/intf/IAnime';
 import { IHomeFeedHero } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
 
@@ -13,9 +13,9 @@ import { Middleware } from '~/service/MiddlewareService';
 
 interface IFeed {
   hero: IHomeFeedHero[]
-  hot: IAnimeCard[]
-  highest_rate: IAnimeCard[]
-  updated_recently: IAnimeCard[]
+  hot: AnimeCardType[]
+  highest_rate: AnimeCardType[]
+  updated_recently: AnimeCardType[]
 }
 
 interface IResponse extends IFeed {

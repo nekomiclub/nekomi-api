@@ -1,3 +1,4 @@
+import z from 'zod';
 import { JwtPayload } from 'jsonwebtoken';
 import { QueryFilter } from 'mongoose';
 
@@ -33,3 +34,11 @@ export interface IHomeFeedHero {
 
 // eslint-disable-next-line
 export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
+
+
+
+export const zBoolean = z.preprocess((value) => {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return value;
+}, z.boolean());

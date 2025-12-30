@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import z, { ZodError } from 'zod';
-import { ISODateString } from '~/intf/types';
+import { ISODateString, zBoolean } from '~/intf/types';
 
 
 
@@ -97,8 +97,8 @@ const EnvSchema = z.object({
   HOST: z.string(),
 
   ENV: z.enum(['local', 'deploy']),
-  DOCKER: z.coerce.boolean().optional(),
-  VITEST: z.coerce.boolean().optional(),
+  DOCKER: zBoolean.optional(),
+  VITEST: zBoolean.optional(),
 
   DATABASE_HOST: z.string(),
   DATABASE_NAME: z.string(),
@@ -136,4 +136,34 @@ ENVIRONMENT ERROR: ${JSON.stringify(e.errors, null, 2)}
       throw '';
     } else throw e;
   }
+}
+
+
+
+export function removeMarkdown(text: string): string {
+  return text
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    // Remove inline code
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove images
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    // Remove links but keep text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    // Remove headings
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold & italic
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    // Remove strikethrough
+    .replace(/~~(.*?)~~/g, '$1')
+    // Remove blockquotes
+    .replace(/^>\s+/gm, '')
+    // Remove horizontal rules
+    .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '')
+    // Remove unordered/ordered list markers
+    .replace(/^(\s*[-+*]|\s*\d+\.)\s+/gm, '')
+    // Remove extra newlines
+    .replace(/\n{2,}/g, '\n')
+    .trim();
 }
