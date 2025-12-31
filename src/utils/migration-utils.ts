@@ -1,4 +1,5 @@
 import AnimeModelOld from '~/repo/old/AnimeModel';
+import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import DubberModelOld from '~/repo/old/DubberModel';
 import IUS_User, { IUS_USER_RESTRICTION } from '~/intf/IUser-userapi';
 import Logger from '~/service/LoggerService';
@@ -8,7 +9,6 @@ import conf from '~/conf';
 import createSlug from './create-slug';
 import fs from 'fs';
 import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
-import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { ErrorConstructor } from '~/service/ExceptionService';
@@ -362,4 +362,37 @@ export async function MLoadUsers() {
 
   finishMigration('MLoadUsers');
   Logger.info(`[MLoadUsers]: Users loaded`);
+}
+
+
+
+export async function MAnimeIDs() {
+  if (checkMigrationStatus('MAnimeIDs')) return Logger.debug(`[MAnimeIDs]: Skipping due to it's finish`);
+
+  try {
+    const documentsOld = await AnimeModelOld.find({ malId: { $ne: null } });
+    const documents = await AnimeRepository.getMany({ mal_id: { $in: documentsOld.map(el => el.malId) } });
+
+    for (const key in documentsOld) {
+      const documentOld = documentsOld[key];
+      const document = documents.find(el => el.mal_id === documentOld.malId);
+      if (!document) continue;
+
+      try {
+        const repo = new AnimeRepositoryClass();
+        await repo.init({ id: document.id });
+
+        repo._implicitSetId(documentOld.uuid);
+
+        await repo.save();
+      } catch (e) {
+        Logger.warn(`[MAnimeIDs]: An error occured while migrating ${document.id} id`, e);
+      }
+    }
+  } catch (e) {
+    Logger.error(`[MAnimeIDs]: An error occured while loading users`, e);
+  }
+
+  // finishMigration('MAnimeIDs');
+  Logger.info(`[MAnimeIDs]: AnimeIDs migrated`);
 }

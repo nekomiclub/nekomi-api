@@ -133,6 +133,10 @@ async function getCache() {
 
 
 
+const hikkaErrored: string[] = [];
+
+
+
 /**
  * Anime bulk update algorithm
  * 
@@ -151,7 +155,12 @@ export default async function AnimeBulkUpdate() {
   try {
     const startedAt = getUTC().timestamp;
 
-    const document = await AnimeRepository.safeGetOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR });
+    const document = await AnimeRepository.safeGetOne({
+      $or: [
+        { slug: { $regex: /untitled/gi }, id: { $nin: hikkaErrored } },
+        { mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR, id: { $nin: hikkaErrored } },
+      ]
+    });
     if (!document) {
       if (UPDATE_YEAR > AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR -= 1;
       if (UPDATE_YEAR === AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR = getUTC().year + 1;
@@ -174,7 +183,7 @@ export default async function AnimeBulkUpdate() {
 
       repo.setMalId(hikkaRes.mal_id);
 
-      await repo.setTitle({ title_en: hikkaRes.title_en, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
+      await repo.setTitle({ title_en: hikkaRes.title_en?.length ? hikkaRes.title_en : hikkaRes.title_ja, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
 
       repo.setSynopsis({ synopsis_en: hikkaRes.synopsis_en, synopsis_ua: hikkaRes.synopsis_ua });
       repo.setEpisodesReleased(hikkaRes.episodes_released);
@@ -201,6 +210,9 @@ export default async function AnimeBulkUpdate() {
       malId = hikkaRes.mal_id;
       hikkaPosterUrl = hikkaRes.image;
     } catch (e) {
+      hikkaErrored.push(repo.document!.id);
+
+      Logger.warn(`[AnimeBulkUpdate/Hikka]: Hikka parse error, total items: `, hikkaErrored);
       Logger.error(`[AnimeBulkUpdate]: Hikka update failed, skipping... [id: ${document.id}]`, e);
     }
 
