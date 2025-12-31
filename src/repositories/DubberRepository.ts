@@ -1,5 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import IDubber, { IDubberMember } from '~/intf/IDubber';
+import IDubber from '~/intf/IDubber';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
@@ -59,11 +59,6 @@ const model = mongoose.model<RepositoryType>('dubber', schema);
 
 
 interface ICreateProps {
-  /** //! Must be removed after 3.0.0 release */
-  _implicitCreatedAt?: string
-  /** //! Must be removed after 3.0.0 release */
-  _implicitId?: string
-
   /** Save the document in the database. @default true */
   saveDocument?: boolean
 }
@@ -116,7 +111,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = props?._implicitId ? props._implicitId : TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = TestMode ? `~testing-${createNanoId()}` : createId();
     const name = `Dubber ${createNanoId()}`;
     const slug = createSlug(name);
 
@@ -129,7 +124,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       about: null,
       avatar: conf.vars.defaultAvatar,
       cover: conf.vars.defaultCover,
-      created_at: props?._implicitCreatedAt ?? getUTC().ISO,
+      created_at: getUTC().ISO,
       updated_at: getUTC().ISO,
       members: [],
       socials: {},
@@ -162,22 +157,6 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
 
 
-  /** 
-   * Set slug
-   * 
-   * ! Implicitly set slug. Must be removed after 3.0.0 release
-   */
-  async _setSlug(slug: string) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    const exist = await this.safeGetOne(slug);
-    if (exist) throw new NekoError('sys:already_exist', `Dubber with slug "${slug}" is already exist`);
-
-    this.set('slug', slug);
-  }
-
-
-
   /**
    * Set about
    * 
@@ -191,19 +170,6 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
       this.set('about', about);
     }
-  }
-
-
-
-  /** 
-   * Set members
-   * 
-   * ! Implicitly set members. Must be removed after 3.0.0 release
-   */
-  _setMembers(members: IDubberMember[]) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    this.set('members', members);
   }
 
 

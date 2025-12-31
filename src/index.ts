@@ -11,7 +11,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { AnimeBulkUpdateCRON } from './algorithms/AnimeBulkUpdate';
-import { MAnimeIDs } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -76,8 +75,7 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
-    if (conf.env.ENV === 'deploy') await MAnimeIDs();
-    if (conf.env.ENV === 'deploy') await AnimeBulkUpdateCRON();
+    if (conf.env.ENV === 'deploy') AnimeBulkUpdateCRON();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

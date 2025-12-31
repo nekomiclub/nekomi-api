@@ -228,17 +228,6 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  /** 
-   * ! Must be removed after 3.0.0 release
-   */
-  _implicitSetId(id: string) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    this.set('id', id);
-  }
-
-
-
   /**
    * Set malId
    * 
