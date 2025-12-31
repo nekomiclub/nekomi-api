@@ -56,12 +56,6 @@ const model = mongoose.model<RepositoryType>('user', schema);
 interface ICreateProps {
   /** Save the document in the database. @default true */
   saveDocument?: boolean
-
-  /** //! Must be removed after 3.0.0 release */
-  _implicitId?: string
-
-  /** //! Must be removed after 3.0.0 release */
-  _implicitCreatedAt?: string
 }
 
 interface ISetUsernameProps {
@@ -162,7 +156,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create(props?: ICreateProps): Promise<IUser> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = props?._implicitId ? props?._implicitId : TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = TestMode ? `~testing-${createNanoId()}` : createId();
 
     const payload: RepositoryType = {
       id,
@@ -174,11 +168,11 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
       roles: ['user'],
       libs: [
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: props?._implicitCreatedAt ?? getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: getUTC().ISO },
+        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: getUTC().ISO },
       ],
       restrictions: [],
       sessions: [],
@@ -189,7 +183,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       dubber_team_member: null,
       telegram_id: null,
 
-      created_at: props?._implicitCreatedAt ?? getUTC().ISO,
+      created_at: getUTC().ISO,
       updated_at: getUTC().ISO,
       username_changed_at: getUTC(0).ISO,
     };
@@ -306,19 +300,6 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (sec > UserValidators.limits.MAX_INCREASE_VIEWTIME_S) sec = UserValidators.limits.MAX_INCREASE_VIEWTIME_S;
 
     const viewtime = this._doc.total_viewtime + sec;
-
-    this.set('total_viewtime', viewtime);
-  }
-
-
-
-  /**
-   * Set total viewtime
-   * 
-   * ! Must be removed after 3.0.0 release
-   */
-  _setTotalViewtime(viewtime: number) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('total_viewtime', viewtime);
   }
@@ -564,19 +545,6 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     await this.save();
 
     return object.url;
-  }
-
-
-
-  /**
-   * Set subscriptions
-   * 
-   * ! Must be refactored into append/remove methods
-   */
-  _setSubscriptions(subs: string[]) {
-    if (!this._doc) throw new NekoError('sys:document_not_initialized');
-
-    this.set('subscriptions', subs);
   }
 }
 
