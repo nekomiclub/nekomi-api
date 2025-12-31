@@ -75,6 +75,7 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
+
     if (conf.env.ENV === 'deploy') AnimeBulkUpdateCRON();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);

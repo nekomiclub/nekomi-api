@@ -63,7 +63,7 @@ class CSRFServiceClass {
       const agent = await CSRFAgentRepository.getOne(origin);
 
       return {
-        verified: TokenService.verifySecret(token, agent.public_key),
+        verified: TokenService.verifySecret(token, agent.public_key.replace(/\\n/g, '\n')),
         origin
       };
     } catch (e) {
