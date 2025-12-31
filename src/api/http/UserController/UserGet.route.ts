@@ -144,7 +144,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_libs) {
     if (isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.libs = user.libs;
+      user_misc.libs = await DTOService.userLibs(req, user);
     }
   }
 

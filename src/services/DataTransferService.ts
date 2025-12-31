@@ -1,9 +1,11 @@
 import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber, { DubberCardType } from '~/intf/IDubber';
-import IUser, { UserCardType } from '~/intf/IUser';
+import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
+import express from 'express';
 import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
+import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 
 
@@ -149,6 +151,23 @@ class DTOServiceClass {
 
   toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
     return { avatar, id, username, cover };
+  }
+
+
+
+  async userLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
+    let showPrivate = false;
+
+    try {
+      showPrivate = await isRequesterAdmin(req) || await isRequesterAccountOwner(req, user.id);
+    } catch (e) { null; }
+
+    return user.libs.filter(el => {
+      if (el.is_public) return el;
+      if (!el.is_public && showPrivate) return el;
+
+      return undefined;
+    });
   }
 }
 

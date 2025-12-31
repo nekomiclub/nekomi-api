@@ -37,8 +37,6 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
   await repo.init(userId);
 
-  const user = repo.document;
-
   const lib = repo.document?.libs.find(el => el.id === libId);
   if (!lib) throw new NekoError(`sys:not_found`, `User lib "${libId}" is not found`);
 
@@ -54,14 +52,15 @@ const endpoint = HandleRequest(async (req, res) => {
     limit: -1,
   };
 
-  const userCard = DTOService.toUserCard(user);
+  const libs = await DTOService.userLibs(req, repo.document);
+  const user = DTOService.toUserCard(repo.document);
 
 
 
   return res.status(200).json({
     message: 'User lib retrieved',
-    libs: user.libs,
-    user: userCard,
+    libs,
+    user,
     catalog,
     pagination
   } satisfies IResponse);
