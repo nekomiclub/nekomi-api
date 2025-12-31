@@ -60,8 +60,10 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     if (props?.testmode) this.testmode = props.testmode;
   }
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.parse(this._doc) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.parse(this._doc);
   }
 
   async save() {
@@ -130,11 +132,11 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     const { privateKey, publicKey } = this.generateKeypairs();
 
-    this.set('public_key', publicKey);
+    this.set('public_key', publicKey.replace(/\n/g, '\\n'));
 
     Logger.debug(`[CSRFAgent]: New keypairs been issued for agent. [id: ${this._doc.id}]`);
 
-    return privateKey;
+    return privateKey.replace(/\n/g, '\\n');
   }
 
 
