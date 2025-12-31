@@ -1,6 +1,6 @@
 import FormData from 'form-data';
 import Logger from '~/service/LoggerService';
-import conf from '~/config';
+import conf from '~/conf';
 import { $http } from '~/utils/http-utils';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 
@@ -26,7 +26,7 @@ interface IUploadFile {
 
 
 
-const baseURL = conf.URL.nekomi_upload_service;
+const baseURL = conf.URL.nekomiUploadService;
 
 export class NekomiUploadService {
   static async uploadFile({ buffer, type, uploaderId }: IUploadFileProps): Promise<IUploadFile> {

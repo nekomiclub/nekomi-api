@@ -14,7 +14,7 @@ export interface IHikkaAnime {
   synopsis_ua: string | null;
   media_type: 'tv' | string;
   title_ua: string | null;
-  title_en: string;
+  title_en: string | null;
   title_ja: string;
   duration: number | null;
   image: string;

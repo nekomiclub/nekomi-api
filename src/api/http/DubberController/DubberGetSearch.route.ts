@@ -1,10 +1,22 @@
-import DocumentDTO from '~/service/DataTransferService';
 import IDubber from '~/intf/IDubber';
-import conf from '~/config';
+import conf from '~/conf';
 import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { DubberSearch, RequestSearch } from '~/service/SearchService';
 import { HandleRequest } from '~/utils/http-utils';
+import { IPagination } from '~/utils/pagination';
 import { Middleware } from '~/service/MiddlewareService';
+
+
+
+type DubberSearchResultType = Pick<IDubber, 'id' | 'slug' | 'name' | 'about' | 'avatar'>
+
+
+
+interface IRespone {
+  message: string
+  results: DubberSearchResultType[]
+  pagination?: IPagination
+}
 
 
 
@@ -13,13 +25,27 @@ import { Middleware } from '~/service/MiddlewareService';
  */
 const endpoint = HandleRequest(async (req, res) => {
   const repo = new DubberRepositoryClass();
-  const { results, pagination } = await RequestSearch<IDubber>(req, repo, DubberSearch, DocumentDTO.dubber);
+  const { results: raw, pagination } = await RequestSearch<IDubber>(req, repo, DubberSearch);
+
+  const results: DubberSearchResultType[] = raw.map(result => {
+    const { about, avatar, id, name, slug, } = result;
+
+    return {
+      about,
+      avatar,
+      id,
+      name,
+      slug,
+    } satisfies DubberSearchResultType;
+  });
+
+
 
   return res.status(200).json({
     message: 'Dubbers searched',
     results,
     pagination
-  });
+  } satisfies IRespone);
 });
 
 

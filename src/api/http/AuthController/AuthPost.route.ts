@@ -1,11 +1,11 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
 import firebase from 'firebase-admin';
 import z from 'zod';
 import { AUTH_METHOD } from '~/intf/IAuth';
-import { DevelopmentMode } from '~/config';
+import { DevelopmentMode } from '~/conf';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
 import { IUserSession, USER_RESTRICTION } from '~/intf/IUser';
@@ -105,7 +105,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'User authorized',
-    user: DocumentDTO.user(user),
+    user: DTOService.user(user),
     session: sessionData
   } satisfies IResponse);
 });

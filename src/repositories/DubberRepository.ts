@@ -1,8 +1,8 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import IDubber, { IDubberMember } from '~/intf/IDubber';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
-import conf, { TestMode } from '~/config';
+import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
@@ -83,8 +83,10 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     super(model, queries);
   }
 
-  get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.dubber(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.dubber(this._doc, true);
   }
 
   async save() {
@@ -140,7 +142,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     Logger.info(`[DubberRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.dubber(payload, true);
+    return DTOService.dubber(payload, true);
   }
 
 

@@ -1,6 +1,7 @@
-import conf from '~/config';
+import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
+import z from 'zod';
 import { CDNString } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
@@ -26,6 +27,10 @@ export const UserControllerACUploadMiddlewares = [
   upload.single('file'),
 ];
 
+const ParamSchema = z.object({
+  id: z.string().nonempty().optional()
+});
+
 
 
 /**
@@ -35,10 +40,13 @@ export const UserControllerACUploadMiddlewares = [
  */
 export default async function HandleUserControllerACUpload(req: express.Request, repo: UserRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
-  const { id: targetId } = req.params as { id: string };
+  const params = ParamSchema.parse(req.params);
+  const targetId = params.id ?? userId;
 
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);
+
+
 
   if (userId === targetId) {
     // Update current user

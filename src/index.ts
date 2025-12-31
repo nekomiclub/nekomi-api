@@ -6,12 +6,12 @@ import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
 import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
-import conf from './config';
+import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { AnimeBulkUpdateCRON } from './algorithms/AnimeBulkUpdate';
-import { MLoadAgents, MLoadCatalog, MLoadDubbers, MLoadRoles, MLoadUsers } from './utils/migration-utils';
+import { MAnimeIDs } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -38,7 +38,11 @@ async function runtime() {
     app.use(traceRequest());
 
     app.use(cors({
-      origin: ['http://127.0.0.1:3001'],
+      origin: ProductionMode ? [
+        conf.URL.nekomiSite
+      ] : [
+        'http://127.0.0.1:3001',
+      ],
       credentials: true,
     }));
 
@@ -72,13 +76,7 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
-
-    if (conf.env.ENV === 'deploy') await MLoadAgents();
-    if (conf.env.ENV === 'deploy') await MLoadRoles();
-    if (conf.env.ENV === 'deploy') await MLoadDubbers();
-    if (conf.env.ENV === 'deploy') await MLoadCatalog();
-    if (conf.env.ENV === 'deploy') await MLoadUsers();
-
+    if (conf.env.ENV === 'deploy') await MAnimeIDs();
     if (conf.env.ENV === 'deploy') await AnimeBulkUpdateCRON();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);

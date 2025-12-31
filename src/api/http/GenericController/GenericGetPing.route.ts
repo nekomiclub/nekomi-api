@@ -1,4 +1,4 @@
-import conf from '~/config';
+import conf from '~/conf';
 import { HandleRequest } from '~/utils/http-utils';
 
 

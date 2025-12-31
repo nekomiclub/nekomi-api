@@ -1,15 +1,14 @@
-import DocumentDTO from './DataTransferService';
 import IUser, { IUserSession } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
-import conf, { DevelopmentMode } from '~/config';
-import createId from '~/utils/create-id';
+import conf, { DevelopmentMode } from '~/conf';
+import createId, { createNanoId } from '~/utils/create-id';
 import ms from 'ms';
 import { ISODateString } from '~/intf/types';
-import { ISessionToken } from '~/intf/IAuth';
 import { NekoError } from './ExceptionService';
+import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
 import { UserModel } from '~/repo/UserRepository';
-import { getUTC } from '~/utils/utils';
+import { calcISO, getUTC } from '~/utils/utils';
 
 
 
@@ -24,21 +23,24 @@ interface IOpenSession {
 
 interface IParseSession {
   user: IUser
-  session: IUserSession
+  sessionId: string
 }
 
 
 
-const REVALIDATE_TIMEOUT = ms('30sec');
+const REVALIDATE_TIMEOUT_MS = ms('30sec');
 
 
 
 export default class SessionService extends UserModel {
   revalidatedAt: ISODateString | undefined;
 
+
+
   /**
    * Open new session
    * 
+   * @autosave
    * @testing
    */
   async open(props?: IOpenSessionProps): Promise<IOpenSession> {
@@ -55,16 +57,18 @@ export default class SessionService extends UserModel {
       created_at: getUTC().ISO,
     };
 
-    const token = TokenService.sign<ISessionToken>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+    const token = TokenService.sign<SessionTokenType>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+      token_id: createNanoId(),
       user_id: this._doc.id,
       session_id: sessionId,
-      created_at: getUTC().ISO
     });
 
     this.diff.push(`New session has been opened. [sessionId: ${sessionId}]`);
 
     this._doc.sessions.push(session);
     this._doc.markModified('sessions');
+
+    await this.save();
 
     return { token, session };
   }
@@ -74,16 +78,17 @@ export default class SessionService extends UserModel {
   /**
    * Refresh session expiration
    * 
+   * @autosave
    * @returns new session token
    * @testing
    */
-  async refresh(id: string): Promise<string> {
+  async refresh(sessionId: string): Promise<string> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     await this.revalidate();
 
-    const session = this._doc.sessions.find(el => el.id === id);
-    if (!session) throw new NekoError('auth:session_not_exist', `Session "${id}" is not exist`);
+    const session = this._doc.sessions.find(el => el.id === sessionId);
+    if (!session) throw new NekoError('auth:session_not_exist', `Session "${sessionId}" is not exist`);
 
     const newExpires = getUTC(getUTC().timestamp + conf.vars.SESSION_REFRESH_BY_MS).ISO;
 
@@ -95,12 +100,14 @@ export default class SessionService extends UserModel {
       this.diff.push(`Session continued till ${newExpires}`);
     }
 
+    await this.save();
 
 
-    return TokenService.sign<ISessionToken>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+
+    return TokenService.sign<SessionTokenType>(TOKEN_METHOD.USER_SESSION_TOKEN, {
+      token_id: createNanoId(),
       user_id: this._doc.id,
-      session_id: session.id,
-      created_at: getUTC().ISO
+      session_id: session.id
     });
   }
 
@@ -139,21 +146,28 @@ export default class SessionService extends UserModel {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Debounce revalidations
-    if (this.revalidatedAt && getUTC(this.revalidatedAt).timestamp + REVALIDATE_TIMEOUT > getUTC().timestamp) return;
+    if (this.revalidatedAt && calcISO(this.revalidatedAt, REVALIDATE_TIMEOUT_MS) > getUTC().timestamp) return;
 
     const sessions: IUserSession[] = [];
 
     this.document?.sessions.forEach(el => {
       // Delete session if it has expired
-      if (getUTC().timestamp > getUTC(el.expires_at).timestamp) {
-        if (DevelopmentMode) Logger.debug(`[SessionService]: Session ${el.id} expired`);
+      if (getUTC().timestamp > calcISO(el.expires_at)) {
+        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} expired`);
+
+        return;
+      }
+
+      // Delete session if max age reached
+      if (getUTC().timestamp > calcISO(el.created_at, conf.vars.SESSION_COOKIE_MAX_AGE_MS)) {
+        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} max age reached`);
 
         return;
       }
 
       // Disable limitations if session is not new 
-      if (el.is_limited && getUTC().timestamp > getUTC(el.created_at).timestamp + conf.vars.SESSION_LIMITATION_TIMEOUT_MS) {
-        if (DevelopmentMode) Logger.debug(`[SessionService]: Session ${el.id} limitation disabled`);
+      if (el.is_limited && getUTC().timestamp > calcISO(el.created_at, conf.vars.SESSION_LIMITATION_TIMEOUT_MS)) {
+        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} limitation disabled`);
 
         el.is_limited = false;
       }
@@ -173,23 +187,24 @@ export default class SessionService extends UserModel {
 
   /** 
    * Parse user session
-   * Verify token & session existance
+   * Ensure that token and session are valid
    * 
    * @testing
    */
   async parse(token: string): Promise<IParseSession> {
-    const sessionData = TokenService.parse<ISessionToken>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
-    if (!sessionData.payload.session_id || !sessionData.payload.user_id) throw new NekoError('auth:session_token_invalid');
-    if (!sessionData.verified) throw new NekoError('auth:session_token_expired');
+    const sessionData = TokenService.parse<SessionTokenType>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
+    if (!SessionTokenSchema.safeParse(sessionData.payload).success || !sessionData.verified) throw new NekoError('auth:session_token_invalid');
 
     await this.init({ id: sessionData.payload.user_id });
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    await this.revalidate();
+    const sessionId = sessionData.payload.session_id;
+    const session = this._doc.sessions.find(el => el.id === sessionId);
+    if (!session) throw new NekoError('auth:session_not_exist');
 
-    const session = this._doc.sessions.find(el => el.id === sessionData.payload.session_id);
-    if (!session) throw new NekoError('auth:session_not_exist', `Session "${sessionData.payload.session_id}" is not exist`);
-
-    return { user: DocumentDTO.user(this._doc, true), session };
+    return {
+      user: this.document!,
+      sessionId
+    };
   }
 }

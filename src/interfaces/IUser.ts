@@ -22,26 +22,25 @@ export enum USER_LIB_TYPE {
 export interface IUser {
   id: string
   username: string
-  email: string // Protected
 
   avatar: CDNString
   cover: CDNString
 
-  roles: string[] // Protected
+  roles: string[]
+  total_viewtime: number // In seconds
+  dubber_team_member: string | null
+  username_changed_at: ISODateString
+
+  email: string // Protected
   libs: IUserLib[] // Protected
   restrictions: USER_RESTRICTION[] // Protected
-  sessions: IUserSession[] // Protected
-  subscriptions: string[] // Protected
-
-  /** Total user viewtime in seconds */
-  total_viewtime: number // Protected
   view_progress: IUserViewProgress[] // Protected
-  dubber_team_member: string | null // Protected
-  telegram_id: number | null // Protected
-
   created_at: ISODateString // Protected
   updated_at: ISODateString // Protected
-  username_changed_at: ISODateString // Protected
+
+  sessions: IUserSession[] // Private
+  subscriptions: string[] // Private
+  telegram_id: number | null // Private
 }
 
 export interface IUserViewProgress {
@@ -49,9 +48,7 @@ export interface IUserViewProgress {
   dubber_id: string
   episode: number
   updated_at: ISODateString
-
-  /** Watch progress in seconds */
-  progress: number
+  progress: number // In seconds
 }
 
 export interface IUserLib {
@@ -71,5 +68,9 @@ export interface IUserSession {
   expires_at: ISODateString
   created_at: ISODateString
 }
+
+export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar' | 'cover'>
+
+
 
 export default IUser;

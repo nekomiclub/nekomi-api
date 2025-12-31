@@ -4,19 +4,17 @@ import { HandleRequest } from '~/utils/http-utils';
 
 
 
-interface IResponse {
-  message: string
-  verified: boolean
-  origin?: string | null
-}
-
-
-
 const BodySchema = z.object({
   token: z.string().nonempty(),
 
   /** Required origin */
   origin: z.string().optional(),
+});
+
+const ResponseSchema = z.object({
+  message: z.string(),
+  verified: z.boolean(),
+  origin: z.string().nullable().optional(),
 });
 
 
@@ -35,7 +33,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Token accepted',
     verified,
     origin: tokenOrigin
-  } satisfies IResponse);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

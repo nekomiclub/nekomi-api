@@ -1,4 +1,4 @@
-import conf from '~/config';
+import conf from '~/conf';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
@@ -22,6 +22,10 @@ const editLibAnimeSchema = z.object({
   anime_id: z.string().nonempty(),
 });
 
+const ParamsSchema = z.object({
+  id: z.string().nonempty().optional()
+});
+
 const BodySchema = z.object({
   add_lib_anime: editLibAnimeSchema.optional(),
   remove_lib_anime: editLibAnimeSchema.optional(),
@@ -38,7 +42,9 @@ const BodySchema = z.object({
     anime_id: z.string().nonempty(),
   }).optional(),
 
-  username: z.string().optional()
+  set_username: z.object({
+    username: z.string()
+  }).optional(),
 });
 
 
@@ -48,9 +54,10 @@ const BodySchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { id: userId, permissions } = req._nekomi.user!;
-  const { id: targetId } = req.params as { id: string };
+  const params = ParamsSchema.parse(req.params);
+  const targetId = params.id ?? userId;
 
-  const { add_lib_anime, edit_view_progress, remove_lib_anime, remove_view_progress, username } = BodySchema.parse(req.body);
+  const { add_lib_anime, edit_view_progress, remove_lib_anime, remove_view_progress, set_username } = BodySchema.parse(req.body);
   if (!Object.keys(req.body).length) return res.status(200).json({ message: `Nothing to patch...` });
 
   const repo = new UserRepositoryClass();
@@ -112,7 +119,9 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  if (username) {
+  if (set_username) {
+    const { username } = set_username;
+
     await repo.setUsername(username);
 
     diff.push(`Username updated to "@${username}"`);

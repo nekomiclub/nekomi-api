@@ -1,3 +1,4 @@
+import DubberGetRoute from './DubberGet.route';
 import DubberGetSearchRoute from './DubberGetSearch.route';
 import DubberPutAvatarRoute from './DubberPutAvatar.route';
 import DubberPutCoverRoute from './DubberPutCover.route';
@@ -10,16 +11,16 @@ const DubberRouter = express.Router();
 
 
 DubberRouter.get('/search', DubberGetSearchRoute);
-DubberRouter.get('/:query');
+DubberRouter.get('/:query', DubberGetRoute);
 
-DubberRouter.post('/');
+// DubberRouter.post('/');
 
-DubberRouter.patch('/settings/:id');
+// DubberRouter.patch('/:id');
 
-DubberRouter.put('/settings/:id/avatar', DubberPutAvatarRoute);
-DubberRouter.put('/settings/:id/cover', DubberPutCoverRoute);
+DubberRouter.put('/:id/avatar', DubberPutAvatarRoute);
+DubberRouter.put('/:id/cover', DubberPutCoverRoute);
 
-DubberRouter.delete('/:id');
+// DubberRouter.delete('/:id');
 
 
 

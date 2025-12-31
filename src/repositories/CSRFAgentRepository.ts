@@ -1,4 +1,4 @@
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import ICSRFAgent from '~/intf/ICSRFAgent';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
@@ -66,7 +66,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
   }
 
   get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.parse(this._doc) : null;
+    return this._doc ? DTOService.parse(this._doc) : null;
   }
 
   async save() {
@@ -120,7 +120,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     Logger.info(`[CSRFAgent]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
 
-    return { document: DocumentDTO.parse<ICSRFAgent>(document), privateKey };
+    return { document: DTOService.parse<ICSRFAgent>(document), privateKey };
   }
 
 

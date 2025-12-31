@@ -5,7 +5,9 @@ dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
-import { getUTC, parseEnv } from './utils/utils';
+import parseEnv from './utils/parse-env';
+import { IHomeFeedHero } from './interfaces/types';
+import { getUTC } from './utils/utils';
 
 
 
@@ -23,9 +25,9 @@ firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./fireb
 
 
 const URL = {
-  nekomi_site: env.NEKOMI_NEXTJS_URL,
-  nekomi_api: env.NEKOMI_API_URL,
-  nekomi_upload_service: env.NEKOMI_UPLOAD_SERVICE_URL,
+  nekomiSite: env.NEKOMI_NEXTJS_URL,
+  nekomiApi: env.NEKOMI_API_URL,
+  nekomiUploadService: env.NEKOMI_UPLOAD_SERVICE_URL,
 
   hikka: 'https://hikka.io',
   MALAPI: `https://api.myanimelist.net`,
@@ -59,14 +61,13 @@ const vars = {
 
   USERNAME_UPDATE_TIMEOUT: ms('7days'),
   CSRF_TOKEN_LIFETIME_MS: ms('1min'),
-  SESSION_TOKEN_LIFETIME_MS: ms('15min'),
   SESSION_LIFETIME_MS: ms('31day'),
   SESSION_LIMITATION_TIMEOUT_MS: ms('1day'),
   SESSION_REFRESH_BY_MS: ms('7day'),
 
   SESSION_COOKIE_NAME: 'SEC_31N',
   SESSION_COOKIE_DOMAIN: `*.${domains.NEKOMI_DOMAIN}`,
-  SESSION_COOKIE_AGE_MS: ms('12week'),
+  SESSION_COOKIE_MAX_AGE_MS: ms('12week'),
 };
 
 /** Funny thing to rickroll some endpoints */
@@ -85,6 +86,61 @@ const rickrollEndpoints: RegExp[] = [
 
 
 
+const StaticData = {
+  HomeFeed: {
+    hero: (ProductionMode ? [
+      // ! Production
+
+      {
+        id: 'uKiM7NOm',
+        slug: 'frieren-beyond-journey-s-end',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      },
+    ] : [
+      // Development
+
+      {
+        id: 'uKiM7NOm',
+        slug: 'frieren-beyond-journey-s-end',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      },
+      {
+        id: '2iEasiqg',
+        slug: 'chainsaw-man-the-movie-reze-arc',
+        title: '',
+        synopsys: '',
+        poster: vars.defaultPoster,
+        cover: 'https://cdn.nekomi.club/dandadan.webp',
+        video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
+      }
+    ]) satisfies IHomeFeedHero[],
+
+    hot: (ProductionMode ? [
+      // Production
+
+      'uKiM7NOm',
+      '2iEasiqg',
+      'voGf1ADS',
+    ] : [
+      // Development
+
+      'uKiM7NOm',
+      '2iEasiqg',
+      'voGf1ADS',
+    ]) satisfies string[]
+  }
+};
+
+
+
 const conf = {
   mongodbUrl: `mongodb://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
   startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
@@ -93,6 +149,7 @@ const conf = {
   env,
   vars,
   domains,
+  StaticData,
 
   rickrollEndpoints
 };

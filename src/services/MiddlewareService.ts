@@ -1,13 +1,13 @@
 import CSRFService from './CSRFService';
-import DocumentDTO from './DataTransferService';
+import DTOService from './DataTransferService';
 import IUser from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
-import conf, { DevelopmentMode, TestMode } from '~/config';
-import { HandleMiddleware, getCSRFToken, getSessionToken, setSessionCookie } from '~/utils/http-utils';
-import { ISessionToken } from '~/intf/IAuth';
+import conf, { DevelopmentMode, TestMode } from '~/conf';
+import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
+import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
@@ -19,7 +19,6 @@ export type MiddlewareType = keyof MiddlewareService;
 interface ICheckAccess {
   user: IUser
   sessionId: string
-  sessionToken: string
 
   /** Will be null if required permissions are not specified */
   permissions: ROLE_PERMISSION[] | null
@@ -31,18 +30,18 @@ export default class MiddlewareService {
   /**
    * Check user authorization
    * Will simply parse user if permissions are not specified, otherwise will ensure that user have required permission
-   * Will refresh user access 
    */
   async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
-    const session = new SessionService();
+    const { payload } = TokenService.decode<SessionTokenType>(token);
+    if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
-    const { payload } = TokenService.decode<ISessionToken>(token);
-    if (!payload.session_id || !payload.user_id) throw new NekoError('auth:session_token_invalid');
+    const session = new SessionService();
+    await session.init({ id: payload.user_id });
+    await session.parse(token);
 
     let userPermissions: ROLE_PERMISSION[] | null = null;
 
-    await session.init({ id: payload.user_id });
-    const sessionToken = await session.refresh(payload.session_id);
+
 
     // Ensure permissions
     if (permissions?.length) {
@@ -59,10 +58,9 @@ export default class MiddlewareService {
 
 
     return {
-      user: DocumentDTO.user(session.document!),
+      user: DTOService.user(session.document!),
       permissions: userPermissions,
       sessionId: payload.session_id,
-      sessionToken,
     };
   }
 
@@ -76,10 +74,15 @@ export default class MiddlewareService {
    * @returns origin
    */
   async checkCSRF(token: string, origins: string[] = []): Promise<string> {
-    token = (DevelopmentMode || TestMode) && token === '~dev' ? CSRFService.signToken(null) : token;
+    // In development mode append nekomi api origin to pass "~dev" token
+    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
+
+    // In development mode issue fresh token for "~dev"
+    if ((DevelopmentMode || TestMode) && token === '~dev') token = CSRFService.signToken(null);
+
+
 
     const csrf = await CSRFService.verify(token);
-
     if (!csrf.verified) throw new NekoError('auth:csrf_token_invalid');
 
     // Pass verifying if origin is nekomi admin
@@ -98,18 +101,17 @@ class MiddlewareClass {
 
 
 
-  /** Middleware wrapper for {@link MiddlewareService.checkAccess} */
+  /** 
+   * Middleware wrapper for {@link MiddlewareService.checkAccess} 
+   */
   CheckAccess = (permissions?: ROLE_PERMISSION[]) => HandleMiddleware(async (req, res) => {
     const token = getSessionToken(req);
 
-    const { user, sessionToken, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
-
-    setSessionCookie(sessionToken, res);
+    const { user, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
 
 
 
     req._nekomi.middlewaresPassed?.push('checkAccess');
-    req._nekomi.sessionToken = sessionToken;
 
     req._nekomi.user = {
       id: user.id,
@@ -123,13 +125,7 @@ class MiddlewareClass {
   /** Middleware wrapper for {@link MiddlewareService.checkCSRF} */
   CheckCSRF = (origins?: string[]) => HandleMiddleware(async (req) => {
     const token = getCSRFToken(req);
-
-    // In development mode append nekomi api origin to pass "~dev" token
-    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
-
     const origin = await this.service.checkCSRF(token, origins);
-
-
 
     req._nekomi.middlewaresPassed?.push('checkCSRF');
     req._nekomi.csrfOrigin = origin;

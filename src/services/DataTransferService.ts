@@ -1,7 +1,11 @@
-import IAnime from '~/intf/IAnime';
-import IDubber from '~/intf/IDubber';
-import IUser from '~/intf/IUser';
+import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IDubber, { DubberCardType } from '~/intf/IDubber';
+import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
+import conf from '~/conf';
+import express from 'express';
+import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
+import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 
 
@@ -22,7 +26,22 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
-class DocumentDTOClass {
+function includeKeys<T>(object: object, include: string[]): T {
+  const instance = {} as T;
+
+  include.forEach(key => {
+    instance[key] = object[key];
+  });
+
+  return instance;
+}
+
+
+
+class DTOServiceClass {
+  excludeKeys = excludeKeys;
+  includeKeys = includeKeys;
+
   parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();
@@ -54,6 +73,41 @@ class DocumentDTOClass {
 
 
 
+  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score, posters }: IAnime): AnimeCardType {
+    return {
+      id,
+      slug,
+      episodes_total,
+      score,
+      poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
+      title: title_ua ?? title_en,
+      genres: genres.map(el => ANIME_GENRES[el]),
+    };
+  }
+
+
+
+  animePoster(object: IAnimePosterNode): IAnimePosterNode {
+    const keys: (keyof IAnimePosterNode)[] = [
+      '_unprocessedAuthorName',
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
+  }
+
+
+
+  animeScreenshot(object: IAnimeScreenshotNode): IAnimeScreenshotNode {
+    const keys: (keyof IAnimeScreenshotNode)[] = [
+      'pull_hash'
+    ];
+
+    return excludeKeys(object, keys);
+  }
+
+
+
   dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
     const keys: (keyof IDubber)[] = [
       'members'
@@ -67,17 +121,20 @@ class DocumentDTOClass {
 
 
 
+  toDubberCard({ id, avatar, name, slug }: IDubber): DubberCardType {
+    return { avatar, id, name, slug };
+  }
+
+
+
   user(object: HydratedDocument<IUser> | IUser, exposed?: boolean): IUser {
     const keys: (keyof IUser)[] = [
       'roles',
       'libs',
-      'total_viewtime',
       'view_progress',
-      'dubber_team_member',
       'telegram_id',
       'created_at',
       'updated_at',
-      'username_changed_at',
       'email',
       'restrictions',
       'sessions',
@@ -89,10 +146,33 @@ class DocumentDTOClass {
 
     return excludeKeys(object, exposed ? [] : keys);
   }
+
+
+
+  toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
+    return { avatar, id, username, cover };
+  }
+
+
+
+  async userLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
+    let showPrivate = false;
+
+    try {
+      showPrivate = await isRequesterAdmin(req) || await isRequesterAccountOwner(req, user.id);
+    } catch (e) { null; }
+
+    return user.libs.filter(el => {
+      if (el.is_public) return el;
+      if (!el.is_public && showPrivate) return el;
+
+      return undefined;
+    });
+  }
 }
 
 
 
-const DocumentDTO = new DocumentDTOClass();
+const DTOService = new DTOServiceClass();
 
-export default DocumentDTO;
+export default DTOService;

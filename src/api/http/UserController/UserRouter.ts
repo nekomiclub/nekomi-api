@@ -1,4 +1,5 @@
 import UserDeleteRoute from './UserDelete.route';
+import UserGetLibRoute from './UserGetLib.route';
 import UserGetRoute from './UserGet.route';
 import UserGetSearchRoute from './UserGetSearch.route';
 import UserPatchSettingsRoute from './UserPatchSettings.route';
@@ -13,14 +14,15 @@ const UserRouter = express.Router();
 
 
 UserRouter.get('/search', UserGetSearchRoute);
-UserRouter.get('/:query', UserGetRoute);
+UserRouter.get(['/', '/:query'], UserGetRoute);
+UserRouter.get('/:userId/lib/:libId', UserGetLibRoute);
 
-UserRouter.patch('/settings/:id', UserPatchSettingsRoute);
+UserRouter.patch(['/', '/:id'], UserPatchSettingsRoute);
 
-UserRouter.put('/settings/:id/avatar', UserPutAvatarRoute);
-UserRouter.put('/settings/:id/cover', UserPutCoverRoute);
+UserRouter.put(['/avatar', '/:id/avatar'], UserPutAvatarRoute);
+UserRouter.put(['/cover', '/:id/cover'], UserPutCoverRoute);
 
-UserRouter.delete('/:id', UserDeleteRoute);
+UserRouter.delete(['/', '/:id'], UserDeleteRoute);
 
 
 

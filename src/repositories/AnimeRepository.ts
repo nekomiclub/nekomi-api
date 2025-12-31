@@ -1,10 +1,10 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
-import DocumentDTO from '~/service/DataTransferService';
+import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
 import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
-import conf, { TestMode } from '~/config';
+import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
@@ -20,7 +20,11 @@ import { getUTC, trimString } from '~/utils/utils';
 type RepositoryType = IAnime;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
-  return { $or: [{ id: query }, { slug: query }] };
+  const queries: object[] = [{ id: query }, { slug: query }, { imdb_id: query }];
+  const mal_id = Number(query);
+  if (!isNaN(mal_id)) queries.push({ mal_id });
+
+  return { $or: queries };
 };
 
 
@@ -117,8 +121,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
 
 
-  get document(): RepositoryType | null {
-    return this._doc ? DocumentDTO.anime(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.anime(this._doc, true);
   }
 
   async save() {
@@ -217,7 +223,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     Logger.info(`[AnimeRepository]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DocumentDTO.anime(payload, true);
+    return DTOService.anime(payload, true);
   }
 
 

@@ -1,6 +1,6 @@
 import Logger from '~/service/LoggerService';
 import axios from 'axios';
-import conf from '~/config';
+import conf from '~/conf';
 import { IAshdiDub, IAshdiTitle } from '~/intf/external-api/IAshdi.api';
 
 
@@ -16,10 +16,15 @@ const baseURL = conf.URL.ashdiAPI;
 
 export class AshdiAPI {
   static async getTitle({ imdbId }: GetTitleProps): Promise<IAshdiTitle> {
-    const url = `${baseURL}/api/product/read_one.php?imdb=${imdbId}&api_key=${conf.env.ASHDI_API_SK}`;
+    const url = `${baseURL}/api/product/read_one.php`;
     Logger.http(`[Ashdi]: GET - ${url}`);
 
-    const { data } = await axios.get<IAshdiTitle>(url);
+    const { data } = await axios.get<IAshdiTitle>(url, {
+      params: {
+        imdb: imdbId,
+        api_key: conf.env.ASHDI_API_SK
+      }
+    });
 
     data.pl = JSON.parse(`${data.pl}`) as IAshdiDub[];
 

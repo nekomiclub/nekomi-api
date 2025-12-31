@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import z, { ZodError } from 'zod';
+import { ISODateString } from '~/intf/types';
 
 
 
@@ -43,6 +43,18 @@ export function getUTC(ts?: string | number | Date) {
 
 
 /** 
+ * Calculate ISO string with arguments
+ */
+export function calcISO(ISO: ISODateString, ...args: number[]): number {
+  const ts = getUTC(ISO).timestamp;
+  const offset = args.reduce((sum, ms) => sum + ms, 0);
+
+  return ts + offset;
+}
+
+
+
+/** 
  * Get time diff between startedAt and now in msec
  * 
  * @returns `{startedAt - now}ms`
@@ -79,48 +91,34 @@ export function buffer2hash(data: Buffer) {
 
 
 
-const EnvSchema = z.object({
-  PORT: z.coerce.number(),
-  HOST: z.string(),
-
-  ENV: z.enum(['local', 'deploy']),
-  DOCKER: z.coerce.boolean().optional(),
-  VITEST: z.coerce.boolean().optional(),
-
-  DATABASE_HOST: z.string(),
-  DATABASE_NAME: z.string(),
-  DATABASE_USR: z.string(),
-  DATABASE_PWD: z.string(),
-
-  CSRF_SK: z.string(),
-  MAL_CLIENT_SK: z.string(),
-  ASHDI_API_SK: z.string(),
-  IDS_MOE_SK: z.string(),
-  USER_SESSION_SK: z.string(),
-
-  NEKOMI_API_URL: z.string().url(),
-  NEKOMI_NEXTJS_URL: z.string().url(),
-  NEKOMI_UPLOAD_SERVICE_URL: z.string().url(),
-});
-
-export function parseEnv(): z.infer<typeof EnvSchema> {
-  try {
-    return EnvSchema.parse(process.env);
-  } catch (e) {
-    if (e instanceof ZodError) {
-      console.error(`
 
 
------------------------------------------
 
-ENVIRONMENT ERROR: ${JSON.stringify(e.errors, null, 2)}
 
------------------------------------------
-
-  
-        `);
-
-      throw '';
-    } else throw e;
-  }
+export function removeMarkdown(text: string): string {
+  return text
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    // Remove inline code
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove images
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    // Remove links but keep text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    // Remove headings
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold & italic
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    // Remove strikethrough
+    .replace(/~~(.*?)~~/g, '$1')
+    // Remove blockquotes
+    .replace(/^>\s+/gm, '')
+    // Remove horizontal rules
+    .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '')
+    // Remove unordered/ordered list markers
+    .replace(/^(\s*[-+*]|\s*\d+\.)\s+/gm, '')
+    // Remove extra newlines
+    .replace(/\n{2,}/g, '\n')
+    .trim();
 }

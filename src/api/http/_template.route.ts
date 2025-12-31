@@ -11,8 +11,8 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-const AnimeGetDocumentRoute = [
+const TemplateRoute = [
   endpoint
 ];
 
-export default AnimeGetDocumentRoute;
+export default TemplateRoute;

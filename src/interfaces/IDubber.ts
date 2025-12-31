@@ -9,17 +9,11 @@ export type DubberRoleType = 'leader' | 'editor' | 'member' | 'pending'
 export interface IDubber {
   id: string
   slug: string
+  name: string
+  about: string | null
 
   avatar: CDNString
   cover: CDNString
-
-  about: string | null
-  name: string
-
-  members: IDubberMember[] // Private
-
-  created_at: ISODateString
-  updated_at: ISODateString
 
   socials: {
     telegram?: string
@@ -35,6 +29,10 @@ export interface IDubber {
     bymeacoffee?: string
     patreon?: string
   }
+
+  members: IDubberMember[] // Protected
+  created_at: ISODateString // Protected
+  updated_at: ISODateString // Protected
 }
 
 export interface IDubberMember {
@@ -42,6 +40,8 @@ export interface IDubberMember {
   role: DubberRoleType
   member_since: ISODateString
 }
+
+export type DubberCardType = Pick<IDubber, 'id' | 'name' | 'slug' | 'avatar'>
 
 
 

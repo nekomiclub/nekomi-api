@@ -29,7 +29,7 @@ export interface IAnime {
   hikka_slug: string | null
 
   posters: IAnimePosterNode[] // Protected
-  hero_poster_author: string | null
+  hero_poster_author: string | null // Protected
 
   year: number
   episodes_total: number | null
@@ -50,7 +50,7 @@ export interface IAnime {
   relations: IAnimeRelation[] // Protected
   studios: IAnimeStudio[]
   screenshots: IAnimeScreenshotNode[] // Protected
-  schedule: IAnimeSchedule[] // Protected
+  schedule: IAnimeSchedule[]
   episodes: IAnimeEpisode[] // Protected
   episodes_meta: IAnimeEpisodeMeta[] // Protected
 
@@ -66,7 +66,7 @@ export interface IAnime {
   myanimelist_sync: ISODateString | null // Protected
 
   /** Is anime restricted under DMCA */
-  is_DMCA_restricted?: boolean // Protected
+  is_DMCA_restricted?: boolean
 }
 
 export interface IAnimeRelation {
@@ -108,6 +108,14 @@ export interface IAnimeEpisodeMeta {
 export interface IAnimeSchedule {
   episode: number
   airing_at: ISODateString
+}
+
+
+
+export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
+  title: string
+  poster: CDNString
+  genres: AnimeGenreType[]
 }
 
 
@@ -519,6 +527,7 @@ export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
     name: 'Невідомо',
   },
 };
+
 
 
 
