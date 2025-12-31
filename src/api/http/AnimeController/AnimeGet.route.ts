@@ -1,8 +1,10 @@
 import DTOService from '~/service/DataTransferService';
 import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import Logger from '~/service/LoggerService';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
+import { AshdiAPI } from '~/api/external/ashdi.api';
 import { HandleRequest } from '~/utils/http-utils';
 import { ISODateString, zBoolean } from '~/intf/types';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
@@ -34,6 +36,9 @@ interface IResponseMisc {
 
   /** @method get_episodes */
   episodes_meta?: IAnimeEpisodeMeta[]
+
+  /** @method get_episodes */
+  ashdi_url?: string
 
 
 
@@ -145,6 +150,15 @@ const endpoint = HandleRequest(async (req, res) => {
     if (isEligible(`get_episodes`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
       anime_misc.episodes = anime.episodes;
       anime_misc.episodes_meta = anime.episodes_meta;
+
+      if (anime.imdb_id) {
+        try {
+          const ashdi = await AshdiAPI.getTitle({ imdbId: anime.imdb_id });
+          anime_misc.ashdi_url = ashdi.url;
+        } catch (e) {
+          Logger.warn(`[AnimeGet.route]: An error occured while retrieving ashdi title`, e);
+        }
+      }
     }
   }
 
