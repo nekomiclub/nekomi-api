@@ -44,7 +44,7 @@ type UAPostersCacheType = ICache<IUAPostersCacheItem[]>;
 
 let cacheAwaitI = 0;
 let isCacheRevalidated = false;
-let UPDATE_YEAR = getUTC().year;
+let UPDATE_YEAR = getUTC().year + 1;
 let ANIME_LISTS_CACHE: IAnimeListCacheItem[] | null = null;
 let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
 
