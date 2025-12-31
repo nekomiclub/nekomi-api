@@ -17,10 +17,10 @@ UserRouter.get('/search', UserGetSearchRoute);
 UserRouter.get(['/', '/:query'], UserGetRoute);
 UserRouter.get('/:userId/lib/:libId', UserGetLibRoute);
 
-UserRouter.patch(['/settings', '/settings/:id'], UserPatchSettingsRoute);
+UserRouter.patch(['/', '/:id'], UserPatchSettingsRoute);
 
-UserRouter.put(['/settings/avatar', '/settings/:id/avatar'], UserPutAvatarRoute);
-UserRouter.put(['/settings/cover', '/settings/:id/cover'], UserPutCoverRoute);
+UserRouter.put(['/avatar', '/:id/avatar'], UserPutAvatarRoute);
+UserRouter.put(['/cover', '/:id/cover'], UserPutCoverRoute);
 
 UserRouter.delete(['/', '/:id'], UserDeleteRoute);
 

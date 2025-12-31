@@ -15,10 +15,10 @@ DubberRouter.get('/:query', DubberGetRoute);
 
 // DubberRouter.post('/');
 
-// DubberRouter.patch('/settings/:id');
+// DubberRouter.patch('/:id');
 
-DubberRouter.put('/settings/:id/avatar', DubberPutAvatarRoute);
-DubberRouter.put('/settings/:id/cover', DubberPutCoverRoute);
+DubberRouter.put('/:id/avatar', DubberPutAvatarRoute);
+DubberRouter.put('/:id/cover', DubberPutCoverRoute);
 
 // DubberRouter.delete('/:id');
 

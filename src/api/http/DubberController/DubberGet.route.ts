@@ -75,20 +75,21 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
   if (view === 'card') dubber_card = DTOService.toDubberCard(dubber);
-  else if (view === 'full') dubber_full = DTOService.includeKeys(dubber, []);
+  else if (view === 'full') dubber_full = DTOService.includeKeys(dubber, [...FullResponseKeys]);
 
   if (get_members) {
     if (isEligible('get_members', await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
       const users = await UserRepository.getMany({ id: { $in: dubber.members.map(el => el.id) } });
 
       dubber_misc.members = users.map(user => {
-        const { id, avatar, username } = DTOService.toUserCard(user);
+        const { id, avatar, username, cover } = DTOService.toUserCard(user);
         const { member_since, role } = dubber.members.find(el => el.id === user.id)!;
 
         const member: IDubberMemberResponse = {
           id,
           avatar,
           username,
+          cover,
           role,
           member_since,
         };

@@ -199,6 +199,8 @@ export default class SessionService extends UserModel {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const sessionId = sessionData.payload.session_id;
+    const session = this._doc.sessions.find(el => el.id === sessionId);
+    if (!session) throw new NekoError('auth:session_not_exist');
 
     return {
       user: this.document!,

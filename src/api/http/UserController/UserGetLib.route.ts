@@ -5,7 +5,7 @@ import z from 'zod';
 import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';
-import { IUserLib } from '~/intf/IUser';
+import { IUserLib, UserCardType } from '~/intf/IUser';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { UserRepositoryClass } from '~/repo/UserRepository';
@@ -15,7 +15,8 @@ import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 interface IResponse {
   message: string
-  lib: IUserLib
+  libs: IUserLib[]
+  user: UserCardType
   catalog: AnimeCardType[]
   pagination: IPagination
 }
@@ -36,6 +37,8 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
   await repo.init(userId);
 
+  const user = repo.document;
+
   const lib = repo.document?.libs.find(el => el.id === libId);
   if (!lib) throw new NekoError(`sys:not_found`, `User lib "${libId}" is not found`);
 
@@ -51,11 +54,14 @@ const endpoint = HandleRequest(async (req, res) => {
     limit: -1,
   };
 
+  const userCard = DTOService.toUserCard(user);
+
 
 
   return res.status(200).json({
     message: 'User lib retrieved',
-    lib,
+    libs: user.libs,
+    user: userCard,
     catalog,
     pagination
   } satisfies IResponse);

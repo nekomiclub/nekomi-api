@@ -1,5 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import IUser, { IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
+import IUser, { IUserLib, IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
 import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/conf';
 import z from 'zod';
@@ -40,6 +40,19 @@ interface IResponseMisc {
 
   /** @method get_view_progress */
   view_progress?: IUserViewProgress[]
+
+
+
+  /** @method get_libs */
+  libs?: IUserLib[]
+
+
+
+  /** @method get_timestamps */
+  created_at?: ISODateString
+
+  /** @method get_timestamps */
+  updated_at?: ISODateString
 }
 
 interface IResponse {
@@ -58,6 +71,7 @@ const QuerySchema = z.object({
 
   get_permissions: zBoolean.optional(),
   get_username_changed_at: zBoolean.optional(),
+  get_timestamps: zBoolean.optional(),
 
   /** @requires Authorization (CSRF) */
   get_view_progress: zBoolean.optional(),
@@ -67,6 +81,9 @@ const QuerySchema = z.object({
 
   /** @requires Authorization (CSRF+Session) only for owner & admin */
   get_restrictions: zBoolean.optional(),
+
+  /** @requires Authorization (CSRF+Session) only for owner & admin */
+  get_libs: zBoolean.optional(),
 });
 
 
@@ -79,7 +96,7 @@ const QuerySchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamsSchema.parse(req.params);
-  const { get_permissions, get_restrictions, get_username_changed_at, get_view_progress, get_email, view } = QuerySchema.parse(req.query);
+  const { get_permissions, get_restrictions, get_username_changed_at, get_view_progress, get_email, get_libs, view, get_timestamps } = QuerySchema.parse(req.query);
 
   const repo = new UserRepositoryClass();
   const user_misc: IResponseMisc = {};
@@ -114,9 +131,20 @@ const endpoint = HandleRequest(async (req, res) => {
   if (get_permissions) user_misc.permissions = await parseRolesPermissions(user.roles);
   if (get_username_changed_at) user_misc.username_changed_at = user.username_changed_at;
 
+  if (get_timestamps) {
+    user_misc.created_at = user.created_at;
+    user_misc.updated_at = user.updated_at;
+  }
+
   if (get_restrictions) {
     if (isEligible(`get_restrictions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, user.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
       user_misc.restrictions = user.restrictions;
+    }
+  }
+
+  if (get_libs) {
+    if (isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+      user_misc.libs = user.libs;
     }
   }
 

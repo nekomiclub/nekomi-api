@@ -147,8 +147,8 @@ class DTOServiceClass {
 
 
 
-  toUserCard({ avatar, id, username }: IUser): UserCardType {
-    return { avatar, id, username };
+  toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
+    return { avatar, id, username, cover };
   }
 }
 
