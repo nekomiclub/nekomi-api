@@ -96,8 +96,8 @@ interface ICreateProps {
 }
 
 interface ISetTitleProps {
-  title_en?: string
-  title_ja?: string
+  title_en?: string | null
+  title_ja?: string | null
   title_ua?: string | null
   synonyms?: string[]
 }
@@ -307,12 +307,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /**
    * Set year
    * 
-   * @tested
+   * @testing
    */
-  setYear(year: number) {
+  setYear(year: number | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    AnimeValidators.year.parse(year);
+    if (year !== null) AnimeValidators.year.parse(year);
 
     this.set('year', year);
   }
@@ -353,42 +353,29 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
   /**
    * Set title
-   * Updating english title will cumulative update the slug
    * 
-   * @tested
+   * @testing
    */
   async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    if (title_en) {
-      title_en = trimString(title_en);
+    const _setTitle = (value: string | null, key: 'title_en' | 'title_ja' | 'title_ua') => {
+      if (!value?.length) value = null;
 
-      AnimeValidators.title.parse(title_en);
+      if (value?.length) {
+        value = trimString(value);
 
-      // Update slug on english title update
-      await this.setSlug(title_en);
-      this.set('title_en', title_en);
-    }
-
-    if (title_ja) {
-      title_ja = trimString(title_ja);
-
-      AnimeValidators.title.parse(title_ja);
-
-      this.set('title_ja', title_ja);
-    }
-
-    if (title_ua !== undefined || title_ua === null) {
-      if (!title_ua?.length) title_ua = null;
-
-      if (title_ua) {
-        title_ua = trimString(title_ua);
-
-        AnimeValidators.title.parse(title_ua);
+        AnimeValidators.title.parse(value);
       }
 
-      this.set('title_ua', title_ua);
-    }
+      this.set(key, value);
+    };
+
+
+
+    if (title_en || title_en === null) _setTitle(title_en, 'title_en');
+    if (title_ja || title_ja === null) _setTitle(title_ja, 'title_ja');
+    if (title_ua !== undefined || title_ua === null) _setTitle(title_ua, 'title_ua');
 
     if (synonyms?.length) {
       synonyms = synonyms.map(synonym => trimString(synonym));
@@ -563,7 +550,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   setRating = (rating: ANIME_RATING | null) => this.setTypedValue(rating, 'rating');
 
   /** Parse string to type value */
-  parseRating = (rating: string | null) => this.parseStringToType<ANIME_RATING>(rating, ANIME_RATING);
+  parseRating = (rating: string) => this.parseStringToType<ANIME_RATING>(rating, ANIME_RATING);
 
 
 
@@ -575,7 +562,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   setStatus = (status: ANIME_STATUS | null) => this.setTypedValue(status, 'status');
 
   /** Parse string to type value */
-  parseStatus = (status: string | null) => this.parseStringToType<ANIME_STATUS>(status, ANIME_STATUS);
+  parseStatus = (status: string) => this.parseStringToType<ANIME_STATUS>(status, ANIME_STATUS);
 
 
 
@@ -587,7 +574,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   setSeason = (season: ANIME_SEASON | null) => this.setTypedValue(season, 'season');
 
   /** Parse string to type value */
-  parseSeason = (season: string | null) => this.parseStringToType<ANIME_SEASON>(season, ANIME_SEASON);
+  parseSeason = (season: string) => this.parseStringToType<ANIME_SEASON>(season, ANIME_SEASON);
 
 
 
@@ -599,7 +586,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   setType = (type: ANIME_TYPE | null) => this.setTypedValue(type, 'type');
 
   /** Parse string to type value */
-  parseType = (type: string | null) => this.parseStringToType<ANIME_TYPE>(type, ANIME_TYPE);
+  parseType = (type: string) => this.parseStringToType<ANIME_TYPE>(type, ANIME_TYPE);
 
 
 

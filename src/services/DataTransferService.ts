@@ -80,7 +80,7 @@ class DTOServiceClass {
       episodes_total,
       score,
       poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
-      title: title_ua ?? title_en,
+      title: title_ua ?? title_en ?? 'Untitled',
       genres: genres.map(el => ANIME_GENRES[el]),
     };
   }

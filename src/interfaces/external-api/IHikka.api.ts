@@ -1,41 +1,59 @@
 import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/intf/IAnime';
 
 export interface IHikkaAnime {
-  data_type: 'anime';
-  companies: IHikkaCompany[];
+  data_type: string;
+
+  companies: Array<Record<string, string>>;
   genres: IHikkaGenre[];
-  start_date: number;
+
+  start_date: number | null;
   end_date: number | null;
+
   updated: number;
   comments_count: number;
+
   episodes_released: number | null;
   episodes_total: number | null;
-  synopsis_en: string;
+
+  synopsis_en: string | null;
   synopsis_ua: string | null;
-  media_type: 'tv' | string;
+
+  media_type: string | null;
+
   title_ua: string | null;
   title_en: string | null;
-  title_ja: string;
+  title_ja: string | null;
+
   duration: number | null;
-  image: string;
-  status: 'announced' | 'airing' | 'finished' | string;
-  source: string;
+  image: string | null;
+
+  status: string | null;
+  source: string | null;
   rating: string | null;
+
   has_franchise: boolean;
+
   native_scored_by: number;
   native_score: number;
+
   scored_by: number;
   score: number;
+
   nsfw: boolean;
   slug: string;
-  season: 'winter' | 'spring' | 'summer' | 'fall' | string;
-  year: number;
+
+  season: string | null;
+  year: number | null;
+
   synonyms: string[];
-  external: IHikkaExternalLink[];
-  videos: IHikkaVideo[];
-  ost: IHikkaOST[];
-  stats: IHikkaAnimeStats;
+
+  external: IHikkaExternalLink;
+  videos: IHikkaExternalLink;
+  ost: IHikkaExternalLink;
+
+  stats: Record<string, number>;
   schedule: IHikkaScheduleItem[];
+
   translated_ua: boolean;
   mal_id: number;
 }

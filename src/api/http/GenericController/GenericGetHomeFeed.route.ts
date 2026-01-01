@@ -59,12 +59,12 @@ const endpoint = HandleRequest(async (req, res) => {
         return {
           id: el.id,
           slug: el.slug,
-          title: el.title_ua ?? el.title_en,
+          title: el.title_ua ?? el.title_en ?? 'Untitled',
           synopsys: synopsys && removeMarkdown(synopsys),
           poster: el.posters.find(el => el.is_hero)?.original ?? el.posters[0]?.original ?? conf.vars.defaultPoster,
           cover: hero.cover,
           video: hero.video,
-        };
+        } satisfies IHomeFeedHero;
       });
 
 

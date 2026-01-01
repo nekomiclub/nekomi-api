@@ -5,7 +5,7 @@ import { getUTC } from '~/utils/utils';
 
 const l = {
   MAX_TITLE_LENGTH: 256,
-  MAX_TITLE_SYNONIMS: 10,
+  MAX_TITLE_SYNONIMS: 20,
 
   MAX_SYNOPSIS_LENGTH: 5000,
 

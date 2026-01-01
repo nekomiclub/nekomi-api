@@ -31,12 +31,12 @@ export interface IAnime {
   posters: IAnimePosterNode[] // Protected
   hero_poster_author: string | null // Protected
 
-  year: number
+  year: number | null
   episodes_total: number | null
   episodes_released: number | null
 
-  title_en: string
-  title_ja: string
+  title_ja: string | null
+  title_en: string | null
   title_ua: string | null
   title_synonims: string[]
 
