@@ -155,12 +155,7 @@ export default async function AnimeBulkUpdate() {
   try {
     const startedAt = getUTC().timestamp;
 
-    const document = await AnimeRepository.safeGetOne({
-      $or: [
-        { slug: { $regex: /untitled/gi }, id: { $nin: hikkaErrored } },
-        { mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR, id: { $nin: hikkaErrored } },
-      ]
-    });
+    const document = await AnimeRepository.safeGetOne({ mal_id: null, hikka_slug: { $ne: null }, year: UPDATE_YEAR, id: { $nin: hikkaErrored } });
     if (!document) {
       if (UPDATE_YEAR > AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR -= 1;
       if (UPDATE_YEAR === AnimeValidators.limits.MIN_YEAR) return UPDATE_YEAR = getUTC().year + 1;
@@ -173,7 +168,7 @@ export default async function AnimeBulkUpdate() {
 
     const hikkaSlug = repo.document!.hikka_slug!;
     let malId = -1;
-    let hikkaPosterUrl = conf.vars.defaultPoster;
+    let fallbackPoster = conf.vars.defaultPoster;
 
 
 
@@ -182,17 +177,20 @@ export default async function AnimeBulkUpdate() {
       const hikkaRes = await HikkaAPI.getAnime(document.hikka_slug!);
 
       repo.setMalId(hikkaRes.mal_id);
+      malId = hikkaRes.mal_id;
 
-      await repo.setTitle({ title_en: hikkaRes.title_en?.length ? hikkaRes.title_en : hikkaRes.title_ja, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
+      await repo.setTitle({ title_en: hikkaRes.title_en, title_ja: hikkaRes.title_ja, title_ua: hikkaRes.title_ua, synonyms: hikkaRes.synonyms });
+      if (hikkaRes.title_en) await repo.setSlug(hikkaRes.title_en);
+      if (hikkaRes.title_ja && !hikkaRes.title_en) await repo.setSlug(hikkaRes.title_ja);
 
       repo.setSynopsis({ synopsis_en: hikkaRes.synopsis_en, synopsis_ua: hikkaRes.synopsis_ua });
       repo.setEpisodesReleased(hikkaRes.episodes_released);
       repo.setEpisodesTotal(hikkaRes.episodes_total);
 
-      repo.setType(repo.parseType(hikkaRes.media_type));
-      repo.setStatus(repo.parseStatus(hikkaRes.status));
-      repo.setSeason(repo.parseSeason(hikkaRes.season));
-      repo.setRating(repo.parseRating(hikkaRes.rating));
+      repo.setType(hikkaRes.media_type ? repo.parseType(hikkaRes.media_type) : null);
+      repo.setStatus(hikkaRes.status ? repo.parseStatus(hikkaRes.status) : null);
+      repo.setSeason(hikkaRes.season ? repo.parseSeason(hikkaRes.season) : null);
+      repo.setRating(hikkaRes.rating ? repo.parseRating(hikkaRes.rating) : null);
 
       repo.setScore({ score: hikkaRes.score, scoredBy: hikkaRes.scored_by });
       repo.setYear(hikkaRes.year);
@@ -207,8 +205,7 @@ export default async function AnimeBulkUpdate() {
 
       repo.setSync('hikka_sync', getUTC().ISO);
 
-      malId = hikkaRes.mal_id;
-      hikkaPosterUrl = hikkaRes.image;
+      if (hikkaRes.image) fallbackPoster = hikkaRes.image;
     } catch (e) {
       hikkaErrored.push(repo.document!.id);
 
@@ -232,6 +229,8 @@ export default async function AnimeBulkUpdate() {
 
       const jikanEpsRes = await JikanAPI.getAnimeEpisodeMeta(malId);
       if (jikanEpsRes.length) repo._setEpisodesMeta(parseJikanEpisodes(jikanEpsRes));
+
+      if (!fallbackPoster) fallbackPoster = jikanRes.images.webp.large_image_url ?? jikanRes.images.jpg.large_image_url;
 
       repo.setSync('myanimelist_sync', getUTC().ISO);
     } catch (e) {
@@ -334,10 +333,10 @@ export default async function AnimeBulkUpdate() {
 
 
 
-    // * Pull hikka poster
+    // * Pull fallback poster
     try {
-      if (!repo.document?.posters.length && hikkaPosterUrl) {
-        const res = await axios.get(hikkaPosterUrl, { responseType: 'arraybuffer' });
+      if (repo.document?.posters.length === 1 && repo.document.posters[0].authorId === conf.vars.INTERNAL_ID && fallbackPoster) {
+        const res = await axios.get(fallbackPoster, { responseType: 'arraybuffer' });
         const buffer = Buffer.from(res.data);
 
         await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, null);

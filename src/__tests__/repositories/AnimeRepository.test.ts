@@ -155,7 +155,6 @@ describe('AnimeRepository', () => {
   /**
    * [+] Should set title & synonyms
    * [+] Titles and synonyms should be trimmed
-   * [+] Updating english title should cumulative update the slug
    * [+] Ukranian title can be null
    * [+] Title length must be in range
    * [+] Synonym title length must be in range
@@ -163,23 +162,22 @@ describe('AnimeRepository', () => {
    */
   it('should set title', async () => {
     // Set title & synonyms
-    const titleEnId = createNanoId().toLowerCase();
-    const title_en = `    ${titleEnId}   `;
+    const titleEnNoise = createNanoId().toLowerCase();
+    const title_en = `    ${titleEnNoise}   `;
     const title_ja = '    one  two';
     const title_ua = '    lol   ';
     const synonyms = ['   synonym   ', '    syn   sec'];
 
     await animeServiceMain.setTitle({ title_en, synonyms, title_ja, title_ua });
 
-    expect(animeServiceMain.document?.title_en).toBe(titleEnId);
-    expect(animeServiceMain.document?.slug).toBe(titleEnId); // English title should update slug
+    expect(animeServiceMain.document?.title_en).toBe(titleEnNoise);
     expect(animeServiceMain.document?.title_ja).toBe('one two');
     expect(animeServiceMain.document?.title_ua).toBe('lol');
     expect(animeServiceMain.document?.title_synonims).toStrictEqual(['synonym', 'syn sec']);
 
 
 
-    // Ukranian title can be null
+    // Title can be null
     await animeServiceMain.setTitle({ title_ua: '' });
     expect(animeServiceMain.document?.title_ua).toBe(null);
 
