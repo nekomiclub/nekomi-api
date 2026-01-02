@@ -15,7 +15,7 @@ const UserRouter = express.Router();
 
 UserRouter.get('/search', UserGetSearchRoute);
 UserRouter.get(['/', '/:query'], UserGetRoute);
-UserRouter.get('/:userId/lib/:libId', UserGetLibRoute);
+UserRouter.get('/:query/lib/:libId', UserGetLibRoute);
 
 UserRouter.patch(['/', '/:id'], UserPatchSettingsRoute);
 

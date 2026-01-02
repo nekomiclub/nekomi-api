@@ -22,7 +22,7 @@ interface IResponse {
 }
 
 const ParamsSchema = z.object({
-  userId: z.string().nonempty(),
+  query: z.string().nonempty(),
   libId: z.string().nonempty(),
 });
 
@@ -32,17 +32,17 @@ const ParamsSchema = z.object({
  * Get user lib
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { libId, userId } = ParamsSchema.parse(req.params);
+  const { libId, query } = ParamsSchema.parse(req.params);
 
   const repo = new UserRepositoryClass();
-  await repo.init(userId);
+  await repo.init(query);
 
   const lib = repo.document?.libs.find(el => el.id === libId);
   if (!lib) throw new NekoError(`sys:not_found`, `User lib "${libId}" is not found`);
 
   // Ensure that only owner or admin can retrieve private lib
   if (!lib.is_public) {
-    if (!await isRequesterAdmin(req) && !await isRequesterAccountOwner(req, userId)) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
+    if (!await isRequesterAdmin(req) && !await isRequesterAccountOwner(req, repo.document.id)) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
