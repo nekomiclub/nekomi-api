@@ -118,6 +118,7 @@ export function setSessionCookie(token: string, res: express.Response) {
     maxAge: conf.vars.SESSION_COOKIE_MAX_AGE_MS,
     secure: ProductionMode,
     domain: ProductionMode ? conf.vars.SESSION_COOKIE_DOMAIN : undefined,
+    sameSite: 'lax',
   });
 }
 
