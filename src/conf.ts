@@ -65,7 +65,7 @@ const vars = {
   SESSION_LIMITATION_TIMEOUT_MS: ms('1day'),
   SESSION_REFRESH_BY_MS: ms('7day'),
 
-  SESSION_COOKIE_NAME: 'SEC_31N',
+  SESSION_COOKIE_NAME: 'nekomi-auth',
   SESSION_COOKIE_DOMAIN: `*.${domains.NEKOMI_DOMAIN}`,
   SESSION_COOKIE_MAX_AGE_MS: ms('12week'),
 };

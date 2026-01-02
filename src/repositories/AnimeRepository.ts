@@ -183,7 +183,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       ],
       hero_poster_author: conf.vars.INTERNAL_ID,
 
-      year: getUTC().year,
+      year: null,
       episodes_total: null,
       episodes_released: null,
 

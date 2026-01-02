@@ -1,9 +1,9 @@
 import SessionService from '~/service/SessionService';
 import conf from '~/conf';
 import z from 'zod';
+import { ErrorConstructor } from '~/service/ExceptionService';
 import { HandleRequest, removeSessionCookie } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
 import { getSessionAuth } from '~/utils/auth-utils';
 
 
@@ -57,15 +57,16 @@ const endpoint = HandleRequest(async (req, res) => {
   } catch (e) {
     removeSessionCookie(res);
 
+    if (e instanceof ErrorConstructor && (e.status && e.status < 500)) return res.status(200).json({ message: 'Session logged out' });
+
     throw e;
   }
-});
+}, { middlewares: ['checkCSRF'] });
 
 
 
 const AuthGetLogoutRoute = [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   endpoint
 ];
 
