@@ -63,7 +63,7 @@ export default class SessionService extends UserModel {
       session_id: sessionId,
     });
 
-    this.diff.push(`New session has been opened. [sessionId: ${sessionId}]`);
+    this._diff.push(`New session has been opened. [sessionId: ${sessionId}]`);
 
     this._doc.sessions.push(session);
     this._doc.markModified('sessions');
@@ -97,7 +97,7 @@ export default class SessionService extends UserModel {
 
       this._doc.markModified(`sessions`);
 
-      this.diff.push(`Session continued till ${newExpires}`);
+      this._diff.push(`Session continued till ${newExpires}`);
     }
 
     await this.save();
@@ -132,7 +132,7 @@ export default class SessionService extends UserModel {
     this._doc.sessions = this._doc.sessions.filter(el => el.id !== targetId);
     this._doc.markModified('sessions');
 
-    this.diff.push(`Session logged out. [targetId: ${targetId}; currentId: ${currentId}]`);
+    this._diff.push(`Session logged out. [targetId: ${targetId}; currentId: ${currentId}]`);
   }
 
 
@@ -178,7 +178,7 @@ export default class SessionService extends UserModel {
     this._doc.sessions = sessions;
     this._doc.markModified('sessions');
 
-    this.diff.push(`Sessions revalidated`);
+    this._diff.push(`Sessions revalidated`);
 
     this.revalidatedAt = getUTC().ISO;
   }

@@ -83,6 +83,11 @@ interface IConstructorProps {
   _?: any
 }
 
+interface ISaveProps {
+  /** Save document without diff writing */
+  saveOnly?: boolean
+}
+
 interface ISetSlugOptions {
   /** @test is document exist */
   _documentExist?: boolean
@@ -117,6 +122,8 @@ interface ISetScoreProps {
 export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor(props?: IConstructorProps) {
     super(model, queries);
+
+    this.RepositoryName = 'AnimeRepository';
   }
 
 
@@ -127,27 +134,27 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     return DTOService.anime(this._doc, true);
   }
 
-  async save() {
+  async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
-    this.diff = [];
 
-    await this.update();
-
-    Logger.debug(`[AnimeRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    await this._save({ id: this._doc.id, ...props });
   }
 
 
 
   async deleteOne(id: string): Promise<void> {
     throw new NekoError('sys:not_implemented');
+
+    // AnimeSearch.update();
   }
 
 
 
-  async deleteMany(id: string): Promise<void> {
-    throw new NekoError('sys:not_implemented');
+  /** @unavailable */
+  async deleteMany(): Promise<void> {
+    throw new NekoError('sys:not_implemented', `Method is unavailable`);
   }
 
 
@@ -220,7 +227,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     const document = new model(payload);
     if (saveDocument) await document.save();
 
-    Logger.info(`[AnimeRepository]: New document has been created! [id: ${id}]`);
+    Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
     return DTOService.anime(payload, true);
@@ -356,7 +363,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @testing
    */
-  async setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
+  setTitle({ synonyms, title_en, title_ja, title_ua }: ISetTitleProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const _setTitle = (value: string | null, key: 'title_en' | 'title_ja' | 'title_ua') => {
@@ -708,7 +715,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     this._doc.posters.push(node);
     this._doc.markModified('posters');
 
-    await this.save();
+    await this.save({ saveOnly: true });
 
     return node;
   }
@@ -737,7 +744,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       console.log('define hero poster');
     }
 
-    await this.save();
+    await this.save({ saveOnly: true });
   }
 
 
@@ -787,7 +794,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     this._doc.screenshots.push(node);
     this._doc.markModified('screenshots');
 
-    await this.save();
+    await this.save({ saveOnly: true });
 
     return node;
   }
@@ -811,7 +818,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     this._doc.screenshots = this._doc.screenshots.filter(el => el.pull_hash !== hash);
     this._doc.markModified('screenshots');
 
-    await this.save();
+    await this.save({ saveOnly: true });
   }
 
 

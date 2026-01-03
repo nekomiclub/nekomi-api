@@ -43,18 +43,20 @@ interface ICreateProps {
 export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
+
+    this.RepositoryName = 'RoleRepository';
   }
 
   get document(): RepositoryType | null {
     return this._doc ? DTOService.parse(this._doc) : null;
   }
 
+
+
   async save() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    await this.update();
-
-    Logger.debug(`[RoleRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    await this._save({ id: this._doc.id });
   }
 
 
@@ -81,7 +83,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     const document = new model(payload);
     if (saveDocument) await document.save();
 
-    Logger.info(`[RoleRepository]: New document has been created! [id: ${id}]`);
+    Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
     return DTOService.parse(payload);
@@ -95,7 +97,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (this._doc.permissions.includes(perm)) return;
 
     this._doc.permissions.push(perm);
-    this.diff.push(`Permission has been added: ${perm}`);
+    this._diff.push(`Permission has been added: ${perm}`);
     this._doc.markModified('permissions');
   }
 
@@ -107,7 +109,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc.permissions.includes(perm)) return;
 
     this._doc.permissions.filter(el => el !== perm);
-    this.diff.push(`Permission has been removed: ${perm}`);
+    this._diff.push(`Permission has been removed: ${perm}`);
     this._doc.markModified('permissions');
   }
 }

@@ -63,6 +63,11 @@ interface ICreateProps {
   saveDocument?: boolean
 }
 
+interface ISaveProps {
+  /** Save document without diff writing */
+  saveOnly?: boolean
+}
+
 interface IUploadACProps {
   type: NUS_UPLOAD_TYPE
   key: keyof Pick<IDubber, 'avatar' | 'cover'>
@@ -76,6 +81,8 @@ interface IUploadACProps {
 export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
+
+    this.RepositoryName = 'DubberRepository';
   }
 
   get document(): RepositoryType {
@@ -84,25 +91,29 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     return DTOService.dubber(this._doc, true);
   }
 
-  async save() {
+
+
+  async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
-    await this.update();
 
-    Logger.debug(`[DubberRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    await this._save({ id: this._doc.id, ...props });
   }
 
 
 
   async deleteOne(id: string): Promise<void> {
     throw new NekoError('sys:not_implemented');
+
+    // DubberSearch.update();
   }
 
 
 
-  async deleteMany(id: string): Promise<void> {
-    throw new NekoError('sys:not_implemented');
+  /** @unavailable */
+  async deleteMany(): Promise<void> {
+    throw new NekoError('sys:not_implemented', `Method is unavailable`);
   }
 
 
@@ -134,7 +145,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     const document = new model(payload);
     if (saveDocument) await document.save();
 
-    Logger.info(`[DubberRepository]: New document has been created! [id: ${id}]`);
+    Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
     return DTOService.dubber(payload, true);
@@ -184,8 +195,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
     // TODO: Add validation
 
-    this._doc.socials[key] = value;
-    this._doc.markModified('socials');
+    this.set(`socials.${key}`, value);
   }
 
 
@@ -268,7 +278,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       try {
         await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), userId);
       } catch (e) {
-        Logger.warn(`[DubberRepository]: Cannot delete dubber old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
+        Logger.warn(`[${this.RepositoryName}]: Cannot delete dubber old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
       }
     }
 

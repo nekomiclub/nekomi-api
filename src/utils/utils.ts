@@ -91,10 +91,6 @@ export function buffer2hash(data: Buffer) {
 
 
 
-
-
-
-
 export function removeMarkdown(text: string): string {
   return text
     // Remove code blocks
@@ -121,4 +117,13 @@ export function removeMarkdown(text: string): string {
     // Remove extra newlines
     .replace(/\n{2,}/g, '\n')
     .trim();
+}
+
+
+
+/** Exclude second array of values from first array */
+export function excludeValuesFromArray(a: any[], b: any[]): any[] {
+  const exclude = new Set(b);
+
+  return a.filter(el => !exclude.has(el));
 }
