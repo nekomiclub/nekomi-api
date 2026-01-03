@@ -8,7 +8,7 @@ import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
-import { CDNString, RepositoryQueriesType } from '~/intf/types';
+import { CDNString, ISODateString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
@@ -123,6 +123,8 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
 export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
+
+    this.RepositoryName = 'UserRepository';
   }
 
 
@@ -239,6 +241,14 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
     this.set('username', username);
     this.set('username_changed_at', getUTC().ISO);
+  }
+
+
+
+  _setCreatedAt(iso: ISODateString) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this._doc.set('created_at', iso);
   }
 
 
