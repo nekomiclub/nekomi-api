@@ -1,3 +1,5 @@
+import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
+import Logger from '~/service/LoggerService';
 import fs from 'fs';
 
 
@@ -23,29 +25,26 @@ function finishMigration(key: string) {
 
 
 
-// export async function MAnimeSet() {
-//   if (checkMigrationStatus('MUsersCreatedAt')) return;
+export async function MAdminDubbersMap() {
+  const slug = 'MAdmin';
+  if (checkMigrationStatus(slug)) return;
 
-//   try {
-//     const oldUsers = await UserModelOld.find();
+  try {
+    const db = JSON.parse(fs.readFileSync('./.cache/dubbers-synonimized.jsonc').toString()) as Record<string, string[]>;
 
-//     for (const key in oldUsers) {
-//       const oldUser = oldUsers[key];
+    const dubberMapRepo = new AdminDubberMapRepositoryClass();
+    await dubberMapRepo.create();
 
-//       try {
-//         const repo = new UserRepositoryClass();
-//         await repo.init(oldUser.id);
+    for (const key in db) {
+      const values = db[key];
 
-//         repo._setCreatedAt(getUTC(oldUser.statistics.accountCreated).ISO);
+      dubberMapRepo.setDubberSynonyms(key, values);
+    }
 
-//         await repo.save();
-//       } catch (e) {
-//         Logger.error(`[MUsersCreatedAt]: Cannot migrate user "${oldUser.id}" created at`, e);
-//       }
-//     }
+    await dubberMapRepo.save();
 
-//     finishMigration('MUsersCreatedAt');
-//   } catch (e) {
-//     Logger.error(`[MUsersCreatedAt]: Cannot migrate users created at`, e);
-//   }
-// }
+    finishMigration(slug);
+  } catch (e) {
+    Logger.error(`[${slug}]: Cannot migrate admin database`, e);
+  }
+}

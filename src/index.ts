@@ -10,6 +10,7 @@ import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { MAdminDubbersMap } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -72,6 +73,10 @@ async function runtime() {
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
+
+
+
+    if (conf.env.ENV === 'deploy') await MAdminDubbersMap();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

@@ -63,6 +63,7 @@ class DTOServiceClass {
       'hikka_sync',
       'myanimelist_sync',
       'is_DMCA_restricted',
+      'ashdi_url',
     ];
 
     // Convert HydratedDocument into plain object

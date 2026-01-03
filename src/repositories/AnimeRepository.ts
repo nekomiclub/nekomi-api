@@ -60,6 +60,7 @@ const schema = new Schema<RepositoryType>({
   schedule: [Schema.Types.Mixed],
   episodes: [Schema.Types.Mixed],
   episodes_meta: [Schema.Types.Mixed],
+  ashdi_url: String,
 
   genres: [Schema.Types.Mixed],
   rating: String,
