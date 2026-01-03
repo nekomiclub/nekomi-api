@@ -1,7 +1,7 @@
-import CSRFAgentRepository from '~/repo/CSRFAgentRepository';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
 import jwt from 'jsonwebtoken';
+import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { CSRFTokenType } from '~/intf/IAuth';
 import { ISODateString } from '~/intf/types';
 import { calcISO, getUTC } from '~/utils/utils';
@@ -60,7 +60,7 @@ class CSRFServiceClass {
       // Ensure that origin match requested if second was provided
       if (requestedOrigin && requestedOrigin !== origin) return { verified: false, origin };
 
-      const agent = await CSRFAgentRepository.getOne(origin);
+      const agent = await new CSRFAgentRepositoryClass().getOne(origin);
 
       return {
         verified: TokenService.verifySecret(token, agent.public_key.replace(/\\n/g, '\n')),

@@ -23,13 +23,16 @@ interface IAdmin<S extends ADMIN_SLUG, D> {
 
 
 /** 
- * Admin dubber map data
+ * Admin dubbers map data node
  * 
- * @param key dubber id
- * @param valu dubber names array
+ * @param key dubber id (can be ~notexist{x} is dubber is not exist)
  */
-export type AdminDubberMapData = Record<string, string[]>
-export type AdminDubbersMapType = IAdmin<ADMIN_SLUG.DUBBERS_MAP, AdminDubberMapData>
+export type AdminDubberMapDataType = Record<string, {
+  synonyms_dub: string[]
+  synonyms_sub: string[]
+}>
+
+export type AdminDubbersMapType = IAdmin<ADMIN_SLUG.DUBBERS_MAP, AdminDubberMapDataType>
 
 
 

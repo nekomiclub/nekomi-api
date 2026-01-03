@@ -1,4 +1,4 @@
-import { IAnimeEpisode } from './IAnime';
+import { IAnimeDubber } from './IAnime';
 
 
 
@@ -13,7 +13,7 @@ export interface IAshdiVOD {
 
 export interface IAshdiVODSeason {
   season: number
-  episodes: IAnimeEpisode[]
+  episodes: IAnimeDubber[]
   parts: IAshdiVODSeasonPart[]
 }
 

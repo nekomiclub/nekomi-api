@@ -1,9 +1,8 @@
-import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber, { DubberCardType } from '~/intf/IDubber';
 import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
 import express from 'express';
-import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
@@ -82,7 +81,7 @@ class DTOServiceClass {
       score,
       poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
       title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => ANIME_GENRES[el]),
+      genres: genres.map(el => ANIME_GENRE[el]),
     };
   }
 

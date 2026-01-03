@@ -101,8 +101,10 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
 
 
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.user(this._doc, true) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.user(this._doc, true);
   }
 
 
@@ -111,9 +113,8 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
-    await this._update();
 
-    Logger.debug(`[${this.RepositoryName}]: Document saved. [id: ${this._doc.id}; diff: ${this.preserveDiff()}]`);
+    await this._save({ id: this._doc.id });
   }
 }
 

@@ -1,5 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeDubber, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
@@ -30,7 +30,7 @@ interface IResponseMisc {
 
 
   /** @method get_episodes */
-  episodes?: IAnimeEpisode[]
+  episodes?: IAnimeDubber[]
 
   /** @method get_episodes */
   episodes_meta?: IAnimeEpisodeMeta[]

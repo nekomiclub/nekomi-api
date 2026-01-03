@@ -3,7 +3,7 @@ import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
 import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
-import UnifiedRepositoryClass from './UnifiedRepository';
+import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
@@ -116,6 +116,35 @@ interface ISetSynopsisProps {
 interface ISetScoreProps {
   score?: number
   scoredBy?: number
+}
+
+
+
+/** Bare user model implementation */
+export class AnimeModel extends UnifiedModelClass<RepositoryType> {
+  constructor() {
+    super(model, queries);
+
+    this.RepositoryName = 'AnimeRepository';
+  }
+
+
+
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.anime(this._doc, true);
+  }
+
+
+
+  async save() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this.set('updated_at', getUTC().ISO);
+
+    await this._save({ id: this._doc.id });
+  }
 }
 
 

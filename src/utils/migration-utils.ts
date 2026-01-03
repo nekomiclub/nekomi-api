@@ -1,26 +1,35 @@
 import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import Logger from '~/service/LoggerService';
 import fs from 'fs';
+import { NekoError } from '~/service/ExceptionService';
 
 
 
 const MIGRATION_CACHE_PATH = './.cache/migration.json';
 
-function checkMigrationStatus(key: string) {
+
+
+/** Check wether something migrated or not */
+function checkMigrationStatus(slug: string) {
   if (!fs.existsSync(MIGRATION_CACHE_PATH)) fs.writeFileSync(MIGRATION_CACHE_PATH, JSON.stringify({}, null, 2));
 
   const status = JSON.parse(fs.readFileSync(MIGRATION_CACHE_PATH).toString()) as Record<string, boolean>;
 
-  return status[key];
+  return status[slug];
 }
 
-function finishMigration(key: string) {
+
+
+/** Finish migration of something */
+function finishMigration(slug: string) {
   if (!fs.existsSync(MIGRATION_CACHE_PATH)) fs.writeFileSync(MIGRATION_CACHE_PATH, JSON.stringify({}, null, 2));
 
   const status = JSON.parse(fs.readFileSync(MIGRATION_CACHE_PATH).toString()) as Record<string, boolean>;
-  status[key] = true;
+  status[slug] = true;
 
   fs.writeFileSync(MIGRATION_CACHE_PATH, JSON.stringify(status, null, 2));
+
+  Logger.info(`[${slug}]: Migration finished`);
 }
 
 
@@ -30,7 +39,10 @@ export async function MAdminDubbersMap() {
   if (checkMigrationStatus(slug)) return;
 
   try {
-    const db = JSON.parse(fs.readFileSync('./.cache/dubbers-synonimized.jsonc').toString()) as Record<string, string[]>;
+    const path = './.cache/dubbers-synonimized.jsonc';
+    if (!fs.existsSync(path)) throw new NekoError('sys:not_found', `[${slug}]: Required file is not found at "${path}", skipping...`);
+
+    const db = JSON.parse(fs.readFileSync(path).toString()) as Record<string, string[]>;
 
     const dubberMapRepo = new AdminDubberMapRepositoryClass();
     await dubberMapRepo.create();

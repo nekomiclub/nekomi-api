@@ -155,9 +155,3 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     });
   }
 }
-
-
-
-const CSRFAgentRepository = new CSRFAgentRepositoryClass();
-
-export default CSRFAgentRepository;
