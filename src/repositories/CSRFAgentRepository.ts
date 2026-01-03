@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
+import { TestMode } from '~/conf';
 import { getUTC } from '~/utils/utils';
 
 
@@ -31,7 +32,7 @@ const model = mongoose.model<RepositoryType>('csrf-agent', schema);
 
 
 interface IConstructorProps {
-  testmode?: boolean
+  _?: void
 }
 
 interface ICreateProps {
@@ -52,12 +53,10 @@ interface ICreate {
 
 
 export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
-  private testmode = false;
-
   constructor(props?: IConstructorProps) {
     super(model, queries);
 
-    if (props?.testmode) this.testmode = props.testmode;
+    this.RepositoryName = 'CSRFAgentRepository';
   }
 
   get document(): RepositoryType {
@@ -66,12 +65,12 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     return DTOService.parse(this._doc);
   }
 
+
+
   async save() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    await this.update();
-
-    Logger.debug(`[CSRFAgent]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    await this._save({ id: this._doc.id });
   }
 
 
@@ -88,10 +87,10 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     // Ensure that origin is unique
     let isOriginExist = false;
 
-    if (this.testmode) {
+    if (TestMode) {
       isOriginExist = Boolean(_isOriginExist);
     } else {
-      const exist = await this.getOneByQuery({ origin });
+      const exist = await this.getOne({ origin });
       isOriginExist = Boolean(exist);
     }
 
@@ -115,7 +114,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     if (saveDocument) await document.save();
 
-    Logger.info(`[CSRFAgent]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
+    Logger.info(`[${this.RepositoryName}]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
 
     return { document: DTOService.parse<ICSRFAgent>(document), privateKey };
   }

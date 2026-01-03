@@ -34,7 +34,7 @@ class SearchServiceClass<T extends object> {
    * Update cache
    */
   async update() {
-    const documents = await this.repository.getAll();
+    const documents = await this.repository.getMany();
 
     this.engine = new Fuse(documents, {
       keys: this.searchKeys,
@@ -99,7 +99,7 @@ export async function RequestSearch<T extends object>(req: express.Request, repo
 
 
   if (query === '~all') {
-    results = (await repository.getAll()).slice(0, limit); // TODO: Implement pagination
+    results = (await repository.getMany()).slice(0, limit); // TODO: Implement pagination
 
     pagination = { limit, page };
   } else {

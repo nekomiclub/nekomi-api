@@ -10,6 +10,8 @@ import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { ANIME_GENRE } from './interfaces/IAnime';
+import { AnimeRepositoryClass } from './repositories/AnimeRepository';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -72,6 +74,16 @@ async function runtime() {
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
+
+
+
+    const animeRepo = new AnimeRepositoryClass();
+    await animeRepo.init({ id: 'uKiM7NOm' });
+
+    animeRepo.setYear(null);
+    animeRepo._setGenres([ANIME_GENRE.ACTION, ANIME_GENRE.ADVENTURE]);
+
+    await animeRepo.save();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

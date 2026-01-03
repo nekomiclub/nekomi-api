@@ -58,6 +58,11 @@ interface ICreateProps {
   saveDocument?: boolean
 }
 
+interface ISaveProps {
+  /** Save document without diff writing */
+  saveOnly?: boolean
+}
+
 interface ISetUsernameProps {
   /** Bypass user change restriction */
   bypassRestriction?: boolean
@@ -90,6 +95,8 @@ interface IUploadACProps {
 export class UserModel extends UnifiedModelClass<RepositoryType> {
   constructor() {
     super(model, queries);
+
+    this.RepositoryName = 'UserRepository';
   }
 
 
@@ -104,9 +111,9 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
-    await this.update();
+    await this._update();
 
-    Logger.debug(`[UserRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    Logger.debug(`[${this.RepositoryName}]: Document saved. [id: ${this._doc.id}; diff: ${this.preserveDiff()}]`);
   }
 }
 
@@ -126,25 +133,28 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     return DTOService.user(this._doc, true);
   }
 
-  async save() {
+
+
+  async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('updated_at', getUTC().ISO);
-    await this.update();
 
-    Logger.debug(`[UserRepository]: Document saved. [id: ${this._doc.id}; diff: ${this.diff.join('; ')}]`);
+    await this._save({ id: this._doc.id, ...props });
   }
 
 
 
   async deleteOne(id: string): Promise<void> {
     throw new NekoError('sys:not_implemented');
+
+    // UserSearch.update();
   }
 
 
 
   /** @unavailable */
-  async deleteMany(id: string): Promise<void> {
+  async deleteMany(): Promise<void> {
     throw new NekoError('sys:not_implemented', `Method is unavailable`);
   }
 
@@ -191,7 +201,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     const document = new model(payload);
     if (saveDocument) await document.save();
 
-    Logger.info(`[UserRepository]: New document has been created! [id: ${id}]`);
+    Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
     return DTOService.user(payload, true);
@@ -537,7 +547,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       try {
         await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), this._doc.id);
       } catch (e) {
-        Logger.warn(`[UserRepository]: Cannot delete user old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
+        Logger.warn(`[${this.RepositoryName}]: Cannot delete user old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
       }
     }
 

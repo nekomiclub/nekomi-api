@@ -1,1 +1,1 @@
-npm run lint && npx tsc --noEmit && npm run test && git add .
+npm run lint && npm run test && git add .

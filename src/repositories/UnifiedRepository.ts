@@ -1,13 +1,23 @@
-import { HydratedDocument, Model, QueryFilter, SortOrder } from 'mongoose';
+import DTOService from '~/service/DataTransferService';
+import Logger from '~/service/LoggerService';
+import { HydratedDocument, Model, SortOrder } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
-import { RepositoryGetQueryType, RepositoryQueriesType } from '~/intf/types';
+import { NestedKey, RepositoryGetQueryType, RepositoryQueriesType, ValueFromPath } from '~/intf/types';
+import { excludeValuesFromArray } from '~/utils/utils';
 
 
+
+interface ISaveProps {
+  id: string
+
+  /** Save document without diff writing */
+  saveOnly?: boolean
+}
 
 interface IGetTopOfManyProps<T> {
   limit: number
 
-  sort: {
+  sort?: {
     [key: string]: SortOrder
   } & {
     [K in keyof T]?: SortOrder
@@ -16,12 +26,15 @@ interface IGetTopOfManyProps<T> {
 
 
 
+/** Unified model */
 export class UnifiedModelClass<RepositoryType> {
+  protected RepositoryName = 'UnifiedRepository (unassigned)';
+
   /** Current document */
   protected _doc: HydratedDocument<RepositoryType> | undefined;
 
   /** Changes diff */
-  protected diff: string[] = [];
+  protected _diff: string[] = [];
 
 
 
@@ -33,8 +46,8 @@ export class UnifiedModelClass<RepositoryType> {
 
 
   async init(query: RepositoryGetQueryType<RepositoryType>) {
-    const document = await this.model.findOne(typeof query === 'string' ? this.queries(query) : query);
-    if (!document) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
+    const document = await this.model.findOne(this.query2find(query));
+    if (!document) throw new NekoError('sys:not_found', `Cannot initialize repository using query ${JSON.stringify(query)} as it is not found`);
 
     this._doc = document;
   }
@@ -42,73 +55,142 @@ export class UnifiedModelClass<RepositoryType> {
 
 
   /** @requires init() */
-  protected set<K extends keyof RepositoryType>(key: K, value: RepositoryType[K]) {
+  protected set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K>) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // TODO: Implement deep array/object diff
+    const key = String(_key);
+    const parts = key.split('.') as string[];
 
-    // Write diff
-    if (typeof value === 'string' || typeof value === 'number') this.diff.push(`[${String(key)}]: ${this._doc[key]} > ${value}`);
-    else if (Array.isArray(value)) this.diff.push(`[${String(key)}]: ${(this._doc[key] as Array<any>)?.length} > ${(value as Array<any>)?.length}`);
-    else this.diff.push(`[${String(key)}]: object changed`);
 
-    this._doc.markModified(key);
 
-    (this._doc as RepositoryType)[key] = value;
+    if (parts.length === 1) {
+      // Primitives & arrays
+
+      if (typeof value === 'string' || typeof value === 'number' || value === undefined || value === null) {
+        // Write primitives diff
+        const prev = this._doc[key];
+        if (prev === value) return; // Nothing changed
+
+        this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
+      }
+      else if (Array.isArray(value)) {
+        // Write array diff
+        const excluded = excludeValuesFromArray(this._doc[key], value);
+        const appended = excludeValuesFromArray(value, this._doc[key]);
+
+        const msg: string[] = [];
+
+        if (appended.length) msg.push(`Appended: ${appended.join(', ')}`);
+        if (excluded.length) msg.push(`Excluded: ${excluded.join(', ')}`);
+        if (!msg.length) return; // Nothing changed
+
+        this._diff.push(`[${String(key)}]: ${msg.join('; ')}`);
+      }
+
+      this._doc.markModified(key);
+      (this._doc as any)[parts[0]] = value;
+    } else {
+      // Objects
+
+      const [parent, child] = parts;
+      const prev = this._doc[parent][child];
+      if (prev === value) return; // Nothing changed
+
+      this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
+
+      this._doc.markModified(parent);
+      (this._doc as any)[parent][child] = value;
+    }
   }
 
 
 
-  /** @requires init() */
-  protected async update() {
+  /** 
+   * Save the document
+   * To default save use {this._save} instead
+   * 
+   * @requires init()
+   */
+  protected async _update() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     await this._doc.save();
   }
+
+
+
+  /** 
+   * Save the document and write logs
+   * 
+   * @requires init()
+   */
+  protected async _save({ saveOnly, id }: ISaveProps) {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    await this._update();
+
+    if (!saveOnly) {
+      Logger.debug(`[${this.RepositoryName}]: Document saved. [id: ${id}; diff: ${this.preserveDiff()}]`);
+
+      this._diff = [];
+    } else {
+      Logger.debug(`[${this.RepositoryName}]: Document saved silently. [id: ${id}]`);
+    }
+  }
+
+
+
+  protected query2find(query?: RepositoryGetQueryType<RepositoryType>) {
+    return typeof query === 'string' ? this.queries(query) : query;
+  }
+
+
+
+  protected preserveDiff() {
+    return this._diff.length ? this._diff.join(', ') : 'Nothing changed';
+  }
 }
+
+
 
 /** Unified repository to provide CRUD access to models */
 export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModelClass<RepositoryType> {
-  constructor(
-    /** MongoDB model */
-    model: Model<RepositoryType>,
-
-    /** Document find queries preserve function */
-    queries: (query: string) => RepositoryQueriesType<RepositoryType>,
-  ) {
-    super(model, queries);
-  }
-
-
-
-
-
-
+  /**
+   * Get single document with query
+   * 
+   * @throws {404} if not found
+   */
   async getOne(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType> {
-    const result = await this.model.findOne(typeof query === 'string' ? this.queries(query) : query);
-    if (!result) throw new NekoError('sys:not_found', `Document with query ${query} is not found`);
+    const result = await this.model.findOne(this.query2find(query));
+    if (!result) throw new NekoError('sys:not_found', `Document with query ${JSON.stringify(query)} is not found`);
 
-    return result;
+    return DTOService.parse(result);
   }
 
 
 
-  async getMany(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType[]> {
-    const results = await this.model.find(typeof query === 'string' ? this.queries(query) : query);
+  /** 
+   * Get many documents with query
+   * To sort or limit output use {this.getSortedMany} as more efficient method
+   */
+  async getMany(query?: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType[]> {
+    const results = await this.model.find(this.query2find(query));
 
-    return results;
+    return results.map(el => DTOService.parse(el));
   }
 
 
 
+  /** Get many sorted documents with limit */
   async getSortedMany(query: RepositoryGetQueryType<RepositoryType> | undefined, { limit, sort }: IGetTopOfManyProps<RepositoryType>): Promise<RepositoryType[]> {
-    const results = await this.model.find(typeof query === 'string' ? this.queries(query) : query).sort(sort).limit(limit);
+    const results = await this.model.find(this.query2find(query)).sort(sort).limit(limit);
 
-    return results;
+    return results.map(el => DTOService.parse(el));
   }
 
 
 
+  /** Similar to {this.getOne}, but without error throwing on not found */
   async safeGetOne(query: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType | null> {
     try {
       return await this.getOne(query);
@@ -119,37 +201,15 @@ export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModel
 
 
 
-  /** @deprecated use getOne instead */
-  async getOneByQuery(query: QueryFilter<keyof RepositoryType>): Promise<RepositoryType | null> {
-    const result = await this.model.findOne(query);
-
-    return result;
-  }
-
-
-
-  /** @deprecated use getMany instead */
-  async getManyByQuery(query: QueryFilter<keyof RepositoryType>): Promise<RepositoryType[]> {
-    const results = await this.model.find(query);
-
-    return results;
-  }
-
-
-
-  async getAll(): Promise<RepositoryType[]> {
-    return await this.model.find();
-  }
-
-
-
+  /** Delete single document matching query */
   async deleteOne(query: RepositoryGetQueryType<RepositoryType>): Promise<void> {
-    await this.model.deleteOne(typeof query === 'string' ? { id: query } : query);
+    await this.model.deleteOne(this.query2find(query));
   }
 
 
 
+  /** Delete many documents matching query */
   async deleteMany(query: RepositoryGetQueryType<RepositoryType>): Promise<void> {
-    await this.model.deleteMany(typeof query === 'string' ? { id: query } : query);
+    await this.model.deleteMany(this.query2find(query));
   }
 }

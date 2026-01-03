@@ -5,7 +5,7 @@ import { shouldfail } from '~/utils/testing-utils';
 
 
 describe('CSRF Agent Repository', () => {
-  const agentRepository = new CSRFAgentRepositoryClass({ testmode: true });
+  const agentRepository = new CSRFAgentRepositoryClass();
 
 
 
