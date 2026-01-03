@@ -10,7 +10,6 @@ import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { MUsersCreatedAt } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 
@@ -73,10 +72,6 @@ async function runtime() {
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
-
-
-
-    await MUsersCreatedAt();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }
