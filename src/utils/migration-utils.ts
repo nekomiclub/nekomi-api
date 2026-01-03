@@ -1,8 +1,4 @@
-import Logger from '~/service/LoggerService';
-import UserModelOld from '~/repo/old/UserModel';
 import fs from 'fs';
-import { UserRepositoryClass } from '~/repo/UserRepository';
-import { getUTC } from './utils';
 
 
 
@@ -27,29 +23,29 @@ function finishMigration(key: string) {
 
 
 
-export async function MUsersCreatedAt() {
-  if (checkMigrationStatus('MUsersCreatedAt')) return;
+// export async function MAnimeSet() {
+//   if (checkMigrationStatus('MUsersCreatedAt')) return;
 
-  try {
-    const oldUsers = await UserModelOld.find();
+//   try {
+//     const oldUsers = await UserModelOld.find();
 
-    for (const key in oldUsers) {
-      const oldUser = oldUsers[key];
+//     for (const key in oldUsers) {
+//       const oldUser = oldUsers[key];
 
-      try {
-        const repo = new UserRepositoryClass();
-        await repo.init(oldUser.id);
+//       try {
+//         const repo = new UserRepositoryClass();
+//         await repo.init(oldUser.id);
 
-        repo._setCreatedAt(getUTC(oldUser.statistics.accountCreated).ISO);
+//         repo._setCreatedAt(getUTC(oldUser.statistics.accountCreated).ISO);
 
-        await repo.save();
-      } catch (e) {
-        Logger.error(`[MUsersCreatedAt]: Cannot migrate user "${oldUser.id}" created at`, e);
-      }
-    }
+//         await repo.save();
+//       } catch (e) {
+//         Logger.error(`[MUsersCreatedAt]: Cannot migrate user "${oldUser.id}" created at`, e);
+//       }
+//     }
 
-    finishMigration('MUsersCreatedAt');
-  } catch (e) {
-    Logger.error(`[MUsersCreatedAt]: Cannot migrate users created at`, e);
-  }
-}
+//     finishMigration('MUsersCreatedAt');
+//   } catch (e) {
+//     Logger.error(`[MUsersCreatedAt]: Cannot migrate users created at`, e);
+//   }
+// }

@@ -54,6 +54,9 @@ export interface IAnime {
   episodes: IAnimeEpisode[] // Protected
   episodes_meta: IAnimeEpisodeMeta[] // Protected
 
+  /** Managed by nekomi-api-ashdi-connector */
+  ashdi_url: string | null // Protected
+
   genres: ANIME_GENRE[]
   rating: ANIME_RATING | null
   status: ANIME_STATUS | null

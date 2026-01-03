@@ -211,6 +211,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       schedule: [],
       episodes: [],
       episodes_meta: [],
+      ashdi_url: null,
 
       genres: [],
       rating: null,
