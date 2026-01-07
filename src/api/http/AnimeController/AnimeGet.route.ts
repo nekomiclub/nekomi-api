@@ -1,6 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import DubberRepository from '~/repo/DubberRepository';
-import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
@@ -29,8 +28,8 @@ interface IAnimePlayerEpisode {
   name: string
   avatar: string
 
-  episodes_dub: IAnimeEpisode[]
-  episodes_sub: IAnimeEpisode[]
+  episodes_dub: [] // IAnimeEpisode
+  episodes_sub: [] // IAnimeEpisode
 }
 
 interface IResponseMisc {
@@ -43,7 +42,7 @@ interface IResponseMisc {
   episodes?: IAnimePlayerEpisode[]
 
   /** @method get_episodes */
-  episodes_meta?: IAnimeEpisodeMeta[]
+  episodes_meta?: IAnimeEpisode[]
 
   /** @method get_episodes */
   ashdi_url?: string | null
@@ -156,31 +155,31 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_episodes) {
     if (isEligible(`get_episodes`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
-      const dubbers = await DubberRepository.getMany({ id: { $in: anime.episodes.map(el => el.dubber_id) } });
-      const episodes: IAnimePlayerEpisode[] = [];
+      // const dubbers = await DubberRepository.getMany({ id: { $in: anime.episodes.map(el => el.dubber_id) } });
+      // const episodes: IAnimePlayerEpisode[] = [];
 
-      anime.episodes.forEach(ep => {
-        const dubber = dubbers.find(el => el.id === ep.dubber_id);
-        if (!dubber) return;
+      // anime.episodes.forEach(ep => {
+      //   const dubber = dubbers.find(el => el.id === ep.dubber_id);
+      //   if (!dubber) return;
 
-        const exist = episodes.find(el => el.id === dubber.id);
+      //   const exist = episodes.find(el => el.id === dubber.id);
 
-        if (exist) {
-          if (ep.episodes_dub.length) exist.episodes_dub = ep.episodes_dub;
-          if (ep.episodes_sub.length) exist.episodes_sub = ep.episodes_sub;
-        }
-        else episodes.push({
-          id: dubber.id,
-          name: dubber.name,
-          avatar: dubber.avatar,
-          episodes_dub: ep.episodes_dub,
-          episodes_sub: ep.episodes_sub
-        });
-      });
+      //   if (exist) {
+      //     if (ep.episodes_dub.length) exist.episodes_dub = ep.episodes_dub;
+      //     if (ep.episodes_sub.length) exist.episodes_sub = ep.episodes_sub;
+      //   }
+      //   else episodes.push({
+      //     id: dubber.id,
+      //     name: dubber.name,
+      //     avatar: dubber.avatar,
+      //     episodes_dub: ep.episodes_dub,
+      //     episodes_sub: ep.episodes_sub
+      //   });
+      // });
 
 
 
-      anime_misc.episodes = episodes;
+      anime_misc.episodes = [];
       anime_misc.episodes_meta = anime.episodes_meta;
       anime_misc.ashdi_url = anime.ashdi_url;
     }

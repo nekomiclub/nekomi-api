@@ -5,7 +5,7 @@ import axios from 'axios';
 import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
-import { ANIME_GENRE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import { ANIME_GENRE, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
 import { IJikanAnimeEpisodeMeta, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
@@ -476,8 +476,8 @@ function parseJikanRelations(input: IJikanRelation[]): IAnimeRelation[] {
   return relations;
 }
 
-function parseJikanEpisodes(input: IJikanAnimeEpisodeMeta[]): IAnimeEpisodeMeta[] {
-  const eps: IAnimeEpisodeMeta[] = [];
+function parseJikanEpisodes(input: IJikanAnimeEpisodeMeta[]): IAnimeEpisode[] {
+  const eps: IAnimeEpisode[] = [];
 
   input.forEach(ep => {
     eps.push({ aired: ep.aired ? getUTC(ep.aired).ISO : null, episode: ep.mal_id, filler: ep.filler, recap: ep.recap, score: ep.score, title: ep.title });

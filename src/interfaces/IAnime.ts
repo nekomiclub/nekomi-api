@@ -51,8 +51,10 @@ export interface IAnime {
   studios: IAnimeStudio[]
   screenshots: IAnimeScreenshotNode[] // Protected
   schedule: IAnimeSchedule[]
-  episodes: IAnimeDubber[] // Protected
-  episodes_meta: IAnimeEpisodeMeta[] // Protected
+  player: IAnimePlayer // Protected
+
+  /** @todo rework */
+  episodes_meta: IAnimeEpisode[] // Protected
 
   /** Managed by nekomi-api-ashdi-connector */
   ashdi_url: string | null // Protected
@@ -83,20 +85,27 @@ export interface IAnimeStudio {
   name: string
 }
 
-export interface IAnimeDubber {
-  dubber_id: string
-  episodes_dub: IAnimeEpisode[]
-  episodes_sub: IAnimeEpisode[]
+interface IAnimePlayer {
+  dubbed: IAnimePlayerTeam[]
+  subbed: IAnimePlayerTeam[]
 }
 
-export interface IAnimeEpisode {
+export interface IAnimePlayerTeam {
+  dubber_ids: string[]
+  dubber_name: string
+  vods: IAnimePlayerVOD[]
+}
+
+export interface IAnimePlayerVOD {
   episode: number
-  moonanime: string | null
-  ashdi: string | null
-  tortuga: string | null
+
+  moonanime_vod?: string
+  ashdi_vod?: string
+  tortuga_vod?: string
 }
 
-export interface IAnimeEpisodeMeta {
+/** @todo rework */
+export interface IAnimeEpisode {
   episode: number
   title: string
   aired: ISODateString | null

@@ -78,7 +78,6 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
-
     await AnimeEpisodeService.updateDubbersMap();
     await AnimeEpisodeService.invoke('51dcd5a5-7fea-4ade-97ff-86a86243cc2a');
 

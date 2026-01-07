@@ -2,7 +2,7 @@ import AdminRepository from './AdminRepository';
 import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import createId, { createNanoId } from '~/utils/create-id';
-import { ADMIN_SLUG, AdminDubbersMapType } from '~/intf/IAdmin';
+import { ADMIN_SLUG, AdminDubbersMapType, IAdminDubberMapData } from '~/intf/IAdmin';
 import { NekoError } from '~/service/ExceptionService';
 import { TestMode } from '~/conf';
 import { getUTC } from '~/utils/utils';
@@ -31,7 +31,7 @@ export default class AdminDubberMapRepositoryClass extends AdminRepository {
       slug,
       created_at: getUTC().ISO,
       updated_at: getUTC().ISO,
-      data: {},
+      data: [],
     };
 
     const document = new this.model(payload);
@@ -45,9 +45,9 @@ export default class AdminDubberMapRepositoryClass extends AdminRepository {
 
 
 
-  setDubberSynonyms(id: string, synonyms: string[]) {
+  setDubbers(data: IAdminDubberMapData[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set(`data.${id}`, synonyms);
+    this.set('data', data);
   }
 }

@@ -1,6 +1,4 @@
-import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import Logger from './LoggerService';
-import { ADMIN_SLUG, AdminDubberMapDataType } from '~/intf/IAdmin';
 import { AnimeModel } from '~/repo/AnimeRepository';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { IAshdiDubber } from '~/intf/external-api/IAshdi.api';
@@ -23,7 +21,7 @@ interface IUnifiedEpisode {
 
 class EpisodeParserClass extends AnimeModel {
   constructor(
-    readonly dubbers: AdminDubberMapDataType
+    readonly dubbers: any
   ) {
     super();
   }
@@ -185,15 +183,15 @@ class EpisodeParserClass extends AnimeModel {
 
 
 class AnimeEpisodeServiceClass {
-  private dubbers: AdminDubberMapDataType = {};
+  private dubbers: any;
 
 
 
   async updateDubbersMap() {
-    const admin = new AdminDubberMapRepositoryClass();
-    const dubbers = await admin.getOne({ slug: ADMIN_SLUG.DUBBERS_MAP });
+    // const admin = new AdminDubberMapRepositoryClass();
+    // const dubbers = await admin.getOne({ slug: ADMIN_SLUG.DUBBERS_MAP });
 
-    this.dubbers = dubbers.data;
+    // this.dubbers = dubbers.data;
   }
 
 

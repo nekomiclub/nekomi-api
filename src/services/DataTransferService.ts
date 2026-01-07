@@ -55,7 +55,7 @@ class DTOServiceClass {
       'posters',
       'relations',
       'screenshots',
-      'episodes',
+      'player',
       'episodes_meta',
       'updated_at',
       'created_at',

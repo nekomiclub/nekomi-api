@@ -1,7 +1,7 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
@@ -58,7 +58,7 @@ const schema = new Schema<RepositoryType>({
   studios: [Schema.Types.Mixed],
   screenshots: [Schema.Types.Mixed],
   schedule: [Schema.Types.Mixed],
-  episodes: [Schema.Types.Mixed],
+  player: Object,
   episodes_meta: [Schema.Types.Mixed],
   ashdi_url: String,
 
@@ -239,7 +239,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       studios: [],
       screenshots: [],
       schedule: [],
-      episodes: [],
+      player: {
+        dubbed: [],
+        subbed: []
+      },
       episodes_meta: [],
       ashdi_url: null,
 
@@ -692,7 +695,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * ! Must be refactored into append/remove methods after 3.0.0
    */
-  _setEpisodesMeta(eps: IAnimeEpisodeMeta[]) {
+  _setEpisodesMeta(eps: IAnimeEpisode[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this.set('episodes_meta', eps);
