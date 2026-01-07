@@ -432,7 +432,7 @@ describe('AnimeRepository', () => {
     // Set sync
     const ts = getUTC().ISO;
 
-    animeServiceMain.setSync('hikka_sync', ts);
-    expect(animeServiceMain.document?.hikka_sync).toBe(ts);
+    animeServiceMain.setSync('about_synced_at', ts);
+    expect(animeServiceMain.document?.about_synced_at).toBe(ts);
   });
 });

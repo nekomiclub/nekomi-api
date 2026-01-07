@@ -112,7 +112,7 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
   async save() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('updated_at', getUTC().ISO);
+    this._set('updated_at', getUTC().ISO);
 
     await this._save({ id: this._doc.id });
   }
@@ -141,7 +141,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('updated_at', getUTC().ISO);
+    this._set('updated_at', getUTC().ISO);
 
     await this._save({ id: this._doc.id, ...props });
   }
@@ -240,8 +240,8 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       else throw new NekoError('sys:already_exist', `User "@${username}" already exist`);
     }
 
-    this.set('username', username);
-    this.set('username_changed_at', getUTC().ISO);
+    this._set('username', username);
+    this._set('username_changed_at', getUTC().ISO);
   }
 
 
@@ -261,7 +261,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     const exist = await this.safeGetOne({ email });
     if (exist && exist.id !== this._doc.id) throw new NekoError('sys:already_exist', `User with email "${email}" is already exist`);
 
-    this.set('email', email);
+    this._set('email', email);
   }
 
 
@@ -314,7 +314,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
     const viewtime = this._doc.total_viewtime + sec;
 
-    this.set('total_viewtime', viewtime);
+    this._set('total_viewtime', viewtime);
   }
 
 
@@ -332,7 +332,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     // Ensure that dubber exist
     if (id) await DubberRepository.getOne(id);
 
-    this.set('dubber_team_member', id);
+    this._set('dubber_team_member', id);
   }
 
 
@@ -345,7 +345,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   setTelegramId(id: number | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('telegram_id', id);
+    this._set('telegram_id', id);
   }
 
 
@@ -554,7 +554,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       }
     }
 
-    this.set(key, object.url);
+    this._set(key, object.url);
     await this.save();
 
     return object.url;

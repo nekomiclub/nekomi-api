@@ -1,4 +1,5 @@
 import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
+import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import Logger from '~/service/LoggerService';
 import fs from 'fs';
 import { IAdminDubberMapData } from '~/intf/IAdmin';
@@ -35,8 +36,48 @@ function finishMigration(slug: string) {
 
 
 
+export async function MAnimePlayer() {
+  const slug = 'MAnimePlayer';
+  if (checkMigrationStatus(slug)) return;
+
+  try {
+    const documents = await AnimeRepository.getMany();
+
+    for (const key in documents) {
+      const document = documents[key];
+
+      const repo = new AnimeRepositoryClass();
+      await repo.init({ id: document.id });
+
+      // @ts-expect-error Removed field will be undefined
+      repo._set('episodes', undefined);
+      // @ts-expect-error Removed field will be undefined
+      repo._set('hikka_sync', undefined);
+      // @ts-expect-error Removed field will be undefined
+      repo._set('myanimelist_sync', undefined);
+
+      repo._set('about_synced_at', null);
+      repo._set('episodes_synced_at', null);
+      repo._set('content_season', null);
+
+      repo._set('player', {
+        dubbed: [],
+        subbed: []
+      });
+
+      await repo.save();
+    }
+
+    finishMigration(slug);
+  } catch (e) {
+    Logger.error(`[${slug}]: Cannot migrate anime player`, e);
+  }
+}
+
+
+
 export async function MAdminDubbersMap() {
-  const slug = 'MAdmin';
+  const slug = 'MAdminDubbersMap';
   if (checkMigrationStatus(slug)) return;
 
   try {

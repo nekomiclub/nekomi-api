@@ -59,8 +59,8 @@ class DTOServiceClass {
       'episodes_meta',
       'updated_at',
       'created_at',
-      'hikka_sync',
-      'myanimelist_sync',
+      'about_synced_at',
+      'episodes_synced_at',
       'is_DMCA_restricted',
       'ashdi_url',
     ];

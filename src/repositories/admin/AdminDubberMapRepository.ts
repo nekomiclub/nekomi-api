@@ -48,6 +48,6 @@ export default class AdminDubberMapRepositoryClass extends AdminRepository {
   setDubbers(data: IAdminDubberMapData[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('data', data);
+    this._set('data', data);
   }
 }

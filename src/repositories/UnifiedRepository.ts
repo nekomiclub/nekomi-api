@@ -55,7 +55,7 @@ export class UnifiedModelClass<RepositoryType> {
 
 
   /** @requires init() */
-  protected set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K>) {
+  _set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K> | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const key = String(_key);

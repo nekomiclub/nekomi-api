@@ -10,7 +10,7 @@ import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { MAdminDubbersMap } from './utils/migration-utils';
+import { MAdminDubbersMap, MAnimePlayer } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
 import AnimeEpisodeService from './services/AnimeEpisodeService';
@@ -78,9 +78,11 @@ async function runtime() {
     ----------------------------\n\n`);
 
 
+
     await AnimeEpisodeService.updateDubbersMap();
     await AnimeEpisodeService.invoke('51dcd5a5-7fea-4ade-97ff-86a86243cc2a');
 
+    if (conf.env.ENV === 'deploy') await MAnimePlayer();
     if (conf.env.ENV === 'deploy') await MAdminDubbersMap();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);

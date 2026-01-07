@@ -64,11 +64,12 @@ export interface IAnime {
   status: ANIME_STATUS | null
   season: ANIME_SEASON | null
   type: ANIME_TYPE | null
+  content_season: number | null
 
   updated_at: ISODateString // Protected
   created_at: ISODateString // Protected
-  hikka_sync: ISODateString | null // Protected
-  myanimelist_sync: ISODateString | null // Protected
+  about_synced_at: ISODateString | null // Protected
+  episodes_synced_at: ISODateString | null // Protected
 
   /** Is anime restricted under DMCA */
   is_DMCA_restricted?: boolean

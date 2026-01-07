@@ -40,7 +40,7 @@ export default class AdminRepository extends UnifiedRepositoryClass<RepositoryTy
   async save() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('updated_at', getUTC().ISO);
+    this._set('updated_at', getUTC().ISO);
 
     await this._save({ id: this._doc.id });
   }

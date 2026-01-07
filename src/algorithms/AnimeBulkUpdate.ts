@@ -203,7 +203,7 @@ export default async function AnimeBulkUpdate() {
       const schedule = parseHikkaSchedule(hikkaRes.schedule);
       if (schedule.length) repo._setSchedule(schedule);
 
-      repo.setSync('hikka_sync', getUTC().ISO);
+      repo.setSync('about_synced_at', getUTC().ISO);
 
       if (hikkaRes.image) fallbackPoster = hikkaRes.image;
     } catch (e) {
@@ -232,7 +232,7 @@ export default async function AnimeBulkUpdate() {
 
       if (!fallbackPoster) fallbackPoster = jikanRes.images.webp.large_image_url ?? jikanRes.images.jpg.large_image_url;
 
-      repo.setSync('myanimelist_sync', getUTC().ISO);
+      repo.setSync('about_synced_at', getUTC().ISO);
     } catch (e) {
       Logger.error(`[AnimeBulkUpdate]: MyAnimeList (Jikan) update failed, skipping... [id: ${document.id}]`, e);
     }

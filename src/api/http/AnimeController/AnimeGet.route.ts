@@ -67,10 +67,10 @@ interface IResponseMisc {
   created_at?: ISODateString
 
   /** @method get_timestamps */
-  hikka_sync?: ISODateString | null
+  about_synced_at?: ISODateString | null
 
   /** @method get_timestamps */
-  myanimelist_sync?: ISODateString | null
+  episodes_synced_at?: ISODateString | null
 }
 
 interface IResponse {
@@ -188,8 +188,8 @@ const endpoint = HandleRequest(async (req, res) => {
   if (get_timestamps) {
     anime_misc.created_at = anime.created_at;
     anime_misc.updated_at = anime.updated_at;
-    anime_misc.hikka_sync = anime.hikka_sync;
-    anime_misc.myanimelist_sync = anime.myanimelist_sync;
+    anime_misc.about_synced_at = anime.about_synced_at;
+    anime_misc.episodes_synced_at = anime.episodes_synced_at;
   }
 
 
