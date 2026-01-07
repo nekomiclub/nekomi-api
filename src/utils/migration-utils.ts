@@ -4,6 +4,7 @@ import Logger from '~/service/LoggerService';
 import fs from 'fs';
 import { IAdminDubberMapData } from '~/intf/IAdmin';
 import { NekoError } from '~/service/ExceptionService';
+import { getContentSeason } from '~/algorithms/AnimeUpdateCrawler';
 
 
 
@@ -56,11 +57,13 @@ export async function MAnimePlayer() {
       // @ts-expect-error Removed field will be undefined
       repo._set('myanimelist_sync', undefined);
 
-      repo._set('about_synced_at', null);
-      repo._set('episodes_synced_at', null);
-      repo._set('content_season', null);
+      repo._set('about_synced_at', repo.document.about_synced_at ?? null);
+      repo._set('episodes_synced_at', repo.document.episodes_synced_at ?? null);
 
-      repo._set('player', {
+      const synonyms = [...repo.document.title_synonims, repo.document.title_en, repo.document.title_ja].filter(el => el !== null) as string[];
+      repo._set('content_season', getContentSeason(synonyms));
+
+      repo._set('player', repo.document.player ?? {
         dubbed: [],
         subbed: []
       });

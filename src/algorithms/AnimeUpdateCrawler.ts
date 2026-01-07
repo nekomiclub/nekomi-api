@@ -439,21 +439,9 @@ export default class AnimeUpdateCrawlerClass {
     try {
       // Retrieve content season
       if (repo.document.mal_id) {
-        // Content season list, where key is season and value is matches
-        const contentSeasonsList: Record<string, number> = {};
-        let content_season = 1;
+        const synonyms = [...repo.document.title_synonims, repo.document.title_en, repo.document.title_ja].filter(el => el !== null) as string[];
 
-        const synonyms = [...repo.document.title_synonims, repo.document.title_en, repo.document.title_ja].filter(el => el !== null);
-
-        synonyms.forEach(synonym => {
-          const extracted = extractAnimeContentSeason(synonym as string);
-          if (!extracted) return;
-
-          if (contentSeasonsList[extracted]) contentSeasonsList[extracted] += 1;
-          else contentSeasonsList[extracted] = 1;
-        });
-
-        content_season = Number(getObjectKeyByValue(contentSeasonsList, getHighestValue(contentSeasonsList)));
+        const content_season = getContentSeason(synonyms);
 
         repo._set('content_season', content_season);
       }
@@ -481,6 +469,26 @@ export default class AnimeUpdateCrawlerClass {
 }
 
 
+
+
+
+export function getContentSeason(synonyms: string[]) {
+  // Content season list, where key is season and value is matches
+  const contentSeasonsList: Record<string, number> = {};
+  let content_season = 1;
+
+  synonyms.forEach(synonym => {
+    const extracted = extractAnimeContentSeason(synonym);
+    if (!extracted) return;
+
+    if (contentSeasonsList[extracted]) contentSeasonsList[extracted] += 1;
+    else contentSeasonsList[extracted] = 1;
+  });
+
+  content_season = Number(getObjectKeyByValue(contentSeasonsList, getHighestValue(contentSeasonsList)));
+
+  return content_season;
+}
 
 
 
