@@ -120,16 +120,16 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (view === 'card') anime_card = DTOService.toAnimeCard(anime);
   else if (view === 'full') {
-    anime_full = DTOService.includeKeys(anime, [...FullPublicResponseKeys]);
+    anime_full = DTOService.includeKeys(anime, [...FullPublicResponseKeys]) as FullResponseType;
 
-    anime_full!.synopsis_en = anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en;
-    anime_full!.synopsis_ua = anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua;
+    anime_full.synopsis_en = anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en;
+    anime_full.synopsis_ua = anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua;
 
-    anime_full!.genres = anime.genres.map(el => AnimeGenres[el]);
-    anime_full!.rating = anime.rating && AnimeRatings[anime.rating];
-    anime_full!.status = anime.status && AnimeStatuses[anime.status];
-    anime_full!.season = anime.season && AnimeSeasons[anime.season];
-    anime_full!.type = anime.type && AnimeTypes[anime.type];
+    anime_full.genres = anime.genres.map(el => AnimeGenres[el]);
+    anime_full.rating = anime.rating && AnimeRatings[anime.rating];
+    anime_full.status = anime.status && AnimeStatuses[anime.status];
+    anime_full.season = anime.season && AnimeSeasons[anime.season];
+    anime_full.type = anime.type && AnimeTypes[anime.type];
   }
 
   if (get_details) {
@@ -177,6 +177,8 @@ const endpoint = HandleRequest(async (req, res) => {
           episodes_sub: ep.episodes_sub
         });
       });
+
+
 
       anime_misc.episodes = episodes;
       anime_misc.episodes_meta = anime.episodes_meta;

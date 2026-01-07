@@ -91,8 +91,9 @@ export interface IAnimeDubber {
 
 export interface IAnimeEpisode {
   episode: number
-  moonanime_vod: string | null
-  ashdi_vod: string | null
+  moonanime: string | null
+  ashdi: string | null
+  tortuga: string | null
 }
 
 export interface IAnimeEpisodeMeta {

@@ -127,3 +127,13 @@ export function excludeValuesFromArray(a: any[], b: any[]): any[] {
 
   return a.filter(el => !exclude.has(el));
 }
+
+
+
+/** If number is not retrieved, will return -1 */
+export function retrieveNumberFromString(text: string): number {
+  const match = text.match(/\d+/gi);
+  const order = match ? Number(match[0]) : -1;
+
+  return order;
+}

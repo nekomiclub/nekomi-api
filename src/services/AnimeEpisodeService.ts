@@ -2,18 +2,21 @@ import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository
 import Logger from './LoggerService';
 import { ADMIN_SLUG, AdminDubberMapDataType } from '~/intf/IAdmin';
 import { AnimeModel } from '~/repo/AnimeRepository';
-import { IAnimeDubber, IAnimeEpisode } from '~/intf/IAnime';
+import { AshdiAPI } from '~/api/external/ashdi.api';
+import { IAshdiDubber } from '~/intf/external-api/IAshdi.api';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from './ExceptionService';
-import { trimString } from '~/utils/utils';
+import { retrieveNumberFromString, trimString } from '~/utils/utils';
 
 
 
 interface IUnifiedEpisode {
   episode: number
   dubber_name: string
-  moonanime_vod: string | null
-  ashdi_vod: string | null
+
+  moonanime_vod?: string
+  ashdi_vod?: string
+  tortuga_vod?: string
 }
 
 
@@ -32,71 +35,87 @@ class EpisodeParserClass extends AnimeModel {
    */
   async retrieve() {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
-    if (!this._doc.mal_id && !this._doc.imdb_id) return; // Skip if neither mal_id not imdb_id specified
+    if (!this._doc.mal_id && !this._doc.imdb_id) return; // Skip if neither mal_id nor imdb_id specified
 
-    // Retrieve episodes
-    const retrievedUnified: IUnifiedEpisode[] = [];
+    /** Retrieved episodes from players */
+    const episodes: IUnifiedEpisode[] = [];
 
     if (this._doc.mal_id) {
       const eps = await this.retrieveMoonanime(this._doc.mal_id);
-      eps.forEach(el => retrievedUnified.push(el));
+      eps.forEach(el => episodes.push(el));
+    }
+
+    if (this._doc.imdb_id) {
+      const eps = await this.retrieveAshdi(this._doc.imdb_id);
+      eps.forEach(el => episodes.push(el));
     }
 
 
 
-    // Parse episodes into dubber groups
-    const sortedUnified: Record<string, IUnifiedEpisode[]> = {};
+    /** Episodes mapped to dubbers */
+    const sorted: Record<string, IUnifiedEpisode[]> = {};
 
-    for (const key in retrievedUnified) {
-      const episode = retrievedUnified[key];
-      const slug = trimString(episode.dubber_name).toLowerCase();
+    for (const key in episodes) {
+      const episode = episodes[key];
+      const slug = this.preserveKey(episode.dubber_name);
+      const existDubber = sorted[slug] as IUnifiedEpisode[];
 
-      if (sortedUnified[slug]) sortedUnified[slug].push(episode);
-      else sortedUnified[slug] = [episode];
+      if (existDubber) {
+        const existEpisode = existDubber.find(el => el.episode === episode.episode);
+
+        if (existEpisode) {
+          if (episode.ashdi_vod) existEpisode.ashdi_vod = episode.ashdi_vod;
+          if (episode.moonanime_vod) existEpisode.moonanime_vod = episode.moonanime_vod;
+          if (episode.tortuga_vod) existEpisode.tortuga_vod = episode.tortuga_vod;
+        } else existDubber.push(episode);
+      } else sorted[slug] = [episode];
     }
 
 
 
-    // Parse unified to dubbers
-    const dubbers: IAnimeDubber[] = [];
+    // // Parse unified to dubbers
+    // const dubbers: IAnimeDubber[] = [];
 
-    for (const slug in sortedUnified) {
-      const unified = sortedUnified[slug];
-      const dubber = this.getDubber(slug);
-      if (!dubber) {
-        Logger.warn(`[EpisodeParser]: Cannot find dubber for slug "${slug}"`);
+    // for (const slug in sortedUnified) {
+    //   const unified = sortedUnified[slug];
+    //   const dubber = this.getDubber(slug);
+    //   if (!dubber) {
+    //     Logger.warn(`[EpisodeParser]: Cannot find dubber for slug "${slug}"`);
 
-        continue;
-      }
+    //     continue;
+    //   }
 
-      const episodes: IAnimeEpisode[] = unified.map(el => {
-        return {
-          episode: el.episode,
-          ashdi_vod: el.ashdi_vod,
-          moonanime_vod: el.moonanime_vod,
-        } satisfies IAnimeEpisode;
-      });
-
-
-
-      dubbers.push({
-        dubber_id: dubber.id,
-        episodes_dub: dubber.subtitles ? [] : episodes,
-        episodes_sub: dubber.subtitles ? episodes : []
-      });
-    }
+    //   const episodes: IAnimeEpisode[] = unified.map(el => {
+    //     return {
+    //       episode: el.episode,
+    //       ashdi: el.ashdi ?? null,
+    //       moonanime: el.moonanime ?? null,
+    //       tortuga: el.moonanime ?? null,
+    //     } satisfies IAnimeEpisode;
+    //   });
 
 
 
-    this.set('episodes', dubbers);
+    //   dubbers.push({
+    //     dubber_id: dubber.id,
+    //     episodes_dub: dubber.subtitles ? [] : episodes,
+    //     episodes_sub: dubber.subtitles ? episodes : []
+    //   });
+    // }
 
-    await this.save();
+
+
+    // // console.log(dubbers);
+
+    // this.set('episodes', dubbers);
+
+    // await this.save();
   }
 
 
 
-  private async retrieveMoonanime(mal_id: number): Promise<IUnifiedEpisode[]> {
-    const episodes = await MoonanimeAPI.getEpisodes(mal_id);
+  private async retrieveMoonanime(malId: number): Promise<IUnifiedEpisode[]> {
+    const episodes = await MoonanimeAPI.getEpisodes(malId);
     const unified: IUnifiedEpisode[] = [];
 
 
@@ -105,9 +124,8 @@ class EpisodeParserClass extends AnimeModel {
       ep.videos.forEach(video => {
         const episode: IUnifiedEpisode = {
           episode: ep.episode,
-          dubber_name: video.studio,
+          dubber_name: trimString(video.studio),
           moonanime_vod: video.video_url,
-          ashdi_vod: null,
         };
 
         unified.push(episode);
@@ -119,9 +137,26 @@ class EpisodeParserClass extends AnimeModel {
 
 
 
-  /** @todo */
-  private async retrieveAshdi(imdb_id: string) {
-    throw new NekoError('sys:not_implemented');
+  private async retrieveAshdi(imdbId: string): Promise<IUnifiedEpisode[]> {
+    const response = await AshdiAPI.getTitle(imdbId);
+    const dubbers: IAshdiDubber[] = response.pl;
+    const unified: IUnifiedEpisode[] = [];
+
+    dubbers.forEach(dubber => {
+      dubber.folder.forEach(season => {
+        season.folder.forEach(episode => {
+          unified.push({
+            episode: retrieveNumberFromString(episode.title),
+            dubber_name: trimString(dubber.title),
+            ashdi_vod: `https://ashdi.vip/vod/${episode.id}`,
+          });
+        });
+      });
+    });
+
+
+
+    return unified;
   }
 
 
@@ -136,16 +171,25 @@ class EpisodeParserClass extends AnimeModel {
 
     return null;
   }
+
+
+
+  private preserveKey(text: string): string {
+    return trimString(text)
+      .toLowerCase()
+      .replace('субтитри | ', '')
+      .replace('amp;', '');
+  }
 }
 
 
 
-export default class AnimeEpisodeServiceClass {
+class AnimeEpisodeServiceClass {
   private dubbers: AdminDubberMapDataType = {};
 
 
 
-  async update() {
+  async updateDubbersMap() {
     const admin = new AdminDubberMapRepositoryClass();
     const dubbers = await admin.getOne({ slug: ADMIN_SLUG.DUBBERS_MAP });
 
@@ -166,3 +210,9 @@ export default class AnimeEpisodeServiceClass {
     }
   }
 }
+
+
+
+const AnimeEpisodeService = new AnimeEpisodeServiceClass();
+
+export default AnimeEpisodeService;
