@@ -310,8 +310,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async setSlug(slug: string, opts?: ISetSlugOptions): Promise<string> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    let isDocumentExist = false;
     slug = createSlug(trimString(slug));
+
+    let isDocumentExist = false;
 
     // Define is document exist
     if (TestMode) {

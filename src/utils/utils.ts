@@ -137,3 +137,56 @@ export function retrieveNumberFromString(text: string): number {
 
   return order;
 }
+
+
+
+/** Await specified time span */
+export async function sleep(ms: number) {
+  await new Promise(res => {
+    setTimeout(() => {
+      res(1);
+    }, ms);
+  });
+}
+
+
+
+/** Extract anime content season from title */
+export function extractAnimeContentSeason(title: string): number | null {
+  if (!title) return null;
+
+  const normalized = title.toLowerCase();
+
+  // 1. Match "season 2", "season: 02", "season-2"
+  let match = normalized.match(/season\s*[:-]?\s*(\d{1,2})/);
+  if (match) return parseInt(match[1], 10);
+
+  // 2. Match "2nd season", "3rd season", "1st season"
+  match = normalized.match(/(\d{1,2})(st|nd|rd|th)?\s+season/);
+  if (match) return parseInt(match[1], 10);
+
+  // 3. Match shorthand "s2", "s02"
+  match = normalized.match(/\bs(\d{1,2})\b/);
+  if (match) return parseInt(match[1], 10);
+
+  // 4. Match word-based seasons ("second season", "third season", etc.)
+  const wordToNumber: Record<string, number> = {
+    first: 1,
+    second: 2,
+    third: 3,
+    fourth: 4,
+    fifth: 5,
+    sixth: 6,
+    seventh: 7,
+    eighth: 8,
+    ninth: 9,
+    tenth: 10
+  };
+
+  match = normalized.match(
+    new RegExp(`(${Object.keys(wordToNumber).join('|')})\\s+season`)
+  );
+  if (match) return wordToNumber[match[1]];
+
+  return null;
+}

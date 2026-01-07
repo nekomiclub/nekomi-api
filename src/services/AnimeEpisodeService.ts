@@ -40,7 +40,7 @@ class EpisodeParserClass extends AnimeModel {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
     if (!this._doc.mal_id && !this._doc.imdb_id) return; // Skip if neither mal_id nor imdb_id specified
 
-    /** Retrieved episodes from players */
+    // Retrieve episodes from players
     const episodes: IUnifiedEpisode[] = [];
 
     if (this._doc.mal_id) {
@@ -55,7 +55,7 @@ class EpisodeParserClass extends AnimeModel {
 
 
 
-    /** Episodes mapped to dubbers */
+    // Map episodes to dubbers
     const sorted: Record<string, IUnifiedEpisode[]> = {};
 
     for (const key in episodes) {
@@ -76,13 +76,9 @@ class EpisodeParserClass extends AnimeModel {
 
 
 
-    const mixed: ({ subtitles: boolean } & IAnimePlayerTeam)[] = [];
-    const dubbed: IAnimePlayerTeam[] = [];
-    const subbed: IAnimePlayerTeam[] = [];
-
-
-
     // Assign mixed teams
+    const mixed: ({ subtitles: boolean } & IAnimePlayerTeam)[] = [];
+
     for (const slug in sorted) {
       const episodes = sorted[slug];
 
@@ -129,6 +125,9 @@ class EpisodeParserClass extends AnimeModel {
 
 
     // Filter mixed
+    const dubbed: IAnimePlayerTeam[] = [];
+    const subbed: IAnimePlayerTeam[] = [];
+
     mixed.forEach(el => {
       const team = DTOService.excludeKeys(el, ['subtitles']) as IAnimePlayerTeam;
 

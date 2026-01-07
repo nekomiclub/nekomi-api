@@ -1,19 +1,19 @@
+import conf, { ProductionMode } from './conf';
+
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import AuthRouter from './api/http/AuthController/AuthRouter';
 import DatabaseService from './services/DatabaseService';
 import DubberRouter from './api/http/DubberController/DubberRouter';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
+import Runtime from './runtime';
 import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
-import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { MAdminDubbersMap, MAnimePlayer } from './utils/migration-utils';
 import { traceRequest } from './utils/http-utils';
 
-import AnimeEpisodeService from './services/AnimeEpisodeService';
 
 
 
@@ -79,11 +79,7 @@ async function runtime() {
 
 
 
-    await AnimeEpisodeService.updateDubbersMap();
-    await AnimeEpisodeService.invoke('51dcd5a5-7fea-4ade-97ff-86a86243cc2a');
-
-    if (conf.env.ENV === 'deploy') await MAnimePlayer();
-    if (conf.env.ENV === 'deploy') await MAdminDubbersMap();
+    await Runtime();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

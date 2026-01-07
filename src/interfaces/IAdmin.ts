@@ -8,6 +8,7 @@ export enum ADMIN_SLUG {
 
   HOME_FEED = 'admin:home_feed',
   DUBBERS_MAP = 'admin:dubbers_map',
+  POSTER_LOCALE_MAP = 'admin:poster_locale_map'
 }
 
 
@@ -29,6 +30,15 @@ export interface IAdminDubberMapData {
 }
 
 export type AdminDubbersMapType = IAdmin<ADMIN_SLUG.DUBBERS_MAP, IAdminDubberMapData[]>
+
+
+
+export interface IAdminPosterLocaleMapData {
+  dubber_id: string | null
+  synonym: string[]
+}
+
+export type AdminPosterLocaleMapType = IAdmin<ADMIN_SLUG.POSTER_LOCALE_MAP, IAdminPosterLocaleMapData[]>
 
 
 

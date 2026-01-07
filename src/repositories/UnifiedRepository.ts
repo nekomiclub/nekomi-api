@@ -54,7 +54,12 @@ export class UnifiedModelClass<RepositoryType> {
 
 
 
-  /** @requires init() */
+  /** 
+   * Implicit document value setter
+   * Using it outside repository violates safe repository usage
+   * 
+   * @requires init()
+   */
   _set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K> | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
