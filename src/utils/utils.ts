@@ -151,25 +151,28 @@ export async function sleep(ms: number) {
 
 
 
-/** Extract anime content season from title */
-export function extractAnimeContentSeason(title: string): number | null {
-  if (!title) return null;
-
+/** Extract anime content season and content part from title */
+export function extractAnimeContentSeason(title: string): number {
   const normalized = title.toLowerCase();
 
-  // 1. Match "season 2", "season: 02", "season-2"
+  // =====================
+  // SEASON MATCHING
+  // =====================
+  let season = 1;
+
+  // 1. "season 2", "season: 02", "season-2"
   let match = normalized.match(/season\s*[:-]?\s*(\d{1,2})/);
-  if (match) return parseInt(match[1], 10);
+  if (match) season = parseInt(match[1], 10);
 
-  // 2. Match "2nd season", "3rd season", "1st season"
+  // 2. "2nd season", "3rd season"
   match = normalized.match(/(\d{1,2})(st|nd|rd|th)?\s+season/);
-  if (match) return parseInt(match[1], 10);
+  if (match) season = parseInt(match[1], 10);
 
-  // 3. Match shorthand "s2", "s02"
+  // 3. "s2", "s02"
   match = normalized.match(/\bs(\d{1,2})\b/);
-  if (match) return parseInt(match[1], 10);
+  if (match) season = parseInt(match[1], 10);
 
-  // 4. Match word-based seasons ("second season", "third season", etc.)
+  // 4. Word-based seasons
   const wordToNumber: Record<string, number> = {
     first: 1,
     second: 2,
@@ -186,7 +189,55 @@ export function extractAnimeContentSeason(title: string): number | null {
   match = normalized.match(
     new RegExp(`(${Object.keys(wordToNumber).join('|')})\\s+season`)
   );
-  if (match) return wordToNumber[match[1]];
 
-  return null;
+  if (match) season = wordToNumber[match[1]];
+
+  // =====================
+  // ANIME PART / COUR MATCHING
+  // =====================
+  let part = 1;
+
+  // 5. "part 2", "part: 02", "final part 3"
+  match = normalized.match(/part\s*[:-]?\s*(\d{1,2})/);
+  if (match) part = parseInt(match[1], 10);
+
+  // 6. "cour 1", "split cour 2"
+  match = normalized.match(/cour\s*[:-]?\s*(\d{1,2})/);
+  if (match) part = parseInt(match[1], 10);
+
+  // 7. Roman numerals: "part ii", "part iv"
+  const romanMap: Record<string, number> = {
+    i: 1,
+    ii: 2,
+    iii: 3,
+    iv: 4,
+    v: 5,
+    vi: 6
+  };
+
+  match = normalized.match(/part\s+(i{1,3}|iv|v|vi)\b/);
+  if (match) part = romanMap[match[1]] ?? null;
+
+  return +`${season}.${part}`;
+}
+
+
+
+export function getHighestValue(
+  obj: Record<string, number>
+): number {
+  const values = Object.values(obj);
+  if (values.length === 0) return -1;
+
+  return Math.max(...values);
+}
+
+
+
+export function getObjectKeyByValue<
+  T extends Record<string, string | number>
+>(obj: T, value: string | number): keyof T | null {
+  return (Object.keys(obj) as (keyof T)[]).find(
+    key => obj[key] === value
+  ) ?? null;
 }

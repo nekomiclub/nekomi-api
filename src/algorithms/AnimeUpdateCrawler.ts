@@ -12,7 +12,7 @@ import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/exte
 import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
-import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils';
+import { buffer2hash, extractAnimeContentSeason, getHighestValue, getObjectKeyByValue, getUTC, sleep } from '~/utils/utils';
 
 
 
@@ -439,16 +439,21 @@ export default class AnimeUpdateCrawlerClass {
     try {
       // Retrieve content season
       if (repo.document.mal_id) {
+        // Content season list, where key is season and value is matches
+        const contentSeasonsList: Record<string, number> = {};
         let content_season = 1;
 
-        const synonyms = [...repo.document.title_synonims, repo.document.title_en, repo.document.title_ja, repo.document.title_ua].filter(el => el !== null);
+        const synonyms = [...repo.document.title_synonims, repo.document.title_en, repo.document.title_ja].filter(el => el !== null);
 
         synonyms.forEach(synonym => {
           const extracted = extractAnimeContentSeason(synonym as string);
           if (!extracted) return;
 
-          content_season = extracted;
+          if (contentSeasonsList[extracted]) contentSeasonsList[extracted] += 1;
+          else contentSeasonsList[extracted] = 1;
         });
+
+        content_season = Number(getObjectKeyByValue(contentSeasonsList, getHighestValue(contentSeasonsList)));
 
         repo._set('content_season', content_season);
       }
