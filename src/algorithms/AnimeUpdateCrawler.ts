@@ -12,7 +12,7 @@ import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/exte
 import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
-import { buffer2hash, extractAnimeContentSeason, getHighestValue, getObjectKeyByValue, getUTC, sleep } from '~/utils/utils';
+import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils';
 
 
 
@@ -485,7 +485,7 @@ export function getContentSeason(synonyms: string[]) {
     else contentSeasonsList[extracted] = 1;
   });
 
-  content_season = Number(getObjectKeyByValue(contentSeasonsList, getHighestValue(contentSeasonsList)));
+  content_season = Number(Math.max(...Object.keys(contentSeasonsList).map(Number)));
 
   return content_season;
 }

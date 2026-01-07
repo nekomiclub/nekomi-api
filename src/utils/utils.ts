@@ -131,11 +131,10 @@ export function excludeValuesFromArray(a: any[], b: any[]): any[] {
 
 
 /** If number is not retrieved, will return -1 */
-export function retrieveNumberFromString(text: string): number {
+export function retrieveNumberFromString(text: string): number | null {
   const match = text.match(/\d+/gi);
-  const order = match ? Number(match[0]) : -1;
 
-  return order;
+  return match ? Number(match[0]) : null;
 }
 
 
@@ -219,17 +218,6 @@ export function extractAnimeContentSeason(title: string): number {
   if (match) part = romanMap[match[1]] ?? null;
 
   return +`${season}.${part}`;
-}
-
-
-
-export function getHighestValue(
-  obj: Record<string, number>
-): number {
-  const values = Object.values(obj);
-  if (values.length === 0) return -1;
-
-  return Math.max(...values);
 }
 
 

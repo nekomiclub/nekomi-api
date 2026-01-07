@@ -1,5 +1,6 @@
 /** @fileoverview Isolated runtime functions */
 
+import AnimeEpisodeService from './services/AnimeEpisodeService';
 import AnimeUpdateCrawlerClass from './algorithms/AnimeUpdateCrawler';
 import Logger from './services/LoggerService';
 import conf from './conf';
@@ -18,6 +19,13 @@ export default async function Runtime() {
 
 
     const AnimeUpdateCrawler = new AnimeUpdateCrawlerClass();
+
+
+
+    await AnimeEpisodeService.updateDubbersMap();
+    await AnimeEpisodeService.invoke('eOXLEi98'); // s3 p1
+    await AnimeEpisodeService.invoke('ECyyfoJ1'); // s3 p2
+    await AnimeEpisodeService.invoke('Y6qIOidO'); // s1 p3
 
 
 
