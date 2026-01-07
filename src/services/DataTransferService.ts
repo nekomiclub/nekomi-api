@@ -1,4 +1,4 @@
-import IAnime, { ANIME_GENRE, AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, AnimeGenres, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber, { DubberCardType } from '~/intf/IDubber';
 import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
@@ -81,7 +81,7 @@ class DTOServiceClass {
       score,
       poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
       title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => ANIME_GENRE[el]),
+      genres: genres.map(el => AnimeGenres[el]),
     };
   }
 

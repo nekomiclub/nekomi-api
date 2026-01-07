@@ -96,7 +96,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
           dubberIds.push(dubber.id);
 
           if (dubber.subtitles) subtitles = true;
-        }
+        } else dubberIds.push(`~notexist-${slug}`);
       });
 
       dubberIds.sort();

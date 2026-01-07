@@ -29,6 +29,8 @@ export interface IAnime {
   hikka_slug: string | null
 
   posters: IAnimePosterNode[] // Protected
+
+  /** @deprecated use poster hero authorId instead */
   hero_poster_author: string | null // Protected
 
   year: number | null

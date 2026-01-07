@@ -1,8 +1,10 @@
 import DTOService from '~/service/DataTransferService';
-import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import DubberRepository from '~/repo/DubberRepository';
+import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimePlayer, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import conf from '~/conf';
 import z from 'zod';
-import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
+import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
+import { DubberCardType } from '~/intf/IDubber';
 import { HandleRequest } from '~/utils/http-utils';
 import { ISODateString, zBoolean } from '~/intf/types';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
@@ -19,27 +21,18 @@ type FullResponseType = FullPublicResponseType & {
   status: AnimeStatusType | null
   rating: AnimeRateType | null
   type: AnimeType | null
+
+  poster: Omit<IAnimePosterNode, keyof Pick<IAnimePosterNode, '_unprocessedAuthorName' | 'pull_hash'>>
 }
 
 
-
-interface IAnimePlayerEpisode {
-  id: string
-  name: string
-  avatar: string
-
-  episodes_dub: [] // IAnimeEpisode
-  episodes_sub: [] // IAnimeEpisode
-}
 
 interface IResponseMisc {
-  /** @method get_details */
-  relations?: AnimeCardType[]
-
-
+  /** @method get_episodes */
+  player?: IAnimePlayer
 
   /** @method get_episodes */
-  episodes?: IAnimePlayerEpisode[]
+  player_teams?: DubberCardType[]
 
   /** @method get_episodes */
   episodes_meta?: IAnimeEpisode[]
@@ -50,10 +43,7 @@ interface IResponseMisc {
 
 
   /** @method get_details */
-  posters?: Omit<IAnimePosterNode, keyof Pick<IAnimePosterNode, '_unprocessedAuthorName' | 'pull_hash'>>[]
-
-  /** @method get_details */
-  hero_poster_author?: string | null
+  relations?: AnimeCardType[]
 
   /** @method get_details */
   screenshots?: Omit<IAnimeScreenshotNode, keyof Pick<IAnimeScreenshotNode, 'pull_hash'>>[]
@@ -129,57 +119,32 @@ const endpoint = HandleRequest(async (req, res) => {
     anime_full.status = anime.status && AnimeStatuses[anime.status];
     anime_full.season = anime.season && AnimeSeasons[anime.season];
     anime_full.type = anime.type && AnimeTypes[anime.type];
+
+    anime_full.poster = DTOService.animePoster(anime.posters.find(el => el.is_hero) ?? anime.posters[0] ?? DefaultAnimePoster);
   }
 
   if (get_details) {
     if (isEligible(`get_details`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
-      anime_misc.hero_poster_author = anime.hero_poster_author;
       anime_misc.screenshots = anime.screenshots.map(el => DTOService.animeScreenshot(el));
 
       const relations = await repo.getMany({ mal_id: { $in: anime.relations.map(el => el.mal_id) } });
       anime_misc.relations = relations.map(el => DTOService.toAnimeCard(el));
-
-      if (anime.posters.length) {
-        anime_misc.posters = anime.posters.map(el => DTOService.animePoster(el));
-      } else {
-        anime_misc.posters = [{
-          authorId: conf.vars.INTERNAL_ID,
-          is_hero: true,
-          original: conf.vars.defaultPoster,
-          medium: conf.vars.defaultPoster,
-          small: conf.vars.defaultPoster,
-        }];
-      }
     }
   }
 
   if (get_episodes) {
     if (isEligible(`get_episodes`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
-      // const dubbers = await DubberRepository.getMany({ id: { $in: anime.episodes.map(el => el.dubber_id) } });
-      // const episodes: IAnimePlayerEpisode[] = [];
+      const playerDubbersIds = new Set<string>();
 
-      // anime.episodes.forEach(ep => {
-      //   const dubber = dubbers.find(el => el.id === ep.dubber_id);
-      //   if (!dubber) return;
+      anime.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
+      anime.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
 
-      //   const exist = episodes.find(el => el.id === dubber.id);
-
-      //   if (exist) {
-      //     if (ep.episodes_dub.length) exist.episodes_dub = ep.episodes_dub;
-      //     if (ep.episodes_sub.length) exist.episodes_sub = ep.episodes_sub;
-      //   }
-      //   else episodes.push({
-      //     id: dubber.id,
-      //     name: dubber.name,
-      //     avatar: dubber.avatar,
-      //     episodes_dub: ep.episodes_dub,
-      //     episodes_sub: ep.episodes_sub
-      //   });
-      // });
+      const playerDubbers = await DubberRepository.getMany({ id: { $in: Array.from(playerDubbersIds) } });
 
 
 
-      anime_misc.episodes = [];
+      anime_misc.player = anime.player;
+      anime_misc.player_teams = playerDubbers.map(el => DTOService.toDubberCard(el));
       anime_misc.episodes_meta = anime.episodes_meta;
       anime_misc.ashdi_url = anime.ashdi_url;
     }

@@ -121,6 +121,17 @@ interface ISetScoreProps {
 
 
 
+export const DefaultAnimePoster: IAnimePosterNode = {
+  small: conf.vars.defaultPoster,
+  medium: conf.vars.defaultPoster,
+  original: conf.vars.defaultPoster,
+  authorId: null,
+  pull_hash: 'null',
+  is_hero: true,
+};
+
+
+
 /** Bare user model implementation */
 export class AnimeModel extends UnifiedModelClass<RepositoryType> {
   constructor() {
@@ -209,16 +220,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       slug,
       hikka_slug: null,
 
-      posters: [
-        {
-          small: conf.vars.defaultPoster,
-          medium: conf.vars.defaultPoster,
-          original: conf.vars.defaultPoster,
-          authorId: null,
-          pull_hash: 'null',
-          is_hero: true,
-        }
-      ],
+      posters: [DefaultAnimePoster],
       hero_poster_author: conf.vars.INTERNAL_ID,
 
       year: null,
