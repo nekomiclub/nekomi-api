@@ -1,4 +1,3 @@
-import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/conf';
 import { IMoonanime3Episode } from '~/intf/external-api/IMoonanime.api';
@@ -10,7 +9,7 @@ const baseURL = conf.URL.moonanimeAPI;
 export class MoonanimeAPI {
   static async getEpisodes(mal_id: number): Promise<IMoonanime3Episode[]> {
     const url = `${baseURL}/3.0/episodes`;
-    Logger.http(`[MoonanimeAPI]: GET - ${url}`);
+    // Logger.http(`[MoonanimeAPI]: GET - ${url}`);
 
     const { data } = await axios.get<{ episodes: IMoonanime3Episode[] }>(url, {
       params: {

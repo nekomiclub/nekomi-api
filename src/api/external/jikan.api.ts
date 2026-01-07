@@ -1,4 +1,3 @@
-import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf from '~/conf';
 import { IJikanAnime, IJikanAnimeEpisode } from '~/intf/external-api/IJikan.api';
@@ -24,7 +23,7 @@ const baseURL = conf.URL.jikanAPI;
 export class JikanAPI {
   static async getAnime(malId: number): Promise<IJikanAnime> {
     const url = `${baseURL}/v4/anime/${malId}/full`;
-    Logger.http(`[Jikan]: GET - ${url}`);
+    // Logger.http(`[Jikan]: GET - ${url}`);
 
     const { data } = await axios.get<IJikanGetAnime>(url);
 
@@ -33,7 +32,7 @@ export class JikanAPI {
 
   static async getAnimeEpisodeMeta(malId: number): Promise<IJikanAnimeEpisode[]> {
     const url = `${baseURL}/v4/anime/${malId}/episodes`;
-    Logger.http(`[Jikan]: GET - ${url}`);
+    // Logger.http(`[Jikan]: GET - ${url}`);
 
     // TODO: Implement pagination
     const { data } = await axios.get<IJikanGetAnimeEpisodes>(url);

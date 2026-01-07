@@ -1,10 +1,13 @@
 import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
+import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import Logger from '~/service/LoggerService';
 import fs from 'fs';
+import ms from 'ms';
 import { IAdminDubberMapData } from '~/intf/IAdmin';
 import { NekoError } from '~/service/ExceptionService';
 import { getContentSeason } from '~/algorithms/AnimeUpdateCrawler';
+import { sleep } from './utils';
 
 
 
@@ -37,8 +40,8 @@ function finishMigration(slug: string) {
 
 
 
-export async function MAnimePlayer() {
-  const slug = 'MAnimePlayer';
+export async function MAnimeDocument() {
+  const slug = 'MAnimeDocument';
   if (checkMigrationStatus(slug)) return;
 
   try {
@@ -73,7 +76,7 @@ export async function MAnimePlayer() {
 
     finishMigration(slug);
   } catch (e) {
-    Logger.error(`[${slug}]: Cannot migrate anime player`, e);
+    Logger.error(`[${slug}]: Cannot update anime documents`, e);
   }
 }
 
@@ -99,5 +102,36 @@ export async function MAdminDubbersMap() {
     finishMigration(slug);
   } catch (e) {
     Logger.error(`[${slug}]: Cannot migrate admin database`, e);
+  }
+}
+
+
+
+export async function MAnimePlayer() {
+  const slug = 'MAnimePlayer';
+  if (checkMigrationStatus(slug)) return;
+
+  try {
+    const documents = await AnimeRepository.getMany({
+      $or: [
+        { mal_id: { $ne: null } },
+        { imdb_id: { $ne: null } },
+      ],
+      episodes_synced_at: null
+    });
+
+    await AnimePlayerUpdateCrawler.updateDubbersMap();
+
+    for (const key in documents) {
+      const document = documents[key];
+
+      await AnimePlayerUpdateCrawler.syncAnimePlayer(document.id);
+
+      await sleep(ms('2 sec'));
+    }
+
+    finishMigration(slug);
+  } catch (e) {
+    Logger.error(`[${slug}]: Cannot update players data`, e);
   }
 }

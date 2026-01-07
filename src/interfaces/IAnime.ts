@@ -86,12 +86,13 @@ export interface IAnimeStudio {
   name: string
 }
 
-interface IAnimePlayer {
+export interface IAnimePlayer {
   dubbed: IAnimePlayerTeam[]
   subbed: IAnimePlayerTeam[]
 }
 
 export interface IAnimePlayerTeam {
+  id: string
   dubber_ids: string[]
   dubber_name: string
   vods: IAnimePlayerVOD[]

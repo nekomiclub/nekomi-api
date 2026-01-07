@@ -158,7 +158,7 @@ async function awaitCache() {
 
 
 
-export default class AnimeUpdateCrawlerClass {
+class AnimeUpdateCrawlerClass {
   private service: StackServiceClass<string>;
 
 
@@ -467,6 +467,12 @@ export default class AnimeUpdateCrawlerClass {
     await sleep(ms('2 sec'));
   }
 }
+
+
+
+const AnimeUpdateCrawler = new AnimeUpdateCrawlerClass();
+
+export default AnimeUpdateCrawler;
 
 
 

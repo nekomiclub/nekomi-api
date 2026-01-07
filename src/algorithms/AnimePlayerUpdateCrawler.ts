@@ -1,15 +1,17 @@
 import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository';
-import DTOService from './DataTransferService';
-import Logger from './LoggerService';
+import DTOService from '~/service/DataTransferService';
+import Logger from '~/service/LoggerService';
+import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
+import ms from 'ms';
 import { ADMIN_SLUG, IAdminDubberMapData } from '~/intf/IAdmin';
+import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam } from '~/intf/IAnime';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType } from '~/intf/external-api/IAshdi.api';
-import { IAnimePlayerTeam } from '~/intf/IAnime';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
-import { NekoError } from './ExceptionService';
-import { retrieveNumberFromString, trimString } from '~/utils/utils';
+import { NekoError } from '~/service/ExceptionService';
+import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
 
 
 
@@ -24,7 +26,7 @@ interface IUnifiedEpisode {
 
 
 
-class EpisodeParserClass extends AnimeModel {
+class AnimePlayerPlayerClass extends AnimeModel {
   constructor(
     readonly dubbers: IAdminDubberMapData[]
   ) {
@@ -33,12 +35,13 @@ class EpisodeParserClass extends AnimeModel {
 
 
 
-  /**
-   * Retrieve episodes from providers
+  /** 
+   * Preserve anime player
+   * 
+   * @returns {boolean} Wether new episodes have been pulled
    */
-  async retrieve() {
+  async parse(): Promise<boolean> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
-    if (!this._doc.mal_id && !this._doc.imdb_id) return; // Skip if neither mal_id nor imdb_id specified
 
     // Retrieve episodes from players
     const episodes: IUnifiedEpisode[] = [];
@@ -119,10 +122,11 @@ class EpisodeParserClass extends AnimeModel {
         });
       } else {
         mixed.push({
-          subtitles,
+          id: buffer2hash(Buffer.from(JSON.stringify(dubberIds.join(';')))),
           dubber_ids: dubberIds,
           dubber_name: episodes[0].dubber_name,
           vods: episodes,
+          subtitles,
         });
       }
     }
@@ -140,12 +144,18 @@ class EpisodeParserClass extends AnimeModel {
       if (!el.subtitles) dubbed.push(team);
     });
 
+    const player: IAnimePlayer = { dubbed, subbed };
+    const playerHash = buffer2hash(Buffer.from(JSON.stringify(player)));
+    const oldPlayerHash = buffer2hash(Buffer.from(JSON.stringify(this._doc.player)));
 
 
 
-    this._set('player', { dubbed, subbed });
+    this._set('episodes_synced_at', getUTC().ISO);
+    this._set('player', player);
 
     await this.save();
+
+    return playerHash !== oldPlayerHash;
   }
 
 
@@ -171,7 +181,7 @@ class EpisodeParserClass extends AnimeModel {
 
       return unified;
     } catch (e) {
-      Logger.error(`[EpisodeParser]: Cannot parse moonanime episodes`, e);
+      Logger.error(`[AnimePlayerPlayerClass]: Cannot parse moonanime episodes`, e);
 
       return [];
     }
@@ -232,7 +242,7 @@ class EpisodeParserClass extends AnimeModel {
 
       return unified;
     } catch (e) {
-      Logger.error(`[EpisodeParser]: Cannot parse ashdi episodes`, e);
+      Logger.error(`[AnimePlayerPlayerClass]: Cannot parse ashdi episodes`, e);
 
       return [];
     }
@@ -255,15 +265,55 @@ class EpisodeParserClass extends AnimeModel {
   private preserveSlug(text: string): string {
     return trimString(text)
       .toLowerCase()
-      .replace('субтитри | ', '')
+      .replace('субтитри | ', 'субтитри ')
       .replace('amp;', '');
   }
 }
 
 
 
-class AnimeEpisodeServiceClass {
+class AnimePlayerUpdateCrawlerClass {
   private dubbers: IAdminDubberMapData[] = [];
+  private service: StackServiceClass<string>;
+
+
+
+  constructor() {
+    this.service = new StackServiceClass('AnimePlayerUpdateCrawler', async (...props) => await this.job(...props));
+  }
+
+
+
+  async reset() {
+    Logger.debug(`[AnimePlayerUpdateCrawler]: Reset performed`);
+
+    this.service.dropAll();
+
+
+
+    const ongoings = await AnimeRepository.getSortedMany({
+      $or: [
+        { mal_id: { $ne: null } },
+        { imdb_id: { $ne: null } },
+      ],
+      status: ANIME_STATUS.ONGOING,
+    }, { sort: { episodes_synced_at: 'ascending' }, limit: 50 });
+
+    const finished = await AnimeRepository.getSortedMany({
+      $or: [
+        { mal_id: { $ne: null } },
+        { imdb_id: { $ne: null } },
+      ],
+      status: ANIME_STATUS.FINISHED,
+    }, { sort: { episodes_synced_at: 'ascending' }, limit: 50 });
+
+
+
+    ongoings.forEach(document => this.service.append(document.id, { doNotRun: true }));
+    finished.forEach(document => this.service.append(document.id, { doNotRun: true }));
+
+    this.service.run();
+  }
 
 
 
@@ -276,21 +326,30 @@ class AnimeEpisodeServiceClass {
 
 
 
-  async invoke(id: string) {
+  async syncAnimePlayer(id: string) {
     try {
-      const parser = new EpisodeParserClass(this.dubbers);
+      const parser = new AnimePlayerPlayerClass(this.dubbers);
       await parser.init({ id });
-      await parser.retrieve();
+      const areNewEpisodesPulled = await parser.parse();
 
-      Logger.info(`[AnimeEpisodeService]: Episodes for anime "${id}" retrieved`);
+      if (areNewEpisodesPulled) Logger.debug(`[AnimePlayerUpdateCrawler]: Episodes for anime "${id}" retrieved`);
     } catch (e) {
-      Logger.error(`[AnimeEpisodeService]: Cannot parse episodes for anime "${id}"`, e);
+      Logger.error(`[AnimePlayerUpdateCrawler]: Cannot parse episodes for anime "${id}"`, e);
     }
+  }
+
+
+
+  private async job(id: string) {
+    await this.syncAnimePlayer(id);
+
+    // Throttle
+    await sleep(ms('2 sec'));
   }
 }
 
 
 
-const AnimeEpisodeService = new AnimeEpisodeServiceClass();
+const AnimePlayerUpdateCrawler = new AnimePlayerUpdateCrawlerClass();
 
-export default AnimeEpisodeService;
+export default AnimePlayerUpdateCrawler;
