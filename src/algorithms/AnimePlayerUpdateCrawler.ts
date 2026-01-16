@@ -101,8 +101,8 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
       dubberIds.sort();
 
-      // Define subtitles using dubber slug if no dubbers parsed
-      if (dubberIds.length === 0) {
+      // Re-define subtitles using dubber name
+      if (!subtitles) {
         subtitles = dubberSlugs.some(el => el.match(/субтитри/gi));
       }
 
@@ -121,10 +121,13 @@ class AnimePlayerPlayerClass extends AnimeModel {
           if (episode.tortuga_vod) vod.tortuga_vod = episode.tortuga_vod;
         });
       } else {
+        const dubberName = episodes[0]?.dubber_name ?? 'Unknown';
+        const id = buffer2hash(Buffer.from(dubberName));
+
         mixed.push({
-          id: buffer2hash(Buffer.from(JSON.stringify(dubberIds.join(';')))),
+          id,
           dubber_ids: dubberIds,
-          dubber_name: episodes[0].dubber_name,
+          dubber_name: dubberName,
           vods: episodes,
           subtitles,
         });

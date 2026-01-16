@@ -94,6 +94,7 @@ export interface IAnimePlayer {
 }
 
 export interface IAnimePlayerTeam {
+  /** Dubber name SHA256 */
   id: string
   dubber_ids: string[]
   dubber_name: string

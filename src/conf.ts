@@ -32,7 +32,7 @@ const URL = {
   hikka: 'https://hikka.io',
   MALAPI: `https://api.myanimelist.net`,
   hikkaAPI: 'https://api.hikka.io',
-  ashdiAPI: 'https://ashdi-proxy.nekomi.club/api',
+  ashdiAPI: env.ASHDI_API_URL,
   moonanimeAPI: 'https://api.moonanime.art/api',
   imdbAPI: 'https://api.imdbapi.dev',
   jikanAPI: 'https://api.jikan.moe',

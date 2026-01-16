@@ -26,6 +26,7 @@ const EnvSchema = z.object({
   NEKOMI_API_URL: z.string().url(),
   NEKOMI_NEXTJS_URL: z.string().url(),
   NEKOMI_UPLOAD_SERVICE_URL: z.string().url(),
+  ASHDI_API_URL: z.string().url(),
 });
 
 

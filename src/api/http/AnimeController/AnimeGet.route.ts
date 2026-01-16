@@ -4,9 +4,9 @@ import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, Anim
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
+import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
 import { DubberCardType } from '~/intf/IDubber';
 import { HandleRequest } from '~/utils/http-utils';
-import { ISODateString, zBoolean } from '~/intf/types';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
 
@@ -101,6 +101,10 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const anime = repo.document;
 
+  let isCSRFValid = false;
+
+  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+
   let anime_full: FullResponseType | undefined;
   let anime_card: AnimeCardType | undefined;
   let anime_misc: IResponseMisc = {};
@@ -124,7 +128,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   if (get_details) {
-    if (isEligible(`get_details`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
+    if (isEligible(`get_details`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
       anime_misc.screenshots = anime.screenshots.map(el => DTOService.animeScreenshot(el));
 
       const relations = await repo.getMany({ mal_id: { $in: anime.relations.map(el => el.mal_id) } });
@@ -133,7 +137,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   if (get_episodes) {
-    if (isEligible(`get_episodes`, await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
+    if (isEligible(`get_episodes`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
       const playerDubbersIds = new Set<string>();
 
       anime.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
