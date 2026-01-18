@@ -251,8 +251,6 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
               const order = retrievedEpisode - minSliceIndex;
 
-              console.log(dubber.title, retrievedEpisode, minSliceIndex, order);
-
               unified.push({
                 episode: order,
                 dubber_name: trimString(dubber.title),
