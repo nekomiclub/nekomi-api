@@ -116,8 +116,9 @@ export async function MAnimePlayer() {
       $or: [
         { mal_id: { $ne: null } },
         { imdb_id: { $ne: null } },
+        { episodes_synced_at: null },
+        { episodes_synced_at: { $lt: '2026-01-18T14:30:50.621Z' } }
       ],
-      episodes_synced_at: null
     });
 
     await AnimePlayerUpdateCrawler.updateDubbersMap();

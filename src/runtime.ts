@@ -6,15 +6,13 @@ import Logger from './services/LoggerService';
 import conf from './conf';
 import ms from 'ms';
 import runCRONJob from './utils/run-cron-job';
-import { MAdminDubbersMap, MAnimeDocument, MAnimePlayer } from './utils/migration-utils';
+import { MAnimePlayer } from './utils/migration-utils';
 
 
 
 export default async function Runtime() {
   try {
     // * === MIGRATION FUNCTIONS
-    if (conf.env.ENV === 'deploy') await MAnimeDocument();
-    if (conf.env.ENV === 'deploy') await MAdminDubbersMap();
     if (conf.env.ENV === 'deploy') MAnimePlayer();
 
 

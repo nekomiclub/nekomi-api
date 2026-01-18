@@ -8,7 +8,7 @@ import ms from 'ms';
 import { ADMIN_SLUG, IAdminDubberMapData } from '~/intf/IAdmin';
 import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam } from '~/intf/IAnime';
 import { AshdiAPI } from '~/api/external/ashdi.api';
-import { AshdiPlType } from '~/intf/external-api/IAshdi.api';
+import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from '~/service/ExceptionService';
 import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
@@ -43,16 +43,33 @@ class AnimePlayerPlayerClass extends AnimeModel {
   async parse(): Promise<boolean> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
+    // Define content season & episode slice indexes
+    const contentSeason = Number(String(this._doc?.content_season).split('.')[0]);
+    const contentPart = Number(String(this._doc?.content_season).split('.')[1]);
+
+    const parts = this._doc.imdb_id ? (await AnimeRepository.getMany({ imdb_id: this._doc.imdb_id })).filter(el => Number(String(el.content_season).split('.')[0]) === contentSeason) : [];
+    const prequelParts = parts.filter(el => el.content_season! < this._doc!.content_season!);
+
+    let minSliceIndex = 0;
+    let maxSlideIndex = -1;
+
+    prequelParts.forEach(el => minSliceIndex += el.episodes_total ?? 0);
+    maxSlideIndex = minSliceIndex + (this._doc?.episodes_total ?? 0);
+
+    const slice: number[] = [minSliceIndex, maxSlideIndex];
+
+
+
     // Retrieve episodes from players
     const episodes: IUnifiedEpisode[] = [];
 
     if (this._doc.mal_id) {
-      const moon = await this.retrieveMoonanime(this._doc.mal_id);
+      const moon = await this.retrieveMoonanime(this._doc.mal_id, { slice });
       moon.forEach(el => episodes.push(el));
     }
 
     if (this._doc.imdb_id) {
-      const ashdi = await this.retrieveAshdi(this._doc.imdb_id);
+      const ashdi = await this.retrieveAshdi(this._doc.imdb_id, { contentSeason, slice });
       ashdi.forEach(el => episodes.push(el));
     }
 
@@ -103,7 +120,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
       // Re-define subtitles using dubber name
       if (!subtitles) {
-        subtitles = dubberSlugs.some(el => el.match(/субтитри/gi));
+        subtitles = dubberSlugs.some(el => el.match(/субтитри|SUB/gi));
       }
 
 
@@ -171,22 +188,26 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-  private async retrieveMoonanime(malId: number): Promise<IUnifiedEpisode[]> {
+  private async retrieveMoonanime(malId: number, params: { slice: number[] }): Promise<IUnifiedEpisode[]> {
     try {
       const episodes = await MoonanimeAPI.getEpisodes(malId);
       const unified: IUnifiedEpisode[] = [];
+      const minSliceIndex = params.slice[0];
 
 
 
-      episodes.forEach(ep => {
-        ep.videos.forEach(video => {
-          const episode: IUnifiedEpisode = {
-            episode: retrieveNumberFromString(String(ep.episode)) ?? 1,
-            dubber_name: trimString(video.studio),
-            moonanime_vod: video.video_url,
-          };
+      episodes.forEach(episode => {
+        episode.videos.forEach(vod => {
+          let retrievedEpisode = episode.episode;
+          if (retrievedEpisode < minSliceIndex) retrievedEpisode = minSliceIndex + 1; // Ensure that episode cannot be less than minSliceIndex
 
-          unified.push(episode);
+          const order = retrievedEpisode - minSliceIndex;
+
+          unified.push({
+            episode: order,
+            dubber_name: trimString(vod.studio),
+            moonanime_vod: vod.video_url,
+          });
         });
       });
 
@@ -200,25 +221,14 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-  private async retrieveAshdi(imdbId: string): Promise<IUnifiedEpisode[]> {
+  private async retrieveAshdi(imdbId: string, params: { contentSeason: number, slice: number[] }): Promise<IUnifiedEpisode[]> {
+    const minSliceIndex = params.slice[0];
+    const maxSliceIndex = params.slice[1];
+
     try {
       const response = await AshdiAPI.getTitle(imdbId);
       const dubbers: AshdiPlType[] = response.pl;
       const unified: IUnifiedEpisode[] = [];
-
-      const contentSeason = Number(String(this._doc?.content_season).split('.')[0]);
-      const contentPart = Number(String(this._doc?.content_season).split('.')[1]);
-
-      const parts = (await AnimeRepository.getMany({ imdb_id: imdbId })).filter(el => Number(String(el.content_season).split('.')[0]) === contentSeason);
-      const prequelParts = parts.filter(el => el.content_season! < this._doc!.content_season!);
-
-      let minSliceIndex = 0;
-      let maxSlideIndex = -1;
-
-      prequelParts.forEach(el => minSliceIndex += el.episodes_total ?? 0);
-      maxSlideIndex = minSliceIndex + (this._doc?.episodes_total ?? 0);
-
-      const slice: number[] = [minSliceIndex, maxSlideIndex];
 
 
 
@@ -234,15 +244,17 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
         // Serials
         if ('folder' in dubber) {
-          dubber.folder.forEach(season => {
-            // Skip not requested seasons
-            if (retrieveNumberFromString(season.title) !== contentSeason) return;
+          dubber.folder.filter(dubberFolderFilter).forEach(season => {
+            season.folder.filter(seasonFolderFilter).forEach(episode => {
+              let retrievedEpisode = retrieveNumberFromString(episode.title) || 1; // Retrieve episode from title
+              if (retrievedEpisode < minSliceIndex) retrievedEpisode = minSliceIndex + 1; // Ensure that episode cannot be less than minSliceIndex
 
-            season.folder.slice(...slice).forEach(episode => {
-              const ep = retrieveNumberFromString(episode.title) ?? 1 - minSliceIndex;
+              const order = retrievedEpisode - minSliceIndex;
+
+              console.log(dubber.title, retrievedEpisode, minSliceIndex, order);
 
               unified.push({
-                episode: ep,
+                episode: order,
                 dubber_name: trimString(dubber.title),
                 ashdi_vod: `https://ashdi.vip/vod/${episode.id}`,
               });
@@ -256,6 +268,18 @@ class AnimePlayerPlayerClass extends AnimeModel {
       Logger.error(`[AnimePlayerPlayerClass]: Cannot parse ashdi episodes`, e);
 
       return [];
+    }
+
+
+
+    function dubberFolderFilter(season: IAshdiSeason) {
+      return retrieveNumberFromString(season.title) === params.contentSeason;
+    }
+
+    function seasonFolderFilter(episode: IAshdiEpisode) {
+      const order = retrieveNumberFromString(episode.title) || 1;
+
+      return order > minSliceIndex && order < maxSliceIndex + 1;
     }
   }
 
