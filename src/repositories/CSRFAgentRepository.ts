@@ -131,7 +131,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     const { privateKey, publicKey } = this.generateKeypairs();
 
-    this.set('public_key', publicKey.replace(/\n/g, '\\n'));
+    this._set('public_key', publicKey.replace(/\n/g, '\\n'));
 
     Logger.debug(`[CSRFAgent]: New keypairs been issued for agent. [id: ${this._doc.id}]`);
 
@@ -155,9 +155,3 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
     });
   }
 }
-
-
-
-const CSRFAgentRepository = new CSRFAgentRepositoryClass();
-
-export default CSRFAgentRepository;

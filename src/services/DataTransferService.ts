@@ -1,9 +1,8 @@
-import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import IAnime, { AnimeCardType, AnimeGenres, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
 import IDubber, { DubberCardType } from '~/intf/IDubber';
 import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
 import express from 'express';
-import { ANIME_GENRES } from '~/repo/old/AnimeModel';
 import { HydratedDocument } from 'mongoose';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
@@ -56,13 +55,14 @@ class DTOServiceClass {
       'posters',
       'relations',
       'screenshots',
-      'episodes',
+      'player',
       'episodes_meta',
       'updated_at',
       'created_at',
-      'hikka_sync',
-      'myanimelist_sync',
+      'about_synced_at',
+      'episodes_synced_at',
       'is_DMCA_restricted',
+      'ashdi_url',
     ];
 
     // Convert HydratedDocument into plain object
@@ -81,7 +81,7 @@ class DTOServiceClass {
       score,
       poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
       title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => ANIME_GENRES[el]),
+      genres: genres.map(el => AnimeGenres[el]),
     };
   }
 

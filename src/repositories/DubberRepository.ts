@@ -96,7 +96,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('updated_at', getUTC().ISO);
+    this._set('updated_at', getUTC().ISO);
 
     await this._save({ id: this._doc.id, ...props });
   }
@@ -163,7 +163,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
     // TODO: Add slug updating
 
-    this.set('name', name);
+    this._set('name', name);
   }
 
 
@@ -179,7 +179,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
         about = trimString(about);
       }
 
-      this.set('about', about);
+      this._set('about', about);
     }
   }
 
@@ -195,7 +195,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
     // TODO: Add validation
 
-    this.set(`socials.${key}`, value);
+    this._set(`socials.${key}`, value);
   }
 
 
@@ -282,7 +282,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       }
     }
 
-    this.set(key, object.url);
+    this._set(key, object.url);
     await this.save();
 
     return object.url;

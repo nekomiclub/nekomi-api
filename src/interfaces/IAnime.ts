@@ -29,6 +29,8 @@ export interface IAnime {
   hikka_slug: string | null
 
   posters: IAnimePosterNode[] // Protected
+
+  /** @deprecated use poster hero authorId instead */
   hero_poster_author: string | null // Protected
 
   year: number | null
@@ -51,8 +53,10 @@ export interface IAnime {
   studios: IAnimeStudio[]
   screenshots: IAnimeScreenshotNode[] // Protected
   schedule: IAnimeSchedule[]
-  episodes: IAnimeEpisode[] // Protected
-  episodes_meta: IAnimeEpisodeMeta[] // Protected
+  player: IAnimePlayer // Protected
+
+  /** @todo rework */
+  episodes_meta: IAnimeEpisode[] // Protected
 
   /** Managed by nekomi-api-ashdi-connector */
   ashdi_url: string | null // Protected
@@ -62,11 +66,12 @@ export interface IAnime {
   status: ANIME_STATUS | null
   season: ANIME_SEASON | null
   type: ANIME_TYPE | null
+  content_season: number | null
 
   updated_at: ISODateString // Protected
   created_at: ISODateString // Protected
-  hikka_sync: ISODateString | null // Protected
-  myanimelist_sync: ISODateString | null // Protected
+  about_synced_at: ISODateString | null // Protected
+  episodes_synced_at: ISODateString | null // Protected
 
   /** Is anime restricted under DMCA */
   is_DMCA_restricted?: boolean
@@ -83,23 +88,29 @@ export interface IAnimeStudio {
   name: string
 }
 
-export interface IAnimeEpisode {
-  episode: number
-  dubberId: string
-
-  qualities: {
-    q4k: string | null
-    q1080: string | null
-    q720: string | null
-    q480: string | null
-    q240: string | null
-  }
-
-  /** Frames URLs in order from 0 array */
-  frames: string[]
+export interface IAnimePlayer {
+  dubbed: IAnimePlayerTeam[]
+  subbed: IAnimePlayerTeam[]
 }
 
-export interface IAnimeEpisodeMeta {
+export interface IAnimePlayerTeam {
+  /** Dubber name SHA256 */
+  id: string
+  dubber_ids: string[]
+  dubber_name: string
+  vods: IAnimePlayerVOD[]
+}
+
+export interface IAnimePlayerVOD {
+  episode: number
+
+  moonanime_vod?: string
+  ashdi_vod?: string
+  tortuga_vod?: string
+}
+
+/** @todo rework */
+export interface IAnimeEpisode {
   episode: number
   title: string
   aired: ISODateString | null

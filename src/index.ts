@@ -1,16 +1,20 @@
+import conf, { ProductionMode } from './conf';
+
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import AuthRouter from './api/http/AuthController/AuthRouter';
 import DatabaseService from './services/DatabaseService';
 import DubberRouter from './api/http/DubberController/DubberRouter';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
+import Runtime from './runtime';
 import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
-import conf, { ProductionMode } from './conf';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { traceRequest } from './utils/http-utils';
+
+
 
 
 
@@ -72,6 +76,10 @@ async function runtime() {
     Mode: ${conf.startedMode}
     HTTP: http://${conf.env.HOST}:${conf.env.PORT}
     ----------------------------\n\n`);
+
+
+
+    await Runtime();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

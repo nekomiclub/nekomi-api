@@ -47,8 +47,10 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     this.RepositoryName = 'RoleRepository';
   }
 
-  get document(): RepositoryType | null {
-    return this._doc ? DTOService.parse(this._doc) : null;
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.parse(this._doc);
   }
 
 

@@ -54,8 +54,13 @@ export class UnifiedModelClass<RepositoryType> {
 
 
 
-  /** @requires init() */
-  protected set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K>) {
+  /** 
+   * Implicit document value setter
+   * Using it outside repository violates safe repository usage
+   * 
+   * @requires init()
+   */
+  _set<K extends NestedKey<RepositoryType>>(_key: K, value: ValueFromPath<RepositoryType, K> | undefined, props?: { dropDiffWrite?: boolean }) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const key = String(_key);
@@ -71,7 +76,7 @@ export class UnifiedModelClass<RepositoryType> {
         const prev = this._doc[key];
         if (prev === value) return; // Nothing changed
 
-        this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
+        if (!props?.dropDiffWrite) this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
       }
       else if (Array.isArray(value)) {
         // Write array diff
@@ -84,7 +89,7 @@ export class UnifiedModelClass<RepositoryType> {
         if (excluded.length) msg.push(`Excluded: ${excluded.join(', ')}`);
         if (!msg.length) return; // Nothing changed
 
-        this._diff.push(`[${String(key)}]: ${msg.join('; ')}`);
+        if (!props?.dropDiffWrite) this._diff.push(`[${String(key)}]: ${msg.join('; ')}`);
       }
 
       this._doc.markModified(key);
@@ -96,7 +101,7 @@ export class UnifiedModelClass<RepositoryType> {
       const prev = this._doc[parent][child];
       if (prev === value) return; // Nothing changed
 
-      this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
+      if (!props?.dropDiffWrite) this._diff.push(`[${String(key)}]: ${prev} > ${value}`);
 
       this._doc.markModified(parent);
       (this._doc as any)[parent][child] = value;

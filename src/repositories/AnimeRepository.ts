@@ -1,9 +1,9 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisodeMeta, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
-import UnifiedRepositoryClass from './UnifiedRepository';
+import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
@@ -58,19 +58,21 @@ const schema = new Schema<RepositoryType>({
   studios: [Schema.Types.Mixed],
   screenshots: [Schema.Types.Mixed],
   schedule: [Schema.Types.Mixed],
-  episodes: [Schema.Types.Mixed],
+  player: Object,
   episodes_meta: [Schema.Types.Mixed],
+  ashdi_url: String,
 
   genres: [Schema.Types.Mixed],
   rating: String,
   status: String,
   season: String,
   type: String,
+  content_season: Number,
 
   updated_at: String,
   created_at: String,
-  hikka_sync: String,
-  myanimelist_sync: String,
+  about_synced_at: String,
+  episodes_synced_at: String,
 
   is_DMCA_restricted: Boolean,
 }, { strict: false, versionKey: false });
@@ -119,6 +121,46 @@ interface ISetScoreProps {
 
 
 
+export const DefaultAnimePoster: IAnimePosterNode = {
+  small: conf.vars.defaultPoster,
+  medium: conf.vars.defaultPoster,
+  original: conf.vars.defaultPoster,
+  authorId: null,
+  pull_hash: 'null',
+  is_hero: true,
+};
+
+
+
+/** Bare user model implementation */
+export class AnimeModel extends UnifiedModelClass<RepositoryType> {
+  constructor() {
+    super(model, queries);
+
+    this.RepositoryName = 'AnimeRepository';
+  }
+
+
+
+  get document(): RepositoryType {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    return DTOService.anime(this._doc, true);
+  }
+
+
+
+  async save() {
+    if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    this._set('updated_at', getUTC().ISO);
+
+    await this._save({ id: this._doc.id });
+  }
+}
+
+
+
 export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor(props?: IConstructorProps) {
     super(model, queries);
@@ -137,7 +179,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async save(props?: ISaveProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('updated_at', getUTC().ISO);
+    this._set('updated_at', getUTC().ISO);
 
     await this._save({ id: this._doc.id, ...props });
   }
@@ -178,16 +220,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       slug,
       hikka_slug: null,
 
-      posters: [
-        {
-          small: conf.vars.defaultPoster,
-          medium: conf.vars.defaultPoster,
-          original: conf.vars.defaultPoster,
-          authorId: null,
-          pull_hash: 'null',
-          is_hero: true,
-        }
-      ],
+      posters: [DefaultAnimePoster],
       hero_poster_author: conf.vars.INTERNAL_ID,
 
       year: null,
@@ -209,7 +242,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       studios: [],
       screenshots: [],
       schedule: [],
-      episodes: [],
+      player: {
+        dubbed: [],
+        subbed: []
+      },
       episodes_meta: [],
       ashdi_url: null,
 
@@ -218,11 +254,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       status: null,
       season: null,
       type: null,
+      content_season: null,
 
       updated_at: getUTC().ISO,
       created_at: getUTC().ISO,
-      hikka_sync: null,
-      myanimelist_sync: null,
+      about_synced_at: null,
+      episodes_synced_at: null,
     };
 
     const document = new model(payload);
@@ -246,7 +283,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (id === null || id < 0) id = null;
 
-    this.set('mal_id', id);
+    this._set('mal_id', id);
   }
 
 
@@ -261,7 +298,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (id === null || !id.length) id = null;
 
-    this.set('imdb_id', id);
+    this._set('imdb_id', id);
   }
 
 
@@ -275,8 +312,9 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async setSlug(slug: string, opts?: ISetSlugOptions): Promise<string> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    let isDocumentExist = false;
     slug = createSlug(trimString(slug));
+
+    let isDocumentExist = false;
 
     // Define is document exist
     if (TestMode) {
@@ -290,7 +328,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (isDocumentExist) slug += `-${createNanoId(4)}`;
 
-    this.set('slug', slug);
+    this._set('slug', slug);
 
     return slug;
   }
@@ -307,7 +345,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (slug === null || !slug.length) slug = null;
 
-    this.set('hikka_slug', slug);
+    this._set('hikka_slug', slug);
   }
 
 
@@ -322,7 +360,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (year !== null) AnimeValidators.year.parse(year);
 
-    this.set('year', year);
+    this._set('year', year);
   }
 
 
@@ -338,7 +376,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (episodes === 0 || episodes === null) episodes = null;
     else AnimeValidators.episodes.parse(episodes);
 
-    this.set('episodes_total', episodes);
+    this._set('episodes_total', episodes);
   }
 
 
@@ -354,7 +392,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (episodes === 0 || episodes === null) episodes = null;
     else AnimeValidators.episodes.parse(episodes);
 
-    this.set('episodes_released', episodes);
+    this._set('episodes_released', episodes);
   }
 
 
@@ -376,7 +414,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
         AnimeValidators.title.parse(value);
       }
 
-      this.set(key, value);
+      this._set(key, value);
     };
 
 
@@ -390,7 +428,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
       AnimeValidators.titleSynonims.parse(synonyms);
 
-      this.set('title_synonims', synonyms);
+      this._set('title_synonims', synonyms);
     }
   }
 
@@ -411,7 +449,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
         AnimeValidators.synopsis.parse(synopsis_en);
       }
 
-      this.set('synopsis_en', synopsis_en);
+      this._set('synopsis_en', synopsis_en);
     }
 
     if (synopsis_ua || synopsis_ua === null) {
@@ -421,7 +459,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
         AnimeValidators.synopsis.parse(synopsis_ua);
       }
 
-      this.set('synopsis_ua', synopsis_ua);
+      this._set('synopsis_ua', synopsis_ua);
     }
   }
 
@@ -438,13 +476,13 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (score) {
       AnimeValidators.score.parse(score);
 
-      this.set('score', Number(score.toFixed(2)));
+      this._set('score', Number(score.toFixed(2)));
     }
 
     if (scoredBy) {
       AnimeValidators.scoredBy.parse(scoredBy);
 
-      this.set('scored_by', Number(scoredBy.toFixed(0)));
+      this._set('scored_by', Number(scoredBy.toFixed(0)));
     }
   }
 
@@ -480,7 +518,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (relations === null) relations = [];
 
-    this.set('relations', relations);
+    this._set('relations', relations);
   }
 
 
@@ -517,7 +555,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     if (studios === null) studios = [];
 
-    this.set('studios', studios);
+    this._set('studios', studios);
   }
 
 
@@ -531,7 +569,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   _setSchedule(schedule: IAnimeSchedule[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('schedule', schedule);
+    this._set('schedule', schedule);
   }
 
 
@@ -545,7 +583,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   _setGenres(genres: ANIME_GENRE[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('genres', genres);
+    this._set('genres', genres);
   }
 
 
@@ -606,7 +644,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   setIsDMCARestcited(flag: boolean) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('is_DMCA_restricted', flag);
+    this._set('is_DMCA_restricted', flag);
   }
 
 
@@ -662,10 +700,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * ! Must be refactored into append/remove methods after 3.0.0
    */
-  _setEpisodesMeta(eps: IAnimeEpisodeMeta[]) {
+  _setEpisodesMeta(eps: IAnimeEpisode[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set('episodes_meta', eps);
+    this._set('episodes_meta', eps);
   }
 
 
@@ -681,7 +719,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     // Ensure that dubber is exist
     await DubberRepository.getOne(id);
 
-    this.set('hero_poster_author', id);
+    this._set('hero_poster_author', id);
   }
 
 
@@ -829,10 +867,10 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
    * 
    * @tested
    */
-  setSync(key: keyof Pick<IAnime, 'hikka_sync' | 'myanimelist_sync'>, ts: ISODateString | null) {
+  setSync(key: keyof Pick<IAnime, 'episodes_synced_at' | 'about_synced_at'>, ts: ISODateString | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set(key, ts);
+    this._set(key, ts);
   }
 
 
@@ -866,7 +904,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   protected setTypedValue(value: string | null, key: keyof Pick<IAnime, 'rating' | 'type' | 'status' | 'season'>) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    this.set(key, value as any);
+    this._set(key, value as any);
   }
 }
 

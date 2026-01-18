@@ -31,7 +31,7 @@ const baseURL = conf.URL.nekomiUploadService;
 export class NekomiUploadService {
   static async uploadFile({ buffer, type, uploaderId }: IUploadFileProps): Promise<IUploadFile> {
     const url = `${baseURL}/upload`;
-    Logger.http(`[NekomiUploadService]: POST - ${url}`);
+    // Logger.http(`[NekomiUploadService]: POST - ${url}`);
 
     const fd = new FormData();
 

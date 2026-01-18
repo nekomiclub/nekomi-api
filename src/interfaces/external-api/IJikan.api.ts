@@ -141,7 +141,7 @@ export interface IJikanTheme {
 }
 
 
-export interface IJikanAnimeEpisodeMeta {
+export interface IJikanAnimeEpisode {
   mal_id: number // order
   title: string
   aired: string | null // ISO
