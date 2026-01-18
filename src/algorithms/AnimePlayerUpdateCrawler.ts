@@ -59,12 +59,12 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
     // Map episodes to dubbers
-    const sorted: Record<string, IUnifiedEpisode[]> = {};
+    const mapped: Record<string, IUnifiedEpisode[]> = {};
 
     for (const key in episodes) {
       const episode = episodes[key];
       const slug = this.preserveSlug(episode.dubber_name);
-      const existDubber = sorted[slug] as IUnifiedEpisode[];
+      const existDubber = mapped[slug] as IUnifiedEpisode[];
 
       if (existDubber) {
         const existEpisode = existDubber.find(el => el.episode === episode.episode);
@@ -74,7 +74,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
           if (episode.moonanime_vod) existEpisode.moonanime_vod = episode.moonanime_vod;
           if (episode.tortuga_vod) existEpisode.tortuga_vod = episode.tortuga_vod;
         } else existDubber.push(episode);
-      } else sorted[slug] = [episode];
+      } else mapped[slug] = [episode];
     }
 
 
@@ -82,8 +82,8 @@ class AnimePlayerPlayerClass extends AnimeModel {
     // Assign mixed teams
     const mixed: ({ subtitles: boolean } & IAnimePlayerTeam)[] = [];
 
-    for (const slug in sorted) {
-      const episodes = sorted[slug];
+    for (const slug in mapped) {
+      const episodes = mapped[slug];
 
       // Parse dubbersIds & subtitles
       const dubberSlugs = slug.split(/&|\+/g).map(trimString);
@@ -109,7 +109,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
       // Assing episodes
-      const existTeam = mixed.find(el => arrayEqual(el.dubber_ids, dubberIds));
+      const existTeam = mixed.find(el => arrayEqual(el.dubber_ids, dubberIds) && el.subtitles === subtitles);
 
       if (existTeam) {
         existTeam.vods.forEach(vod => {
@@ -142,6 +142,14 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
     mixed.forEach(el => {
       const team = DTOService.excludeKeys(el, ['subtitles']) as IAnimePlayerTeam;
+
+      // Sort vods by episode
+      team.vods.sort((a, b) => {
+        if (a.episode > b.episode) return 1;
+        else if (a.episode < b.episode) return -1;
+
+        return 0;
+      });
 
       if (el.subtitles) subbed.push(team);
       if (!el.subtitles) dubbed.push(team);

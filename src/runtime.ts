@@ -17,10 +17,12 @@ export default async function Runtime() {
     if (conf.env.ENV === 'deploy') await MAdminDubbersMap();
     if (conf.env.ENV === 'deploy') MAnimePlayer();
 
+    await MAdminDubbersMap();
 
 
-    // await AnimePlayerUpdateCrawler.updateDubbersMap();
-    // await AnimePlayerUpdateCrawler.syncAnimePlayer('uKiM7NOm');
+
+    await AnimePlayerUpdateCrawler.updateDubbersMap();
+    await AnimePlayerUpdateCrawler.syncAnimePlayer('uKiM7NOm');
 
     // * === OTHER FUNCTIONS
     if (conf.env.ENV === 'deploy') await runCRONJob('AnimeUpdateCrawler', ms('24 hour'), AnimeUpdateCrawlerJob);
