@@ -17,6 +17,9 @@ export default async function Runtime() {
 
 
 
+    await AnimePlayerUpdateCrawler.updateDubbersMap();
+    await AnimePlayerUpdateCrawler.syncAnimePlayer('uKiM7NOm');
+
     // * === OTHER FUNCTIONS
     if (conf.env.ENV === 'deploy') await runCRONJob('AnimeUpdateCrawler', ms('24 hour'), AnimeUpdateCrawlerJob);
     if (conf.env.ENV === 'deploy') await runCRONJob('AnimeEpisodeUpdateCrawler', ms('15 min'), AnimePlayerUpdateCrawlerJob);

@@ -6,7 +6,7 @@ import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
 import { ADMIN_SLUG, IAdminDubberMapData } from '~/intf/IAdmin';
-import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam } from '~/intf/IAnime';
+import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
@@ -43,7 +43,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
   async parse(): Promise<boolean> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // Define content season & episode slice indexes
+    // *=== Define content season & episode slice indexes
     const contentSeason = Number(String(this._doc?.content_season).split('.')[0]);
     const contentPart = Number(String(this._doc?.content_season).split('.')[1]);
 
@@ -60,22 +60,24 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-    // Retrieve episodes from players
+    // *=== Retrieve episodes from players
     const episodes: IUnifiedEpisode[] = [];
 
+    // Retrieve moonanime episodes
     if (this._doc.mal_id) {
       const moon = await this.retrieveMoonanime(this._doc.mal_id, { slice });
-      moon.forEach(el => episodes.push(el));
+      if (moon) moon.forEach(el => episodes.push(el));
     }
 
-    if (this._doc.imdb_id) {
-      const ashdi = await this.retrieveAshdi(this._doc.imdb_id, { contentSeason, slice });
-      ashdi.forEach(el => episodes.push(el));
-    }
+    // Retrieve ashdi episodes
+    // if (this._doc.imdb_id) {
+    //   const ashdi = await this.retrieveAshdi(this._doc.imdb_id, { contentSeason, slice });
+    //   if (ashdi) ashdi.forEach(el => episodes.push(el));
+    // }
 
 
 
-    // Map episodes to dubbers
+    // *=== Map episodes to dubbers
     const mapped: Record<string, IUnifiedEpisode[]> = {};
 
     for (const key in episodes) {
@@ -96,16 +98,16 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-    // Assign mixed teams
+    // *=== Assign mixed teams
     const mixed: ({ subtitles: boolean } & IAnimePlayerTeam)[] = [];
 
     for (const slug in mapped) {
       const episodes = mapped[slug];
+      let subtitles = false;
 
       // Parse dubbersIds & subtitles
       const dubberSlugs = slug.split(/&|\+/g).map(trimString);
       const dubberIds: string[] = [];
-      let subtitles = false;
 
       dubberSlugs.forEach(slug => {
         const dubber = this.getDubber(slug);
@@ -123,22 +125,21 @@ class AnimePlayerPlayerClass extends AnimeModel {
         subtitles = dubberSlugs.some(el => el.match(/субтитри|SUB/gi));
       }
 
-
-
       // Assing episodes
       const existTeam = mixed.find(el => arrayEqual(el.dubber_ids, dubberIds) && el.subtitles === subtitles);
 
       if (existTeam) {
-        existTeam.vods.forEach(vod => {
-          const episode = episodes.find(el => el.episode === vod.episode);
-          if (!episode) return;
+        episodes.forEach(vod => {
+          const existEpisode = existTeam.vods.find(el => el.episode === vod.episode);
+          if (!existEpisode) return existTeam.vods.push(vod);
 
-          if (episode.ashdi_vod) vod.ashdi_vod = episode.ashdi_vod;
-          if (episode.moonanime_vod) vod.moonanime_vod = episode.moonanime_vod;
-          if (episode.tortuga_vod) vod.tortuga_vod = episode.tortuga_vod;
+          if (vod.ashdi_vod) existEpisode.ashdi_vod = vod.ashdi_vod;
+          if (vod.moonanime_vod) existEpisode.moonanime_vod = vod.moonanime_vod;
+          if (vod.tortuga_vod) existEpisode.tortuga_vod = vod.tortuga_vod;
         });
       } else {
-        const dubberName = episodes[0]?.dubber_name ?? 'Unknown';
+        if (!episodes.length) continue;
+        const dubberName = episodes[0].dubber_name ?? `Невідомо`;
         const id = buffer2hash(Buffer.from(dubberName));
 
         mixed.push({
@@ -153,26 +154,41 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-    // Filter mixed
-    const dubbed: IAnimePlayerTeam[] = [];
-    const subbed: IAnimePlayerTeam[] = [];
+    // *=== Append episodes
+    const player: IAnimePlayer = { dubbed: [], subbed: [] };
 
-    mixed.forEach(el => {
-      const team = DTOService.excludeKeys(el, ['subtitles']) as IAnimePlayerTeam;
+    mixed.forEach(mixed => {
+      const team = DTOService.excludeKeys(mixed, ['subtitles']) as IAnimePlayerTeam;
+      const type: keyof IAnimePlayer = mixed.subtitles ? 'subbed' : 'dubbed';
+      const existTeam = this.document!.player[type].find(el => el.id === team.id);
 
-      // Sort vods by episode
-      team.vods.sort((a, b) => {
-        if (a.episode > b.episode) return 1;
-        else if (a.episode < b.episode) return -1;
 
-        return 0;
-      });
 
-      if (el.subtitles) subbed.push(team);
-      if (!el.subtitles) dubbed.push(team);
+      if (existTeam) {
+        team.vods.forEach(vod => {
+          const existEpisode = existTeam.vods.find(el => el.episode === vod.episode);
+
+          if (!existEpisode) {
+            // TODO: Send "new_episode" event
+            return existTeam.vods.push(vod);
+          }
+
+          if (vod.ashdi_vod && !existEpisode.ashdi_vod) _setVodUrl(existEpisode, 'ashdi_vod', vod.ashdi_vod);
+          if (vod.moonanime_vod && !existEpisode.moonanime_vod) _setVodUrl(existEpisode, 'moonanime_vod', vod.moonanime_vod);
+          if (vod.tortuga_vod && !existEpisode.tortuga_vod) _setVodUrl(existEpisode, 'tortuga_vod', vod.tortuga_vod);
+        });
+
+        player[type].push(existTeam);
+      } else {
+        // TODO: Send "new_team" event
+        player[type].push(team);
+      }
     });
 
-    const player: IAnimePlayer = { dubbed, subbed };
+    player.dubbed = _sortEpisodes(player.dubbed);
+    player.subbed = _sortEpisodes(player.subbed);
+
+
     const playerHash = buffer2hash(Buffer.from(JSON.stringify(player)));
     const oldPlayerHash = buffer2hash(Buffer.from(JSON.stringify(this._doc.player)));
 
@@ -184,11 +200,36 @@ class AnimePlayerPlayerClass extends AnimeModel {
     await this.save();
 
     return playerHash !== oldPlayerHash;
+
+
+
+    function _setVodUrl(vod: IAnimePlayerVOD, key: keyof Pick<IAnimePlayerVOD, 'ashdi_vod' | 'moonanime_vod' | 'tortuga_vod'>, url: string) {
+      // TODO: Send "new_episode" event for each provider
+
+      vod[key] = url;
+    }
+
+    function _sortEpisodes(teams: IAnimePlayerTeam[]): IAnimePlayerTeam[] {
+      const sorted: IAnimePlayerTeam[] = [];
+
+      teams.forEach(team => {
+        team.vods.sort((a, b) => {
+          if (a.episode > b.episode) return 1;
+          else if (a.episode < b.episode) return -1;
+
+          return 0;
+        });
+
+        sorted.push(team);
+      });
+
+      return sorted;
+    }
   }
 
 
 
-  private async retrieveMoonanime(malId: number, params: { slice: number[] }): Promise<IUnifiedEpisode[]> {
+  private async retrieveMoonanime(malId: number, params: { slice: number[] }): Promise<IUnifiedEpisode[] | null> {
     try {
       const episodes = await MoonanimeAPI.getEpisodes(malId);
       const unified: IUnifiedEpisode[] = [];
@@ -215,13 +256,13 @@ class AnimePlayerPlayerClass extends AnimeModel {
     } catch (e) {
       Logger.error(`[AnimePlayerPlayerClass]: Cannot parse moonanime episodes`, e);
 
-      return [];
+      return null;
     }
   }
 
 
 
-  private async retrieveAshdi(imdbId: string, params: { contentSeason: number, slice: number[] }): Promise<IUnifiedEpisode[]> {
+  private async retrieveAshdi(imdbId: string, params: { contentSeason: number, slice: number[] }): Promise<IUnifiedEpisode[] | null> {
     const minSliceIndex = params.slice[0];
     const maxSliceIndex = params.slice[1];
 
@@ -265,7 +306,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
     } catch (e) {
       Logger.error(`[AnimePlayerPlayerClass]: Cannot parse ashdi episodes`, e);
 
-      return [];
+      return null;
     }
 
 
