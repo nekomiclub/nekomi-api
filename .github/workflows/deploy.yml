@@ -11,7 +11,7 @@ env:
 jobs:
   build:
     name: Build & Test
-    runs-on: self-hosted
+    runs-on: [self-hosted, unniiiverse-server]
   
     steps:
       - name: Get the repository
@@ -31,7 +31,7 @@ jobs:
 
   deploy:
     name: Deploy to the docker
-    runs-on: self-hosted
+    runs-on: [self-hosted, unniiiverse-server]
     needs: build
 
     steps:
