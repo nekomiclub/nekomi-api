@@ -8,7 +8,7 @@ import { AnimeCardType } from '~/intf/IAnime';
 import { HandleRequest } from '~/utils/http-utils';
 import { IHomeFeedHero } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
-import { removeMarkdown } from '~/utils/utils';
+import { getUTC, removeMarkdown } from '~/utils/utils';
 
 
 
@@ -87,7 +87,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
       // Process recent documents
-      const updatedRecentlyDocuments = await AnimeRepository.getSortedMany(undefined, { sort: { updated_at: 'descending' }, limit: 20 });
+      const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({ $or: [{ year: getUTC().year }, { year: getUTC().year + 1 }] }, { sort: { updated_at: 'descending' }, limit: 20 });
 
       feed.updated_recently = updatedRecentlyDocuments.map(el => DTOService.toAnimeCard(el));
 
