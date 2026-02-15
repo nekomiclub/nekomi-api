@@ -1,10 +1,13 @@
-name: Build & Deploy nekomi-api
+name: Build & Deploy
 
 on: 
   workflow_dispatch: 
   push:
     branches: 'main'
   
+env:
+  SERVICE_NAME: nekomi-api
+
 jobs:
   build:
     name: Build & Test
@@ -18,7 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm i
       - name: Copy env file
-        run: cp ~/nekomi/.config/env/nekomi-api.env ./.env
+        run: cp ~/nekomi/.config/env/$SERVICE_NAME.env ./.env
+      - name: Copy firebase file
+        run: cp ~/nekomi/.config/env/nekomi-api-firebase.json ./firebase.json
       - name: Run tests
         run: npm run test
       - name: Build
@@ -31,10 +36,10 @@ jobs:
 
     steps:
       - name: Prepare workdir
-        run: rm -rf ~/nekomi/nekomi-api && mkdir -p ~/nekomi/nekomi-api
+        run: rm -rf ~/nekomi/$SERVICE_NAME && mkdir -p ~/nekomi/$SERVICE_NAME
       - name: Copy files in workdir
-        run: cp -r ./* ./.env ~/nekomi/nekomi-api
+        run: cp -r ./* ./.env ~/nekomi/$SERVICE_NAME
       - name: Create docker image
-        run: docker build -t nekomi-api ~/nekomi/nekomi-api
+        run: docker build -t $SERVICE_NAME ~/nekomi/$SERVICE_NAME
       - name: Restart compose service
-        run: cd ~/nekomi && docker-compose up -d --force-recreate --renew-anon-volumes --no-deps nekomi-api
+        run: cd ~/nekomi && docker-compose up -d --force-recreate --renew-anon-volumes --no-deps $SERVICE_NAME
