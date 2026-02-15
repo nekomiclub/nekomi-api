@@ -2,6 +2,7 @@ import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import Logger from '~/service/LoggerService';
+import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
 import path from 'path';
@@ -12,7 +13,7 @@ import { sleep } from './utils';
 
 
 
-const MIGRATION_CACHE_PATH = './.cache/migration.json';
+const MIGRATION_CACHE_PATH = `${conf.vars.volumes.logs}/migration.json`;
 
 
 
@@ -91,7 +92,7 @@ export async function MAdminDubbersMap() {
   if (checkMigrationStatus(slug)) return;
 
   try {
-    const path = './.cache/dubbers-map.jsonc';
+    const path = `${conf.vars.volumes.cache}/dubbers-map.json`;
     if (!fs.existsSync(path)) throw new NekoError('sys:not_found', `[${slug}]: Required file is not found at "${path}", skipping...`);
 
     const db = JSON.parse(fs.readFileSync(path).toString()) as IAdminDubberMapData[];

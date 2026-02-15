@@ -1,3 +1,4 @@
+import conf from '~/conf';
 import winston, { format } from 'winston';
 import { getUTC } from '~/utils/utils';
 
@@ -36,13 +37,13 @@ const logger = winston.createLogger({
     }),
     new winston.transports.File({
       level: 'debug',
-      dirname: 'logs',
+      dirname: conf.vars.volumes.logs,
       filename: 'latest.log',
       format: fileFormat
     }),
     new winston.transports.File({
       level: 'error',
-      dirname: 'logs',
+      dirname: conf.vars.volumes.logs,
       filename: 'error.log',
       format: fileFormat
     }),

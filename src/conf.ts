@@ -69,6 +69,11 @@ const vars = {
   SESSION_COOKIE_NAME: 'nekomi-auth',
   SESSION_COOKIE_DOMAIN: domains.NEKOMI_DOMAIN,
   SESSION_COOKIE_MAX_AGE_MS: ms('12week'),
+
+  volumes: {
+    logs: env.DOCKER ? '/logs' : './logs',
+    cache: env.DOCKER ? '/.cache' : './.cache'
+  }
 };
 
 /** Funny thing to rickroll some endpoints */

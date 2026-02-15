@@ -48,7 +48,7 @@ let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
 
 
 
-const CACHE_FOLDER = `./.cache`;
+const CACHE_FOLDER = conf.vars.volumes.cache;
 const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
 const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
 const CACHE_REVALIDATION_TIMEOUT_MS = ms('3day');
