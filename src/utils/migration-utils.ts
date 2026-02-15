@@ -4,6 +4,7 @@ import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import Logger from '~/service/LoggerService';
 import fs from 'fs';
 import ms from 'ms';
+import path from 'path';
 import { IAdminDubberMapData } from '~/intf/IAdmin';
 import { NekoError } from '~/service/ExceptionService';
 import { getContentSeason } from '~/algorithms/AnimeUpdateCrawler';
@@ -17,7 +18,10 @@ const MIGRATION_CACHE_PATH = './.cache/migration.json';
 
 /** Check wether something migrated or not */
 function checkMigrationStatus(slug: string) {
-  if (!fs.existsSync(MIGRATION_CACHE_PATH)) fs.writeFileSync(MIGRATION_CACHE_PATH, JSON.stringify({}, null, 2));
+  if (!fs.existsSync(MIGRATION_CACHE_PATH)) {
+    fs.mkdirSync(path.dirname(MIGRATION_CACHE_PATH), { recursive: true });
+    fs.writeFileSync(MIGRATION_CACHE_PATH, JSON.stringify({}, null, 2));
+  }
 
   const status = JSON.parse(fs.readFileSync(MIGRATION_CACHE_PATH).toString()) as Record<string, boolean>;
 
