@@ -70,10 +70,10 @@ class AnimePlayerPlayerClass extends AnimeModel {
     }
 
     // Retrieve ashdi episodes
-    // if (this._doc.imdb_id) {
-    //   const ashdi = await this.retrieveAshdi(this._doc.imdb_id, { contentSeason, slice });
-    //   if (ashdi) ashdi.forEach(el => episodes.push(el));
-    // }
+    if (this._doc.imdb_id) {
+      const ashdi = await this.retrieveAshdi(this._doc.imdb_id, { contentSeason, slice });
+      if (ashdi) ashdi.forEach(el => episodes.push(el));
+    }
 
 
 
