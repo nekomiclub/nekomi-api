@@ -6,10 +6,11 @@ import axios from 'axios';
 import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
+import { AnimeId } from '~/intf/IAnime';
+import { ArgumentTypes, ISODateString } from '~/intf/types';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
 import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
-import { ISODateString } from '~/intf/types';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api';
 import { JikanAPI } from '~/api/external/jikan.api';
 import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils';
@@ -159,12 +160,12 @@ async function awaitCache() {
 
 
 class AnimeUpdateCrawlerClass {
-  private service: StackServiceClass<string>;
+  private service: StackServiceClass<AnimeId>;
 
 
 
   constructor() {
-    this.service = new StackServiceClass('AnimeUpdateCrawler', async (...props) => await this.job(...props));
+    this.service = new StackServiceClass('AnimeUpdateCrawler', async (...props: ArgumentTypes<typeof this.job>) => await this.job(...props));
   }
 
 
@@ -224,7 +225,7 @@ class AnimeUpdateCrawlerClass {
 
 
 
-  async syncAnimeDocument(id: string): Promise<IAnime> {
+  async syncAnimeDocument(id: AnimeId): Promise<IAnime> {
     await getCache();
     await awaitCache();
 
@@ -460,7 +461,7 @@ class AnimeUpdateCrawlerClass {
 
 
 
-  private async job(id: string) {
+  private async job(id: AnimeId) {
     await this.syncAnimeDocument(id);
 
     // Throttle

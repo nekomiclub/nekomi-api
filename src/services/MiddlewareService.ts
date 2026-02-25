@@ -1,6 +1,6 @@
 import CSRFService from './CSRFService';
 import DTOService from './DataTransferService';
-import IUser from '~/intf/IUser';
+import IUser, { asUserId } from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
@@ -36,7 +36,7 @@ export default class MiddlewareService {
     if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
     const session = new SessionService();
-    await session.init({ id: payload.user_id });
+    await session.init({ id: asUserId(payload.user_id) });
     await session.parse(token);
 
     let userPermissions: ROLE_PERMISSION[] | null = null;

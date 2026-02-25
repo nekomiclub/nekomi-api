@@ -1,4 +1,5 @@
 import z from 'zod';
+import { asUserId, asUserSessionId } from './IUser';
 
 
 
@@ -10,8 +11,8 @@ export enum AUTH_METHOD {
 
 export const SessionTokenSchema = z.object({
   token_id: z.string().nonempty(),
-  user_id: z.string().nonempty(),
-  session_id: z.string().nonempty(),
+  user_id: z.string().nonempty().transform(asUserId),
+  session_id: z.string().nonempty().transform(asUserSessionId),
 });
 
 export const CSRFTokenSchema = z.object({

@@ -6,6 +6,7 @@ import { Middleware } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
+import { asAnimeId } from '~/intf/IAnime';
 
 
 
@@ -21,10 +22,10 @@ const ParamSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamSchema.parse(req.params);
 
-  await AnimeUpdateCrawler.syncAnimeDocument(query);
+  await AnimeUpdateCrawler.syncAnimeDocument(asAnimeId(query));
 
   await AnimePlayerUpdateCrawler.updateDubbersMap();
-  await AnimePlayerUpdateCrawler.syncAnimePlayer(query);
+  await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
   return res.status(200).json({ message: 'Anime successfully re-parsed' });
 });

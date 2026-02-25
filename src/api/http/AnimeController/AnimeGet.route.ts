@@ -5,7 +5,7 @@ import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
 import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
-import { DubberCardType } from '~/intf/IDubber';
+import { DubberCardType, TeamId } from '~/intf/IDubber';
 import { HandleRequest } from '~/utils/http-utils';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
@@ -138,7 +138,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_episodes) {
     if (isEligible(`get_episodes`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      const playerDubbersIds = new Set<string>();
+      const playerDubbersIds = new Set<TeamId>();
 
       anime.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
       anime.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));

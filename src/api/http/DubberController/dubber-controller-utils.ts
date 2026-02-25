@@ -6,6 +6,7 @@ import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
+import { asTeamId } from '~/intf/IDubber';
 
 
 
@@ -40,7 +41,7 @@ export default async function HandleDubberControllerACUpload(req: express.Reques
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);
 
-  await repo.init({ id: dubberId });
+  await repo.init({ id: asTeamId(dubberId) });
 
 
 

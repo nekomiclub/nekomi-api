@@ -7,6 +7,7 @@ import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
+import { asUserId } from '~/intf/IUser';
 
 
 
@@ -41,7 +42,7 @@ const ParamSchema = z.object({
 export default async function HandleUserControllerACUpload(req: express.Request, repo: UserRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
   const params = ParamSchema.parse(req.params);
-  const targetId = params.id ?? userId;
+  const targetId = asUserId(params.id ?? userId);
 
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);

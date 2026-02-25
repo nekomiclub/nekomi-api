@@ -6,11 +6,13 @@ import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
 import { ADMIN_SLUG, IAdminDubberMapData } from '~/intf/IAdmin';
-import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { ANIME_STATUS, AnimeId, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { ArgumentTypes } from '~/intf/types';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from '~/service/ExceptionService';
+import { TeamId, asTeamId } from '~/intf/IDubber';
 import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
 
 
@@ -107,7 +109,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
       // Parse dubbersIds & subtitles
       const dubberSlugs = slug.split(/&|\+/g).map(trimString);
-      const dubberIds: string[] = [];
+      const dubberIds: TeamId[] = [];
 
       dubberSlugs.forEach(slug => {
         const dubber = this.getDubber(slug);
@@ -115,7 +117,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
           dubberIds.push(dubber.id);
 
           if (dubber.subtitles) subtitles = true;
-        } else dubberIds.push(`~notexist-${slug}`);
+        } else dubberIds.push(asTeamId(`~notexist-${slug}`));
       });
 
       dubberIds.sort();
@@ -324,7 +326,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-  private getDubber(slug: string): { id: string | null, subtitles: boolean } | null {
+  private getDubber(slug: string): { id: TeamId | null, subtitles: boolean } | null {
     for (const key in this.dubbers) {
       const dubber = this.dubbers[key];
 
@@ -348,12 +350,12 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 class AnimePlayerUpdateCrawlerClass {
   private dubbers: IAdminDubberMapData[] = [];
-  private service: StackServiceClass<string>;
+  private service: StackServiceClass<AnimeId>;
 
 
 
   constructor() {
-    this.service = new StackServiceClass('AnimePlayerUpdateCrawler', async (...props) => await this.job(...props));
+    this.service = new StackServiceClass('AnimePlayerUpdateCrawler', async (...props: ArgumentTypes<typeof this.job>) => await this.job(...props));
   }
 
 
@@ -400,7 +402,7 @@ class AnimePlayerUpdateCrawlerClass {
 
 
 
-  async syncAnimePlayer(id: string) {
+  async syncAnimePlayer(id: AnimeId) {
     try {
       const parser = new AnimePlayerPlayerClass(this.dubbers);
       await parser.init({ id });
@@ -414,7 +416,7 @@ class AnimePlayerUpdateCrawlerClass {
 
 
 
-  private async job(id: string) {
+  private async job(id: AnimeId) {
     await this.syncAnimePlayer(id);
 
     // Throttle
