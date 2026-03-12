@@ -48,6 +48,8 @@ jobs:
     name: Create github release
     runs-on: [self-hosted, unniiiverse-server]
     needs: build
+    permissions:
+      contents: write
     steps:
       - name: Create release
         env:
