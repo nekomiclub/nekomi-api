@@ -1,14 +1,14 @@
-import IUser, { IUserSession } from '~/intf/IUser';
+import IUser, { IUserSession, UserSessionId, asUserId } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
 import conf, { DevelopmentMode } from '~/conf';
-import createId, { createNanoId } from '~/utils/create-id';
 import ms from 'ms';
 import { ISODateString } from '~/intf/types';
 import { NekoError } from './ExceptionService';
 import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
 import { UserModel } from '~/repo/UserRepository';
 import { calcISO, getUTC } from '~/utils/utils';
+import { createNanoId, createUserSessionId } from '~/utils/create-id';
 
 
 
@@ -23,7 +23,7 @@ interface IOpenSession {
 
 interface IParseSession {
   user: IUser
-  sessionId: string
+  sessionId: UserSessionId
 }
 
 
@@ -48,7 +48,7 @@ export default class SessionService extends UserModel {
 
     await this.revalidate();
 
-    const sessionId = createId();
+    const sessionId = createUserSessionId();
 
     const session: IUserSession = {
       id: sessionId,
@@ -195,7 +195,7 @@ export default class SessionService extends UserModel {
     const sessionData = TokenService.parse<SessionTokenType>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
     if (!SessionTokenSchema.safeParse(sessionData.payload).success || !sessionData.verified) throw new NekoError('auth:session_token_invalid');
 
-    await this.init({ id: sessionData.payload.user_id });
+    await this.init({ id: asUserId(sessionData.payload.user_id) });
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const sessionId = sessionData.payload.session_id;

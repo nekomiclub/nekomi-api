@@ -1,4 +1,5 @@
 import { ISODateString } from './types';
+import { TeamId } from './IDubber';
 
 
 
@@ -24,7 +25,7 @@ interface IAdmin<S extends ADMIN_SLUG, D> {
 
 
 export interface IAdminDubberMapData {
-  dubber_id: string | null
+  dubber_id: TeamId | null
   subtitles: boolean
   synonyms: string[]
 }

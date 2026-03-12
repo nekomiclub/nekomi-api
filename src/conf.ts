@@ -7,6 +7,7 @@ import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
 import parseEnv from './utils/parse-env';
 import { IHomeFeedHero } from './interfaces/types';
+import { asAnimeId } from './interfaces/IAnime';
 import { getUTC } from './utils/utils';
 
 
@@ -97,7 +98,7 @@ const StaticData = {
     hero: (ProductionMode ? [
       // ! Production
       {
-        id: '2bb03ffc-2584-4c1c-b098-971ad0f90fef',
+        id: asAnimeId('2bb03ffc-2584-4c1c-b098-971ad0f90fef'),
         slug: 'hell-s-paradise-season-2',
         title: '',
         synopsys: '',
@@ -106,7 +107,7 @@ const StaticData = {
         video: 'https://cdn.nekomi.club/feed-video-1.mp4'
       },
       {
-        id: 'fbc8a9ef-a079-4f40-b7d6-7ed5cf1e25ad',
+        id: asAnimeId('fbc8a9ef-a079-4f40-b7d6-7ed5cf1e25ad'),
         slug: 'frieren-beyond-journey-s-end-season-2',
         title: '',
         synopsys: '',
@@ -115,7 +116,7 @@ const StaticData = {
         video: 'https://cdn.nekomi.club/feed-video-2.mp4'
       },
       {
-        id: 'b4c8177f-f654-4fba-a0a0-232cf3a3108d',
+        id: asAnimeId('b4c8177f-f654-4fba-a0a0-232cf3a3108d'),
         slug: 'jujutsu-kaisen-the-culling-game-part-1',
         title: '',
         synopsys: '',
@@ -127,7 +128,7 @@ const StaticData = {
       // Development
 
       {
-        id: 'uKiM7NOm',
+        id: asAnimeId('uKiM7NOm'),
         slug: 'frieren-beyond-journey-s-end',
         title: '',
         synopsys: '',
@@ -136,7 +137,7 @@ const StaticData = {
         video: 'https://cdn.nekomi.club/jjk2_2k.mp4'
       },
       {
-        id: '2iEasiqg',
+        id: asAnimeId('2iEasiqg'),
         slug: 'chainsaw-man-the-movie-reze-arc',
         title: '',
         synopsys: '',
@@ -149,20 +150,20 @@ const StaticData = {
     hot: (ProductionMode ? [
       // Production
 
-      'ed1a43ac-e686-42e6-8919-a2e3bdb2a8b5',
-      '677ba66f-c83f-41bb-95af-c97b7c8c5605',
-      '42ef1aae-1fb7-4394-a88a-8cace01d9078',
-      '28471ffe-a461-4bfd-97d7-8a1346bd4ce8',
-      'bf341930-6a90-4c78-ab72-9f8093f0b519',
-      '03f293af-8d50-4bec-80e6-7ce8849e5760',
-      '04331571-34b3-4feb-aa09-7544b1962c7a',
-      'e747c1fb-2144-44bb-8d17-10aaf7e65d37',
+      asAnimeId('ed1a43ac-e686-42e6-8919-a2e3bdb2a8b5'),
+      asAnimeId('677ba66f-c83f-41bb-95af-c97b7c8c5605'),
+      asAnimeId('42ef1aae-1fb7-4394-a88a-8cace01d9078'),
+      asAnimeId('28471ffe-a461-4bfd-97d7-8a1346bd4ce8'),
+      asAnimeId('bf341930-6a90-4c78-ab72-9f8093f0b519'),
+      asAnimeId('03f293af-8d50-4bec-80e6-7ce8849e5760'),
+      asAnimeId('04331571-34b3-4feb-aa09-7544b1962c7a'),
+      asAnimeId('e747c1fb-2144-44bb-8d17-10aaf7e65d37'),
     ] : [
       // Development
 
-      'uKiM7NOm',
-      '2iEasiqg',
-      'voGf1ADS',
+      asAnimeId('uKiM7NOm'),
+      asAnimeId('2iEasiqg'),
+      asAnimeId('voGf1ADS'),
     ]) satisfies string[]
   }
 };

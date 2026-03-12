@@ -10,6 +10,7 @@ import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
+import { asTeamId } from '~/intf/IDubber';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -122,7 +123,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = asTeamId(TestMode ? `~testing-${createNanoId()}` : createId());
     const name = `Dubber ${createNanoId()}`;
     const slug = createSlug(name);
 

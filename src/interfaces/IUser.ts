@@ -1,4 +1,13 @@
-import { CDNString, ISODateString } from './types';
+import { AnimeId } from './IAnime';
+import { BrandedId, CDNString, ISODateString } from './types';
+import { TeamId } from './IDubber';
+import { asBrandedId } from './types';
+
+
+
+export type UserId = BrandedId<string, 'userId'>;
+export type UserLibId = BrandedId<string, 'userLibId'>;
+export type UserSessionId = BrandedId<string, 'userSessionId'>;
 
 
 
@@ -20,12 +29,13 @@ export enum USER_LIB_TYPE {
 
 
 export interface IUser {
-  id: string
+  id: UserId
   username: string
 
   avatar: CDNString
   cover: CDNString
 
+  /** Roles slugs */
   roles: string[]
   total_viewtime: number // In seconds
   dubber_team_member: string | null
@@ -44,24 +54,24 @@ export interface IUser {
 }
 
 export interface IUserViewProgress {
-  anime_id: string
-  dubber_id: string
+  anime_id: AnimeId
+  dubber_id: TeamId
   episode: number
   updated_at: ISODateString
   progress: number // In seconds
 }
 
 export interface IUserLib {
-  id: string
+  id: UserLibId
   type: USER_LIB_TYPE
-  anime_ids: string[]
+  anime_ids: AnimeId[]
 
   is_public: boolean
   created_at: ISODateString
 }
 
 export interface IUserSession {
-  id: string
+  id: UserSessionId
 
   is_limited: boolean
 
@@ -72,5 +82,9 @@ export interface IUserSession {
 export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar' | 'cover'>
 
 
+
+export const asUserId = (asBrandedId<UserId>);
+export const asUserLibId = (asBrandedId<UserLibId>);
+export const asUserSessionId = (asBrandedId<UserSessionId>);
 
 export default IUser;

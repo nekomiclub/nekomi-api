@@ -1,17 +1,19 @@
 import DTOService from '~/service/DataTransferService';
 import DubberRepository from './DubberRepository';
-import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
+import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION, UserLibId } from '~/intf/IUser';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
-import createId, { createNanoId } from '~/utils/create-id';
+import createId, { createNanoId, createUserLibId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
+import { AnimeId } from '~/intf/IAnime';
 import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
+import { asUserId } from '~/intf/IUser';
 import { calcISO, getUTC } from '~/utils/utils';
 
 
@@ -169,7 +171,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create(props?: ICreateProps): Promise<IUser> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = asUserId(TestMode ? `~testing-${createNanoId()}` : createId());
 
     const payload: RepositoryType = {
       id,
@@ -181,11 +183,11 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
       roles: ['user'],
       libs: [
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: getUTC().ISO },
-        { id: createNanoId(5), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE.FAVORITE, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE.PLANS, is_public: false, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE.WATCHED, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE.WATCHING, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE.DELAYED, is_public: false, created_at: getUTC().ISO },
       ],
       restrictions: [],
       sessions: [],
@@ -411,7 +413,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * 
    * @testing
    */
-  async appendLibAnime(libId: string, animeId: string) {
+  async appendLibAnime(libId: UserLibId, animeId: AnimeId) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     const lib = this._doc.libs.find(el => el.id === libId);

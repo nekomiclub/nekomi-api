@@ -5,6 +5,9 @@ import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
+import { asAnimeId } from '~/intf/IAnime';
+import { asTeamId } from '~/intf/IDubber';
+import { asUserId, asUserLibId } from '~/intf/IUser';
 
 
 
@@ -18,8 +21,8 @@ interface IResponse {
 
 
 const editLibAnimeSchema = z.object({
-  lib_id: z.string().nonempty(),
-  anime_id: z.string().nonempty(),
+  lib_id: z.string().nonempty().transform(asUserLibId),
+  anime_id: z.string().nonempty().transform(asAnimeId),
 });
 
 const ParamsSchema = z.object({
@@ -31,8 +34,8 @@ const BodySchema = z.object({
   remove_lib_anime: editLibAnimeSchema.optional(),
 
   edit_view_progress: z.object({
-    anime_id: z.string().nonempty(),
-    dubber_id: z.string().nonempty(),
+    anime_id: z.string().nonempty().transform(asAnimeId),
+    dubber_id: z.string().nonempty().transform(asTeamId),
     episode: z.number(),
     progress: z.number(),
     viewtime: z.number(),
@@ -55,7 +58,7 @@ const BodySchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   const { id: userId, permissions } = req._nekomi.user!;
   const params = ParamsSchema.parse(req.params);
-  const targetId = params.id ?? userId;
+  const targetId = asUserId(params.id ?? userId);
 
   const { add_lib_anime, edit_view_progress, remove_lib_anime, remove_view_progress, set_username } = BodySchema.parse(req.body);
   if (!Object.keys(req.body).length) return res.status(200).json({ message: `Nothing to patch...` });

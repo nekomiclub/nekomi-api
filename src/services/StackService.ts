@@ -1,13 +1,18 @@
 import Logger from './LoggerService';
 import createId from '~/utils/create-id';
+import { BrandedId, asBrandedId } from '~/intf/types';
 import { DevelopmentMode } from '~/conf';
 import { ISODateString } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
 
 
+export type StackNodeId = BrandedId<string, 'stackNodeId'>
+
+
+
 interface IStackNode<T> {
-  id: string
+  id: StackNodeId
   created_at: ISODateString
   data: T
 }
@@ -33,7 +38,7 @@ export default class StackServiceClass<T> {
 
   /** @returns id */
   append(data: T, props?: { doNotRun?: boolean }): string {
-    const id = createId();
+    const id = asStackNodeId(createId());
 
     this._stack.push({
       id,
@@ -83,3 +88,7 @@ export default class StackServiceClass<T> {
     }
   }
 }
+
+
+
+const asStackNodeId = asBrandedId<StackNodeId>;

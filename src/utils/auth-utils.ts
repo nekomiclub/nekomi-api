@@ -3,14 +3,15 @@ import SessionService from '~/service/SessionService';
 import express from 'express';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
+import { UserId, UserSessionId, asUserId, asUserSessionId } from '~/intf/IUser';
 import { getCSRFToken, getSessionToken } from './http-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
 
 interface IGetSessionAuth {
-  userId: string
-  sessionId: string
+  userId: UserId
+  sessionId: UserSessionId
   permissions: ROLE_PERMISSION[]
 }
 
@@ -22,10 +23,10 @@ interface IGetSessionAuth {
  * Will update session cookie
  */
 export async function getSessionAuth(req: express.Request, res: express.Response): Promise<IGetSessionAuth> {
-  if (req._nekomi.middlewaresPassed.includes('checkAccess')) {
+  if (req._nekomi.middlewaresPassed.includes('checkAccess') && req._nekomi.user) {
     return {
-      userId: req._nekomi.user?.id ?? '',
-      sessionId: req._nekomi.user?.sessionId ?? '',
+      userId: asUserId(req._nekomi.user.id),
+      sessionId: asUserSessionId(req._nekomi.user.sessionId),
       permissions: req._nekomi.user?.permissions ?? []
     };
   } else {

@@ -1,28 +1,15 @@
-import { CDNString, ISODateString } from './types';
+import { BrandedId, CDNString, ISODateString } from './types';
+import { TeamId } from './IDubber';
+import { asBrandedId } from './types';
 
 
 
-export interface IAnimePosterNode {
-  small: CDNString
-  medium: CDNString
-  original: CDNString
+export type AnimeId = BrandedId<string, 'animeId'>;
 
-  authorId: string | null
-  is_hero: boolean
-  pull_hash: string
 
-  _unprocessedAuthorName?: string
-}
-
-export interface IAnimeScreenshotNode {
-  preview: CDNString
-  original: CDNString
-
-  pull_hash: string
-}
 
 export interface IAnime {
-  id: string
+  id: AnimeId
   mal_id: number | null
   imdb_id: string | null
   slug: string
@@ -77,6 +64,25 @@ export interface IAnime {
   is_DMCA_restricted?: boolean
 }
 
+export interface IAnimePosterNode {
+  small: CDNString
+  medium: CDNString
+  original: CDNString
+
+  authorId: string | null
+  is_hero: boolean
+  pull_hash: string
+
+  _unprocessedAuthorName?: string
+}
+
+export interface IAnimeScreenshotNode {
+  preview: CDNString
+  original: CDNString
+
+  pull_hash: string
+}
+
 export interface IAnimeRelation {
   mal_id: number
   type: string // anime, manga, etc..
@@ -94,9 +100,9 @@ export interface IAnimePlayer {
 }
 
 export interface IAnimePlayerTeam {
-  /** Dubber name SHA256 */
+  /** Id is team name SHA256 */
   id: string
-  dubber_ids: string[]
+  dubber_ids: TeamId[]
   dubber_name: string
   vods: IAnimePlayerVOD[]
 }
@@ -544,5 +550,6 @@ export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
 
 
 
+export const asAnimeId = (asBrandedId<AnimeId>);
 
 export default IAnime;

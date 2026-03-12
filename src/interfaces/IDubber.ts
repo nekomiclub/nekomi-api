@@ -1,13 +1,16 @@
-import { CDNString, ISODateString } from './types';
+import { BrandedId, CDNString, ISODateString } from './types';
+import { UserId } from './IUser';
+import { asBrandedId } from './types';
 
 
 
 export type DubberRoleType = 'leader' | 'editor' | 'member' | 'pending'
+export type TeamId = BrandedId<string, 'teamId'>;
 
 
 
 export interface IDubber {
-  id: string
+  id: TeamId
   slug: string
   name: string
   about: string | null
@@ -36,7 +39,7 @@ export interface IDubber {
 }
 
 export interface IDubberMember {
-  id: string
+  id: UserId
   role: DubberRoleType
   member_since: ISODateString
 }
@@ -44,5 +47,7 @@ export interface IDubberMember {
 export type DubberCardType = Pick<IDubber, 'id' | 'name' | 'slug' | 'avatar'>
 
 
+
+export const asTeamId = (asBrandedId<TeamId>);
 
 export default IDubber;

@@ -1,5 +1,6 @@
 import { MiddlewareType } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from './IRole';
+import { UserId } from './IUser';
 
 
 
@@ -37,7 +38,7 @@ declare global {
          * @requires Middleware.CheckAccess()
          */
         user?: {
-          id: string
+          id: UserId
           sessionId: string
           permissions: ROLE_PERMISSION[] | null
         }
