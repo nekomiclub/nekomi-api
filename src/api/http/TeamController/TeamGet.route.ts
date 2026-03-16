@@ -1,11 +1,11 @@
 import CacheService from '~/service/CacheService';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { TeamMinifiedSchema } from '~/intf/ITeam';
+import { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { UserMinifiedSchema } from '~/intf/IUser';
+import { UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { asCDNString, asISODateString, asTeamId } from '~/intf/BrandedIds';
 import { zBoolean } from '~/intf/types';
 
@@ -20,17 +20,17 @@ export const TeamRoleSchema = z.enum([
 
 export const TeamMemberSchema = UserMinifiedSchema.extend({
   role: TeamRoleSchema,
-  member_since: z.string().refine(asISODateString),
+  member_since: z.string().transform(asISODateString),
 });
 
 export const TeamSchema = z.object({
-  id: z.string().refine(asTeamId),
+  id: z.string().transform(asTeamId),
   slug: z.string(),
   name: z.string(),
   about: z.string().nullable(),
 
-  avatar: z.string().refine(asCDNString),
-  cover: z.string().refine(asCDNString),
+  avatar: z.string().transform(asCDNString),
+  cover: z.string().transform(asCDNString),
 
   socials: z.object({
     telegram: z.string().optional(),
@@ -49,8 +49,8 @@ export const TeamSchema = z.object({
 
   members: z.array(TeamMemberSchema),
 
-  created_at: z.string().refine(asCDNString),
-  updated_at: z.string().refine(asCDNString),
+  created_at: z.string().transform(asCDNString),
+  updated_at: z.string().transform(asCDNString),
 });
 
 
@@ -87,7 +87,7 @@ const endpoint = HandleRequest(async (req, res) => {
   let team: z.infer<typeof TeamSchema> | z.infer<typeof TeamMinifiedSchema>;
 
   if (is_extended) {
-    const refined = DTOService.refine(repo.document, TeamSchema);
+    const refined = DTS.refine(repo.document, TeamSchema);
     // const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 
     // refined.members = users.map(user => {
@@ -104,7 +104,7 @@ const endpoint = HandleRequest(async (req, res) => {
     // });
 
     team = refined;
-  } else team = DTOService.refine(repo.document, TeamMinifiedSchema);
+  } else team = DTS.refine(repo.document, TeamMinifiedSchema);
 
 
 

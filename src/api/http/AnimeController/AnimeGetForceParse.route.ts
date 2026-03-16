@@ -3,7 +3,7 @@ import conf from '~/conf';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
 import { asAnimeId } from '~/intf/BrandedIds';

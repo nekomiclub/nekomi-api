@@ -1,16 +1,16 @@
-import DTOService from '~/service/DataTransferService';
-import ITeam from '~/intf/ITeam';
+import DTS from '~/service/DataTransferService';
+import ITeam from '~/schemas/entities/Team.schema';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
-import { CDNString, RepositoryQueriesType } from '~/intf/types';
+import { CDNString, asTeamId } from '~/intf/BrandedIds';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asTeamId } from '~/intf/BrandedIds';
+import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -89,7 +89,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.team(this._doc, true);
+    return DTS.team(this._doc, true);
   }
 
 
@@ -149,7 +149,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.team(payload, true);
+    return DTS.team(payload, true);
   }
 
 

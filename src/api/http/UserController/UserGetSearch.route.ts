@@ -1,4 +1,4 @@
-import IUser from '~/intf/IUser';
+import IUser from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';

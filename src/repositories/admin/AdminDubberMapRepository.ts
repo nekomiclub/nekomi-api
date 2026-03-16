@@ -1,8 +1,8 @@
 import AdminRepository from './AdminRepository';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import createId, { createNanoId } from '~/utils/create-id';
-import { ADMIN_SLUG, AdminTeamsMapType, IAdminTeamMapData } from '~/intf/IAdmin';
+import { ADMIN_SLUG, AdminTeamsMapType, IAdminTeamMapData } from '~/schemas/entities/Admin.schema';
 import { NekoError } from '~/service/ExceptionService';
 import { TestMode } from '~/conf';
 import { getUTC } from '~/utils/utils';
@@ -40,7 +40,7 @@ export default class AdminTeamMapRepositoryClass extends AdminRepository {
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.parse(payload);
+    return DTS.parse(payload);
   }
 
 

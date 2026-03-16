@@ -1,30 +1,20 @@
 import AnimeRepository from '~/repo/AnimeRepository';
 import CacheService from '~/service/CacheService';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import conf from '~/conf';
 import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { IHomeFeedHero } from '~/intf/types';
+
+import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { getUTC, removeMarkdown } from '~/utils/utils';
 
 
 
-const FeedHeroSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  title: z.string(),
-  synopsis: z.string().nullish(),
-
-  poster: z.string(),
-  cover: z.string(),
-  video: z.string().nullish(),
-});
-
 const FeedSchema = z.object({
-  hero: z.array(FeedHeroSchema),
+  hero: z.array(HomeFeedHeroSchema),
   hot: z.array(z.object({})), // AnimeCardType[]
   highest_rate: z.array(z.object({})), // AnimeCardType[]
   updated_recently: z.array(z.object({})), // AnimeCardType[]
@@ -86,21 +76,21 @@ const endpoint = HandleRequest(async (req, res) => {
        */
       const hotDocuments = await AnimeRepository.getMany({ id: { $in: conf.StaticData.HomeFeed.hot } });
 
-      feed.hot = hotDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.hot = hotDocuments.map(el => DTS.toAnimeCard(el));
 
 
 
       // Process rated documents
       const highestRatedDocuments = await AnimeRepository.getSortedMany(undefined, { sort: { score: 'descending' }, limit: 20 });
 
-      feed.highest_rate = highestRatedDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.highest_rate = highestRatedDocuments.map(el => DTS.toAnimeCard(el));
 
 
 
       // Process recent documents
       const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({ $or: [{ year: getUTC().year }, { year: getUTC().year + 1 }] }, { sort: { updated_at: 'descending' }, limit: 20 });
 
-      feed.updated_recently = updatedRecentlyDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.updated_recently = updatedRecentlyDocuments.map(el => DTS.toAnimeCard(el));
 
 
 

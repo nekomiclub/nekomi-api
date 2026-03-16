@@ -1,157 +1,3 @@
-import { AnimeId, TeamId } from './BrandedIds';
-import { CDNString, ISODateString } from './types';
-
-
-
-export interface IAnime {
-  id: AnimeId
-  mal_id: number | null
-  imdb_id: string | null
-  slug: string
-  hikka_slug: string | null
-
-  posters: IAnimePosterNode[] // Protected
-
-  /** @deprecated use poster hero authorId instead */
-  hero_poster_author: string | null // Protected
-
-  year: number | null
-  episodes_total: number | null
-  episodes_released: number | null
-
-  title_ja: string | null
-  title_en: string | null
-  title_ua: string | null
-  title_synonims: string[]
-
-  synopsis_en: string | null
-  synopsis_ua: string | null
-
-  score: number
-  scored_by: number
-
-  /** Related anime documents */
-  relations: IAnimeRelation[] // Protected
-  studios: IAnimeStudio[]
-  screenshots: IAnimeScreenshotNode[] // Protected
-  schedule: IAnimeSchedule[]
-  player: IAnimePlayer // Protected
-
-  /** @todo rework */
-  episodes_meta: IAnimeEpisode[] // Protected
-
-  /** Managed by nekomi-api-ashdi-connector */
-  ashdi_url: string | null // Protected
-
-  genres: ANIME_GENRE[]
-  rating: ANIME_RATING | null
-  status: ANIME_STATUS | null
-  season: ANIME_SEASON | null
-  type: ANIME_TYPE | null
-  content_season: number | null
-
-  updated_at: ISODateString // Protected
-  created_at: ISODateString // Protected
-  about_synced_at: ISODateString | null // Protected
-  episodes_synced_at: ISODateString | null // Protected
-
-  /** Is anime restricted under DMCA */
-  is_DMCA_restricted?: boolean
-}
-
-export interface IAnimePosterNode {
-  small: CDNString
-  medium: CDNString
-  original: CDNString
-
-  authorId: string | null
-  is_hero: boolean
-  pull_hash: string
-
-  _unprocessedAuthorName?: string
-}
-
-export interface IAnimeScreenshotNode {
-  preview: CDNString
-  original: CDNString
-
-  pull_hash: string
-}
-
-export interface IAnimeRelation {
-  mal_id: number
-  type: string // anime, manga, etc..
-  relation: string // Prequel, Sequel, etc...
-}
-
-export interface IAnimeStudio {
-  mal_id: number
-  name: string
-}
-
-export interface IAnimePlayer {
-  dubbed: IAnimePlayerTeam[]
-  subbed: IAnimePlayerTeam[]
-}
-
-export interface IAnimePlayerTeam {
-  /** Id is team name SHA256 */
-  id: string
-  dubber_ids: TeamId[]
-  dubber_name: string
-  vods: IAnimePlayerVOD[]
-}
-
-export interface IAnimePlayerVOD {
-  episode: number
-
-  moonanime_vod?: string
-  ashdi_vod?: string
-  tortuga_vod?: string
-}
-
-/** @todo rework */
-export interface IAnimeEpisode {
-  episode: number
-  title: string
-  aired: ISODateString | null
-  score: number | null // 1 - 5
-  filler: boolean
-  recap: boolean
-}
-
-export interface IAnimeSchedule {
-  episode: number
-  airing_at: ISODateString
-}
-
-
-
-export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
-  title: string
-  poster: CDNString
-  genres: AnimeGenreType[]
-}
-
-
-
-type AnimeNamedRecordType<T = string> = {
-  slug: T
-  name: string
-}
-
-type AnimeNamedDescriptionRecordType<T = string> = AnimeNamedRecordType<T> & {
-  description: string
-}
-
-export type AnimeGenreType = AnimeNamedDescriptionRecordType<ANIME_GENRE>
-export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATING>;
-export type AnimeStatusType = AnimeNamedRecordType<ANIME_STATUS>;
-export type AnimeSeasonType = AnimeNamedRecordType<ANIME_SEASON>;
-export type AnimeType = AnimeNamedRecordType<ANIME_TYPE>;
-
-
-
 export enum ANIME_GENRE {
   ACTION = 'action',
   ADVENTURE = 'adventure',
@@ -195,7 +41,7 @@ export enum ANIME_GENRE {
   THRILLER = 'thriller',
   VAMPIRE = 'vampire',
   YAOI = 'yaoi',
-  YURI = 'yuri',
+  YURI = 'yuri'
 }
 
 export enum ANIME_RATING {
@@ -204,20 +50,20 @@ export enum ANIME_RATING {
   PG13 = 'pg_13',
   R17 = 'r',
   RPLUS = 'r_plus',
-  RX = 'rx',
+  RX = 'rx'
 }
 
 export enum ANIME_STATUS {
   FINISHED = 'finished',
   ONGOING = 'ongoing',
-  ANNOUNCED = 'announced',
+  ANNOUNCED = 'announced'
 }
 
 export enum ANIME_SEASON {
   SUMMER = 'summer',
   FALL = 'fall',
   WINTER = 'winter',
-  SPRING = 'spring',
+  SPRING = 'spring'
 }
 
 export enum ANIME_TYPE {
@@ -226,7 +72,7 @@ export enum ANIME_TYPE {
   MOVIE = 'movie',
   SPECIAL = 'special',
   ONA = 'ona',
-  UNKNOWN = 'unknown',
+  UNKNOWN = 'unknown'
 }
 
 
@@ -545,4 +391,17 @@ export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
 
 
 
-export default IAnime;
+type AnimeNamedRecordType<T = string> = {
+  slug: T;
+  name: string;
+};
+
+type AnimeNamedDescriptionRecordType<T = string> = AnimeNamedRecordType<T> & {
+  description: string;
+};
+
+export type AnimeGenreType = AnimeNamedDescriptionRecordType<ANIME_GENRE>;
+export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATING>;
+export type AnimeStatusType = AnimeNamedRecordType<ANIME_STATUS>;
+export type AnimeSeasonType = AnimeNamedRecordType<ANIME_SEASON>;
+export type AnimeType = AnimeNamedRecordType<ANIME_TYPE>;

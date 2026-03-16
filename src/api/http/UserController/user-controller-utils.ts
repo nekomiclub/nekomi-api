@@ -2,12 +2,11 @@ import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
 import z from 'zod';
-import { CDNString } from '~/intf/types';
+import { CDNString, asUserId } from '~/intf/BrandedIds';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { asUserId } from '~/intf/BrandedIds';
 
 
 

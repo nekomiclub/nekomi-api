@@ -1,5 +1,5 @@
-import DTOService from '~/service/DataTransferService';
-import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
+import DTS from '~/service/DataTransferService';
+import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/schemas/entities/User.schema';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
 import TeamRepository from './TeamRepository';
@@ -8,11 +8,11 @@ import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId, createUserLibId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
-import { AnimeId } from '~/intf/BrandedIds';
-import { CDNString, RepositoryQueriesType } from '~/intf/types';
+import { AnimeId, CDNString } from '~/intf/BrandedIds';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
+import { RepositoryQueriesType } from '~/intf/types';
 import { UserLibId } from '~/intf/BrandedIds';
 import { asUserId } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
@@ -107,7 +107,7 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.user(this._doc, true);
+    return DTS.user(this._doc, true);
   }
 
 
@@ -136,7 +136,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.user(this._doc, true);
+    return DTS.user(this._doc, true);
   }
 
 
@@ -210,7 +210,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.user(payload, true);
+    return DTS.user(payload, true);
   }
 
 

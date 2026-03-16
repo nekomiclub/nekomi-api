@@ -1,7 +1,8 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import createSlug from '~/utils/create-slug';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeSchedule } from '~/intf/IAnime';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
+import { IAnimeSchedule } from '~/schemas/entities/Anime.schema';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createNanoId } from '~/utils/create-id';
 import { getUTC } from '~/utils/utils';

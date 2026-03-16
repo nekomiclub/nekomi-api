@@ -1,11 +1,11 @@
 import AnimeRepository from '~/repo/AnimeRepository';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import conf from '~/conf';
 import z from 'zod';
-import { AnimeCardType } from '~/intf/IAnime';
+import { AnimeCardType } from '~/schemas/entities/Anime.schema';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';
-import { IUserLib, UserCardType } from '~/intf/IUser';
+import { IUserLib, UserCardType } from '~/schemas/entities/User.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { UserRepositoryClass } from '~/repo/UserRepository';
@@ -46,14 +46,14 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
-  const catalog: AnimeCardType[] = documents.map(el => DTOService.toAnimeCard(el));
+  const catalog: AnimeCardType[] = documents.map(el => DTS.toAnimeCard(el));
   const pagination = {
     page: -1,
     limit: -1,
   };
 
-  const libs = await DTOService.userLibs(req, repo.document);
-  const user = DTOService.toUserCard(repo.document);
+  const libs = await DTS.userLibs(req, repo.document);
+  const user = DTS.toUserCard(repo.document);
 
 
 

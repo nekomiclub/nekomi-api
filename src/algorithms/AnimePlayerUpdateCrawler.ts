@@ -1,16 +1,17 @@
 import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
-import { ADMIN_SLUG, IAdminTeamMapData } from '~/intf/IAdmin';
-import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema';
+import { ANIME_STATUS } from '~/data/AnimePrimitives';
 import { AnimeId } from '~/intf/BrandedIds';
 import { ArgumentTypes } from '~/intf/types';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
+import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/schemas/entities/Anime.schema';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from '~/service/ExceptionService';
 import { TeamId } from '~/intf/BrandedIds';
@@ -162,7 +163,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
     const player: IAnimePlayer = { dubbed: [], subbed: [] };
 
     mixed.forEach(mixed => {
-      const team = DTOService.excludeKeys(mixed, ['subtitles']) as IAnimePlayerTeam;
+      const team = DTS.excludeKeys(mixed, ['subtitles']) as IAnimePlayerTeam;
       const type: keyof IAnimePlayer = mixed.subtitles ? 'subbed' : 'dubbed';
       const existTeam = this.document!.player[type].find(el => el.id === team.id);
 

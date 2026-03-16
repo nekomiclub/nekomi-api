@@ -3,7 +3,7 @@ import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { asAnimeId } from '~/intf/BrandedIds';
 import { asTeamId } from '~/intf/BrandedIds';

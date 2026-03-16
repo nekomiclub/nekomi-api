@@ -1,4 +1,4 @@
-import IAdmin, { ADMIN_SLUG } from '~/intf/IAdmin';
+import IAdmin, { ADMIN_SLUG } from '~/schemas/entities/Admin.schema';
 import UnifiedRepositoryClass from '~/repo/UnifiedRepository';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';

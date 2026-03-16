@@ -1,11 +1,12 @@
-import DTOService from '~/service/DataTransferService';
-import IUser, { IUserLib, IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
+import DTS from '~/service/DataTransferService';
+import IUser, { IUserLib, IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/schemas/entities/User.schema';
 import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/conf';
 import z from 'zod';
-import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
+import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest, getSessionToken } from '~/utils/http-utils';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ISODateString } from '~/intf/BrandedIds';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
@@ -125,8 +126,8 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  if (view === 'card') user_card = DTOService.toUserCard(user);
-  else if (view === 'full') user_full = DTOService.includeKeys(user, [...FullResponseKeys]);
+  if (view === 'card') user_card = DTS.toUserCard(user);
+  else if (view === 'full') user_full = DTS.pickKeys(user, [...FullResponseKeys]);
 
   if (get_permissions) user_misc.permissions = await parseRolesPermissions(user.roles);
   if (get_username_changed_at) user_misc.username_changed_at = user.username_changed_at;
@@ -144,7 +145,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_libs) {
     if (isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.libs = await DTOService.userLibs(req, user);
+      user_misc.libs = await DTS.userLibs(req, user);
     }
   }
 

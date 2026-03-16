@@ -1,17 +1,25 @@
-import IAnime, { AnimeCardType, AnimeGenres, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
-import ITeam, { TeamCardType } from '~/intf/ITeam';
-import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
+import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
+import ITeam, { TeamCardType } from '~/schemas/entities/Team.schema';
+import IUser, { IUserLib, UserCardType } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
+import { AnimeGenres } from '~/data/AnimePrimitives';
 import { HydratedDocument } from 'mongoose';
+import { asCDNString } from '~/intf/BrandedIds';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 
 
+/**
+ * Exclude specified keys from provided object
+ * 
+ * @returns object copy without specified keys
+ */
 function excludeKeys<T>(object: object, exclude: string[]): T {
   const instance = { ...object } as T;
 
+  // Exclude mongodb keys by default
   exclude.push('_id');
   exclude.push('__v');
 
@@ -26,7 +34,12 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
-function includeKeys<T>(object: object, include: string[]): T {
+/** 
+ * Pick specified keys from provided object
+ * 
+ * @returns object copy with specified keys
+ */
+function pickKeys<T>(object: object, include: string[]): T {
   const instance = {} as T;
 
   include.forEach(key => {
@@ -38,10 +51,11 @@ function includeKeys<T>(object: object, include: string[]): T {
 
 
 
-class DTOServiceClass {
+class DTSClass {
   excludeKeys = excludeKeys;
-  includeKeys = includeKeys;
+  pickKeys = pickKeys;
 
+  /** Parse mongodb HydratedDocument to plain object with excluded default __v keys */
   parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();
@@ -49,6 +63,7 @@ class DTOServiceClass {
     return excludeKeys(object, []);
   }
 
+  /** @deprecated idk */
   refine<S extends ZodSchema>(payload: any, schema: S): z.infer<S> {
     return schema.parse(payload);
   }
@@ -84,7 +99,7 @@ class DTOServiceClass {
       slug,
       episodes_total,
       score,
-      poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
+      poster: asCDNString(posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster),
       title: title_ua ?? title_en ?? 'Untitled',
       genres: genres.map(el => AnimeGenres[el]),
     };
@@ -126,7 +141,6 @@ class DTOServiceClass {
 
 
 
-  /** @deprecated use toTeamMinified */
   toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
     return { avatar, id, name, slug };
   }
@@ -179,6 +193,6 @@ class DTOServiceClass {
 
 
 
-const DTOService = new DTOServiceClass();
+const DTS = new DTSClass();
 
-export default DTOService;
+export default DTS;

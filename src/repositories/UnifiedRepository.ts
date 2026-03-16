@@ -1,4 +1,4 @@
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import { HydratedDocument, Model, SortOrder } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
@@ -169,7 +169,7 @@ export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModel
     const result = await this.model.findOne(this.query2find(query));
     if (!result) throw new NekoError('sys:not_found', `Document with query ${JSON.stringify(query)} is not found`);
 
-    return DTOService.parse(result);
+    return DTS.parse(result);
   }
 
 
@@ -181,7 +181,7 @@ export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModel
   async getMany(query?: RepositoryGetQueryType<RepositoryType>): Promise<RepositoryType[]> {
     const results = await this.model.find(this.query2find(query));
 
-    return results.map(el => DTOService.parse(el));
+    return results.map(el => DTS.parse(el));
   }
 
 
@@ -190,7 +190,7 @@ export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModel
   async getSortedMany(query: RepositoryGetQueryType<RepositoryType> | undefined, { limit, sort }: IGetTopOfManyProps<RepositoryType>): Promise<RepositoryType[]> {
     const results = await this.model.find(this.query2find(query)).sort(sort).limit(limit);
 
-    return results.map(el => DTOService.parse(el));
+    return results.map(el => DTS.parse(el));
   }
 
 

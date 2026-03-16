@@ -1,25 +1,8 @@
 import z from 'zod';
-import { AnimeId } from './BrandedIds';
 import { Filter } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 
 
-
-/** 
- * ISO Date string
- * 
- * @deprecated rework into branded type
- */
-export type ISODateString = string;
-
-
-
-/** 
- * Nekomi CDN string
- * 
- * @deprecated rework into branded type
- */
-export type CDNString = string;
 
 export type RepositoryGetQueryType<M> = string | Filter<M>
 export type RepositoryQueriesType<M> = { $or: Partial<Record<keyof M, string>>[] }
@@ -68,19 +51,6 @@ export interface IJWTokenPayload<T = object> {
  */
 // eslint-disable-next-line
 export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
-
-
-
-export interface IHomeFeedHero {
-  id: AnimeId
-  slug: string
-  title: string
-  synopsys: string | null
-
-  poster: CDNString
-  cover: CDNString
-  video: CDNString | null
-}
 
 
 

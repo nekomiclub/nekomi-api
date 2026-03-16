@@ -1,4 +1,4 @@
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
@@ -8,7 +8,7 @@ import { AUTH_METHOD } from '~/intf/IAuth';
 import { DevelopmentMode } from '~/conf';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
-import { IUserSession, USER_RESTRICTION } from '~/intf/IUser';
+import { IUserSession, USER_RESTRICTION } from '~/schemas/entities/User.schema';
 
 
 
@@ -105,7 +105,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'User authorized',
-    user: DTOService.user(user),
+    user: DTS.user(user),
     session: sessionData
   } satisfies IResponse);
 });

@@ -1,13 +1,15 @@
-import DTOService from '~/service/DataTransferService';
-import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimePlayer, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import DTS from '~/service/DataTransferService';
+import IAnime, { AnimeCardType, IAnimeEpisode, IAnimePlayer, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
 import TeamRepository from '~/repo/TeamRepository';
 import conf from '~/conf';
 import z from 'zod';
+import { AnimeGenreType, AnimeRateType, AnimeSeasonType, AnimeStatusType, AnimeType } from '~/data/AnimePrimitives';
+import { AnimeGenres, AnimeRatings, AnimeSeasons, AnimeStatuses, AnimeTypes } from '~/data/AnimePrimitives';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
-import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
+import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest } from '~/utils/http-utils';
-import { TeamCardType } from '~/intf/ITeam';
-import { TeamId } from '~/intf/BrandedIds';
+import { ISODateString, TeamId } from '~/intf/BrandedIds';
+import { TeamCardType } from '~/schemas/entities/Team.schema';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
 
@@ -112,9 +114,9 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  if (view === 'card') anime_card = DTOService.toAnimeCard(anime);
+  if (view === 'card') anime_card = DTS.toAnimeCard(anime);
   else if (view === 'full') {
-    anime_full = DTOService.includeKeys(anime, [...FullPublicResponseKeys]) as FullResponseType;
+    anime_full = DTS.pickKeys(anime, [...FullPublicResponseKeys]) as FullResponseType;
 
     anime_full.synopsis_en = anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en;
     anime_full.synopsis_ua = anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua;
@@ -125,15 +127,15 @@ const endpoint = HandleRequest(async (req, res) => {
     anime_full.season = anime.season && AnimeSeasons[anime.season];
     anime_full.type = anime.type && AnimeTypes[anime.type];
 
-    anime_full.poster = DTOService.animePoster(anime.posters.find(el => el.is_hero) ?? anime.posters[0] ?? DefaultAnimePoster);
+    anime_full.poster = DTS.animePoster(anime.posters.find(el => el.is_hero) ?? anime.posters[0] ?? DefaultAnimePoster);
   }
 
   if (get_details) {
     if (isEligible(`get_details`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      anime_misc.screenshots = anime.screenshots.map(el => DTOService.animeScreenshot(el));
+      anime_misc.screenshots = anime.screenshots.map(el => DTS.animeScreenshot(el));
 
       const relations = await repo.getMany({ mal_id: { $in: anime.relations.map(el => el.mal_id) } });
-      anime_misc.relations = relations.map(el => DTOService.toAnimeCard(el));
+      anime_misc.relations = relations.map(el => DTS.toAnimeCard(el));
     }
   }
 
@@ -149,7 +151,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
       anime_misc.player = anime.player;
-      anime_misc.player_teams = playerTeams.map(el => DTOService.toTeamCard(el));
+      anime_misc.player_teams = playerTeams.map(el => DTS.toTeamCard(el));
       anime_misc.episodes_meta = anime.episodes_meta;
       anime_misc.ashdi_url = anime.ashdi_url;
     }

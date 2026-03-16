@@ -1,5 +1,5 @@
 import { MiddlewareType } from '~/service/MiddlewareService';
-import { ROLE_PERMISSION } from './IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserId } from './BrandedIds';
 
 

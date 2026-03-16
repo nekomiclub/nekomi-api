@@ -2,9 +2,9 @@ import MiddlewareService from '~/service/MiddlewareService';
 import SessionService from '~/service/SessionService';
 import express from 'express';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserId, UserSessionId } from '~/intf/BrandedIds';
-import { asUserId, asUserSessionId } from '~/intf/BrandedIds';
+import { asUserSessionId } from '~/intf/BrandedIds';
 import { getCSRFToken, getSessionToken } from './http-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
@@ -26,7 +26,7 @@ interface IGetSessionAuth {
 export async function getSessionAuth(req: express.Request, res: express.Response): Promise<IGetSessionAuth> {
   if (req._nekomi.middlewaresPassed.includes('checkAccess') && req._nekomi.user) {
     return {
-      userId: asUserId(req._nekomi.user.id),
+      userId: req._nekomi.user.id,
       sessionId: asUserSessionId(req._nekomi.user.sessionId),
       permissions: req._nekomi.user?.permissions ?? []
     };

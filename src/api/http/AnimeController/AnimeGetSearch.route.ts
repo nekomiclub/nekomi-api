@@ -1,8 +1,10 @@
-import IAnime, { AnimeType, AnimeTypes } from '~/intf/IAnime';
+import IAnime from '~/schemas/entities/Anime.schema';
 import conf from '~/conf';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { AnimeSearch, RequestSearch } from '~/service/SearchService';
-import { CDNString } from '~/intf/types';
+import { AnimeType } from '~/data/AnimePrimitives';
+import { AnimeTypes } from '~/data/AnimePrimitives';
+import { CDNString } from '~/intf/BrandedIds';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';
 import { Middleware } from '~/service/MiddlewareService';

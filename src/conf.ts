@@ -6,8 +6,8 @@ dotenvCfg({ quiet: true });
 import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
 import parseEnv from './utils/parse-env';
-import { IHomeFeedHero } from './interfaces/types';
-import { asAnimeId } from './interfaces/BrandedIds';
+import { IHomeFeedHero } from './schemas/general.schema';
+import { asAnimeId, asCDNString } from './interfaces/BrandedIds';
 import { getUTC } from './utils/utils';
 
 
@@ -53,13 +53,13 @@ const vars = {
   INTERNAL_ID: 'nekomiclub',
 
   /** Default avatar */
-  defaultAvatar: 'https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89',
+  defaultAvatar: asCDNString('https://media.nekomi.club/0849e678-43ee-4f72-ae5a-bb9ff9d86c89'),
 
   /** Default banner */
-  defaultCover: 'https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c',
+  defaultCover: asCDNString('https://media.nekomi.club/efe3322f-69db-4084-b21b-5e139978292c'),
 
   /** Default anime poster */
-  defaultPoster: 'https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918',
+  defaultPoster: asCDNString('https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918'),
 
   USERNAME_UPDATE_TIMEOUT: ms('7days'),
   CSRF_TOKEN_LIFETIME_MS: ms('1min'),
