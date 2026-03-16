@@ -4,7 +4,7 @@ import DTOService from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import conf from '~/conf';
 import ms from 'ms';
-import { AnimeCardType } from '~/intf/IAnime';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { IHomeFeedHero } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
@@ -12,20 +12,35 @@ import { getUTC, removeMarkdown } from '~/utils/utils';
 
 
 
-interface IFeed {
-  hero: IHomeFeedHero[]
-  hot: AnimeCardType[]
-  highest_rate: AnimeCardType[]
-  updated_recently: AnimeCardType[]
-}
+const FeedHeroSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  synopsis: z.string().nullish(),
 
-interface IResponse extends IFeed {
-  message: string
-}
+  poster: z.string(),
+  cover: z.string(),
+  video: z.string().nullish(),
+});
+
+const FeedSchema = z.object({
+  hero: z.array(FeedHeroSchema),
+  hot: z.array(z.object({})), // AnimeCardType[]
+  highest_rate: z.array(z.object({})), // AnimeCardType[]
+  updated_recently: z.array(z.object({})), // AnimeCardType[]
+});
+
+const GetHomeFeedResponseSchema = FeedSchema.extend({
+  message: z.string()
+});
 
 
 
-const FeedCacheService = new CacheService('HomeFeed', { ttl: ms('1day') });
+type Feed = z.infer<typeof FeedSchema>
+
+
+
+const FeedCacheService = new CacheService<Feed>('HomeFeed', { ttl: ms('1day') });
 const feedCacheId = `~feed`;
 
 
@@ -35,12 +50,12 @@ const feedCacheId = `~feed`;
  */
 const endpoint = HandleRequest(async (req, res) => {
   const cache = FeedCacheService.get(feedCacheId);
-  const feed: IFeed = cache ?? {
+  const feed = cache ?? {
     hero: [],
     highest_rate: [],
     hot: [],
     updated_recently: []
-  } satisfies IFeed;
+  } satisfies Feed;
 
 
 
@@ -107,14 +122,12 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Home feed retrieved',
     ...feed
-  } satisfies IResponse);
+  } satisfies z.infer<typeof GetHomeFeedResponseSchema>);
 }, { middlewares: ['checkCSRF'] });
 
 
 
-const GenericGetHomeFeedRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default GenericGetHomeFeedRoute;
