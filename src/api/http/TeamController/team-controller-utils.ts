@@ -2,26 +2,26 @@ import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
 import { CDNString } from '~/intf/types';
-import { DubberRepositoryClass } from '~/repo/DubberRepository';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
-import { asTeamId } from '~/intf/IDubber';
+import { TeamRepositoryClass } from '~/repo/TeamRepository';
+import { asTeamId } from '~/intf/ITeam';
 
 
 
-export interface IDubberControllerACUploadResponse {
+export interface ITeamControllerACUploadResponse {
   message: string
   url: CDNString
 }
 
-type UploadMethodType = keyof Pick<DubberRepositoryClass, 'uploadAvatar' | 'uploadCover'>
+type UploadMethodType = keyof Pick<TeamRepositoryClass, 'uploadAvatar' | 'uploadCover'>
 
 
 
 const upload = multer();
 
-export const DubberControllerACUploadMiddlewares = [
+export const TeamControllerACUploadMiddlewares = [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   upload.single('file'),
@@ -30,11 +30,11 @@ export const DubberControllerACUploadMiddlewares = [
 
 
 /**
- * Handle dubber avatar/cover upload
+ * Handle team avatar/cover upload
  * 
  * @returns CDNString
  */
-export default async function HandleDubberControllerACUpload(req: express.Request, repo: DubberRepositoryClass, method: UploadMethodType): Promise<CDNString> {
+export default async function HandleTeamControllerACUpload(req: express.Request, repo: TeamRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
   const { id: dubberId } = req.params as { id: string };
 

@@ -1,4 +1,4 @@
-import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
+import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import Logger from '~/service/LoggerService';
@@ -6,7 +6,7 @@ import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
 import path from 'path';
-import { IAdminDubberMapData } from '~/intf/IAdmin';
+import { IAdminTeamMapData } from '~/intf/IAdmin';
 import { NekoError } from '~/service/ExceptionService';
 import { getContentSeason } from '~/algorithms/AnimeUpdateCrawler';
 import { sleep } from './utils';
@@ -95,12 +95,12 @@ export async function MAdminDubbersMap() {
     const path = `${conf.vars.volumes.cache}/dubbers-map.json`;
     if (!fs.existsSync(path)) throw new NekoError('sys:not_found', `[${slug}]: Required file is not found at "${path}", skipping...`);
 
-    const db = JSON.parse(fs.readFileSync(path).toString()) as IAdminDubberMapData[];
+    const db = JSON.parse(fs.readFileSync(path).toString()) as IAdminTeamMapData[];
 
-    const dubberMapRepo = new AdminDubberMapRepositoryClass();
+    const dubberMapRepo = new AdminTeamMapRepositoryClass();
     await dubberMapRepo.create();
 
-    dubberMapRepo.setDubbers(db);
+    dubberMapRepo.setTeams(db);
 
     await dubberMapRepo.save();
 
@@ -126,7 +126,7 @@ export async function MAnimePlayer() {
       ],
     });
 
-    await AnimePlayerUpdateCrawler.updateDubbersMap();
+    await AnimePlayerUpdateCrawler.updateTeamsMap();
 
     for (const key in documents) {
       const document = documents[key];

@@ -1,6 +1,6 @@
 import { AnimeId } from './IAnime';
 import { BrandedId, CDNString, ISODateString } from './types';
-import { TeamId } from './IDubber';
+import { TeamId } from './ITeam';
 import { asBrandedId } from './types';
 
 

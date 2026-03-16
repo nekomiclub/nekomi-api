@@ -1,8 +1,8 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
 import DTOService from '~/service/DataTransferService';
-import DubberRepository from './DubberRepository';
 import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
 import Logger from '~/service/LoggerService';
+import TeamRepository from './TeamRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
@@ -717,8 +717,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async setHeroPosterAuthor(id: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // Ensure that dubber is exist
-    await DubberRepository.getOne(id);
+    // Ensure that team is exist
+    await TeamRepository.getOne(id);
 
     this._set('hero_poster_author', id);
   }

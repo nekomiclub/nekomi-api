@@ -1,5 +1,5 @@
 import { ISODateString } from './types';
-import { TeamId } from './IDubber';
+import { TeamId } from './ITeam';
 
 
 
@@ -8,7 +8,7 @@ export enum ADMIN_SLUG {
   BLANK = 'admin:__blank',
 
   HOME_FEED = 'admin:home_feed',
-  DUBBERS_MAP = 'admin:dubbers_map',
+  TEAMS_MAP = 'admin:dubbers_map',
   POSTER_LOCALE_MAP = 'admin:poster_locale_map'
 }
 
@@ -24,13 +24,13 @@ interface IAdmin<S extends ADMIN_SLUG, D> {
 
 
 
-export interface IAdminDubberMapData {
+export interface IAdminTeamMapData {
   dubber_id: TeamId | null
   subtitles: boolean
   synonyms: string[]
 }
 
-export type AdminDubbersMapType = IAdmin<ADMIN_SLUG.DUBBERS_MAP, IAdminDubberMapData[]>
+export type AdminTeamsMapType = IAdmin<ADMIN_SLUG.TEAMS_MAP, IAdminTeamMapData[]>
 
 
 

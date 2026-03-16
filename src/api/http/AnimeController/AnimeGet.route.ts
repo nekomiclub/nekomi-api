@@ -1,12 +1,12 @@
 import DTOService from '~/service/DataTransferService';
-import DubberRepository from '~/repo/DubberRepository';
 import IAnime, { AnimeCardType, AnimeGenreType, AnimeGenres, AnimeRateType, AnimeRatings, AnimeSeasonType, AnimeSeasons, AnimeStatusType, AnimeStatuses, AnimeType, AnimeTypes, IAnimeEpisode, IAnimePlayer, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
+import TeamRepository from '~/repo/TeamRepository';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
 import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
-import { DubberCardType, TeamId } from '~/intf/IDubber';
 import { HandleRequest } from '~/utils/http-utils';
+import { TeamCardType, TeamId } from '~/intf/ITeam';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
 
@@ -32,7 +32,7 @@ interface IResponseMisc {
   player?: IAnimePlayer
 
   /** @method get_episodes */
-  player_teams?: DubberCardType[]
+  player_teams?: TeamCardType[]
 
   /** @method get_episodes */
   episodes_meta?: IAnimeEpisode[]
@@ -138,17 +138,17 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (get_episodes) {
     if (isEligible(`get_episodes`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      const playerDubbersIds = new Set<TeamId>();
+      const playerTeamsIds = new Set<TeamId>();
 
-      anime.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
-      anime.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerDubbersIds.add(id)));
+      anime.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerTeamsIds.add(id)));
+      anime.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerTeamsIds.add(id)));
 
-      const playerDubbers = await DubberRepository.getMany({ id: { $in: Array.from(playerDubbersIds) } });
+      const playerTeams = await TeamRepository.getMany({ id: { $in: Array.from(playerTeamsIds) } });
 
 
 
       anime_misc.player = anime.player;
-      anime_misc.player_teams = playerDubbers.map(el => DTOService.toDubberCard(el));
+      anime_misc.player_teams = playerTeams.map(el => DTOService.toTeamCard(el));
       anime_misc.episodes_meta = anime.episodes_meta;
       anime_misc.ashdi_url = anime.ashdi_url;
     }

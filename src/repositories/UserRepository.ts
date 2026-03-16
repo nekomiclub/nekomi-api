@@ -1,8 +1,8 @@
 import DTOService from '~/service/DataTransferService';
-import DubberRepository from './DubberRepository';
 import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION, UserLibId } from '~/intf/IUser';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
+import TeamRepository from './TeamRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
@@ -322,17 +322,17 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
   /**
-   * Set dubber team member
+   * Set team team member
    * 
    * @testing
    */
-  async setDubberTeamMember(id: string | null) {
+  async setTeamMember(id: string | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (!id?.length) id = null;
 
-    // Ensure that dubber exist
-    if (id) await DubberRepository.getOne(id);
+    // Ensure that team exist
+    if (id) await TeamRepository.getOne(id);
 
     this._set('dubber_team_member', id);
   }

@@ -1,5 +1,5 @@
 import IAnime, { AnimeCardType, AnimeGenres, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
-import IDubber, { DubberCardType } from '~/intf/IDubber';
+import ITeam, { TeamCardType } from '~/intf/ITeam';
 import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
 import express from 'express';
@@ -108,8 +108,8 @@ class DTOServiceClass {
 
 
 
-  dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
-    const keys: (keyof IDubber)[] = [
+  team(object: HydratedDocument<ITeam> | ITeam, exposed?: boolean): ITeam {
+    const keys: (keyof ITeam)[] = [
       'members'
     ];
 
@@ -121,7 +121,7 @@ class DTOServiceClass {
 
 
 
-  toDubberCard({ id, avatar, name, slug }: IDubber): DubberCardType {
+  toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
     return { avatar, id, name, slug };
   }
 

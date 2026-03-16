@@ -4,18 +4,18 @@ export interface IAshdiTitle {
   pl: AshdiPlType[]
 }
 
-export interface IAshdiDubber {
-  title: string // {DUBBER_NAME}
+export interface IAshdiTeam {
+  title: string // {TEAM_NAME}
   folder: IAshdiSeason[]
 }
 
 /** MOVIE ONLY */
-export interface IAshdiMovieDubber {
-  title2: string // {DUBBER_NAME}
+export interface IAshdiMovieTeam {
+  title2: string // {TEAM_NAME}
   url: string // vod/{id}
 }
 
-export type AshdiPlType = IAshdiDubber | IAshdiMovieDubber
+export type AshdiPlType = IAshdiTeam | IAshdiMovieTeam
 
 export interface IAshdiSeason {
   title: string // " Сезон {N}"

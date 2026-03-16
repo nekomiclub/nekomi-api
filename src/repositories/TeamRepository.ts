@@ -1,5 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import IDubber from '~/intf/IDubber';
+import ITeam from '~/intf/ITeam';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
@@ -10,13 +10,13 @@ import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asTeamId } from '~/intf/IDubber';
+import { asTeamId } from '~/intf/ITeam';
 import { getUTC, trimString } from '~/utils/utils';
 
 
 
 /** Repository type. Reffers to the model interface */
-type RepositoryType = IDubber;
+type RepositoryType = ITeam;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
   return { $or: [{ id: query }, { slug: query }] };
@@ -71,7 +71,7 @@ interface ISaveProps {
 
 interface IUploadACProps {
   type: NUS_UPLOAD_TYPE
-  key: keyof Pick<IDubber, 'avatar' | 'cover'>
+  key: keyof Pick<ITeam, 'avatar' | 'cover'>
   defaultUrl: string
   userId: string
 }
@@ -79,7 +79,7 @@ interface IUploadACProps {
 
 
 
-export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
+export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
 
@@ -89,7 +89,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.dubber(this._doc, true);
+    return DTOService.team(this._doc, true);
   }
 
 
@@ -149,7 +149,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.dubber(payload, true);
+    return DTOService.team(payload, true);
   }
 
 
@@ -191,7 +191,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
    * 
    * @testing
    */
-  setSocial(key: keyof IDubber['socials'], value: string | undefined) {
+  setSocial(key: keyof ITeam['socials'], value: string | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // TODO: Add validation
@@ -206,7 +206,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
    * 
    * @testing
    */
-  setSupport(key: keyof IDubber['support'], value: string | undefined) {
+  setSupport(key: keyof ITeam['support'], value: string | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // TODO: Add validation
@@ -270,7 +270,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
     const { objects } = await NekomiUploadService.uploadFile({ buffer, type, uploaderId: userId });
 
     const object = objects.find(el => el.type === type);
-    if (!object) throw new NekoError('nus:object_not_found', `Dubber "${type}" object is not found in upload objects`);
+    if (!object) throw new NekoError('nus:object_not_found', `Team "${type}" object is not found in upload objects`);
 
 
 
@@ -279,7 +279,7 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
       try {
         await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), userId);
       } catch (e) {
-        Logger.warn(`[${this.RepositoryName}]: Cannot delete dubber old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
+        Logger.warn(`[${this.RepositoryName}]: Cannot delete team old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
       }
     }
 
@@ -292,6 +292,6 @@ export class DubberRepositoryClass extends UnifiedRepositoryClass<RepositoryType
 
 
 
-const DubberRepository = new DubberRepositoryClass();
+const TeamRepository = new TeamRepositoryClass();
 
-export default DubberRepository;
+export default TeamRepository;

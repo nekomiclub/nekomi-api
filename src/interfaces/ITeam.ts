@@ -4,12 +4,12 @@ import { asBrandedId } from './types';
 
 
 
-export type DubberRoleType = 'leader' | 'editor' | 'member' | 'pending'
+export type TeamRoleType = 'leader' | 'editor' | 'member' | 'pending'
 export type TeamId = BrandedId<string, 'teamId'>;
 
 
 
-export interface IDubber {
+export interface ITeam {
   id: TeamId
   slug: string
   name: string
@@ -33,21 +33,21 @@ export interface IDubber {
     patreon?: string
   }
 
-  members: IDubberMember[] // Protected
+  members: ITeamMember[] // Protected
   created_at: ISODateString // Protected
   updated_at: ISODateString // Protected
 }
 
-export interface IDubberMember {
+export interface ITeamMember {
   id: UserId
-  role: DubberRoleType
+  role: TeamRoleType
   member_since: ISODateString
 }
 
-export type DubberCardType = Pick<IDubber, 'id' | 'name' | 'slug' | 'avatar'>
+export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
 
 
 
 export const asTeamId = (asBrandedId<TeamId>);
 
-export default IDubber;
+export default ITeam;

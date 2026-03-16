@@ -3,10 +3,10 @@ import conf, { ProductionMode } from './conf';
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
 import AuthRouter from './api/http/AuthController/AuthRouter';
 import DatabaseService from './services/DatabaseService';
-import DubberRouter from './api/http/DubberController/DubberRouter';
 import GenericRouter from './api/http/GenericController/GenericRouter';
 import Logger from './services/LoggerService';
 import Runtime from './runtime';
+import TeamRouter from './api/http/TeamController/TeamRouter';
 import UserRouter from './api/http/UserController/UserRouter';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -53,7 +53,7 @@ async function runtime() {
 
     //* === HTTP Routing
     app.use('/anime', AnimeRouter);
-    app.use('/dubber', DubberRouter);
+    app.use(['/dubber', '/team'], TeamRouter);
     app.use('/user', UserRouter);
     app.use('/auth', AuthRouter);
     app.use('/', GenericRouter);

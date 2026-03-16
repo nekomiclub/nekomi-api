@@ -6,7 +6,7 @@ import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { asAnimeId } from '~/intf/IAnime';
-import { asTeamId } from '~/intf/IDubber';
+import { asTeamId } from '~/intf/ITeam';
 import { asUserId, asUserLibId } from '~/intf/IUser';
 
 

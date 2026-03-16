@@ -32,6 +32,6 @@ async function AnimeUpdateCrawlerJob() {
 }
 
 async function AnimePlayerUpdateCrawlerJob() {
-  await AnimePlayerUpdateCrawler.updateDubbersMap();
+  await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.reset();
 }

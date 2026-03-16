@@ -1,6 +1,6 @@
 import AnimeRepository from '~/repo/AnimeRepository';
-import DubberRepository from '~/repo/DubberRepository';
 import Fuse, { FuseOptionKey } from 'fuse.js';
+import TeamRepository from '~/repo/TeamRepository';
 import UnifiedRepositoryClass from '~/repo/UnifiedRepository';
 import UserRepository from '~/repo/UserRepository';
 import express from 'express';
@@ -72,7 +72,7 @@ class SearchServiceClass<T extends object> {
 
 
 export const UserSearch = new SearchServiceClass(UserRepository, ['username']);
-export const DubberSearch = new SearchServiceClass(DubberRepository, ['slug', 'name']);
+export const TeamSearch = new SearchServiceClass(TeamRepository, ['slug', 'name']);
 export const AnimeSearch = new SearchServiceClass(AnimeRepository, ['title_en', 'title_ja', 'title_ua', 'title_synonims', 'slug']);
 
 

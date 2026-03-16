@@ -24,7 +24,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   await AnimeUpdateCrawler.syncAnimeDocument(asAnimeId(query));
 
-  await AnimePlayerUpdateCrawler.updateDubbersMap();
+  await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
   return res.status(200).json({ message: 'Anime successfully re-parsed' });

@@ -1,14 +1,14 @@
-import IDubber from '~/intf/IDubber';
+import ITeam from '~/intf/ITeam';
 import conf from '~/conf';
-import { DubberRepositoryClass } from '~/repo/DubberRepository';
-import { DubberSearch, RequestSearch } from '~/service/SearchService';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';
 import { Middleware } from '~/service/MiddlewareService';
+import { RequestSearch, TeamSearch } from '~/service/SearchService';
+import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
 
-type DubberSearchResultType = Pick<IDubber, 'id' | 'slug' | 'name' | 'about' | 'avatar'>
+type DubberSearchResultType = Pick<ITeam, 'id' | 'slug' | 'name' | 'about' | 'avatar'>
 
 
 
@@ -24,8 +24,8 @@ interface IRespone {
  * Search dubbers
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const repo = new DubberRepositoryClass();
-  const { results: raw, pagination } = await RequestSearch<IDubber>(req, repo, DubberSearch);
+  const repo = new TeamRepositoryClass();
+  const { results: raw, pagination } = await RequestSearch<ITeam>(req, repo, TeamSearch);
 
   const results: DubberSearchResultType[] = raw.map(result => {
     const { about, avatar, id, name, slug, } = result;
