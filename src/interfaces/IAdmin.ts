@@ -1,5 +1,5 @@
 import { ISODateString } from './types';
-import { TeamId } from './ITeam';
+import { TeamId } from './BrandedIds';
 
 
 

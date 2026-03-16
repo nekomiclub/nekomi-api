@@ -1,13 +1,7 @@
-import { AnimeId } from './IAnime';
-import { BrandedId, CDNString, ISODateString } from './types';
-import { TeamId } from './ITeam';
-import { asBrandedId } from './types';
-
-
-
-export type UserId = BrandedId<string, 'userId'>;
-export type UserLibId = BrandedId<string, 'userLibId'>;
-export type UserSessionId = BrandedId<string, 'userSessionId'>;
+import z from 'zod';
+import { AnimeId, asCDNString, asUserId } from './BrandedIds';
+import { CDNString, ISODateString } from './types';
+import { TeamId, UserId, UserLibId, UserSessionId } from './BrandedIds';
 
 
 
@@ -83,8 +77,13 @@ export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar' | 'cover'>
 
 
 
-export const asUserId = (asBrandedId<UserId>);
-export const asUserLibId = (asBrandedId<UserLibId>);
-export const asUserSessionId = (asBrandedId<UserSessionId>);
+export const UserMinifiedSchema = z.object({
+  id: z.string().refine(asUserId),
+  username: z.string(),
+  avatar: z.string().refine(asCDNString),
+  cover: z.string().refine(asCDNString),
+});
+
+
 
 export default IUser;

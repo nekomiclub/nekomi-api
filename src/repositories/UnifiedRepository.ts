@@ -47,7 +47,7 @@ export class UnifiedModelClass<RepositoryType> {
 
   async init(query: RepositoryGetQueryType<RepositoryType>) {
     const document = await this.model.findOne(this.query2find(query));
-    if (!document) throw new NekoError('sys:not_found', `Cannot initialize repository using query ${JSON.stringify(query)} as it is not found`);
+    if (!document) throw new NekoError('sys:not_found', `Entity "${JSON.stringify(query)}" is not found`);
 
     this._doc = document;
   }

@@ -1,5 +1,5 @@
 import z from 'zod';
-import { AnimeId } from './IAnime';
+import { AnimeId } from './BrandedIds';
 import { Filter } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 
@@ -7,6 +7,8 @@ import { JwtPayload } from 'jsonwebtoken';
 
 /** 
  * ISO Date string
+ * 
+ * @deprecated rework into branded type
  */
 export type ISODateString = string;
 
@@ -14,6 +16,8 @@ export type ISODateString = string;
 
 /** 
  * Nekomi CDN string
+ * 
+ * @deprecated rework into branded type
  */
 export type CDNString = string;
 
@@ -88,13 +92,3 @@ export const zBoolean = z.preprocess((value) => {
   if (value === 'false') return false;
   return value;
 }, z.boolean());
-
-
-
-// Branded ID
-declare const __brand: unique symbol;
-export type BrandedId<T, B extends string> = T & { [__brand]: B; };
-
-export function asBrandedId<T>(val: string) {
-  return val as T;
-}

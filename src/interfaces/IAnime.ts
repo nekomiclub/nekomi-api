@@ -1,10 +1,5 @@
-import { BrandedId, CDNString, ISODateString } from './types';
-import { TeamId } from './ITeam';
-import { asBrandedId } from './types';
-
-
-
-export type AnimeId = BrandedId<string, 'animeId'>;
+import { AnimeId, TeamId } from './BrandedIds';
+import { CDNString, ISODateString } from './types';
 
 
 
@@ -549,7 +544,5 @@ export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
 };
 
 
-
-export const asAnimeId = (asBrandedId<AnimeId>);
 
 export default IAnime;

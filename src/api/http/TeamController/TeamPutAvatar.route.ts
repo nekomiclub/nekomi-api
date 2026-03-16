@@ -1,4 +1,5 @@
-import HandleTeamControllerACUpload, { ITeamControllerACUploadResponse, TeamControllerACUploadMiddlewares } from './team-controller-utils';
+import HandleTeamControllerACUpload, { TeamControllerACUploadMiddlewares, TeamControllerACUploadResponseSchema } from './team-controller-utils';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
@@ -8,20 +9,17 @@ import { TeamRepositoryClass } from '~/repo/TeamRepository';
  * Upload dubber avatar
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const repo = new TeamRepositoryClass();
-  const url = await HandleTeamControllerACUpload(req, repo, 'uploadAvatar');
+  const url = await HandleTeamControllerACUpload(req, new TeamRepositoryClass(), 'uploadAvatar');
 
   return res.status(200).json({
     message: 'Avatar updated!',
     url
-  } satisfies ITeamControllerACUploadResponse);
+  } satisfies z.infer<typeof TeamControllerACUploadResponseSchema>);
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 
 
-const DubberPutAvatarRoute = [
+export default [
   ...TeamControllerACUploadMiddlewares,
   endpoint
 ];
-
-export default DubberPutAvatarRoute;

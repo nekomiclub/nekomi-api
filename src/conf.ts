@@ -7,7 +7,7 @@ import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
 import parseEnv from './utils/parse-env';
 import { IHomeFeedHero } from './interfaces/types';
-import { asAnimeId } from './interfaces/IAnime';
+import { asAnimeId } from './interfaces/BrandedIds';
 import { getUTC } from './utils/utils';
 
 

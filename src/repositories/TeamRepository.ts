@@ -10,7 +10,7 @@ import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asTeamId } from '~/intf/ITeam';
+import { asTeamId } from '~/intf/BrandedIds';
 import { getUTC, trimString } from '~/utils/utils';
 
 

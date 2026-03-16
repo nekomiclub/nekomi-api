@@ -1,6 +1,6 @@
 import { MiddlewareType } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from './IRole';
-import { UserId } from './IUser';
+import { UserId } from './BrandedIds';
 
 
 

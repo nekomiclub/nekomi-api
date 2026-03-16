@@ -1,11 +1,11 @@
-import { BrandedId, CDNString, ISODateString } from './types';
-import { UserId } from './IUser';
-import { asBrandedId } from './types';
+import z from 'zod';
+import { CDNString, ISODateString } from './types';
+import { TeamId, asCDNString, asTeamId } from './BrandedIds';
+import { UserId } from './BrandedIds';
 
 
 
 export type TeamRoleType = 'leader' | 'editor' | 'member' | 'pending'
-export type TeamId = BrandedId<string, 'teamId'>;
 
 
 
@@ -33,9 +33,9 @@ export interface ITeam {
     patreon?: string
   }
 
-  members: ITeamMember[] // Protected
-  created_at: ISODateString // Protected
-  updated_at: ISODateString // Protected
+  members: ITeamMember[]
+  created_at: ISODateString
+  updated_at: ISODateString
 }
 
 export interface ITeamMember {
@@ -48,6 +48,12 @@ export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
 
 
 
-export const asTeamId = (asBrandedId<TeamId>);
+export const TeamMinifiedSchema = z.object({
+  id: z.string().refine(asTeamId),
+  slug: z.string(),
+  name: z.string(),
+  about: z.string().nullable(),
+  avatar: z.string().refine(asCDNString),
+});
 
 export default ITeam;

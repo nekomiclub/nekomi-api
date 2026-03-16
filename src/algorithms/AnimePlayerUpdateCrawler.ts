@@ -6,13 +6,15 @@ import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
 import { ADMIN_SLUG, IAdminTeamMapData } from '~/intf/IAdmin';
-import { ANIME_STATUS, AnimeId, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { ANIME_STATUS, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { AnimeId } from '~/intf/BrandedIds';
 import { ArgumentTypes } from '~/intf/types';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from '~/service/ExceptionService';
-import { TeamId, asTeamId } from '~/intf/ITeam';
+import { TeamId } from '~/intf/BrandedIds';
+import { asTeamId } from '~/intf/BrandedIds';
 import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
 
 

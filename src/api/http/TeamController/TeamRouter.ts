@@ -1,7 +1,7 @@
-import DubberGetRoute from './TeamGet.route';
-import DubberGetSearchRoute from './TeamGetSearch.route';
-import DubberPutAvatarRoute from './TeamPutAvatar.route';
-import DubberPutCoverRoute from './TeamPutCover.route';
+import TeamGetRoute from './TeamGet.route';
+import TeamGetSearchRoute from './TeamGetSearch.route';
+import TeamPutAvatarRoute from './TeamPutAvatar.route';
+import TeamPutCoverRoute from './TeamPutCover.route';
 import express from 'express';
 
 
@@ -10,15 +10,15 @@ const TeamRouter = express.Router();
 
 
 
-TeamRouter.get('/search', DubberGetSearchRoute);
-TeamRouter.get('/:query', DubberGetRoute);
+TeamRouter.get('/search', TeamGetSearchRoute);
+TeamRouter.get('/:query', TeamGetRoute);
 
 // DubberRouter.post('/');
 
 // DubberRouter.patch('/:id');
 
-TeamRouter.put('/:id/avatar', DubberPutAvatarRoute);
-TeamRouter.put('/:id/cover', DubberPutCoverRoute);
+TeamRouter.put('/:id/avatar', TeamPutAvatarRoute);
+TeamRouter.put('/:id/cover', TeamPutCoverRoute);
 
 // DubberRouter.delete('/:id');
 

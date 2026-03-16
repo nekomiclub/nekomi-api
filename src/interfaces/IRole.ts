@@ -1,8 +1,4 @@
-import { BrandedId, asBrandedId } from './types';
-
-
-
-export type RoleId = BrandedId<string, 'roleId'>;
+import { RoleId } from './BrandedIds';
 
 
 
@@ -21,7 +17,5 @@ export interface IRole {
 }
 
 
-
-export const asRoleId = (asBrandedId<RoleId>);
 
 export default IRole;

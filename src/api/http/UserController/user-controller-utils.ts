@@ -7,7 +7,7 @@ import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { asUserId } from '~/intf/IUser';
+import { asUserId } from '~/intf/BrandedIds';
 
 
 

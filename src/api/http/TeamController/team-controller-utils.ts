@@ -1,19 +1,15 @@
 import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
+import z from 'zod';
 import { CDNString } from '~/intf/types';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { asTeamId } from '~/intf/ITeam';
+import { asTeamId } from '~/intf/BrandedIds';
 
 
-
-export interface ITeamControllerACUploadResponse {
-  message: string
-  url: CDNString
-}
 
 type UploadMethodType = keyof Pick<TeamRepositoryClass, 'uploadAvatar' | 'uploadCover'>
 
@@ -26,6 +22,11 @@ export const TeamControllerACUploadMiddlewares = [
   Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   upload.single('file'),
 ];
+
+export const TeamControllerACUploadResponseSchema = z.object({
+  message: z.string(),
+  url: z.string()
+});
 
 
 

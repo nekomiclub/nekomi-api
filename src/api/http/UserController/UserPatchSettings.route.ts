@@ -5,9 +5,9 @@ import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { asAnimeId } from '~/intf/IAnime';
-import { asTeamId } from '~/intf/ITeam';
-import { asUserId, asUserLibId } from '~/intf/IUser';
+import { asAnimeId } from '~/intf/BrandedIds';
+import { asTeamId } from '~/intf/BrandedIds';
+import { asUserId, asUserLibId } from '~/intf/BrandedIds';
 
 
 

@@ -3,6 +3,7 @@ import ITeam, { TeamCardType } from '~/intf/ITeam';
 import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
 import conf from '~/conf';
 import express from 'express';
+import z, { ZodSchema } from 'zod';
 import { HydratedDocument } from 'mongoose';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
@@ -46,6 +47,10 @@ class DTOServiceClass {
     if ('toObject' in object) object = object.toObject();
 
     return excludeKeys(object, []);
+  }
+
+  refine<S extends ZodSchema>(payload: any, schema: S): z.infer<S> {
+    return schema.parse(payload);
   }
 
 
@@ -121,6 +126,7 @@ class DTOServiceClass {
 
 
 
+  /** @deprecated use toTeamMinified */
   toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
     return { avatar, id, name, slug };
   }

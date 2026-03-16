@@ -1,4 +1,4 @@
-import IUser, { IUserSession, UserSessionId, asUserId } from '~/intf/IUser';
+import IUser, { IUserSession } from '~/intf/IUser';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
 import conf, { DevelopmentMode } from '~/conf';
@@ -7,6 +7,8 @@ import { ISODateString } from '~/intf/types';
 import { NekoError } from './ExceptionService';
 import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
 import { UserModel } from '~/repo/UserRepository';
+import { UserSessionId } from '~/intf/BrandedIds';
+import { asUserId } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
 import { createNanoId, createUserSessionId } from '~/utils/create-id';
 

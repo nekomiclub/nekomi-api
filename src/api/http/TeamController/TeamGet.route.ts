@@ -1,44 +1,57 @@
+import CacheService from '~/service/CacheService';
 import DTOService from '~/service/DataTransferService';
-import ITeam, { TeamCardType, TeamRoleType } from '~/intf/ITeam';
-import UserRepository from '~/repo/UserRepository';
-import conf from '~/conf';
+import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { ISODateString, zBoolean } from '~/intf/types';
+import { TeamMinifiedSchema } from '~/intf/ITeam';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { UserCardType } from '~/intf/IUser';
-import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
+import { UserMinifiedSchema } from '~/intf/IUser';
+import { asCDNString, asISODateString, asTeamId } from '~/intf/BrandedIds';
+import { zBoolean } from '~/intf/types';
 
 
 
-const FullResponseKeys = ['id', 'slug', 'name', 'about', 'avatar', 'cover', 'socials', 'support'] as const;
-type FullResponseType = Pick<ITeam, typeof FullResponseKeys[number]>
+export const TeamRoleSchema = z.enum([
+  'leader',
+  'editor',
+  'member',
+  'pending',
+]);
 
-interface IDubberMemberResponse extends UserCardType {
-  role: TeamRoleType
-  member_since: ISODateString
-}
+export const TeamMemberSchema = UserMinifiedSchema.extend({
+  role: TeamRoleSchema,
+  member_since: z.string().refine(asISODateString),
+});
 
+export const TeamSchema = z.object({
+  id: z.string().refine(asTeamId),
+  slug: z.string(),
+  name: z.string(),
+  about: z.string().nullable(),
 
+  avatar: z.string().refine(asCDNString),
+  cover: z.string().refine(asCDNString),
 
-interface IResponseMisc {
-  /** @method get_members */
-  members?: IDubberMemberResponse[]
+  socials: z.object({
+    telegram: z.string().optional(),
+    instagram: z.string().optional(),
+    youtube: z.string().optional(),
+    tiktok: z.string().optional(),
+  }).optional(),
 
+  support: z.object({
+    diaka: z.string().optional(),
+    monobank: z.string().optional(),
+    privatbank: z.string().optional(),
+    bymeacoffee: z.string().optional(),
+    patreon: z.string().optional(),
+  }).optional(),
 
+  members: z.array(TeamMemberSchema),
 
-  /** @method get_timestamps */
-  created_at?: ISODateString
-
-  /** @method get_timestamps */
-  updated_at?: ISODateString
-}
-
-interface IResponse {
-  message: string
-
-  dubber: IResponseMisc & (FullResponseType | TeamCardType | object)
-}
+  created_at: z.string().refine(asCDNString),
+  updated_at: z.string().refine(asCDNString),
+});
 
 
 
@@ -47,12 +60,17 @@ const ParamSchema = z.object({
 });
 
 const QuerySchema = z.object({
-  view: z.enum(['full', 'card', 'empty']).default('card'),
-  get_timestamps: zBoolean.optional(),
-
-  /** @requires Authorization (CSRF) */
-  get_members: zBoolean.optional(),
+  is_extended: zBoolean.optional()
 });
+
+const TeamGetResponseSchema = z.object({
+  message: z.string(),
+  team: TeamSchema.or(TeamMinifiedSchema)
+});
+
+
+
+const TeamCache = new CacheService('TeamCache', { ttl: ms('3hours') });
 
 
 
@@ -61,65 +79,43 @@ const QuerySchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamSchema.parse(req.params);
-  const { get_members, get_timestamps, view } = QuerySchema.parse(req.query);
+  const { is_extended } = QuerySchema.parse(req.query);
 
   const repo = new TeamRepositoryClass();
   await repo.init(query);
 
-  const dubber = repo.document;
+  let team: z.infer<typeof TeamSchema> | z.infer<typeof TeamMinifiedSchema>;
 
-  let dubber_full: FullResponseType | undefined;
-  let dubber_card: TeamCardType | undefined;
-  let dubber_misc: IResponseMisc = {};
+  if (is_extended) {
+    const refined = DTOService.refine(repo.document, TeamSchema);
+    // const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 
+    // refined.members = users.map(user => {
+    //   const refined = DTOService.refine(user, UserMinifiedSchema);
+    //   const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
 
+    //   const member = TeamMemberSchema.parse({
+    //     ...refined,
+    //     role,
+    //     member_since,
+    //   });
 
-  if (view === 'card') dubber_card = DTOService.toTeamCard(dubber);
-  else if (view === 'full') dubber_full = DTOService.includeKeys(dubber, [...FullResponseKeys]);
+    //   return member;
+    // });
 
-  if (get_members) {
-    if (isEligible('get_members', await isRequesterCSRF(req, [conf.domains.NEKOMI_DOMAIN]))) {
-      const users = await UserRepository.getMany({ id: { $in: dubber.members.map(el => el.id) } });
-
-      dubber_misc.members = users.map(user => {
-        const { id, avatar, username, cover } = DTOService.toUserCard(user);
-        const { member_since, role } = dubber.members.find(el => el.id === user.id)!;
-
-        const member: IDubberMemberResponse = {
-          id,
-          avatar,
-          username,
-          cover,
-          role,
-          member_since,
-        };
-
-        return member;
-      });
-    }
-  }
-
-  if (get_timestamps) {
-    dubber_misc.created_at = dubber.created_at;
-    dubber_misc.updated_at = dubber.updated_at;
-  }
+    team = refined;
+  } else team = DTOService.refine(repo.document, TeamMinifiedSchema);
 
 
 
   return res.status(200).json({
     message: 'Dubber retrieved',
-    dubber: {
-      ...dubber_full,
-      ...dubber_card,
-      ...dubber_misc
-    }
-  } satisfies IResponse);
+    team
+  } satisfies z.infer<typeof TeamGetResponseSchema>);
 });
 
 
 
-const DubberGetRoute = [
+export default [
   endpoint
 ];
-
-export default DubberGetRoute;

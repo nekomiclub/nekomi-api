@@ -6,7 +6,8 @@ import z from 'zod';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
 import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
 import { HandleRequest } from '~/utils/http-utils';
-import { TeamCardType, TeamId } from '~/intf/ITeam';
+import { TeamCardType } from '~/intf/ITeam';
+import { TeamId } from '~/intf/BrandedIds';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
 

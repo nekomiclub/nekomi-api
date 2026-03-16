@@ -6,7 +6,7 @@ import { Middleware } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
-import { asAnimeId } from '~/intf/IAnime';
+import { asAnimeId } from '~/intf/BrandedIds';
 
 
 

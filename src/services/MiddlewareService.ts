@@ -1,6 +1,6 @@
 import CSRFService from './CSRFService';
 import DTOService from './DataTransferService';
-import IUser, { asUserId } from '~/intf/IUser';
+import IUser from '~/intf/IUser';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
@@ -8,6 +8,7 @@ import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-ut
 import { NekoError } from './ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
 import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
+import { asUserId } from '~/intf/BrandedIds';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 

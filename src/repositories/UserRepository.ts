@@ -1,5 +1,5 @@
 import DTOService from '~/service/DataTransferService';
-import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION, UserLibId } from '~/intf/IUser';
+import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/intf/IUser';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
 import TeamRepository from './TeamRepository';
@@ -8,12 +8,13 @@ import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId, createUserLibId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
-import { AnimeId } from '~/intf/IAnime';
+import { AnimeId } from '~/intf/BrandedIds';
 import { CDNString, RepositoryQueriesType } from '~/intf/types';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asUserId } from '~/intf/IUser';
+import { UserLibId } from '~/intf/BrandedIds';
+import { asUserId } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
 
 

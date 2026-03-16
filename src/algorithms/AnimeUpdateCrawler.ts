@@ -6,7 +6,7 @@ import axios from 'axios';
 import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
-import { AnimeId } from '~/intf/IAnime';
+import { AnimeId } from '~/intf/BrandedIds';
 import { ArgumentTypes, ISODateString } from '~/intf/types';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';

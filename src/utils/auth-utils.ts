@@ -3,7 +3,8 @@ import SessionService from '~/service/SessionService';
 import express from 'express';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/intf/IRole';
-import { UserId, UserSessionId, asUserId, asUserSessionId } from '~/intf/IUser';
+import { UserId, UserSessionId } from '~/intf/BrandedIds';
+import { asUserId, asUserSessionId } from '~/intf/BrandedIds';
 import { getCSRFToken, getSessionToken } from './http-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 

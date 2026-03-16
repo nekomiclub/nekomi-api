@@ -36,11 +36,7 @@ const GetHomeFeedResponseSchema = FeedSchema.extend({
 
 
 
-type Feed = z.infer<typeof FeedSchema>
-
-
-
-const FeedCacheService = new CacheService<Feed>('HomeFeed', { ttl: ms('1day') });
+const FeedCache = new CacheService<z.infer<typeof FeedSchema>>('HomeFeed', { ttl: ms('1day') });
 const feedCacheId = `~feed`;
 
 
@@ -49,13 +45,13 @@ const feedCacheId = `~feed`;
  * Get home feed
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const cache = FeedCacheService.get(feedCacheId);
+  const cache = FeedCache.get(feedCacheId);
   const feed = cache ?? {
     hero: [],
     highest_rate: [],
     hot: [],
     updated_recently: []
-  } satisfies Feed;
+  } satisfies z.infer<typeof FeedSchema>;
 
 
 
@@ -108,7 +104,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-      FeedCacheService.append({
+      FeedCache.append({
         id: feedCacheId,
         data: feed
       });

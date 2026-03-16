@@ -7,7 +7,7 @@ import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
 import { TestMode } from '~/conf';
-import { asRoleId } from '~/intf/IRole';
+import { asRoleId } from '~/intf/BrandedIds';
 
 
 
