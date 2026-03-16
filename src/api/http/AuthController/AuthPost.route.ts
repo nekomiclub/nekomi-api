@@ -2,30 +2,18 @@ import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
+import conf, { DevelopmentMode } from '~/conf';
 import firebase from 'firebase-admin';
 import z from 'zod';
-import { AUTH_METHOD } from '~/intf/IAuth';
-import { DevelopmentMode } from '~/conf';
+import { AUTH_METHOD } from '~/schemas/auth.schema';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
-import { IUserSession, USER_RESTRICTION } from '~/schemas/entities/User.schema';
+import { Middleware } from '~/service/MiddlewareService';
+import { USER_RESTRICTION, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
 
 
 
-interface IResponse {
-  message: string
-  user: {
-    id: string
-    username: string
-    avatar: string
-    cover: string
-  }
-  session: IUserSession
-}
-
-
-
-const BodyParser = z.object({
+const BodySchema = z.object({
   method: z.nativeEnum(AUTH_METHOD),
 
   /**
@@ -36,13 +24,19 @@ const BodyParser = z.object({
   token: z.string().optional()
 });
 
+const ResponseSchema = z.object({
+  message: z.string(),
+  user: UserMinifiedSchema,
+  session: UserSessionSchema,
+});
+
 
 
 /**
  * Authorize user
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { method, token } = BodyParser.parse(req.body);
+  const { method, token } = BodySchema.parse(req.body);
 
 
 
@@ -105,15 +99,14 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'User authorized',
-    user: DTS.user(user),
+    user: DTS.toUserMinified(user),
     session: sessionData
-  } satisfies IResponse);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 
 
-const AuthPostRoute = [
+export default [
+  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default AuthPostRoute;

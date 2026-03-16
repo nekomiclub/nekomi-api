@@ -4,7 +4,7 @@ import { HandleRequest } from '~/utils/http-utils';
 
 
 
-const GetPingSchema = z.object({
+const ResponseSchema = z.object({
   message: z.string(),
   startedAt: z.string()
 });
@@ -18,7 +18,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'pong!',
     startedAt: conf.startedAt
-  } satisfies z.infer<typeof GetPingSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

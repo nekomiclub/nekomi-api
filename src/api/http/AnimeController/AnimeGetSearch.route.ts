@@ -1,9 +1,9 @@
 import IAnime from '~/schemas/entities/Anime.schema';
 import conf from '~/conf';
+import { AnimeNamedTypes } from '~/data/AnimePrimitives';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { AnimeSearch, RequestSearch } from '~/service/SearchService';
 import { AnimeType } from '~/data/AnimePrimitives';
-import { AnimeTypes } from '~/data/AnimePrimitives';
 import { CDNString } from '~/intf/BrandedIds';
 import { HandleRequest } from '~/utils/http-utils';
 import { IPagination } from '~/utils/pagination';
@@ -45,7 +45,7 @@ const endpoint = HandleRequest(async (req, res) => {
       slug,
       title_en,
       title_ua,
-      type: type && AnimeTypes[type],
+      type: type && AnimeNamedTypes[type],
       year,
     } satisfies AnimeSearchResultType;
   });

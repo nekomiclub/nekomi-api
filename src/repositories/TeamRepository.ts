@@ -89,7 +89,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTS.team(this._doc, true);
+    return this._doc;
   }
 
 

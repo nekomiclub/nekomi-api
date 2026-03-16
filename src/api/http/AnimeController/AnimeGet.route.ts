@@ -3,8 +3,8 @@ import IAnime, { AnimeCardType, IAnimeEpisode, IAnimePlayer, IAnimePosterNode, I
 import TeamRepository from '~/repo/TeamRepository';
 import conf from '~/conf';
 import z from 'zod';
+import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedSeasons, AnimeNamedStatuses, AnimeNamedTypes } from '~/data/AnimePrimitives';
 import { AnimeGenreType, AnimeRateType, AnimeSeasonType, AnimeStatusType, AnimeType } from '~/data/AnimePrimitives';
-import { AnimeGenres, AnimeRatings, AnimeSeasons, AnimeStatuses, AnimeTypes } from '~/data/AnimePrimitives';
 import { AnimeRepositoryClass, DefaultAnimePoster } from '~/repo/AnimeRepository';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest } from '~/utils/http-utils';
@@ -121,11 +121,11 @@ const endpoint = HandleRequest(async (req, res) => {
     anime_full.synopsis_en = anime.synopsis_en && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_en) : anime.synopsis_en;
     anime_full.synopsis_ua = anime.synopsis_ua && drop_synopsis_markdown ? removeMarkdown(anime.synopsis_ua) : anime.synopsis_ua;
 
-    anime_full.genres = anime.genres.map(el => AnimeGenres[el]);
-    anime_full.rating = anime.rating && AnimeRatings[anime.rating];
-    anime_full.status = anime.status && AnimeStatuses[anime.status];
-    anime_full.season = anime.season && AnimeSeasons[anime.season];
-    anime_full.type = anime.type && AnimeTypes[anime.type];
+    anime_full.genres = anime.genres.map(el => AnimeDescribedGenres[el]);
+    anime_full.rating = anime.rating && AnimeDescribedRatings[anime.rating];
+    anime_full.status = anime.status && AnimeNamedStatuses[anime.status];
+    anime_full.season = anime.season && AnimeNamedSeasons[anime.season];
+    anime_full.type = anime.type && AnimeNamedTypes[anime.type];
 
     anime_full.poster = DTS.animePoster(anime.posters.find(el => el.is_hero) ?? anime.posters[0] ?? DefaultAnimePoster);
   }

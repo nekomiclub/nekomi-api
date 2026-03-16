@@ -68,16 +68,20 @@ export const TeamMinifiedSchema = z.object({
   avatar: z.string().transform(asCDNString),
 });
 
+/** @deprecated reworked into TeamMinifiedSchema */
+export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
+
 /* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
-export type ITeam = z.infer<typeof TeamSchema>
-export type ITeamMember = z.infer<typeof TeamMemberSchema>
 export type TeamRoleType = z.infer<typeof TeamRoleSchema>
 
-/** @deprecated */
-export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
+export type ITeamMember = z.infer<typeof TeamMemberSchema>
+
+export type ITeam = z.infer<typeof TeamSchema>
+
+export type ITeamMinified = z.infer<typeof TeamMinifiedSchema>
 
 
 

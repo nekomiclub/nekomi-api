@@ -1,5 +1,5 @@
 import z from 'zod';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, AnimeGenreType } from '~/data/AnimePrimitives';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, AnimeDescribedRecord, AnimeGenreType, AnimeNamedRecordSchema } from '~/data/AnimePrimitives';
 import { CDNString, asAnimeId, asCDNString, asISODateString, asTeamId } from '~/intf/BrandedIds';
 
 /* --------------------- */
@@ -145,6 +145,30 @@ export const AnimeSchema = z.object({
 });
 
 /* --------------------- */
+/* DTS                   */
+/* --------------------- */
+
+export const AnimeMinifiedSchema = AnimeSchema
+  .pick({
+    id: true,
+    slug: true,
+    episodes_total: true,
+    score: true,
+  })
+  .extend({
+    title: z.string(),
+    poster: z.string().transform(asCDNString),
+    genres: AnimeNamedRecordSchema.or(AnimeDescribedRecord).array(),
+  });
+
+/** @deprecated reworked into AnimeMinifiedSchema */
+export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
+  title: string
+  poster: CDNString
+  genres: AnimeGenreType[]
+}
+
+/* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
@@ -163,12 +187,7 @@ export type IAnimeSchedule = z.infer<typeof AnimeScheduleSchema>
 
 export type IAnime = z.infer<typeof AnimeSchema>
 
-/** @deprecated */
-export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
-  title: string
-  poster: CDNString
-  genres: AnimeGenreType[]
-}
+export type IAnimeMinified = z.infer<typeof AnimeMinifiedSchema>
 
 
 

@@ -1,10 +1,10 @@
-import IAnime, { AnimeCardType, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
+import IAnime, { AnimeCardType, AnimeMinifiedSchema, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
 import ITeam, { TeamCardType } from '~/schemas/entities/Team.schema';
-import IUser, { IUserLib, UserCardType } from '~/schemas/entities/User.schema';
+import IUser, { IUserLib, IUserMinified, UserCardType, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
-import { AnimeGenres } from '~/data/AnimePrimitives';
+import { AnimeDescribedGenres } from '~/data/AnimePrimitives';
 import { HydratedDocument } from 'mongoose';
 import { asCDNString } from '~/intf/BrandedIds';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
@@ -101,7 +101,7 @@ class DTSClass {
       score,
       poster: asCDNString(posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster),
       title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => AnimeGenres[el]),
+      genres: genres.map(el => AnimeDescribedGenres[el]),
     };
   }
 
@@ -124,6 +124,17 @@ class DTSClass {
     ];
 
     return excludeKeys(object, keys);
+  }
+
+
+
+  toAnimeMinified(payload: IAnime): IAnimeMinified {
+    return AnimeMinifiedSchema.parse({
+      ...payload,
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      title: payload.title_ua ?? payload.title_en ?? 'Untitled',
+      genres: payload.genres.map(el => AnimeDescribedGenres[el]),
+    } satisfies IAnimeMinified);
   }
 
 
@@ -171,6 +182,10 @@ class DTSClass {
 
   toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
     return { avatar, id, username, cover };
+  }
+
+  toUserMinified(payload: IUser): IUserMinified {
+    return UserMinifiedSchema.parse(payload);
   }
 
 

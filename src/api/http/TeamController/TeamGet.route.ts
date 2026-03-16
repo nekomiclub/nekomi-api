@@ -1,57 +1,29 @@
 import CacheService from '~/service/CacheService';
 import DTS from '~/service/DataTransferService';
+import UserRepository from '~/repo/UserRepository';
 import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
+import { ITeamMinified, TeamMinifiedSchema, TeamRoleSchema, TeamSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { UserMinifiedSchema } from '~/schemas/entities/User.schema';
-import { asCDNString, asISODateString, asTeamId } from '~/intf/BrandedIds';
+import { asISODateString } from '~/intf/BrandedIds';
 import { zBoolean } from '~/intf/types';
 
 
 
-export const TeamRoleSchema = z.enum([
-  'leader',
-  'editor',
-  'member',
-  'pending',
-]);
-
-export const TeamMemberSchema = UserMinifiedSchema.extend({
+const TeamExtendedMemberSchema = UserMinifiedSchema.extend({
   role: TeamRoleSchema,
-  member_since: z.string().transform(asISODateString),
+  member_since: z.string().transform(asISODateString)
 });
 
-export const TeamSchema = z.object({
-  id: z.string().transform(asTeamId),
-  slug: z.string(),
-  name: z.string(),
-  about: z.string().nullable(),
-
-  avatar: z.string().transform(asCDNString),
-  cover: z.string().transform(asCDNString),
-
-  socials: z.object({
-    telegram: z.string().optional(),
-    instagram: z.string().optional(),
-    youtube: z.string().optional(),
-    tiktok: z.string().optional(),
-  }).optional(),
-
-  support: z.object({
-    diaka: z.string().optional(),
-    monobank: z.string().optional(),
-    privatbank: z.string().optional(),
-    bymeacoffee: z.string().optional(),
-    patreon: z.string().optional(),
-  }).optional(),
-
-  members: z.array(TeamMemberSchema),
-
-  created_at: z.string().transform(asCDNString),
-  updated_at: z.string().transform(asCDNString),
+const TeamExtendedSchema = TeamSchema.omit({
+  members: true
+}).extend({
+  members: TeamExtendedMemberSchema.array()
 });
+
+type ITeamExtended = z.infer<typeof TeamExtendedSchema>
 
 
 
@@ -63,9 +35,9 @@ const QuerySchema = z.object({
   is_extended: zBoolean.optional()
 });
 
-const TeamGetResponseSchema = z.object({
+const ResponseSchema = z.object({
   message: z.string(),
-  team: TeamSchema.or(TeamMinifiedSchema)
+  team: TeamExtendedSchema.or(TeamMinifiedSchema)
 });
 
 
@@ -84,26 +56,26 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new TeamRepositoryClass();
   await repo.init(query);
 
-  let team: z.infer<typeof TeamSchema> | z.infer<typeof TeamMinifiedSchema>;
+  let team: ITeamExtended | ITeamMinified;
 
   if (is_extended) {
-    const refined = DTS.refine(repo.document, TeamSchema);
-    // const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
+    const refinedTeam = TeamSchema.parse(repo.document);
+    const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 
-    // refined.members = users.map(user => {
-    //   const refined = DTOService.refine(user, UserMinifiedSchema);
-    //   const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
+    refinedTeam.members = users.map(user => {
+      const refinedUser = DTS.toUserMinified(user);
+      const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
 
-    //   const member = TeamMemberSchema.parse({
-    //     ...refined,
-    //     role,
-    //     member_since,
-    //   });
+      const memberExtendede = TeamExtendedMemberSchema.parse({
+        ...refinedUser,
+        role,
+        member_since,
+      });
 
-    //   return member;
-    // });
+      return memberExtendede;
+    });
 
-    team = refined;
+    team = refinedTeam;
   } else team = DTS.refine(repo.document, TeamMinifiedSchema);
 
 
@@ -111,7 +83,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Dubber retrieved',
     team
-  } satisfies z.infer<typeof TeamGetResponseSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

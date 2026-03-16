@@ -7,6 +7,7 @@ import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 
+import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema';
 import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { getUTC, removeMarkdown } from '~/utils/utils';
@@ -14,13 +15,13 @@ import { getUTC, removeMarkdown } from '~/utils/utils';
 
 
 const FeedSchema = z.object({
-  hero: z.array(HomeFeedHeroSchema),
-  hot: z.array(z.object({})), // AnimeCardType[]
-  highest_rate: z.array(z.object({})), // AnimeCardType[]
-  updated_recently: z.array(z.object({})), // AnimeCardType[]
+  hero: HomeFeedHeroSchema.array(),
+  hot: AnimeMinifiedSchema.array(),
+  highest_rate: AnimeMinifiedSchema.array(),
+  updated_recently: AnimeMinifiedSchema.array(),
 });
 
-const GetHomeFeedResponseSchema = FeedSchema.extend({
+const ResponseSchema = FeedSchema.extend({
   message: z.string()
 });
 
@@ -108,7 +109,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Home feed retrieved',
     ...feed
-  } satisfies z.infer<typeof GetHomeFeedResponseSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 }, { middlewares: ['checkCSRF'] });
 
 

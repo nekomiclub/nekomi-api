@@ -1,4 +1,3 @@
-import DTS from '~/service/DataTransferService';
 import ITeam, { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
 import conf from '~/conf';
 import z from 'zod';
@@ -12,7 +11,7 @@ import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 export const TeamGetSearchResponseSchema = z.object({
   message: z.string(),
-  results: z.array(z.object({})),
+  results: TeamMinifiedSchema.array(),
   pagination: PaginationSchema.optional()
 });
 
@@ -24,7 +23,7 @@ export const TeamGetSearchResponseSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   const { results: searches, pagination } = await RequestSearch<ITeam>(req, new TeamRepositoryClass(), TeamSearch);
 
-  const results = searches.map(result => DTS.refine(result, TeamMinifiedSchema));
+  const results = searches.map(result => TeamMinifiedSchema.parse(result));
 
 
 

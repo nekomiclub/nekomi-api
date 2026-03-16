@@ -1,3 +1,5 @@
+import z from 'zod';
+
 export enum ANIME_GENRE {
   ACTION = 'action',
   ADVENTURE = 'adventure',
@@ -77,7 +79,7 @@ export enum ANIME_TYPE {
 
 
 
-export const AnimeGenres: Record<ANIME_GENRE, AnimeGenreType> = {
+export const AnimeDescribedGenres: Record<ANIME_GENRE, AnimeGenreType> = {
   [ANIME_GENRE.ACTION]: {
     slug: ANIME_GENRE.ACTION,
     name: 'Бойовик',
@@ -295,7 +297,7 @@ export const AnimeGenres: Record<ANIME_GENRE, AnimeGenreType> = {
   },
 };
 
-export const AnimeRatings: Record<ANIME_RATING, AnimeRateType> = {
+export const AnimeDescribedRatings: Record<ANIME_RATING, AnimeRateType> = {
   [ANIME_RATING.G]: {
     slug: ANIME_RATING.G,
     name: 'G',
@@ -328,7 +330,7 @@ export const AnimeRatings: Record<ANIME_RATING, AnimeRateType> = {
   },
 };
 
-export const AnimeStatuses: Record<ANIME_STATUS, AnimeStatusType> = {
+export const AnimeNamedStatuses: Record<ANIME_STATUS, AnimeStatusType> = {
   [ANIME_STATUS.ONGOING]: {
     slug: ANIME_STATUS.ONGOING,
     name: 'Онґоїнг',
@@ -343,7 +345,7 @@ export const AnimeStatuses: Record<ANIME_STATUS, AnimeStatusType> = {
   }
 };
 
-export const AnimeSeasons: Record<ANIME_SEASON, AnimeSeasonType> = {
+export const AnimeNamedSeasons: Record<ANIME_SEASON, AnimeSeasonType> = {
   [ANIME_SEASON.FALL]: {
     slug: ANIME_SEASON.FALL,
     name: 'Осінь',
@@ -362,7 +364,7 @@ export const AnimeSeasons: Record<ANIME_SEASON, AnimeSeasonType> = {
   },
 };
 
-export const AnimeTypes: Record<ANIME_TYPE, AnimeType> = {
+export const AnimeNamedTypes: Record<ANIME_TYPE, AnimeType> = {
   [ANIME_TYPE.MOVIE]: {
     slug: ANIME_TYPE.MOVIE,
     name: 'Фільм',
@@ -396,12 +398,27 @@ type AnimeNamedRecordType<T = string> = {
   name: string;
 };
 
-type AnimeNamedDescriptionRecordType<T = string> = AnimeNamedRecordType<T> & {
+type AnimeDescribedRecordType<T = string> = AnimeNamedRecordType<T> & {
   description: string;
 };
 
-export type AnimeGenreType = AnimeNamedDescriptionRecordType<ANIME_GENRE>;
-export type AnimeRateType = AnimeNamedDescriptionRecordType<ANIME_RATING>;
+
+
+/** @implements AnimeNamedRecordType */
+export const AnimeNamedRecordSchema = z.object({
+  slug: z.string(),
+  name: z.string()
+});
+
+/** @implements AnimeDescribedRecordType */
+export const AnimeDescribedRecord = AnimeNamedRecordSchema.extend({
+  description: z.string()
+});
+
+
+
+export type AnimeGenreType = AnimeDescribedRecordType<ANIME_GENRE>;
+export type AnimeRateType = AnimeDescribedRecordType<ANIME_RATING>;
 export type AnimeStatusType = AnimeNamedRecordType<ANIME_STATUS>;
 export type AnimeSeasonType = AnimeNamedRecordType<ANIME_SEASON>;
 export type AnimeType = AnimeNamedRecordType<ANIME_TYPE>;

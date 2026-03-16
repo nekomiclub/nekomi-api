@@ -11,7 +11,7 @@ const BodySchema = z.object({
   origin: z.string().optional(),
 });
 
-const GetCSRFResponseSchema = z.object({
+const ResponseSchema = z.object({
   message: z.string(),
   verified: z.boolean(),
   origin: z.string().nullable().optional(),
@@ -33,7 +33,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Token accepted',
     verified,
     origin: tokenOrigin
-  } satisfies z.infer<typeof GetCSRFResponseSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

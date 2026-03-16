@@ -7,7 +7,7 @@ import conf, { DevelopmentMode, TestMode } from '~/conf';
 import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
 import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
-import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 

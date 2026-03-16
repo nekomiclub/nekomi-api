@@ -36,12 +36,12 @@ export const TeamControllerACUploadResponseSchema = z.object({
  */
 export default async function HandleTeamControllerACUpload(req: express.Request, repo: TeamRepositoryClass, method: UploadMethodType): Promise<CDNString> {
   const { id: userId, permissions } = req._nekomi.user!;
-  const { id: dubberId } = req.params as { id: string };
+  const { id: teamId } = req.params as { id: string };
 
   const file = req.file;
   if (!file) throw new NekoError(`sys:invalid_payload`, `File is not provided`);
 
-  await repo.init({ id: asTeamId(dubberId) });
+  await repo.init({ id: asTeamId(teamId) });
 
 
 

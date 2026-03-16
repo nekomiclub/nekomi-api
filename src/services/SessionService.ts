@@ -5,7 +5,7 @@ import conf, { DevelopmentMode } from '~/conf';
 import ms from 'ms';
 import { ISODateString, UserSessionId, asUserSessionId } from '~/intf/BrandedIds';
 import { NekoError } from './ExceptionService';
-import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { UserModel } from '~/repo/UserRepository';
 import { calcISO, getUTC } from '~/utils/utils';
 import { createNanoId, createUserSessionId } from '~/utils/create-id';

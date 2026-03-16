@@ -94,10 +94,15 @@ export const UserMinifiedSchema = z.object({
 /* Inferred type         */
 /* --------------------- */
 
-export type IUser = z.infer<typeof UserSchema>
-export type IUserLib = z.infer<typeof UserLibSchema>
 export type IUserSession = z.infer<typeof UserSessionSchema>
+
+export type IUserLib = z.infer<typeof UserLibSchema>
+
 export type IUserViewProgress = z.infer<typeof UserViewProgressSchema>
+
+export type IUser = z.infer<typeof UserSchema>
+
+export type IUserMinified = z.infer<typeof UserMinifiedSchema>
 
 /** @deprecated pending rework */
 export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar' | 'cover'>

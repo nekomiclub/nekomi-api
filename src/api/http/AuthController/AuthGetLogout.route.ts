@@ -8,14 +8,12 @@ import { getSessionAuth } from '~/utils/auth-utils';
 
 
 
-interface IResponse {
-  message: string
-}
-
-
-
 const ParamSchema = z.object({
   sessionId: z.string().nonempty().optional()
+});
+
+const ResponseSchema = z.object({
+  message: z.string()
 });
 
 
@@ -44,7 +42,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
       return res.status(200).json({
         message: 'Session logged out'
-      } satisfies IResponse);
+      } satisfies z.infer<typeof ResponseSchema>);
     } else {
       // Logout other session
       await session.logout(targetSessionId, sessionId);
@@ -52,7 +50,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
       return res.status(200).json({
         message: `Session "${targetSessionId}" logged out`
-      } satisfies IResponse);
+      } satisfies z.infer<typeof ResponseSchema>);
     }
   } catch (e) {
     removeSessionCookie(res);
@@ -65,9 +63,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-const AuthGetLogoutRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default AuthGetLogoutRoute;
