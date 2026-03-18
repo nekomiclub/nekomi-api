@@ -14,6 +14,10 @@ const ParamSchema = z.object({
   query: z.string().nonempty()
 });
 
+const ResponseSchema = z.object({
+  message: z.string()
+});
+
 
 
 /**
@@ -27,7 +31,7 @@ const endpoint = HandleRequest(async (req, res) => {
   await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
-  return res.status(200).json({ message: 'Anime successfully re-parsed' });
+  return res.status(200).json({ message: 'Anime successfully re-parsed' } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

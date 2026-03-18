@@ -12,18 +12,18 @@ import { zBoolean } from '~/intf/types';
 
 
 
-const TeamExtendedMemberSchema = UserMinifiedSchema.extend({
+const TeamPublicMemberSchema = UserMinifiedSchema.extend({
   role: TeamRoleSchema,
   member_since: z.string().transform(asISODateString)
 });
 
-const TeamExtendedSchema = TeamSchema.omit({
+const TeamPublicSchema = TeamSchema.omit({
   members: true
 }).extend({
-  members: TeamExtendedMemberSchema.array()
+  members: TeamPublicMemberSchema.array()
 });
 
-type ITeamExtended = z.infer<typeof TeamExtendedSchema>
+type ITeamPublic = z.infer<typeof TeamPublicSchema>
 
 
 
@@ -37,7 +37,7 @@ const QuerySchema = z.object({
 
 const ResponseSchema = z.object({
   message: z.string(),
-  team: TeamExtendedSchema.or(TeamMinifiedSchema)
+  team: TeamPublicSchema.or(TeamMinifiedSchema)
 });
 
 
@@ -56,7 +56,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new TeamRepositoryClass();
   await repo.init(query);
 
-  let team: ITeamExtended | ITeamMinified;
+  let team: ITeamPublic | ITeamMinified;
 
   if (is_extended) {
     const refinedTeam = TeamSchema.parse(repo.document);
@@ -66,7 +66,7 @@ const endpoint = HandleRequest(async (req, res) => {
       const refinedUser = DTS.toUserMinified(user);
       const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
 
-      const memberExtendede = TeamExtendedMemberSchema.parse({
+      const memberExtendede = TeamPublicMemberSchema.parse({
         ...refinedUser,
         role,
         member_since,

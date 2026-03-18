@@ -1,3 +1,4 @@
+import DTS from '~/service/DataTransferService';
 import ITeam, { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
 import conf from '~/conf';
 import z from 'zod';
@@ -9,9 +10,15 @@ import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
 
-export const TeamGetSearchResponseSchema = z.object({
+export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
+  short_about: z.string().optional()
+});
+
+
+
+export const ResponseSchema = z.object({
   message: z.string(),
-  results: TeamMinifiedSchema.array(),
+  results: TeamSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
 });
 
@@ -23,7 +30,12 @@ export const TeamGetSearchResponseSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   const { results: searches, pagination } = await RequestSearch<ITeam>(req, new TeamRepositoryClass(), TeamSearch);
 
-  const results = searches.map(result => TeamMinifiedSchema.parse(result));
+  const results = searches.map(result => {
+    return {
+      ...DTS.toTeamMinified(result),
+      short_about: result.about?.slice(0, 200)
+    } satisfies z.infer<typeof TeamSearchResultSchema>;
+  });
 
 
 
@@ -31,7 +43,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Dubbers searched',
     results,
     pagination
-  } satisfies z.infer<typeof TeamGetSearchResponseSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

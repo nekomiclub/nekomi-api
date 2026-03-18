@@ -18,10 +18,21 @@ export const AnimePosterNodeSchema = z.object({
   _unprocessedAuthorName: z.string().optional(),
 });
 
+/** Anime poster node schema with omitted internal info */
+export const AnimePosterNodePublicSchema = AnimePosterNodeSchema.omit({
+  pull_hash: true,
+  _unprocessedAuthorName: true
+});
+
 export const AnimeScreenshotNodeSchema = z.object({
   preview: z.string().transform(asCDNString),
   original: z.string().transform(asCDNString),
   pull_hash: z.string(),
+});
+
+/** Anime screenshot node schema with omitted internal info */
+export const AnimeScreenshotNodePublicSchema = AnimeScreenshotNodeSchema.omit({
+  pull_hash: true,
 });
 
 /* --------------------- */
@@ -148,18 +159,29 @@ export const AnimeSchema = z.object({
 /* DTS                   */
 /* --------------------- */
 
-export const AnimeMinifiedSchema = AnimeSchema
-  .pick({
-    id: true,
-    slug: true,
-    episodes_total: true,
-    score: true,
-  })
-  .extend({
-    title: z.string(),
-    poster: z.string().transform(asCDNString),
-    genres: AnimeNamedRecordSchema.or(AnimeDescribedRecord).array(),
-  });
+export const AnimeMinifiedSchema = AnimeSchema.pick({
+  id: true,
+  slug: true,
+  episodes_total: true,
+  episodes_released: true,
+  score: true,
+}).extend({
+  title: z.string(),
+  poster: z.string().transform(asCDNString)
+});
+
+export const AnimeExtendedSchema = AnimeMinifiedSchema.extend({
+  ...AnimeSchema.pick({
+    year: true,
+  }).shape,
+  short_synopsys: z.string().optional(),
+  subtitle: z.string().nullish(),
+  type: AnimeNamedRecordSchema.optional(),
+  season: AnimeNamedRecordSchema.optional(),
+  status: AnimeNamedRecordSchema.optional(),
+  rating: AnimeDescribedRecord.optional(),
+  genres: AnimeDescribedRecord.array(),
+});
 
 /** @deprecated reworked into AnimeMinifiedSchema */
 export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'score'> & {
@@ -173,7 +195,9 @@ export type AnimeCardType = Pick<IAnime, 'id' | 'slug' | 'episodes_total' | 'sco
 /* --------------------- */
 
 export type IAnimePosterNode = z.infer<typeof AnimePosterNodeSchema>
+export type IAnimePosterNodePublic = z.infer<typeof AnimePosterNodePublicSchema>
 export type IAnimeScreenshotNode = z.infer<typeof AnimeScreenshotNodeSchema>
+export type IAnimeScreenshotNodePublic = z.infer<typeof AnimeScreenshotNodePublicSchema>
 
 export type IAnimeRelation = z.infer<typeof AnimeRelationSchema>
 export type IAnimeStudio = z.infer<typeof AnimeStudioSchema>
@@ -188,6 +212,7 @@ export type IAnimeSchedule = z.infer<typeof AnimeScheduleSchema>
 export type IAnime = z.infer<typeof AnimeSchema>
 
 export type IAnimeMinified = z.infer<typeof AnimeMinifiedSchema>
+export type IAnimeExtended = z.infer<typeof AnimeExtendedSchema>
 
 
 

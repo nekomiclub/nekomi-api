@@ -5,6 +5,10 @@ import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
 
+const ResponseSchema = TeamControllerACUploadResponseSchema;
+
+
+
 /**
  * Upload dubber avatar
  */
@@ -14,7 +18,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Avatar updated!',
     url
-  } satisfies z.infer<typeof TeamControllerACUploadResponseSchema>);
+  } satisfies z.infer<typeof ResponseSchema>);
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 

@@ -83,11 +83,11 @@ export const UserSchema = z.object({
 /* DTS                   */
 /* --------------------- */
 
-export const UserMinifiedSchema = z.object({
-  id: z.string().transform(asUserId),
-  username: z.string(),
-  avatar: z.string().transform(asCDNString),
-  cover: z.string().transform(asCDNString),
+export const UserMinifiedSchema = UserSchema.pick({
+  id: true,
+  username: true,
+  avatar: true,
+  cover: true,
 });
 
 /* --------------------- */

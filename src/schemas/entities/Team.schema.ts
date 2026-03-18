@@ -60,12 +60,11 @@ export const TeamSchema = z.object({
 /* DTS                   */
 /* --------------------- */
 
-export const TeamMinifiedSchema = z.object({
-  id: z.string().transform(asTeamId),
-  slug: z.string(),
-  name: z.string(),
-  about: z.string().nullable(),
-  avatar: z.string().transform(asCDNString),
+export const TeamMinifiedSchema = TeamSchema.pick({
+  id: true,
+  slug: true,
+  name: true,
+  avatar: true,
 });
 
 /** @deprecated reworked into TeamMinifiedSchema */

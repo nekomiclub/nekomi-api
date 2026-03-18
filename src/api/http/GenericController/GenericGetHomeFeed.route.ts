@@ -77,21 +77,21 @@ const endpoint = HandleRequest(async (req, res) => {
        */
       const hotDocuments = await AnimeRepository.getMany({ id: { $in: conf.StaticData.HomeFeed.hot } });
 
-      feed.hot = hotDocuments.map(el => DTS.toAnimeCard(el));
+      feed.hot = hotDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
       // Process rated documents
       const highestRatedDocuments = await AnimeRepository.getSortedMany(undefined, { sort: { score: 'descending' }, limit: 20 });
 
-      feed.highest_rate = highestRatedDocuments.map(el => DTS.toAnimeCard(el));
+      feed.highest_rate = highestRatedDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
       // Process recent documents
       const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({ $or: [{ year: getUTC().year }, { year: getUTC().year + 1 }] }, { sort: { updated_at: 'descending' }, limit: 20 });
 
-      feed.updated_recently = updatedRecentlyDocuments.map(el => DTS.toAnimeCard(el));
+      feed.updated_recently = updatedRecentlyDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
