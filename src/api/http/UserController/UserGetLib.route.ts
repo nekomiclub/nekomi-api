@@ -2,28 +2,27 @@ import AnimeRepository from '~/repo/AnimeRepository';
 import DTS from '~/service/DataTransferService';
 import conf from '~/conf';
 import z from 'zod';
-import { AnimeCardType } from '~/schemas/entities/Anime.schema';
+import { AnimeMinifiedSchema, IAnimeMinified } from '~/schemas/entities/Anime.schema';
 import { HandleRequest } from '~/utils/http-utils';
-import { IPagination } from '~/utils/pagination';
-import { IUserLib, UserCardType } from '~/schemas/entities/User.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
+import { UserLibSchema, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 
 
-interface IResponse {
-  message: string
-  libs: IUserLib[]
-  user: UserCardType
-  catalog: AnimeCardType[]
-  pagination: IPagination
-}
-
 const ParamsSchema = z.object({
   query: z.string().nonempty(),
   libId: z.string().nonempty(),
+});
+
+const ResponseSchema = z.object({
+  message: z.string(),
+  user: UserMinifiedSchema,
+  libs: UserLibSchema.array(),
+  catalog: AnimeMinifiedSchema.array(),
+  pagination: ParamsSchema.optional()
 });
 
 
@@ -46,14 +45,10 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
-  const catalog: AnimeCardType[] = documents.map(el => DTS.toAnimeCard(el));
-  const pagination = {
-    page: -1,
-    limit: -1,
-  };
+  const catalog: IAnimeMinified[] = documents.map(el => DTS.toAnimeMinified(el));
 
-  const libs = await DTS.userLibs(req, repo.document);
-  const user = DTS.toUserCard(repo.document);
+  const libs = await DTS.parseUserLibs(req, repo.document);
+  const user = DTS.toUserMinified(repo.document);
 
 
 
@@ -62,15 +57,12 @@ const endpoint = HandleRequest(async (req, res) => {
     libs,
     user,
     catalog,
-    pagination
-  } satisfies IResponse);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 
 
-const UserGetLibRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default UserGetLibRoute;

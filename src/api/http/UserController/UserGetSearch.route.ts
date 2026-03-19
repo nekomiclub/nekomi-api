@@ -1,22 +1,20 @@
-import IUser from '~/schemas/entities/User.schema';
+import DTS from '~/service/DataTransferService';
+import IUser, { IUserMinified, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { IPagination } from '~/utils/pagination';
 import { Middleware } from '~/service/MiddlewareService';
+import { PaginationSchema } from '~/utils/pagination';
 import { RequestSearch, UserSearch } from '~/service/SearchService';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 
 
 
-type UserSearchResultType = Pick<IUser, 'id' | 'username' | 'avatar'>
-
-
-
-interface IRespone {
-  message: string
-  results: UserSearchResultType[]
-  pagination?: IPagination
-}
+const ResponseSchema = z.object({
+  message: z.string(),
+  results: UserMinifiedSchema.array(),
+  pagination: PaginationSchema.optional(),
+});
 
 
 
@@ -25,17 +23,9 @@ interface IRespone {
  */
 const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
-  const { results: raw, pagination } = await RequestSearch<IUser>(req, repo, UserSearch);
+  const { results: searches, pagination } = await RequestSearch<IUser>(req, repo, UserSearch);
 
-  const results: UserSearchResultType[] = raw.map(result => {
-    const { id, username, avatar } = result;
-
-    return {
-      id,
-      username,
-      avatar
-    } satisfies UserSearchResultType;
-  });
+  const results: IUserMinified[] = searches.map(result => DTS.toUserMinified(result));
 
 
 
@@ -43,7 +33,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Users searched',
     results,
     pagination
-  } satisfies IRespone);
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

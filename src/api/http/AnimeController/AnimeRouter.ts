@@ -1,3 +1,4 @@
+import AnimeGetEpisodesRoute from './AnimeGetEpisodes.route';
 import AnimeGetForceParseRoute from './AnimeGetForceParse.route';
 import AnimeGetRoute from './AnimeGet.route';
 import AnimeGetSearchRoute from './AnimeGetSearch.route';
@@ -11,6 +12,7 @@ const AnimeRouter = express.Router();
 
 AnimeRouter.get('/search', AnimeGetSearchRoute);
 AnimeRouter.get('/:query', AnimeGetRoute);
+AnimeRouter.get('/:query/episodes', AnimeGetEpisodesRoute);
 AnimeRouter.get('/:query/parse', AnimeGetForceParseRoute);
 
 // AnimeRouter.post('/');

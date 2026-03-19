@@ -91,10 +91,13 @@ const QuerySchema = z.object({
 
 const ResponseSchema = z.object({
   message: z.string(),
-  // anime: z.intersection(z.union([AnimePublicSchema, AnimeMinifiedSchema]), z.union([AnimeExtendedSchema, AnimeGetEpisodesSchema]))
   anime: AnimePublicSchema.or(AnimeMinifiedSchema),
+
+  /** @see QuerySchema#is_extended */
   anime_extended: AnimeExtendedSchema.optional(),
-  anime_episodes: AnimeGetEpisodesSchema.optional()
+
+  /** @see QuerySchema#get_episodes */
+  anime_episodes: AnimeGetEpisodesSchema.optional(),
 });
 
 
@@ -113,14 +116,14 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
 
-  let anime: z.infer<typeof ResponseSchema.shape.anime> | undefined;
+  let anime: z.infer<typeof ResponseSchema.shape.anime>;
   let anime_extended: z.infer<typeof ResponseSchema.shape.anime_extended> | undefined;
   let anime_episodes: z.infer<typeof ResponseSchema.shape.anime_episodes> | undefined;
 
 
 
   // Handle is_extended
-  if (is_extended && isEligible(`get_details`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
     // Append general anime document
     const animeRefined = AnimePublicSchema.parse({
       ...repo.document,

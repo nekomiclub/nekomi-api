@@ -31,15 +31,15 @@ const endpoint = HandleRequest(async (req, res) => {
   await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
-  return res.status(200).json({ message: 'Anime successfully re-parsed' } satisfies z.infer<typeof ResponseSchema>);
+  return res.status(200).json({
+    message: 'Anime successfully re-parsed'
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 
 
-const AnimeGetForceParseRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   Middleware.CheckAccess([ROLE_PERMISSION.ABSOLUTE]),
   endpoint
 ];
-
-export default AnimeGetForceParseRoute;

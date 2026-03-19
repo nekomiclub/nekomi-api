@@ -12,8 +12,6 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-const UserDeleteRoute = [
+export default [
   endpoint
 ];
-
-export default UserDeleteRoute;

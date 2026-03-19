@@ -1,14 +1,14 @@
-import CacheService from '~/service/CacheService';
 import DTS from '~/service/DataTransferService';
 import UserRepository from '~/repo/UserRepository';
-import ms from 'ms';
+import conf from '~/conf';
 import z from 'zod';
+import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest } from '~/utils/http-utils';
-import { ITeamMinified, TeamMinifiedSchema, TeamRoleSchema, TeamSchema } from '~/schemas/entities/Team.schema';
+import { TeamMinifiedSchema, TeamRoleSchema, TeamSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { asISODateString } from '~/intf/BrandedIds';
-import { zBoolean } from '~/intf/types';
+import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 
 
 
@@ -23,8 +23,6 @@ const TeamPublicSchema = TeamSchema.omit({
   members: TeamPublicMemberSchema.array()
 });
 
-type ITeamPublic = z.infer<typeof TeamPublicSchema>
-
 
 
 const ParamSchema = z.object({
@@ -32,6 +30,11 @@ const ParamSchema = z.object({
 });
 
 const QuerySchema = z.object({
+  /**
+   * Get extended team object
+   * 
+   * @requires Authorization (CSRF)
+   */
   is_extended: zBoolean.optional()
 });
 
@@ -39,10 +42,6 @@ const ResponseSchema = z.object({
   message: z.string(),
   team: TeamPublicSchema.or(TeamMinifiedSchema)
 });
-
-
-
-const TeamCache = new CacheService('TeamCache', { ttl: ms('3hours') });
 
 
 
@@ -56,9 +55,15 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new TeamRepositoryClass();
   await repo.init(query);
 
-  let team: ITeamPublic | ITeamMinified;
+  let isCSRFValid = false;
 
-  if (is_extended) {
+  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+
+  let team: z.infer<typeof ResponseSchema.shape.team>;
+
+
+
+  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
     const refinedTeam = TeamSchema.parse(repo.document);
     const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 

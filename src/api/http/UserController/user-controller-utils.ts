@@ -10,11 +10,6 @@ import { UserRepositoryClass } from '~/repo/UserRepository';
 
 
 
-export interface IUserControllerACUploadResponse {
-  message: string
-  url: CDNString
-}
-
 type UploadMethodType = keyof Pick<UserRepositoryClass, 'uploadAvatar' | 'uploadCover'>
 
 
@@ -27,9 +22,17 @@ export const UserControllerACUploadMiddlewares = [
   upload.single('file'),
 ];
 
+
+
 const ParamSchema = z.object({
   id: z.string().nonempty().optional()
 });
+
+export const UserControllerACUploadResponse = z.object({
+  message: z.string(),
+  url: z.string()
+});
+
 
 
 

@@ -212,7 +212,8 @@ class DTSClass {
 
 
 
-  async userLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
+  /** @deprecated rework somehow */
+  async parseUserLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
     let showPrivate = false;
 
     try {
