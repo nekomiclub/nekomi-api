@@ -1,11 +1,10 @@
 import Logger from './LoggerService';
+import conf, { DevelopmentMode, TestMode } from '~/conf';
 import express from 'express';
 import fs from 'fs';
 import { AxiosError } from 'axios';
-import { DevelopmentMode, TestMode } from '~/conf';
 import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils';
-import { removeSessionCookie } from '~/utils/http-utils';
 
 
 
@@ -111,7 +110,7 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
       if (
         e.code === 'auth:session_token_invalid'
         || e.code === 'auth:session_not_exist'
-      ) removeSessionCookie(res);
+      ) res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
       res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
 

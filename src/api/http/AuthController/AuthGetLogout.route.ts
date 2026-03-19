@@ -2,17 +2,17 @@ import SessionService from '~/service/SessionService';
 import conf from '~/conf';
 import z from 'zod';
 import { ErrorConstructor } from '~/service/ExceptionService';
-import { HandleRequest, removeSessionCookie } from '~/utils/http-utils';
+import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { getSessionAuth } from '~/utils/auth-utils';
 
 
 
-const ParamSchema = z.object({
+export const GetLogoutParamSchema = z.object({
   sessionId: z.string().nonempty().optional()
 });
 
-const ResponseSchema = z.object({
+export const GetLogoutResponseSchema = z.object({
   message: z.string()
 });
 
@@ -24,7 +24,7 @@ const ResponseSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   try {
     const { userId, sessionId } = await getSessionAuth(req, res);
-    const params = ParamSchema.parse(req.params);
+    const params = GetLogoutParamSchema.parse(req.params);
 
     const session = new SessionService();
     await session.init({ id: userId });
@@ -33,27 +33,24 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
+    await session.logout(targetSessionId, sessionId);
+    await session.save();
+
     if (sessionId === targetSessionId) {
       // Logout current session
-      await session.logout(targetSessionId, sessionId);
-      await session.save();
-
-      removeSessionCookie(res);
+      res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
       return res.status(200).json({
         message: 'Session logged out'
-      } satisfies z.infer<typeof ResponseSchema>);
+      } satisfies z.infer<typeof GetLogoutResponseSchema>);
     } else {
-      // Logout other session
-      await session.logout(targetSessionId, sessionId);
-      await session.save();
-
+      // Logout specified session
       return res.status(200).json({
         message: `Session "${targetSessionId}" logged out`
-      } satisfies z.infer<typeof ResponseSchema>);
+      } satisfies z.infer<typeof GetLogoutResponseSchema>);
     }
   } catch (e) {
-    removeSessionCookie(res);
+    res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
     if (e instanceof ErrorConstructor && (e.status && e.status < 500)) return res.status(200).json({ message: 'Session logged out' });
 

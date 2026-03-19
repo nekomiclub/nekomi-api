@@ -7,6 +7,7 @@ import { GetHomeFeedResponseSchema } from '~/api/http/GenericController/GenericG
 import { GetPingResponseSchema } from '~/api/http/GenericController/GenericGetPing.route';
 import { app } from '~/index';
 import { describe, expect, it } from 'vitest';
+import { shouldRejectCSRF } from '~/utils/testing-utils';
 
 
 
@@ -100,13 +101,6 @@ describe(`Test Generic HTTP API Controller`, () => {
 
 
 
-    it('Should reject invalid CSRF', async () => {
-      const res = await request(app)
-        .get(`/home-feed`)
-        .expect(401)
-        .set(`X-CSRF-Token`, `_INVALID`);
-
-      expect(res.body.code).toBe(`auth:csrf_token_invalid`); // Error code must match provided
-    });
+    it('Should reject invalid CSRF', async () => await shouldRejectCSRF('/home-feed', 'get'));
   });
 });
