@@ -6,13 +6,12 @@ import { Middleware } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
+import { AnimeParamsSchema } from './anime-controller-utils';
 import { asAnimeId } from '~/intf/BrandedIds';
 
 
 
-const ParamSchema = z.object({
-  query: z.string().nonempty()
-});
+const ParamSchema = AnimeParamsSchema;
 
 const ResponseSchema = z.object({
   message: z.string()

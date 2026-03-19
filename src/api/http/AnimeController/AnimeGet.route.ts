@@ -1,14 +1,13 @@
 import DTS from '~/service/DataTransferService';
-import TeamRepository from '~/repo/TeamRepository';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeDescribedRecord, AnimeNamedRecordSchema, AnimeNamedSeasons, AnimeNamedStatuses, AnimeNamedTypes } from '~/data/AnimePrimitives';
-import { AnimeEpisodeSchema, AnimeMinifiedSchema, AnimePlayerSchema, AnimeSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/schemas/entities/Anime.schema';
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema, AnimeParamsSchema } from './anime-controller-utils';
+import { AnimeMinifiedSchema, AnimeSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/schemas/entities/Anime.schema';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest } from '~/utils/http-utils';
-import { ITeamMinified, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
-import { TeamId, asCDNString } from '~/intf/BrandedIds';
+import { asCDNString } from '~/intf/BrandedIds';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { removeMarkdown } from '~/utils/utils';
 
@@ -53,18 +52,9 @@ const AnimeExtendedSchema = z.object({
   screenshots: AnimeScreenshotNodePublicSchema.array()
 });
 
-/** @see QuerySchema#get_episodes */
-const AnimeGetEpisodesSchema = z.object({
-  player: AnimePlayerSchema,
-  player_teams: TeamMinifiedSchema.array(),
-  episodes_meta: AnimeEpisodeSchema.array(),
-});
 
 
-
-const ParamSchema = z.object({
-  query: z.string().nonempty()
-});
+const ParamSchema = AnimeParamsSchema;
 
 const QuerySchema = z.object({
   /** 
@@ -82,7 +72,7 @@ const QuerySchema = z.object({
   is_extended: zBoolean.optional(),
 
   /** 
-   * Get anime episodes related data
+   * Get anime episodes
    * 
    * @requires Authorization (CSRF)
    */
@@ -97,7 +87,7 @@ const ResponseSchema = z.object({
   anime_extended: AnimeExtendedSchema.optional(),
 
   /** @see QuerySchema#get_episodes */
-  anime_episodes: AnimeGetEpisodesSchema.optional(),
+  anime_episodes: AnimeGetEpisodesSchema.optional()
 });
 
 
@@ -107,7 +97,7 @@ const ResponseSchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamSchema.parse(req.params);
-  const { get_episodes, drop_synopsis_markdown, is_extended } = QuerySchema.parse(req.query);
+  const { drop_synopsis_markdown, is_extended, get_episodes } = QuerySchema.parse(req.query);
 
   const repo = new AnimeRepositoryClass();
   await repo.init(query);
@@ -157,19 +147,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   // Handle get_episodes
   if (get_episodes && isEligible(`get_episodes`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-    const playerTeamsId = new Set<TeamId>();
-
-    repo.document.player.dubbed.forEach(team => team.dubber_ids.forEach(id => playerTeamsId.add(id)));
-    repo.document.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerTeamsId.add(id)));
-
-    const playerTeamsResults = await TeamRepository.getMany({ id: { $in: Array.from(playerTeamsId) } });
-    const playerTeams: ITeamMinified[] = playerTeamsResults.map(el => TeamMinifiedSchema.parse(el));
-
-    anime_episodes = AnimeGetEpisodesSchema.parse({
-      player: repo.document.player,
-      player_teams: playerTeams,
-      episodes_meta: repo.document.episodes_meta,
-    } satisfies z.infer<typeof AnimeGetEpisodesSchema>);
+    anime_episodes = await AnimeGetEpisodes(repo.document);
   }
 
 

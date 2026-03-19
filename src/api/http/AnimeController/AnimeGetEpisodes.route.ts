@@ -1,5 +1,18 @@
+import conf from '~/conf';
+import z from 'zod';
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema, AnimeParamsSchema } from './anime-controller-utils';
+import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { HandleRequest } from '~/utils/http-utils';
-import { NekoError } from '~/service/ExceptionService';
+import { Middleware } from '~/service/MiddlewareService';
+
+
+
+const ParamSchema = AnimeParamsSchema;
+
+const ResponseSchema = z.object({
+  message: z.string(),
+  anime_episodes: AnimeGetEpisodesSchema
+});
 
 
 
@@ -7,11 +20,24 @@ import { NekoError } from '~/service/ExceptionService';
  * Get anime episodes with pagination
  */
 const endpoint = HandleRequest(async (req, res) => {
-  throw new NekoError('sys:not_implemented');
+  const { query } = ParamSchema.parse(req.params);
+
+  const repo = new AnimeRepositoryClass();
+  await repo.init(query);
+
+  const anime_episodes = await AnimeGetEpisodes(repo.document);
+
+
+
+  return res.status(200).json({
+    message: `Anime episodes retrieved`,
+    anime_episodes
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 
 
 export default [
+  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
