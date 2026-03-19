@@ -2,7 +2,7 @@ import AnimeRepository from '~/repo/AnimeRepository';
 import CacheService from '~/service/CacheService';
 import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
-import conf from '~/conf';
+import conf, { DevelopmentMode } from '~/conf';
 import ms from 'ms';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
@@ -21,8 +21,8 @@ const FeedSchema = z.object({
   updated_recently: AnimeMinifiedSchema.array(),
 });
 
-const ResponseSchema = FeedSchema.extend({
-  message: z.string()
+export const GetHomeFeedResponseSchema = FeedSchema.extend({
+  message: z.string(),
 });
 
 
@@ -34,6 +34,8 @@ const feedCacheId = `~feed`;
 
 /**
  * Get home feed
+ * 
+ * @test X-HomeFeedCacheUsed will be appended as header to display whether cache was used
  */
 const endpoint = HandleRequest(async (req, res) => {
   const cache = FeedCache.get(feedCacheId);
@@ -105,11 +107,13 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
 
+  // Set testing header
+  if (DevelopmentMode) res.setHeader(`X-HomeFeedCacheUsed`, `${Boolean(cache)}`);
 
   return res.status(200).json({
     message: 'Home feed retrieved',
     ...feed
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetHomeFeedResponseSchema>);
 }, { middlewares: ['checkCSRF'] });
 
 

@@ -9,7 +9,7 @@ const MIGRATION_CACHE_PATH = `${conf.vars.volumes.logs}/migration.json`;
 
 
 
-/** Check wether something migrated or not */
+/** Check whether something migrated or not */
 function checkMigrationStatus(slug: string) {
   if (!fs.existsSync(MIGRATION_CACHE_PATH)) {
     fs.mkdirSync(path.dirname(MIGRATION_CACHE_PATH), { recursive: true });

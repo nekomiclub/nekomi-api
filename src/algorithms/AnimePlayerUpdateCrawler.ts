@@ -43,7 +43,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
   /** 
    * Preserve anime player
    * 
-   * @returns {boolean} Wether new episodes have been pulled
+   * @returns {boolean} Whether new episodes have been pulled
    */
   async parse(): Promise<boolean> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
