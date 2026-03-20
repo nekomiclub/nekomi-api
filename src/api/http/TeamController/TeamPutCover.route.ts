@@ -5,7 +5,7 @@ import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
 
-const ResponseSchema = TeamControllerACUploadResponseSchema;
+export const PutTeamCoverResponseSchema = TeamControllerACUploadResponseSchema;
 
 
 
@@ -18,7 +18,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Cover updated!',
     url
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof PutTeamCoverResponseSchema>);
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 

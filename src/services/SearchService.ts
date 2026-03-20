@@ -82,16 +82,19 @@ const MAX_RESULTS_LIMIT = 30;
 
 
 
-const SearchQueryParamsSchema = z.object({
+export const SearchServiceQueryParamsSchema = z.object({
   q: z.string(),
-  limit: z.number().min(1).max(MAX_RESULTS_LIMIT).default(RESULTS_DEFAULT_LIMIT),
-  page: z.number().min(1).default(1)
+  limit: z.number().min(1).max(MAX_RESULTS_LIMIT).optional(),
+  page: z.number().min(1).optional()
 });
 
 
 
 export async function RequestSearch<T extends object>(req: express.Request, repository: UnifiedRepositoryClass<T>, search: SearchServiceClass<T>, dto?: (el: T) => T): Promise<ISearchResponse<T>> {
-  const { q: query, limit, page } = SearchQueryParamsSchema.parse(req.query);
+  let { q: query, limit, page } = SearchServiceQueryParamsSchema.parse(req.query);
+
+  limit = limit ?? RESULTS_DEFAULT_LIMIT;
+  page = page ?? 1;
 
   let results: T[] = [];
   let pagination: IPagination | undefined;

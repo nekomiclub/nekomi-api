@@ -5,7 +5,7 @@ import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
-import { RequestSearch, TeamSearch } from '~/service/SearchService';
+import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
@@ -16,7 +16,9 @@ export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
 
 
 
-export const ResponseSchema = z.object({
+export const GetTeamSearchQuerySchema = SearchServiceQueryParamsSchema;
+
+export const GetTeamSearchResponseSchema = z.object({
   message: z.string(),
   results: TeamSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
@@ -43,7 +45,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Dubbers searched',
     results,
     pagination
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetTeamSearchResponseSchema>);
 });
 
 

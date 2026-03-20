@@ -12,24 +12,24 @@ import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 
 
 
-const TeamPublicMemberSchema = UserMinifiedSchema.extend({
+const TeamExtendedMemberSchema = UserMinifiedSchema.extend({
   role: TeamRoleSchema,
   member_since: z.string().transform(asISODateString)
 });
 
-const TeamPublicSchema = TeamSchema.omit({
+export const GetTeamExtendedSchema = TeamSchema.omit({
   members: true
 }).extend({
-  members: TeamPublicMemberSchema.array()
+  members: TeamExtendedMemberSchema.array()
 });
 
 
 
-const ParamSchema = z.object({
+export const GetTeamParamSchema = z.object({
   query: z.string().nonempty()
 });
 
-const QuerySchema = z.object({
+export const GetTeamQuerySchema = z.object({
   /**
    * Get extended team object
    * 
@@ -38,9 +38,9 @@ const QuerySchema = z.object({
   is_extended: zBoolean.optional()
 });
 
-const ResponseSchema = z.object({
+export const GetTeamResponseSchema = z.object({
   message: z.string(),
-  team: TeamPublicSchema.or(TeamMinifiedSchema)
+  team: GetTeamExtendedSchema.or(TeamMinifiedSchema)
 });
 
 
@@ -49,8 +49,8 @@ const ResponseSchema = z.object({
  * Get dubber document
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamSchema.parse(req.params);
-  const { is_extended } = QuerySchema.parse(req.query);
+  const { query } = GetTeamParamSchema.parse(req.params);
+  const { is_extended } = GetTeamQuerySchema.parse(req.query);
 
   const repo = new TeamRepositoryClass();
   await repo.init(query);
@@ -59,7 +59,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
 
-  let team: z.infer<typeof ResponseSchema.shape.team>;
+  let team: z.infer<typeof GetTeamResponseSchema.shape.team>;
 
 
 
@@ -71,7 +71,7 @@ const endpoint = HandleRequest(async (req, res) => {
       const refinedUser = DTS.toUserMinified(user);
       const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
 
-      const memberExtendede = TeamPublicMemberSchema.parse({
+      const memberExtendede = TeamExtendedMemberSchema.parse({
         ...refinedUser,
         role,
         member_since,
@@ -88,7 +88,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Dubber retrieved',
     team
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetTeamResponseSchema>);
 });
 
 

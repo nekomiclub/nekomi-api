@@ -15,12 +15,10 @@ import { shouldRejectCSRF, supertestCookieExist, supertestCookieRemoved } from '
 
 describe(`Test Auth HTTP API Controller`, () => {
   describe('POST /auth', () => {
-    let userService: UserRepositoryClass | undefined = undefined;
+    let userService = new UserRepositoryClass();
     const testEmail = `testing_${createNanoId(4)}@nekomi.club`;
 
     beforeAll(async () => {
-      userService = new UserRepositoryClass();
-
       await userService.create();
 
       userService.setEmail(testEmail);
