@@ -47,6 +47,10 @@
     "status": 400,
     "message": "You cannot change username at the moment, try again later"
   },
+  "user:username_not_available": {
+    "status": 400,
+    "message": "You cannot set username to that"
+  },
   "user:banned": {
     "status": 403,
     "message": "You have been banned by the administration"

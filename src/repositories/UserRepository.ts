@@ -224,6 +224,9 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async setUsername(username: string, props?: ISetUsernameProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
+    // Reject users from setting username that match "testing"
+    if (!TestMode && username.match(/testing/gi)) throw new NekoError('user:username_not_available');
+
     // Ensure username change is not restricted
     if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 

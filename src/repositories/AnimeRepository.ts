@@ -316,6 +316,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     slug = createSlug(trimString(slug));
 
+    if (!TestMode && slug.match(/testing/gi)) slug = createNanoId(12);
+
     let isDocumentExist = false;
 
     // Define is document exist
