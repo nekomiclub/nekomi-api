@@ -12,7 +12,7 @@ import { shouldRejectCSRF } from '~/utils/testing-utils';
 
 describe('Test Auth HTTP API Controller', () => {
   describe('GET /team/:query', () => {
-    let teamService = new TeamRepositoryClass();
+    const teamService = new TeamRepositoryClass();
 
     beforeAll(async () => {
       await teamService.create();

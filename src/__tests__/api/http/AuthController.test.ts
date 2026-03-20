@@ -73,11 +73,9 @@ describe(`Test Auth HTTP API Controller`, () => {
 
 
   describe('GET /auth/logout', () => {
-    let userService: UserRepositoryClass | undefined = undefined;
+    const userService = new UserRepositoryClass();
 
     beforeAll(async () => {
-      userService = new UserRepositoryClass();
-
       await userService.create();
     });
 

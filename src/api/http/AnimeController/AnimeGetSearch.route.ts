@@ -3,14 +3,16 @@ import IAnime, { AnimeExtendedSchema, IAnimeExtended } from '~/schemas/entities/
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import { AnimeSearch, RequestSearch } from '~/service/SearchService';
+import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
 
 
 
-const ResponseSchema = z.object({
+export const GetAnimeSearchQuerySchema = SearchServiceQueryParamsSchema;
+
+export const GetAnimeSearchResponseSchema = z.object({
   message: z.string(),
   results: AnimeExtendedSchema.array(),
   pagination: PaginationSchema.optional()
@@ -33,7 +35,7 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Animes searched',
     results,
     pagination
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetAnimeSearchResponseSchema>);
 });
 
 

@@ -7,9 +7,9 @@ import { Middleware } from '~/service/MiddlewareService';
 
 
 
-const ParamSchema = AnimeParamsSchema;
+export const GetAnimeEpisodesParamSchema = AnimeParamsSchema;
 
-const ResponseSchema = z.object({
+export const GetAnimeEpisodesResponseSchema = z.object({
   message: z.string(),
   anime_episodes: AnimeGetEpisodesSchema
 });
@@ -20,7 +20,7 @@ const ResponseSchema = z.object({
  * Get anime episodes with pagination
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamSchema.parse(req.params);
+  const { query } = GetAnimeEpisodesParamSchema.parse(req.params);
 
   const repo = new AnimeRepositoryClass();
   await repo.init(query);
@@ -32,7 +32,7 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: `Anime episodes retrieved`,
     anime_episodes
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetAnimeEpisodesResponseSchema>);
 });
 
 

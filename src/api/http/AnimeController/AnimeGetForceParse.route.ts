@@ -11,9 +11,9 @@ import { asAnimeId } from '~/intf/BrandedIds';
 
 
 
-const ParamSchema = AnimeParamsSchema;
+export const GetAnimeParseParamSchema = AnimeParamsSchema;
 
-const ResponseSchema = z.object({
+export const GetAnimeParseResponseSchema = z.object({
   message: z.string()
 });
 
@@ -23,16 +23,18 @@ const ResponseSchema = z.object({
  * Get anime force parse 
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamSchema.parse(req.params);
+  const { query } = GetAnimeParseParamSchema.parse(req.params);
 
   await AnimeUpdateCrawler.syncAnimeDocument(asAnimeId(query));
 
   await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
+
+
   return res.status(200).json({
     message: 'Anime successfully re-parsed'
-  } satisfies z.infer<typeof ResponseSchema>);
+  } satisfies z.infer<typeof GetAnimeParseResponseSchema>);
 });
 
 
