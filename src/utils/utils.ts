@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { ISODateString } from '~/intf/types';
+import { ISODateString, asISODateString } from '~/intf/BrandedIds';
 
 
 
@@ -36,7 +36,7 @@ export function getUTC(ts?: string | number | Date) {
     /** Stringified values (with pads) */
     str: { month, hrs, mins, secs, ms },
 
-    ISO: now.toISOString(),
+    ISO: asISODateString(now.toISOString()),
   };
 }
 

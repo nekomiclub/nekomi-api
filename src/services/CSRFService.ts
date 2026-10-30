@@ -2,8 +2,8 @@ import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
 import jwt from 'jsonwebtoken';
 import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
-import { CSRFTokenType } from '~/intf/IAuth';
-import { ISODateString } from '~/intf/types';
+import { CSRFTokenType } from '~/schemas/auth.schema';
+import { ISODateString } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
 import { createNanoId } from '~/utils/create-id';
 

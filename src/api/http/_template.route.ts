@@ -11,8 +11,6 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-const TemplateRoute = [
+export default [
   endpoint
 ];
-
-export default TemplateRoute;

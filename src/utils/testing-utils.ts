@@ -1,4 +1,6 @@
+import request from 'supertest';
 import { ErrorConstructor } from '~/service/ExceptionService';
+import { app } from '..';
 import { expect } from 'vitest';
 
 
@@ -20,4 +22,24 @@ export async function shouldfail(func: () => Promise<void> | void, code?: string
       else throw new Error(`Invalid error code recieved: ${e.code} (expected: ${code})`);
     } else testpass();
   }
+}
+
+
+
+export async function shouldRejectCSRF(url: string, method: 'get' | 'post' | 'put' | 'delete' | 'patch') {
+  const res = await request(app)[method](url)
+    .expect(401)
+    .set(`X-CSRF-Token`, `_INVALID`);
+
+  expect(res.body.code).toBe(`auth:csrf_token_invalid`); // Error code must match provided
+}
+
+
+
+export function supertestCookieExist(headers: { [index: string]: string | string[] }, name: string): boolean {
+  return (headers['set-cookie'] as string[])?.some(el => el.match(`${name}=.+;`));
+}
+
+export function supertestCookieRemoved(headers: { [index: string]: string | string[] }, name: string): boolean {
+  return (headers['set-cookie'] as string[])?.some(el => el.match(`${name}=;`));
 }

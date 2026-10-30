@@ -1,5 +1,5 @@
 import z from 'zod';
-import { asUserId, asUserSessionId } from './IUser';
+import { asUserId, asUserSessionId } from '~/intf/BrandedIds';
 
 
 
@@ -24,6 +24,3 @@ export const CSRFTokenSchema = z.object({
 
 export type SessionTokenType = z.infer<typeof SessionTokenSchema>
 export type CSRFTokenType = z.infer<typeof CSRFTokenSchema>
-
-
-

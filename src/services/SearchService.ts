@@ -1,6 +1,6 @@
 import AnimeRepository from '~/repo/AnimeRepository';
-import DubberRepository from '~/repo/DubberRepository';
 import Fuse, { FuseOptionKey } from 'fuse.js';
+import TeamRepository from '~/repo/TeamRepository';
 import UnifiedRepositoryClass from '~/repo/UnifiedRepository';
 import UserRepository from '~/repo/UserRepository';
 import express from 'express';
@@ -72,7 +72,7 @@ class SearchServiceClass<T extends object> {
 
 
 export const UserSearch = new SearchServiceClass(UserRepository, ['username']);
-export const DubberSearch = new SearchServiceClass(DubberRepository, ['slug', 'name']);
+export const TeamSearch = new SearchServiceClass(TeamRepository, ['slug', 'name']);
 export const AnimeSearch = new SearchServiceClass(AnimeRepository, ['title_en', 'title_ja', 'title_ua', 'title_synonims', 'slug']);
 
 
@@ -82,16 +82,19 @@ const MAX_RESULTS_LIMIT = 30;
 
 
 
-const SearchQueryParamsSchema = z.object({
+export const SearchServiceQueryParamsSchema = z.object({
   q: z.string(),
-  limit: z.number().min(1).max(MAX_RESULTS_LIMIT).default(RESULTS_DEFAULT_LIMIT),
-  page: z.number().min(1).default(1)
+  limit: z.number().min(1).max(MAX_RESULTS_LIMIT).optional(),
+  page: z.number().min(1).optional()
 });
 
 
 
 export async function RequestSearch<T extends object>(req: express.Request, repository: UnifiedRepositoryClass<T>, search: SearchServiceClass<T>, dto?: (el: T) => T): Promise<ISearchResponse<T>> {
-  const { q: query, limit, page } = SearchQueryParamsSchema.parse(req.query);
+  let { q: query, limit, page } = SearchServiceQueryParamsSchema.parse(req.query);
+
+  limit = limit ?? RESULTS_DEFAULT_LIMIT;
+  page = page ?? 1;
 
   let results: T[] = [];
   let pagination: IPagination | undefined;

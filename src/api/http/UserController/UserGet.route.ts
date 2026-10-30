@@ -1,64 +1,29 @@
-import DTOService from '~/service/DataTransferService';
-import IUser, { IUserLib, IUserViewProgress, USER_RESTRICTION, UserCardType } from '~/intf/IUser';
+import DTS from '~/service/DataTransferService';
 import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/conf';
 import z from 'zod';
-import { ArgumentTypes, ISODateString, zBoolean } from '~/intf/types';
+import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { HandleRequest, getSessionToken } from '~/utils/http-utils';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { USER_RESTRICTION, UserLibSchema, UserMinifiedSchema, UserSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
 
-const FullResponseKeys = ['id', 'username', 'avatar', 'cover', 'total_viewtime', 'dubber_team_member', 'roles'] as const;
-type FullResponseType = Pick<IUser, typeof FullResponseKeys[number]>
-
-
-
-interface IResponseMisc {
-  /** @method get_email */
-  email?: string
-
-
-
-  /** @method get_username_changed_at */
-  username_changed_at?: ISODateString
-
-
-
-  /** @method get_permissions */
-  permissions?: ROLE_PERMISSION[]
-
-
-
-  /** @method get_restrictions */
-  restrictions?: USER_RESTRICTION[]
-
-
-
-  /** @method get_view_progress */
-  view_progress?: IUserViewProgress[]
-
-
-
-  /** @method get_libs */
-  libs?: IUserLib[]
-
-
-
-  /** @method get_timestamps */
-  created_at?: ISODateString
-
-  /** @method get_timestamps */
-  updated_at?: ISODateString
-}
-
-interface IResponse {
-  message: string
-  user: IResponseMisc & (FullResponseType | UserCardType | object)
-}
+const UserPublicSchema = UserSchema.pick({
+  id: true,
+  username: true,
+  avatar: true,
+  cover: true,
+  total_viewtime: true,
+  dubber_team_member: true,
+  roles: true,
+  username_changed_at: true,
+  created_at: true,
+  updated_at: true,
+});
 
 
 
@@ -67,23 +32,51 @@ const ParamsSchema = z.object({
 });
 
 const QuerySchema = z.object({
-  view: z.enum(['full', 'card', 'empty']).default('card'),
-
+  /**
+   * Get user permissions & restrictions
+   */
   get_permissions: zBoolean.optional(),
-  get_username_changed_at: zBoolean.optional(),
-  get_timestamps: zBoolean.optional(),
 
-  /** @requires Authorization (CSRF) */
+  /** 
+   * Get extended user object
+   * 
+   * @requires Authorization (CSRF)
+   */
+  is_extended: zBoolean.optional(),
+
+  /** 
+   * Get user view_progress object
+   * 
+   * @requires Authorization (CSRF)
+   */
   get_view_progress: zBoolean.optional(),
 
-  /** @requires Authorization (CSRF) */
+  /** 
+   * Get user email
+   * 
+   * @requires Authorization (CSRF+Authorization) Owner/Moderator
+   */
   get_email: zBoolean.optional(),
+});
 
-  /** @requires Authorization (CSRF+Session) only for owner & admin */
-  get_restrictions: zBoolean.optional(),
+const ResponseSchema = z.object({
+  message: z.string(),
+  user: UserPublicSchema.or(UserMinifiedSchema),
 
-  /** @requires Authorization (CSRF+Session) only for owner & admin */
-  get_libs: zBoolean.optional(),
+  /** @see QuerySchema#get_permissions */
+  user_permissions: z.nativeEnum(ROLE_PERMISSION).array().optional(),
+
+  /** @see QuerySchema#get_permissions */
+  user_restrictions: z.nativeEnum(USER_RESTRICTION).array().optional(),
+
+  /** @see QuerySchema#is_extended */
+  user_libs: UserLibSchema.array().optional(),
+
+  /** @see QuerySchema#get_view_progress */
+  user_view_progress: UserViewProgressSchema.array().optional(),
+
+  /** @see QuerySchema#get_email */
+  user_email: z.string().optional(),
 });
 
 
@@ -96,13 +89,9 @@ const QuerySchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { query } = ParamsSchema.parse(req.params);
-  const { get_permissions, get_restrictions, get_username_changed_at, get_view_progress, get_email, get_libs, view, get_timestamps } = QuerySchema.parse(req.query);
+  const { get_permissions, get_view_progress, get_email, is_extended } = QuerySchema.parse(req.query);
 
   const repo = new UserRepositoryClass();
-  const user_misc: IResponseMisc = {};
-
-  let user_full: FullResponseType | undefined;
-  let user_card: UserCardType | undefined;
 
   let isUserOwner = false;
   let isUserAdmin = false;
@@ -114,62 +103,65 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  // Get query from session
+  // Initialize repository
   if (!query) {
+    // Get query from session
     const { user } = await new MiddlewareService().checkAccess(getSessionToken(req));
 
     await repo.init({ id: user.id });
   } else await repo.init(query);
 
-  const user = repo.document;
+
+
+  let user: z.infer<typeof ResponseSchema.shape.user>;
+  let user_permissions: z.infer<typeof ResponseSchema.shape.user_permissions> | undefined;
+  let user_restrictions: z.infer<typeof ResponseSchema.shape.user_restrictions> | undefined;
+  let user_libs: z.infer<typeof ResponseSchema.shape.user_libs> | undefined;
+  let user_view_progress: z.infer<typeof ResponseSchema.shape.user_view_progress> | undefined;
+  let user_email: z.infer<typeof ResponseSchema.shape.user_email> | undefined;
 
 
 
-  if (view === 'card') user_card = DTOService.toUserCard(user);
-  else if (view === 'full') user_full = DTOService.includeKeys(user, [...FullResponseKeys]);
+  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+    const userRefined = UserPublicSchema.parse(repo.document);
 
-  if (get_permissions) user_misc.permissions = await parseRolesPermissions(user.roles);
-  if (get_username_changed_at) user_misc.username_changed_at = user.username_changed_at;
+    user = userRefined;
+  } else user = DTS.toUserMinified(repo.document);
 
-  if (get_timestamps) {
-    user_misc.created_at = user.created_at;
-    user_misc.updated_at = user.updated_at;
-  }
-
-  if (get_restrictions) {
-    if (isEligible(`get_restrictions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, user.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.restrictions = user.restrictions;
+  // Handle get_permissions
+  if (get_permissions) {
+    if (isEligible(`get_restrictions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, repo.document.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+      user_permissions = await parseRolesPermissions(repo.document.roles);
+      user_restrictions = repo.document.restrictions;
     }
   }
 
-  if (get_libs) {
-    if (isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.libs = await DTOService.userLibs(req, user);
-    }
+  // Handle is_extended
+  if (is_extended && isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+    user_libs = await DTS.parseUserLibs(req, repo.document);
   }
 
-  if (get_email) {
-    if (isEligible(`get_email`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.email = user.email;
-    }
+  // Handle get_email
+  if (get_email && isEligible(`get_email`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+    user_email = repo.document.email;
   }
 
-  if (get_view_progress) {
-    if (isEligible(`get_view_progress`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_misc.view_progress = user.view_progress;
-    }
+  // Handle get_view_progress
+  if (get_view_progress && isEligible(`get_view_progress`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+    user_view_progress = repo.document.view_progress;
   }
 
 
 
   return res.status(200).json({
     message: 'User retrieved',
-    user: {
-      ...user_full,
-      ...user_card,
-      ...user_misc,
-    },
-  } satisfies IResponse);
+    user,
+    user_permissions,
+    user_restrictions,
+    user_libs,
+    user_view_progress,
+    user_email,
+  } satisfies z.infer<typeof ResponseSchema>);
 });
 
 

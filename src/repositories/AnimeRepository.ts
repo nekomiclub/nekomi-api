@@ -1,18 +1,19 @@
 import AnimeValidators from '~/utils/validators/anime-validators';
-import DTOService from '~/service/DataTransferService';
-import DubberRepository from './DubberRepository';
-import IAnime, { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/intf/IAnime';
+import DTS from '~/service/DataTransferService';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/schemas/entities/Anime.schema';
 import Logger from '~/service/LoggerService';
+import TeamRepository from './TeamRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId } from '~/utils/create-id';
 import createSlug from '~/utils/create-slug';
 import mongoose, { Schema } from 'mongoose';
-import { ISODateString, RepositoryQueriesType } from '~/intf/types';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';
+import { ISODateString, asAnimeId } from '~/intf/BrandedIds';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asAnimeId } from '~/intf/IAnime';
+import { RepositoryQueriesType } from '~/intf/types';
 import { getUTC, trimString } from '~/utils/utils';
 
 
@@ -146,7 +147,7 @@ export class AnimeModel extends UnifiedModelClass<RepositoryType> {
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.anime(this._doc, true);
+    return DTS.anime(this._doc, true);
   }
 
 
@@ -174,7 +175,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.anime(this._doc, true);
+    return DTS.anime(this._doc, true);
   }
 
   async save(props?: ISaveProps) {
@@ -269,7 +270,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.anime(payload, true);
+    return DTS.anime(payload, true);
   }
 
 
@@ -314,6 +315,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     slug = createSlug(trimString(slug));
+
+    if (!TestMode && slug.match(/testing/gi)) slug = createNanoId(12);
 
     let isDocumentExist = false;
 
@@ -717,8 +720,8 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async setHeroPosterAuthor(id: string) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    // Ensure that dubber is exist
-    await DubberRepository.getOne(id);
+    // Ensure that team is exist
+    await TeamRepository.getOne(id);
 
     this._set('hero_poster_author', id);
   }

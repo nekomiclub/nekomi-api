@@ -1,7 +1,7 @@
 import Logger from './LoggerService';
 import ms from 'ms';
 import { DevelopmentMode } from '~/conf';
-import { ISODateString } from '~/intf/types';
+import { ISODateString } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
 
 

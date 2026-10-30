@@ -1,13 +1,14 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { ANIME_GENRE, ANIME_SEASON, IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/intf/IAnime';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/schemas/entities/Anime.schema';
 import Logger from '~/service/LoggerService';
 import StackServiceClass from '~/service/StackService';
 import axios from 'axios';
 import conf from '~/conf';
 import fs from 'fs';
 import ms from 'ms';
-import { AnimeId } from '~/intf/IAnime';
-import { ArgumentTypes, ISODateString } from '~/intf/types';
+import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives';
+import { AnimeId, ISODateString } from '~/intf/BrandedIds';
+import { ArgumentTypes } from '~/intf/types';
 import { HikkaAPI } from '~/api/external/hikka.api';
 import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
 import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';

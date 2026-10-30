@@ -1,18 +1,21 @@
-import AdminDubberMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
+import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
 import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import StackServiceClass from '~/service/StackService';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
-import { ADMIN_SLUG, IAdminDubberMapData } from '~/intf/IAdmin';
-import { ANIME_STATUS, AnimeId, IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/intf/IAnime';
+import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema';
+import { ANIME_STATUS } from '~/data/AnimePrimitives';
+import { AnimeId } from '~/intf/BrandedIds';
 import { ArgumentTypes } from '~/intf/types';
 import { AshdiAPI } from '~/api/external/ashdi.api';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
+import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/schemas/entities/Anime.schema';
 import { MoonanimeAPI } from '~/api/external/moonanime.api';
 import { NekoError } from '~/service/ExceptionService';
-import { TeamId, asTeamId } from '~/intf/IDubber';
+import { TeamId } from '~/intf/BrandedIds';
+import { asTeamId } from '~/intf/BrandedIds';
 import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
 
 
@@ -30,7 +33,7 @@ interface IUnifiedEpisode {
 
 class AnimePlayerPlayerClass extends AnimeModel {
   constructor(
-    readonly dubbers: IAdminDubberMapData[]
+    readonly teams: IAdminTeamMapData[]
   ) {
     super();
   }
@@ -40,7 +43,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
   /** 
    * Preserve anime player
    * 
-   * @returns {boolean} Wether new episodes have been pulled
+   * @returns {boolean} Whether new episodes have been pulled
    */
   async parse(): Promise<boolean> {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
@@ -79,22 +82,22 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-    // *=== Map episodes to dubbers
+    // *=== Map episodes to teams
     const mapped: Record<string, IUnifiedEpisode[]> = {};
 
     for (const key in episodes) {
       const episode = episodes[key];
       const slug = this.preserveSlug(episode.dubber_name);
-      const existDubber = mapped[slug] as IUnifiedEpisode[];
+      const existTeam = mapped[slug] as IUnifiedEpisode[];
 
-      if (existDubber) {
-        const existEpisode = existDubber.find(el => el.episode === episode.episode);
+      if (existTeam) {
+        const existEpisode = existTeam.find(el => el.episode === episode.episode);
 
         if (existEpisode) {
           if (episode.ashdi_vod) existEpisode.ashdi_vod = episode.ashdi_vod;
           if (episode.moonanime_vod) existEpisode.moonanime_vod = episode.moonanime_vod;
           if (episode.tortuga_vod) existEpisode.tortuga_vod = episode.tortuga_vod;
-        } else existDubber.push(episode);
+        } else existTeam.push(episode);
       } else mapped[slug] = [episode];
     }
 
@@ -107,28 +110,28 @@ class AnimePlayerPlayerClass extends AnimeModel {
       const episodes = mapped[slug];
       let subtitles = false;
 
-      // Parse dubbersIds & subtitles
-      const dubberSlugs = slug.split(/&|\+/g).map(trimString);
-      const dubberIds: TeamId[] = [];
+      // Parse teamsIds & subtitles
+      const teamSlugs = slug.split(/&|\+/g).map(trimString);
+      const teamIds: TeamId[] = [];
 
-      dubberSlugs.forEach(slug => {
-        const dubber = this.getDubber(slug);
-        if (dubber?.id) {
-          dubberIds.push(dubber.id);
+      teamSlugs.forEach(slug => {
+        const team = this.getTeam(slug);
+        if (team?.id) {
+          teamIds.push(team.id);
 
-          if (dubber.subtitles) subtitles = true;
-        } else dubberIds.push(asTeamId(`~notexist-${slug}`));
+          if (team.subtitles) subtitles = true;
+        } else teamIds.push(asTeamId(`~notexist-${slug}`));
       });
 
-      dubberIds.sort();
+      teamIds.sort();
 
-      // Re-define subtitles using dubber name
+      // Re-define subtitles using team name
       if (!subtitles) {
-        subtitles = dubberSlugs.some(el => el.match(/субтитри|SUB/gi));
+        subtitles = teamSlugs.some(el => el.match(/субтитри|SUB/gi));
       }
 
       // Assing episodes
-      const existTeam = mixed.find(el => arrayEqual(el.dubber_ids, dubberIds) && el.subtitles === subtitles);
+      const existTeam = mixed.find(el => arrayEqual(el.dubber_ids, teamIds) && el.subtitles === subtitles);
 
       if (existTeam) {
         episodes.forEach(vod => {
@@ -141,13 +144,13 @@ class AnimePlayerPlayerClass extends AnimeModel {
         });
       } else {
         if (!episodes.length) continue;
-        const dubberName = episodes[0].dubber_name ?? `Невідомо`;
-        const id = buffer2hash(Buffer.from(dubberName));
+        const teamName = episodes[0].dubber_name ?? `Невідомо`;
+        const id = buffer2hash(Buffer.from(teamName));
 
         mixed.push({
           id,
-          dubber_ids: dubberIds,
-          dubber_name: dubberName,
+          dubber_ids: teamIds,
+          dubber_name: teamName,
           vods: episodes,
           subtitles,
         });
@@ -160,7 +163,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
     const player: IAnimePlayer = { dubbed: [], subbed: [] };
 
     mixed.forEach(mixed => {
-      const team = DTOService.excludeKeys(mixed, ['subtitles']) as IAnimePlayerTeam;
+      const team = DTS.excludeKeys(mixed, ['subtitles']) as IAnimePlayerTeam;
       const type: keyof IAnimePlayer = mixed.subtitles ? 'subbed' : 'dubbed';
       const existTeam = this.document!.player[type].find(el => el.id === team.id);
 
@@ -270,24 +273,24 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
     try {
       const response = await AshdiAPI.getTitle(imdbId);
-      const dubbers: AshdiPlType[] = response.pl;
+      const teams: AshdiPlType[] = response.pl;
       const unified: IUnifiedEpisode[] = [];
 
 
 
-      dubbers.forEach(dubber => {
+      teams.forEach(team => {
         // Movies
-        if ('title2' in dubber) {
+        if ('title2' in team) {
           unified.push({
             episode: 1,
-            dubber_name: trimString(dubber.title2),
-            ashdi_vod: dubber.url,
+            dubber_name: trimString(team.title2),
+            ashdi_vod: team.url,
           });
         }
 
         // Serials
-        if ('folder' in dubber) {
-          dubber.folder.filter(dubberFolderFilter).forEach(season => {
+        if ('folder' in team) {
+          team.folder.filter(teamFolderFilter).forEach(season => {
             season.folder.filter(seasonFolderFilter).forEach(episode => {
               let retrievedEpisode = retrieveNumberFromString(episode.title) || 1; // Retrieve episode from title
               if (retrievedEpisode < minSliceIndex) retrievedEpisode = minSliceIndex + 1; // Ensure that episode cannot be less than minSliceIndex
@@ -296,7 +299,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
               unified.push({
                 episode: order,
-                dubber_name: trimString(dubber.title),
+                dubber_name: trimString(team.title),
                 ashdi_vod: `https://ashdi.vip/vod/${episode.id}`,
               });
             });
@@ -313,7 +316,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-    function dubberFolderFilter(season: IAshdiSeason) {
+    function teamFolderFilter(season: IAshdiSeason) {
       return retrieveNumberFromString(season.title) === params.contentSeason;
     }
 
@@ -326,11 +329,11 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 
-  private getDubber(slug: string): { id: TeamId | null, subtitles: boolean } | null {
-    for (const key in this.dubbers) {
-      const dubber = this.dubbers[key];
+  private getTeam(slug: string): { id: TeamId | null, subtitles: boolean } | null {
+    for (const key in this.teams) {
+      const team = this.teams[key];
 
-      if (dubber.synonyms.includes(slug)) return { id: dubber.dubber_id, subtitles: dubber.subtitles };
+      if (team.synonyms.includes(slug)) return { id: team.dubber_id, subtitles: team.subtitles };
     }
 
     return null;
@@ -349,7 +352,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 class AnimePlayerUpdateCrawlerClass {
-  private dubbers: IAdminDubberMapData[] = [];
+  private teams: IAdminTeamMapData[] = [];
   private service: StackServiceClass<AnimeId>;
 
 
@@ -393,18 +396,18 @@ class AnimePlayerUpdateCrawlerClass {
 
 
 
-  async updateDubbersMap() {
-    const admin = new AdminDubberMapRepositoryClass();
-    const dubbers = await admin.getOne({ slug: ADMIN_SLUG.DUBBERS_MAP });
+  async updateTeamsMap() {
+    const admin = new AdminTeamMapRepositoryClass();
+    const teams = await admin.getOne({ slug: ADMIN_SLUG.TEAMS_MAP });
 
-    this.dubbers = dubbers.data;
+    this.teams = teams.data;
   }
 
 
 
   async syncAnimePlayer(id: AnimeId) {
     try {
-      const parser = new AnimePlayerPlayerClass(this.dubbers);
+      const parser = new AnimePlayerPlayerClass(this.teams);
       await parser.init({ id });
       const areNewEpisodesPulled = await parser.parse();
 

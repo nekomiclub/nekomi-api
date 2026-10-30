@@ -2,6 +2,7 @@ import FormData from 'form-data';
 import Logger from '~/service/LoggerService';
 import conf from '~/conf';
 import { $http } from '~/utils/http-utils';
+import { CDNString } from '~/intf/BrandedIds';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 
 
@@ -14,7 +15,7 @@ interface IUploadFileProps {
 
 interface IUploadFileObject {
   id: string
-  url: string
+  url: CDNString
   type: NUS_UPLOAD_TYPE
   hash: string
 }

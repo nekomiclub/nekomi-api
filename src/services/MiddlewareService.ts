@@ -1,13 +1,13 @@
 import CSRFService from './CSRFService';
-import DTOService from './DataTransferService';
-import IUser, { asUserId } from '~/intf/IUser';
+import DTS from './DataTransferService';
+import IUser from '~/schemas/entities/User.schema';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
 import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
-import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
@@ -36,7 +36,7 @@ export default class MiddlewareService {
     if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
     const session = new SessionService();
-    await session.init({ id: asUserId(payload.user_id) });
+    await session.init({ id: payload.user_id });
     await session.parse(token);
 
     let userPermissions: ROLE_PERMISSION[] | null = null;
@@ -58,7 +58,7 @@ export default class MiddlewareService {
 
 
     return {
-      user: DTOService.user(session.document!),
+      user: DTS.user(session.document!),
       permissions: userPermissions,
       sessionId: payload.session_id,
     };

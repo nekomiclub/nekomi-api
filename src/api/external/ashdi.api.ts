@@ -1,6 +1,6 @@
 import axios from 'axios';
 import conf from '~/conf';
-import { IAshdiDubber, IAshdiTitle } from '~/intf/external-api/IAshdi.api';
+import { IAshdiTeam, IAshdiTitle } from '~/intf/external-api/IAshdi.api';
 
 
 
@@ -18,7 +18,7 @@ export class AshdiAPI {
       }
     });
 
-    data.pl = JSON.parse(`${data.pl}`) as IAshdiDubber[];
+    data.pl = JSON.parse(`${data.pl}`) as IAshdiTeam[];
 
     return data;
   }

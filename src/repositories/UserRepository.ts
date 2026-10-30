@@ -1,19 +1,20 @@
-import DTOService from '~/service/DataTransferService';
-import DubberRepository from './DubberRepository';
-import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION, UserLibId } from '~/intf/IUser';
+import DTS from '~/service/DataTransferService';
+import IUser, { IUserViewProgress, USER_LIB_TYPE, USER_RESTRICTION } from '~/schemas/entities/User.schema';
 import Logger from '~/service/LoggerService';
 import RoleRepository from './RoleRepository';
+import TeamRepository from './TeamRepository';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
 import UserValidators from '~/utils/validators/user-validators';
 import conf, { TestMode } from '~/conf';
 import createId, { createNanoId, createUserLibId } from '~/utils/create-id';
 import mongoose, { Schema } from 'mongoose';
-import { AnimeId } from '~/intf/IAnime';
-import { CDNString, RepositoryQueriesType } from '~/intf/types';
+import { AnimeId, CDNString } from '~/intf/BrandedIds';
 import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
 import { NekoError } from '~/service/ExceptionService';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { asUserId } from '~/intf/IUser';
+import { RepositoryQueriesType } from '~/intf/types';
+import { UserLibId } from '~/intf/BrandedIds';
+import { asUserId } from '~/intf/BrandedIds';
 import { calcISO, getUTC } from '~/utils/utils';
 
 
@@ -106,7 +107,7 @@ export class UserModel extends UnifiedModelClass<RepositoryType> {
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.user(this._doc, true);
+    return DTS.user(this._doc, true);
   }
 
 
@@ -135,7 +136,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.user(this._doc, true);
+    return DTS.user(this._doc, true);
   }
 
 
@@ -209,7 +210,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.user(payload, true);
+    return DTS.user(payload, true);
   }
 
 
@@ -222,6 +223,9 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    */
   async setUsername(username: string, props?: ISetUsernameProps) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
+
+    // Reject users from setting username that match "testing"
+    if (!TestMode && username.match(/testing/gi)) throw new NekoError('user:username_not_available');
 
     // Ensure username change is not restricted
     if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
@@ -322,17 +326,17 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
   /**
-   * Set dubber team member
+   * Set team team member
    * 
    * @testing
    */
-  async setDubberTeamMember(id: string | null) {
+  async setTeamMember(id: string | null) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (!id?.length) id = null;
 
-    // Ensure that dubber exist
-    if (id) await DubberRepository.getOne(id);
+    // Ensure that team exist
+    if (id) await TeamRepository.getOne(id);
 
     this._set('dubber_team_member', id);
   }

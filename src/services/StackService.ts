@@ -1,8 +1,7 @@
 import Logger from './LoggerService';
 import createId from '~/utils/create-id';
-import { BrandedId, asBrandedId } from '~/intf/types';
+import { BrandedId, ISODateString, asBrandedId } from '~/intf/BrandedIds';
 import { DevelopmentMode } from '~/conf';
-import { ISODateString } from '~/intf/types';
 import { getUTC } from '~/utils/utils';
 
 

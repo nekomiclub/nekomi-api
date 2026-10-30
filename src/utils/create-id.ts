@@ -1,5 +1,5 @@
 import * as uuid from 'uuid';
-import { asUserLibId, asUserSessionId } from '~/intf/IUser';
+import { asUserLibId, asUserSessionId } from '~/intf/BrandedIds';
 import { nanoid } from 'nanoid';
 
 

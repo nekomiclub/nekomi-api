@@ -1,31 +1,19 @@
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
+import conf, { DevelopmentMode, TestMode } from '~/conf';
 import firebase from 'firebase-admin';
 import z from 'zod';
-import { AUTH_METHOD } from '~/intf/IAuth';
-import { DevelopmentMode } from '~/conf';
+import { AUTH_METHOD } from '~/schemas/auth.schema';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
-import { IUserSession, USER_RESTRICTION } from '~/intf/IUser';
+import { Middleware } from '~/service/MiddlewareService';
+import { USER_RESTRICTION, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
 
 
 
-interface IResponse {
-  message: string
-  user: {
-    id: string
-    username: string
-    avatar: string
-    cover: string
-  }
-  session: IUserSession
-}
-
-
-
-const BodyParser = z.object({
+export const PostAuthBodySchema = z.object({
   method: z.nativeEnum(AUTH_METHOD),
 
   /**
@@ -36,13 +24,19 @@ const BodyParser = z.object({
   token: z.string().optional()
 });
 
+export const PostAuthResponseSchema = z.object({
+  message: z.string(),
+  user: UserMinifiedSchema,
+  session: UserSessionSchema,
+});
+
 
 
 /**
  * Authorize user
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { method, token } = BodyParser.parse(req.body);
+  const { method, token } = PostAuthBodySchema.parse(req.body);
 
 
 
@@ -56,10 +50,15 @@ const endpoint = HandleRequest(async (req, res) => {
     if (!token) throw new NekoError('auth:token_miss');
 
     try {
-      const data = await firebase.auth().verifyIdToken(token);
-      if (!data.email) throw new NekoError(`auth:failed`, `Authorization failed: email is not exist in provider response`);
+      if (TestMode) {
+        // Set email as token in test mode
+        email = token;
+      } else {
+        const data = await firebase.auth().verifyIdToken(token);
+        if (!data.email) throw new NekoError(`auth:failed`, `Authorization failed: email is not exist in provider response`);
 
-      email = data.email;
+        email = data.email;
+      }
     } catch (e) {
       if (e instanceof ErrorConstructor) throw e;
       if (DevelopmentMode) Logger.error(`[Auth (${method})]: Authorization failed`, e);
@@ -81,7 +80,7 @@ const endpoint = HandleRequest(async (req, res) => {
     const repo = new UserRepositoryClass();
     await repo.create();
 
-    await repo.setUsername(email.split('@')[0], { provided: true });
+    await repo.setUsername(email.split('@')[0].toLowerCase(), { provided: true });
     await repo.setEmail(email);
 
     await repo.save();
@@ -105,15 +104,14 @@ const endpoint = HandleRequest(async (req, res) => {
 
   return res.status(200).json({
     message: 'User authorized',
-    user: DTOService.user(user),
+    user: DTS.toUserMinified(user),
     session: sessionData
-  } satisfies IResponse);
+  } satisfies z.infer<typeof PostAuthResponseSchema>);
 });
 
 
 
-const AuthPostRoute = [
+export default [
+  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default AuthPostRoute;

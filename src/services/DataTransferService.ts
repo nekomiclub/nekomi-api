@@ -1,16 +1,25 @@
-import IAnime, { AnimeCardType, AnimeGenres, IAnimePosterNode, IAnimeScreenshotNode } from '~/intf/IAnime';
-import IDubber, { DubberCardType } from '~/intf/IDubber';
-import IUser, { IUserLib, UserCardType } from '~/intf/IUser';
+import IAnime, { AnimeCardType, AnimeExtendedSchema, AnimeMinifiedSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
+import ITeam, { ITeamMinified, TeamCardType, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
+import IUser, { IUserLib, IUserMinified, UserCardType, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
+import z, { ZodSchema } from 'zod';
+import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives';
 import { HydratedDocument } from 'mongoose';
+import { asCDNString } from '~/intf/BrandedIds';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 
 
 
+/**
+ * Exclude specified keys from provided object
+ * 
+ * @returns object copy without specified keys
+ */
 function excludeKeys<T>(object: object, exclude: string[]): T {
   const instance = { ...object } as T;
 
+  // Exclude mongodb keys by default
   exclude.push('_id');
   exclude.push('__v');
 
@@ -25,7 +34,12 @@ function excludeKeys<T>(object: object, exclude: string[]): T {
 
 
 
-function includeKeys<T>(object: object, include: string[]): T {
+/** 
+ * Pick specified keys from provided object
+ * 
+ * @returns object copy with specified keys
+ */
+function pickKeys<T>(object: object, include: string[]): T {
   const instance = {} as T;
 
   include.forEach(key => {
@@ -37,15 +51,21 @@ function includeKeys<T>(object: object, include: string[]): T {
 
 
 
-class DTOServiceClass {
+class DTSClass {
   excludeKeys = excludeKeys;
-  includeKeys = includeKeys;
+  pickKeys = pickKeys;
 
+  /** Parse mongodb HydratedDocument to plain object with excluded default __v keys */
   parse<T = any>(object: HydratedDocument<any> | any): T {
     // Convert HydratedDocument into plain object
     if ('toObject' in object) object = object.toObject();
 
     return excludeKeys(object, []);
+  }
+
+  /** @deprecated idk */
+  refine<S extends ZodSchema>(payload: any, schema: S): z.infer<S> {
+    return schema.parse(payload);
   }
 
 
@@ -73,16 +93,43 @@ class DTOServiceClass {
 
 
 
+  /** @deprecated use toAnimeMinified instead */
   toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score, posters }: IAnime): AnimeCardType {
     return {
       id,
       slug,
       episodes_total,
       score,
-      poster: posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster,
+      poster: asCDNString(posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster),
       title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => AnimeGenres[el]),
+      genres: genres.map(el => AnimeDescribedGenres[el]),
     };
+  }
+
+
+
+  toAnimeMinified(payload: IAnime): IAnimeMinified {
+    return AnimeMinifiedSchema.parse({
+      ...payload,
+      title: payload.title_ua ?? payload.title_en ?? payload.title_ja ?? 'Аніме без назви',
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+    } satisfies IAnimeMinified);
+  }
+
+
+
+  toAnimeExtended(payload: IAnime): IAnimeExtended {
+    return AnimeExtendedSchema.parse({
+      ...this.toAnimeMinified(payload),
+      year: payload.year,
+      short_synopsys: (payload.synopsis_ua ?? payload.synopsis_en)?.slice(0, 300),
+      subtitle: payload.title_en ?? payload.title_ja,
+      type: payload.type ? AnimeNamedRecordSchema[payload.type] : undefined,
+      season: payload.season ? AnimeNamedRecordSchema[payload.season] : undefined,
+      status: payload.status ? AnimeNamedRecordSchema[payload.status] : undefined,
+      rating: payload.rating ? AnimeDescribedRatings[payload.rating] : undefined,
+      genres: payload.genres.map(el => AnimeDescribedGenres[el]),
+    } satisfies IAnimeExtended);
   }
 
 
@@ -108,8 +155,8 @@ class DTOServiceClass {
 
 
 
-  dubber(object: HydratedDocument<IDubber> | IDubber, exposed?: boolean): IDubber {
-    const keys: (keyof IDubber)[] = [
+  team(object: HydratedDocument<ITeam> | ITeam, exposed?: boolean): ITeam {
+    const keys: (keyof ITeam)[] = [
       'members'
     ];
 
@@ -121,8 +168,13 @@ class DTOServiceClass {
 
 
 
-  toDubberCard({ id, avatar, name, slug }: IDubber): DubberCardType {
+  /** @deprecated use toTeamMinified instead */
+  toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
     return { avatar, id, name, slug };
+  }
+
+  toTeamMinified(payload: ITeam): ITeamMinified {
+    return TeamMinifiedSchema.parse(payload);
   }
 
 
@@ -149,13 +201,19 @@ class DTOServiceClass {
 
 
 
+  /** @deprecated use toUserMinified instead */
   toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
     return { avatar, id, username, cover };
   }
 
+  toUserMinified(payload: IUser): IUserMinified {
+    return UserMinifiedSchema.parse(payload);
+  }
 
 
-  async userLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
+
+  /** @deprecated rework somehow */
+  async parseUserLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
     let showPrivate = false;
 
     try {
@@ -173,6 +231,6 @@ class DTOServiceClass {
 
 
 
-const DTOService = new DTOServiceClass();
+const DTS = new DTSClass();
 
-export default DTOService;
+export default DTS;

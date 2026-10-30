@@ -1,4 +1,4 @@
-import { ISODateString } from '~/intf/types';
+import { ISODateString } from '~/intf/BrandedIds';
 
 
 

@@ -1,11 +1,11 @@
-import IUser, { IUserSession, UserSessionId, asUserId } from '~/intf/IUser';
+import IUser, { IUserSession } from '~/schemas/entities/User.schema';
 import Logger from './LoggerService';
 import TokenService, { TOKEN_METHOD } from './TokenService';
 import conf, { DevelopmentMode } from '~/conf';
 import ms from 'ms';
-import { ISODateString } from '~/intf/types';
+import { ISODateString, UserSessionId, asUserSessionId } from '~/intf/BrandedIds';
 import { NekoError } from './ExceptionService';
-import { SessionTokenSchema, SessionTokenType } from '~/intf/IAuth';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { UserModel } from '~/repo/UserRepository';
 import { calcISO, getUTC } from '~/utils/utils';
 import { createNanoId, createUserSessionId } from '~/utils/create-id';
@@ -195,10 +195,10 @@ export default class SessionService extends UserModel {
     const sessionData = TokenService.parse<SessionTokenType>(token, TOKEN_METHOD.USER_SESSION_TOKEN);
     if (!SessionTokenSchema.safeParse(sessionData.payload).success || !sessionData.verified) throw new NekoError('auth:session_token_invalid');
 
-    await this.init({ id: asUserId(sessionData.payload.user_id) });
+    await this.init({ id: sessionData.payload.user_id });
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    const sessionId = sessionData.payload.session_id;
+    const sessionId = asUserSessionId(sessionData.payload.session_id);
     const session = this._doc.sessions.find(el => el.id === sessionId);
     if (!session) throw new NekoError('auth:session_not_exist');
 

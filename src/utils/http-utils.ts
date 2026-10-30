@@ -124,15 +124,6 @@ export function setSessionCookie(token: string, res: express.Response) {
 
 
 
-/** 
- * Remove session cookie from response
- */
-export function removeSessionCookie(res: express.Response) {
-  return res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
-}
-
-
-
 /** Axios instance */
 export const $http = axios.create({
   timeout: 10000

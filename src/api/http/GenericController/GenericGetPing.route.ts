@@ -1,5 +1,13 @@
 import conf from '~/conf';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
+
+
+
+export const GetPingResponseSchema = z.object({
+  message: z.string(),
+  started_at: z.string()
+});
 
 
 
@@ -9,14 +17,12 @@ import { HandleRequest } from '~/utils/http-utils';
 const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'pong!',
-    startedAt: conf.startedAt
-  });
+    started_at: conf.startedAt
+  } satisfies z.infer<typeof GetPingResponseSchema>);
 });
 
 
 
-const GenericGetPingRoute = [
+export default [
   endpoint
 ];
-
-export default GenericGetPingRoute;

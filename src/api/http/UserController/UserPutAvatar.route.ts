@@ -1,4 +1,5 @@
-import HandleUserControllerACUpload, { IUserControllerACUploadResponse, UserControllerACUploadMiddlewares } from './user-controller-utils';
+import HandleUserControllerACUpload, { UserControllerACUploadMiddlewares, UserControllerACUploadResponse } from './user-controller-utils';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 
@@ -14,14 +15,12 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'Avatar updated!',
     url
-  } satisfies IUserControllerACUploadResponse);
+  } satisfies z.infer<typeof UserControllerACUploadResponse>);
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 
 
-const UserPutAvatarRoute = [
+export default [
   ...UserControllerACUploadMiddlewares,
   endpoint
 ];
-
-export default UserPutAvatarRoute;

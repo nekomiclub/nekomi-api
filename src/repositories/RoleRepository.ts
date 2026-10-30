@@ -1,5 +1,5 @@
-import DTOService from '~/service/DataTransferService';
-import IRole, { ROLE_PERMISSION } from '~/intf/IRole';
+import DTS from '~/service/DataTransferService';
+import IRole, { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import createId, { createNanoId } from '~/utils/create-id';
@@ -7,7 +7,7 @@ import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/service/ExceptionService';
 import { RepositoryQueriesType } from '~/intf/types';
 import { TestMode } from '~/conf';
-import { asRoleId } from '~/intf/IRole';
+import { asRoleId } from '~/intf/BrandedIds';
 
 
 
@@ -51,7 +51,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.parse(this._doc);
+    return DTS.parse(this._doc);
   }
 
 
@@ -89,7 +89,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     Logger.info(`[${this.RepositoryName}]: New document has been created! [id: ${id}]`);
     this._doc = document;
 
-    return DTOService.parse(payload);
+    return DTS.parse(payload);
   }
 
 

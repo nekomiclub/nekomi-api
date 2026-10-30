@@ -1,5 +1,5 @@
-import DTOService from '~/service/DataTransferService';
-import ICSRFAgent from '~/intf/ICSRFAgent';
+import DTS from '~/service/DataTransferService';
+import ICSRFAgent from '~/schemas/entities/CSRFAgent.schema';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import createId from '~/utils/create-id';
@@ -62,7 +62,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
   get document(): RepositoryType {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
-    return DTOService.parse(this._doc);
+    return DTS.parse(this._doc);
   }
 
 
@@ -116,7 +116,7 @@ export class CSRFAgentRepositoryClass extends UnifiedRepositoryClass<RepositoryT
 
     Logger.info(`[${this.RepositoryName}]: New agent has been created! [id: ${payload.id}; origin: ${origin}]`);
 
-    return { document: DTOService.parse<ICSRFAgent>(document), privateKey };
+    return { document: DTS.parse<ICSRFAgent>(document), privateKey };
   }
 
 

@@ -1,26 +1,22 @@
-import IAnime, { AnimeType, AnimeTypes } from '~/intf/IAnime';
+import DTS from '~/service/DataTransferService';
+import IAnime, { AnimeExtendedSchema, IAnimeExtended } from '~/schemas/entities/Anime.schema';
 import conf from '~/conf';
+import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import { AnimeSearch, RequestSearch } from '~/service/SearchService';
-import { CDNString } from '~/intf/types';
+import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService';
 import { HandleRequest } from '~/utils/http-utils';
-import { IPagination } from '~/utils/pagination';
 import { Middleware } from '~/service/MiddlewareService';
+import { PaginationSchema } from '~/utils/pagination';
 
 
 
-type AnimeSearchResultType = Pick<IAnime, 'id' | 'slug' | 'title_ua' | 'title_en' | 'score' | 'episodes_released' | 'episodes_total' | 'year'> & {
-  poster: CDNString
-  type: AnimeType | null
-}
+export const GetAnimeSearchQuerySchema = SearchServiceQueryParamsSchema;
 
-
-
-interface IRespone {
-  message: string
-  results: AnimeSearchResultType[]
-  pagination?: IPagination
-}
+export const GetAnimeSearchResponseSchema = z.object({
+  message: z.string(),
+  results: AnimeExtendedSchema.array(),
+  pagination: PaginationSchema.optional()
+});
 
 
 
@@ -31,22 +27,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new AnimeRepositoryClass();
   const { results: raw, pagination } = await RequestSearch<IAnime>(req, repo, AnimeSearch);
 
-  const results: AnimeSearchResultType[] = raw.map(result => {
-    const { id, episodes_released, episodes_total, score, slug, title_en, title_ua, type, year } = result;
-
-    return {
-      id,
-      episodes_released,
-      episodes_total,
-      poster: result.posters.find(el => el.is_hero)?.small ?? result.posters[0]?.small ?? conf.vars.defaultPoster,
-      score,
-      slug,
-      title_en,
-      title_ua,
-      type: type && AnimeTypes[type],
-      year,
-    } satisfies AnimeSearchResultType;
-  });
+  const results: IAnimeExtended[] = raw.map(result => DTS.toAnimeExtended(result));
 
 
 
@@ -54,14 +35,12 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'Animes searched',
     results,
     pagination
-  } satisfies IRespone);
+  } satisfies z.infer<typeof GetAnimeSearchResponseSchema>);
 });
 
 
 
-const AnimeGetSearchRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default AnimeGetSearchRoute;

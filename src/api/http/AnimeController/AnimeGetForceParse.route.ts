@@ -3,15 +3,18 @@ import conf from '~/conf';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
-import { asAnimeId } from '~/intf/IAnime';
+import { AnimeParamsSchema } from './anime-controller-utils';
+import { asAnimeId } from '~/intf/BrandedIds';
 
 
 
-const ParamSchema = z.object({
-  query: z.string().nonempty()
+export const GetAnimeParseParamSchema = AnimeParamsSchema;
+
+export const GetAnimeParseResponseSchema = z.object({
+  message: z.string()
 });
 
 
@@ -20,22 +23,24 @@ const ParamSchema = z.object({
  * Get anime force parse 
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamSchema.parse(req.params);
+  const { query } = GetAnimeParseParamSchema.parse(req.params);
 
   await AnimeUpdateCrawler.syncAnimeDocument(asAnimeId(query));
 
-  await AnimePlayerUpdateCrawler.updateDubbersMap();
+  await AnimePlayerUpdateCrawler.updateTeamsMap();
   await AnimePlayerUpdateCrawler.syncAnimePlayer(asAnimeId(query));
 
-  return res.status(200).json({ message: 'Anime successfully re-parsed' });
+
+
+  return res.status(200).json({
+    message: 'Anime successfully re-parsed'
+  } satisfies z.infer<typeof GetAnimeParseResponseSchema>);
 });
 
 
 
-const AnimeGetForceParseRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   Middleware.CheckAccess([ROLE_PERMISSION.ABSOLUTE]),
   endpoint
 ];
-
-export default AnimeGetForceParseRoute;

@@ -1,46 +1,50 @@
 import AnimeRepository from '~/repo/AnimeRepository';
 import CacheService from '~/service/CacheService';
-import DTOService from '~/service/DataTransferService';
+import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
-import conf from '~/conf';
+import conf, { DevelopmentMode } from '~/conf';
 import ms from 'ms';
-import { AnimeCardType } from '~/intf/IAnime';
+import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
-import { IHomeFeedHero } from '~/intf/types';
+
+import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema';
+import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { getUTC, removeMarkdown } from '~/utils/utils';
 
 
 
-interface IFeed {
-  hero: IHomeFeedHero[]
-  hot: AnimeCardType[]
-  highest_rate: AnimeCardType[]
-  updated_recently: AnimeCardType[]
-}
+const FeedSchema = z.object({
+  hero: HomeFeedHeroSchema.array(),
+  hot: AnimeMinifiedSchema.array(),
+  highest_rate: AnimeMinifiedSchema.array(),
+  updated_recently: AnimeMinifiedSchema.array(),
+});
 
-interface IResponse extends IFeed {
-  message: string
-}
+export const GetHomeFeedResponseSchema = FeedSchema.extend({
+  message: z.string(),
+});
 
 
 
-const FeedCacheService = new CacheService('HomeFeed', { ttl: ms('1day') });
+const FeedCache = new CacheService<z.infer<typeof FeedSchema>>('HomeFeed', { ttl: ms('1day') });
 const feedCacheId = `~feed`;
 
 
 
 /**
  * Get home feed
+ * 
+ * @test X-HomeFeedCacheUsed will be appended as header to display whether cache was used
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const cache = FeedCacheService.get(feedCacheId);
-  const feed: IFeed = cache ?? {
+  const cache = FeedCache.get(feedCacheId);
+  const feed = cache ?? {
     hero: [],
     highest_rate: [],
     hot: [],
     updated_recently: []
-  } satisfies IFeed;
+  } satisfies z.infer<typeof FeedSchema>;
 
 
 
@@ -75,25 +79,25 @@ const endpoint = HandleRequest(async (req, res) => {
        */
       const hotDocuments = await AnimeRepository.getMany({ id: { $in: conf.StaticData.HomeFeed.hot } });
 
-      feed.hot = hotDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.hot = hotDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
       // Process rated documents
       const highestRatedDocuments = await AnimeRepository.getSortedMany(undefined, { sort: { score: 'descending' }, limit: 20 });
 
-      feed.highest_rate = highestRatedDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.highest_rate = highestRatedDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
       // Process recent documents
       const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({ $or: [{ year: getUTC().year }, { year: getUTC().year + 1 }] }, { sort: { updated_at: 'descending' }, limit: 20 });
 
-      feed.updated_recently = updatedRecentlyDocuments.map(el => DTOService.toAnimeCard(el));
+      feed.updated_recently = updatedRecentlyDocuments.map(el => DTS.toAnimeMinified(el));
 
 
 
-      FeedCacheService.append({
+      FeedCache.append({
         id: feedCacheId,
         data: feed
       });
@@ -103,18 +107,18 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
 
+  // Set testing header
+  if (DevelopmentMode) res.setHeader(`X-HomeFeedCacheUsed`, `${Boolean(cache)}`);
 
   return res.status(200).json({
     message: 'Home feed retrieved',
     ...feed
-  } satisfies IResponse);
+  } satisfies z.infer<typeof GetHomeFeedResponseSchema>);
 }, { middlewares: ['checkCSRF'] });
 
 
 
-const GenericGetHomeFeedRoute = [
+export default [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default GenericGetHomeFeedRoute;

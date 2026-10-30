@@ -3,20 +3,11 @@ import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/intf/IRole';
+import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { asAnimeId } from '~/intf/IAnime';
-import { asTeamId } from '~/intf/IDubber';
-import { asUserId, asUserLibId } from '~/intf/IUser';
-
-
-
-interface IResponse {
-  message: string
-
-  /** Changes diff */
-  diff: string[]
-}
+import { asAnimeId } from '~/intf/BrandedIds';
+import { asTeamId } from '~/intf/BrandedIds';
+import { asUserId, asUserLibId } from '~/intf/BrandedIds';
 
 
 
@@ -24,6 +15,8 @@ const editLibAnimeSchema = z.object({
   lib_id: z.string().nonempty().transform(asUserLibId),
   anime_id: z.string().nonempty().transform(asAnimeId),
 });
+
+
 
 const ParamsSchema = z.object({
   id: z.string().nonempty().optional()
@@ -48,6 +41,11 @@ const BodySchema = z.object({
   set_username: z.object({
     username: z.string()
   }).optional(),
+});
+
+const ResponseSchema = z.object({
+  message: z.string(),
+  diff: z.string().array()
 });
 
 
@@ -137,15 +135,13 @@ const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json({
     message: 'User patched!',
     diff
-  } satisfies IResponse);
+  } satisfies z.infer<typeof ResponseSchema>);
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 
 
-const UserPatchSettingsRoute = [
+export default [
   Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   endpoint
 ];
-
-export default UserPatchSettingsRoute;
