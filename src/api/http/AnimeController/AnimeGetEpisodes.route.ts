@@ -20,7 +20,7 @@ const ResponseSchema = CreateResponseSchema(z.object({
 
 registry.registerPath({
   method: 'get',
-  path: '/anime/:query/episodes',
+  path: '/anime/{query}/episodes',
   summary: 'Get anime by query episodes',
   tags: ['Anime Router'],
   request: {

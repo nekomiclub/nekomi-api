@@ -7,7 +7,7 @@ import { registry } from '~/service/openapi/registry';
 
 
 const RequestParamsSchema = z.object({
-  id: z.string().nonempty().optional()
+  id: z.string().nonempty()
 });
 
 const ResponseSchema = CreateResponseSchema(z.object({

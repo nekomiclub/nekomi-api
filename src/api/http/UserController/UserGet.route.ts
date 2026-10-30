@@ -67,9 +67,6 @@ registry.registerPath({
   path: '/user',
   summary: 'Get the authenticated user',
   tags: ['User Router'],
-  request: {
-    query: RequestQuerySchema
-  },
   responses: {
     200: {
       description: 'User info retrieved',
@@ -88,7 +85,7 @@ registry.registerPath({
   summary: 'Get user by query',
   tags: ['User Router'],
   request: {
-    params: RequestParamsSchema,
+    params: RequestParamsSchema.required(),
     query: RequestQuerySchema
   },
   responses: {

@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import SessionService from '~/service/SessionService';
 import conf from '~/conf';
 import request from 'supertest';

@@ -1,6 +1,6 @@
-import IAnime, { AnimeCardType, AnimeExtendedSchema, AnimeMinifiedSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
-import ITeam, { ITeamMinified, TeamCardType, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
-import IUser, { IUserLib, IUserMinified, UserCardType, UserMinifiedSchema } from '~/schemas/entities/User.schema';
+import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
+import ITeam, { ITeamMinified, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
+import IUser, { IUserLib, IUserMinified, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
@@ -93,21 +93,6 @@ class DTSClass {
 
 
 
-  /** @deprecated use toAnimeMinified instead */
-  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score, posters }: IAnime): AnimeCardType {
-    return {
-      id,
-      slug,
-      episodes_total,
-      score,
-      poster: asCDNString(posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster),
-      title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => AnimeDescribedGenres[el]),
-    };
-  }
-
-
-
   toAnimeMinified(payload: IAnime): IAnimeMinified {
     return AnimeMinifiedSchema.parse({
       ...payload,
@@ -169,11 +154,6 @@ class DTSClass {
 
 
 
-  /** @deprecated use toTeamMinified instead */
-  toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
-    return { avatar, id, name, slug };
-  }
-
   toTeamMinified(payload: ITeam): ITeamMinified {
     return TeamMinifiedSchema.parse(payload);
   }
@@ -201,11 +181,6 @@ class DTSClass {
   }
 
 
-
-  /** @deprecated use toUserMinified instead */
-  toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
-    return { avatar, id, username, cover };
-  }
 
   toUserMinified(payload: IUser): IUserMinified {
     return UserMinifiedSchema.parse(payload);

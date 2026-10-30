@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import CSRFService from '~/service/CSRFService';
 import conf from '~/conf';
 import request from 'supertest';

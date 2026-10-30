@@ -19,7 +19,7 @@ export const RoleSchema = z.object({
   slug: z.string(),
   name: z.string(),
   permissions: z.nativeEnum(ROLE_PERMISSION).array(),
-});
+}).openapi('Role');
 
 /* --------------------- */
 /* Inferred type         */

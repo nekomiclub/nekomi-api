@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import request from 'supertest';
 import z from 'zod';
 import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route';

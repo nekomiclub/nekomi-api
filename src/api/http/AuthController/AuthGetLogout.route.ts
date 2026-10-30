@@ -19,11 +19,28 @@ const ResponseSchema = CreateResponseSchema(z.null());
 
 registry.registerPath({
   method: 'get',
+  path: '/auth/logout',
+  summary: 'Logout authenticated session',
+  tags: ['Auth Router'],
+  responses: {
+    200: {
+      description: 'Logged out',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
   path: '/auth/logout/{sessionId}',
-  summary: 'Logout authenticated session or provided in params',
+  summary: 'Logout session with id',
   tags: ['Auth Router'],
   request: {
-    params: RequestParamsSchema
+    params: RequestParamsSchema.required()
   },
   responses: {
     200: {

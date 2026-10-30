@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import { CSRFAgentRepositoryClass } from '~/repo/CSRFAgentRepository';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { shouldfail } from '~/utils/testing-utils';

@@ -18,11 +18,28 @@ const ResponseSchema = CreateResponseSchema(z.object({
 
 registry.registerPath({
   method: 'put',
+  path: '/user/cover',
+  summary: 'Update authenticated user cover. FormData with file=File must be sent',
+  tags: ['User Router'],
+  responses: {
+    200: {
+      description: 'Cover updated',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'put',
   path: '/user/{id}/cover',
   summary: 'Update user with id cover. FormData with file=File must be sent',
   tags: ['User Router'],
   request: {
-    params: RequestParamsSchema
+    params: RequestParamsSchema.required()
   },
   responses: {
     200: {

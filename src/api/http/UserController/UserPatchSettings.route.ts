@@ -50,11 +50,37 @@ const ResponseSchema = CreateResponseSchema(z.null());
 
 registry.registerPath({
   method: 'patch',
+  path: '/user',
+  summary: 'Update the aunthenticated user',
+  tags: ['User Router'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: RequestBodySchema
+        }
+      }
+    },
+  },
+  responses: {
+    200: {
+      description: 'User data updated',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'patch',
   path: '/user/{id}',
   summary: 'Update user with id data',
   tags: ['User Router'],
   request: {
-    params: RequestParamsSchema,
+    params: RequestParamsSchema.required(),
     body: {
       content: {
         'application/json': {

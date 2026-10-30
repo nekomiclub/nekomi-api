@@ -21,7 +21,7 @@ const ResponseSchema = CreateResponseSchema(z.null());
 
 registry.registerPath({
   method: 'get',
-  path: '/anime/:query/parse',
+  path: '/anime/{query}/parse',
   summary: 'Force re-parse anime from 3-rd parties',
   tags: ['Anime Router'],
   request: {

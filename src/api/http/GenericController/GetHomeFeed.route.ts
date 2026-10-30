@@ -15,14 +15,14 @@ import { registry } from '~/service/openapi/registry';
 
 
 
-const FeedSchema = z.object({
+const HomeFeedData = z.object({
   hero: HomeFeedHeroSchema.array(),
   hot: AnimeMinifiedSchema.array(),
   highest_rate: AnimeMinifiedSchema.array(),
   updated_recently: AnimeMinifiedSchema.array(),
 });
 
-const ResponseSchema = CreateResponseSchema(FeedSchema);
+const ResponseSchema = CreateResponseSchema(HomeFeedData);
 
 
 
@@ -35,13 +35,6 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Home feed retrieved',
-      headers: {
-        ...(DevelopmentMode && {
-          'X-HomeFeedCacheUsed': {
-            description: 'Whether is cache has been used'
-          }
-        })
-      },
       content: {
         'application/json': {
           schema: ResponseSchema,
@@ -53,7 +46,7 @@ registry.registerPath({
 
 
 
-const FeedCache = new CacheService<z.infer<typeof FeedSchema>>('HomeFeed', { ttl: ms('1day') });
+const FeedCache = new CacheService<z.infer<typeof HomeFeedData>>('HomeFeed', { ttl: ms('1day') });
 const feedCacheId = `~feed`;
 
 
@@ -70,7 +63,7 @@ const endpoint = HandleRequest(async (req, res) => {
     highest_rate: [],
     hot: [],
     updated_recently: []
-  } satisfies z.infer<typeof FeedSchema>;
+  } satisfies z.infer<typeof HomeFeedData>;
 
 
 

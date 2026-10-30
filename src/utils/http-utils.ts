@@ -139,12 +139,12 @@ export const BaseResponseSchema = z.object({
   code: z.string().nullish(),
   error: z.string().nullish(),
   errors: z.any().array().nullish(),
-});
+}).openapi('BaseResponseSchema');
 
 export const ErrorResponseSchema = CreateResponseSchema(z.object({
   date: z.string().date(),
   requestUrl: z.string().url().nullish(),
-}));
+})).openapi('ErrorResponseSchema');
 
 
 

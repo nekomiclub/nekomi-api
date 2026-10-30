@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import request from 'supertest';
 import z from 'zod';
 import { GetTeamExtendedSchema, TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route';

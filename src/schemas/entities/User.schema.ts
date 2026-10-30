@@ -33,7 +33,7 @@ export const UserSessionSchema = z.object({
 
   expires_at: z.string().transform(asISODateString),
   created_at: z.string().transform(asISODateString),
-});
+}).openapi('UserSession');
 
 export const UserLibSchema = z.object({
   id: z.string().transform(asUserLibId),
@@ -43,7 +43,7 @@ export const UserLibSchema = z.object({
 
   is_public: z.boolean(),
   created_at: z.string().transform(asISODateString),
-});
+}).openapi('UserLib');
 
 export const UserViewProgressSchema = z.object({
   anime_id: z.string(),
@@ -53,7 +53,7 @@ export const UserViewProgressSchema = z.object({
   progress: z.number(), // seconds
 
   updated_at: z.string().transform(asISODateString),
-});
+}).openapi('UserViewProgress');
 
 export const UserSchema = z.object({
   id: z.string().transform(asUserId),
@@ -77,7 +77,7 @@ export const UserSchema = z.object({
   username_changed_at: z.string().transform(asISODateString),
   created_at: z.string().transform(asISODateString),
   updated_at: z.string().transform(asISODateString),
-});
+}).openapi('User');
 
 /* --------------------- */
 /* DTS                   */
@@ -88,7 +88,7 @@ export const UserMinifiedSchema = UserSchema.pick({
   username: true,
   avatar: true,
   cover: true,
-});
+}).openapi('UserMinified');
 
 /* --------------------- */
 /* Inferred type         */
@@ -103,9 +103,6 @@ export type IUserViewProgress = z.infer<typeof UserViewProgressSchema>
 export type IUser = z.infer<typeof UserSchema>
 
 export type IUserMinified = z.infer<typeof UserMinifiedSchema>
-
-/** @deprecated pending rework */
-export type UserCardType = Pick<IUser, 'id' | 'username' | 'avatar' | 'cover'>
 
 
 

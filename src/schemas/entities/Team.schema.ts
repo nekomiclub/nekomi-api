@@ -10,7 +10,7 @@ export const TeamRoleSchema = z.enum([
   'editor',
   'member',
   'pending',
-]);
+]).openapi('TeamRole');
 
 /* --------------------- */
 /* Team member schema    */
@@ -20,7 +20,7 @@ export const TeamMemberSchema = z.object({
   id: z.string().transform(asUserId),
   role: TeamRoleSchema,
   member_since: z.string().transform(asISODateString),
-});
+}).openapi('TeamMember');
 
 /* --------------------- */
 /* Base team schema      */
@@ -54,7 +54,7 @@ export const TeamSchema = z.object({
 
   created_at: z.string().transform(asISODateString),
   updated_at: z.string().transform(asISODateString),
-});
+}).openapi('Team');
 
 /* --------------------- */
 /* DTS                   */
@@ -65,10 +65,9 @@ export const TeamMinifiedSchema = TeamSchema.pick({
   slug: true,
   name: true,
   avatar: true,
-});
+}).openapi('TeamMinified');
 
-/** @deprecated reworked into TeamMinifiedSchema */
-export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
+
 
 /* --------------------- */
 /* Inferred types        */
