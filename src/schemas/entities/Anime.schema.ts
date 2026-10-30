@@ -167,7 +167,8 @@ export const AnimeMinifiedSchema = AnimeSchema.pick({
   score: true,
 }).extend({
   title: z.string(),
-  poster: z.string().transform(asCDNString)
+  poster: z.string().transform(asCDNString),
+  genres: AnimeDescribedRecord.array()
 });
 
 export const AnimeExtendedSchema = AnimeMinifiedSchema.extend({

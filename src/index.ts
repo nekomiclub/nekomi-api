@@ -1,3 +1,5 @@
+import './services/openapi/setup';
+
 import conf, { ProductionMode, TestMode } from './conf';
 
 import AnimeRouter from './api/http/AnimeController/AnimeRouter';
@@ -12,9 +14,8 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import swaggerRouter from './services/openapi/swagger';
 import { traceRequest } from './utils/http-utils';
-
-
 
 
 
@@ -39,6 +40,7 @@ app.use(cors({
 
 
 //* === HTTP Routing
+app.use('/docs', swaggerRouter);
 app.use('/anime', AnimeRouter);
 app.use(['/dubber', '/team'], TeamRouter);
 app.use('/user', UserRouter);

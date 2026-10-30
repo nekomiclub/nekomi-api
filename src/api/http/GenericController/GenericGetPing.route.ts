@@ -1,6 +1,7 @@
 import conf from '~/conf';
 import z from 'zod';
 import { HandleRequest } from '~/utils/http-utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
@@ -26,3 +27,23 @@ const endpoint = HandleRequest(async (req, res) => {
 export default [
   endpoint
 ];
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/',
+  tags: ['Generic'],
+  summary: 'Ping the API',
+  request: {},
+  responses: {
+    200: {
+      description: 'API ping succeeded',
+      content: {
+        'application/json': {
+          schema: GetPingResponseSchema
+        }
+      }
+    }
+  }
+});

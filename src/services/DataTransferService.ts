@@ -113,6 +113,7 @@ class DTSClass {
       ...payload,
       title: payload.title_ua ?? payload.title_en ?? payload.title_ja ?? 'Аніме без назви',
       poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      genres: payload.genres.map(el => AnimeDescribedGenres[el])
     } satisfies IAnimeMinified);
   }
 
