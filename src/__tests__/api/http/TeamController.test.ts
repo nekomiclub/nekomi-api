@@ -1,7 +1,7 @@
 import request from 'supertest';
 import z from 'zod';
-import { GetTeamExtendedSchema, GetTeamQuerySchema, GetTeamResponseSchema } from '~/api/http/TeamController/TeamGet.route';
-import { GetTeamSearchQuerySchema, GetTeamSearchResponseSchema } from '~/api/http/TeamController/TeamGetSearch.route';
+import { GetTeamExtendedSchema, TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route';
+import { TeamGetSearchRouteSchemas } from '~/api/http/TeamController/TeamGetSearch.route';
 import { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { app } from '~/index';
@@ -25,10 +25,10 @@ describe('Test Auth HTTP API Controller', () => {
         .get(`/team/${teamService.document.id}`)
         .expect(200);
 
-      const body = GetTeamResponseSchema.parse(res.body);
+      const body = TeamGetRouteSchemas.ResponseSchema.parse(res.body);
 
-      expect(GetTeamResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-      expect(TeamMinifiedSchema.safeParse(body.team).success).toBeTruthy(); // Minified schema must be returned
+      expect(TeamGetRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(TeamMinifiedSchema.safeParse(body.data.team).success).toBeTruthy(); // Minified schema must be returned
     });
 
 
@@ -38,14 +38,14 @@ describe('Test Auth HTTP API Controller', () => {
         .get(`/team/${teamService.document.id}`)
         .query({
           is_extended: true
-        } satisfies z.infer<typeof GetTeamQuerySchema>)
+        } satisfies z.infer<typeof TeamGetRouteSchemas.RequestQuerySchema>)
         .expect(200)
         .set(`X-CSRF-Token`, `~dev`);
 
-      const body = GetTeamResponseSchema.parse(res.body);
+      const body = TeamGetRouteSchemas.ResponseSchema.parse(res.body);
 
-      expect(GetTeamResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-      expect(GetTeamExtendedSchema.safeParse(body.team).success).toBeTruthy(); // Extended schema must be returned
+      expect(TeamGetRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(GetTeamExtendedSchema.safeParse(body.data.team).success).toBeTruthy(); // Extended schema must be returned
     });
 
 
@@ -55,7 +55,7 @@ describe('Test Auth HTTP API Controller', () => {
         .get(`/team/${teamService.document.id}`)
         .query({
           is_extended: true
-        } satisfies z.infer<typeof GetTeamQuerySchema>)
+        } satisfies z.infer<typeof TeamGetRouteSchemas.RequestQuerySchema>)
         .expect(401)
         .set(`X-CSRF-Token`, `_INVALID`);
 
@@ -73,9 +73,9 @@ describe('Test Auth HTTP API Controller', () => {
         .set('X-CSRF-Token', '~dev')
         .query({
           q: `~all`
-        } satisfies z.infer<typeof GetTeamSearchQuerySchema>);
+        } satisfies z.infer<typeof TeamGetSearchRouteSchemas.RequestQuerySchema>);
 
-      expect(GetTeamSearchResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(TeamGetSearchRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
     });
 
 

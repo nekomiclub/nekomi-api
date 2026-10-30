@@ -21,6 +21,8 @@ export const GetCSRFResponseSchema = z.object({
 
 /**
  * Verify CSRF
+ * 
+ * @deprecated
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { token, origin } = GetCSRFBodySchema.parse(req.body);

@@ -3,8 +3,8 @@ import conf from '~/conf';
 import request from 'supertest';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema';
-import { GetLogoutResponseSchema } from '~/api/http/AuthController/AuthGetLogout.route';
-import { PostAuthBodySchema, PostAuthResponseSchema } from '~/api/http/AuthController/AuthPost.route';
+import { AuthGetLogoutRouteSchemas } from '~/api/http/AuthController/AuthGetLogout.route';
+import { AuthPostRouteSchemas } from '~/api/http/AuthController/AuthPost.route';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -42,7 +42,7 @@ describe(`Test Auth HTTP API Controller`, () => {
         .expect(401)
         .send({
           method: AUTH_METHOD.GOOGLE,
-        } satisfies z.infer<typeof PostAuthBodySchema>);
+        } satisfies z.infer<typeof AuthPostRouteSchemas.RequestBodySchema>);
 
       expect(res.body.code).toBe('auth:token_miss'); // Error code must match provided
     });
@@ -60,12 +60,12 @@ describe(`Test Auth HTTP API Controller`, () => {
         .send({
           method: AUTH_METHOD.GOOGLE,
           token: email
-        } satisfies z.infer<typeof PostAuthBodySchema>);
+        } satisfies z.infer<typeof AuthPostRouteSchemas.RequestBodySchema>);
 
-      const body = res.body as z.infer<typeof PostAuthResponseSchema>;
+      const body = res.body as z.infer<typeof AuthPostRouteSchemas.ResponseSchema>;
       console.log(body);
 
-      expect(PostAuthResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
+      expect(AuthPostRouteSchemas.ResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieExist(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be assigned
     }
   });
@@ -93,7 +93,7 @@ describe(`Test Auth HTTP API Controller`, () => {
         .set(`X-CSRF-Token`, '~dev')
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
-      expect(GetLogoutResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
 
 
@@ -121,7 +121,7 @@ describe(`Test Auth HTTP API Controller`, () => {
         .set(`X-CSRF-Token`, '~dev')
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
-      expect(GetLogoutResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeFalsy(); // Cookie must not removed
 
 

@@ -1,11 +1,40 @@
-import HandleTeamControllerACUpload, { TeamControllerACUploadMiddlewares, TeamControllerACUploadResponseSchema } from './team-controller-utils';
+import HandleTeamControllerACUpload, { TeamControllerACUploadMiddlewares } from './_utils';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const PutTeamAvatarResponseSchema = TeamControllerACUploadResponseSchema;
+const RequestParamsSchema = z.object({
+  id: z.string().nonempty().optional()
+});
+
+const ResponseSchema = CreateResponseSchema(z.object({
+  url: z.string()
+}));
+
+
+
+registry.registerPath({
+  method: 'put',
+  path: '/team/{id}/avatar',
+  summary: 'Update team with id avatar. FormData with file=File must be sent',
+  tags: ['Team Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'Avatar updated',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
 
 
 
@@ -15,15 +44,24 @@ export const PutTeamAvatarResponseSchema = TeamControllerACUploadResponseSchema;
 const endpoint = HandleRequest(async (req, res) => {
   const url = await HandleTeamControllerACUpload(req, new TeamRepositoryClass(), 'uploadAvatar');
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Avatar updated!',
-    url
-  } satisfies z.infer<typeof PutTeamAvatarResponseSchema>);
+    data: {
+      url
+    }
+  }, ResponseSchema));
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 
 
-export default [
-  ...TeamControllerACUploadMiddlewares,
-  endpoint
-];
+export default EndpointMiddlewares([
+  ...TeamControllerACUploadMiddlewares
+], endpoint);
+
+
+
+export const TeamPutAvatarRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

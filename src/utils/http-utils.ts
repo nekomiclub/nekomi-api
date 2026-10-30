@@ -2,6 +2,7 @@ import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf, { ProductionMode } from '~/conf';
 import express from 'express';
+import z, { ZodType } from 'zod';
 import { HandleRequestError, NekoError } from '~/service/ExceptionService';
 import { IncomingHttpHeaders } from 'http';
 import { MiddlewareType } from '~/service/MiddlewareService';
@@ -128,3 +129,36 @@ export function setSessionCookie(token: string, res: express.Response) {
 export const $http = axios.create({
   timeout: 10000
 });
+
+
+
+/** Base HTTP response schema */
+export const BaseResponseSchema = z.object({
+  ok: z.boolean(),
+  message: z.string(),
+  code: z.string().nullish(),
+  error: z.string().nullish(),
+  errors: z.any().array().nullish(),
+});
+
+export const ErrorResponseSchema = CreateResponseSchema(z.object({
+  date: z.string().date(),
+  requestUrl: z.string().url().nullish(),
+}));
+
+
+
+/** Create http response zod schema */
+export function CreateResponseSchema<T extends ZodType>(payload: T) {
+  return BaseResponseSchema.extend({
+    data: payload
+  });
+}
+
+
+/** Send typed response */
+export const SendResponse = <T extends ZodType>(payload: z.infer<T>, schema: T) => payload;
+
+
+
+export const EndpointMiddlewares = (middlewares: express.RequestHandler[], endpoint: express.RequestHandler) => [...middlewares, endpoint];

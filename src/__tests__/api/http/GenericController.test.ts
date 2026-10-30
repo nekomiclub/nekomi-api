@@ -2,9 +2,9 @@ import CSRFService from '~/service/CSRFService';
 import conf from '~/conf';
 import request from 'supertest';
 import z from 'zod';
-import { GetCSRFBodySchema, GetCSRFResponseSchema } from '~/api/http/GenericController/GenericGetCSRF.route';
-import { GetHomeFeedResponseSchema } from '~/api/http/GenericController/GenericGetHomeFeed.route';
-import { GetPingResponseSchema } from '~/api/http/GenericController/GenericGetPing.route';
+import { GetCSRFBodySchema, GetCSRFResponseSchema } from '~/api/http/GenericController/GetCSRF.route';
+import { GetHomeFeedRouteSchema } from '~/api/http/GenericController/GetHomeFeed.route';
+import { GetPingResponseSchema } from '~/api/http/GenericController/GetPing.route';
 import { app } from '~/index';
 import { describe, expect, it } from 'vitest';
 import { shouldRejectCSRF } from '~/utils/testing-utils';
@@ -85,9 +85,9 @@ describe(`Test Generic HTTP API Controller`, () => {
         .expect(200)
         .set(`X-CSRF-Token`, `~dev`);
 
-      const body = res.body as z.infer<typeof GetHomeFeedResponseSchema>;
+      const body = res.body as z.infer<typeof GetHomeFeedRouteSchema.ResponseSchema>;
 
-      expect(GetHomeFeedResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
+      expect(GetHomeFeedRouteSchema.ResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
       expect(res.headers['X-HomeFeedCacheUsed'.toLowerCase()]).toBe('false'); // First request must be uncached
 
       // === SECOND REQUEST

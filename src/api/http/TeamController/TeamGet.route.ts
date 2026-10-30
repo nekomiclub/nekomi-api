@@ -3,12 +3,13 @@ import UserRepository from '~/repo/UserRepository';
 import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { TeamMinifiedSchema, TeamRoleSchema, TeamSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { asISODateString } from '~/intf/BrandedIds';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
@@ -23,34 +24,52 @@ export const GetTeamExtendedSchema = TeamSchema.omit({
   members: TeamExtendedMemberSchema.array()
 });
 
-
-
-export const GetTeamParamSchema = z.object({
-  query: z.string().nonempty()
-});
-
-export const GetTeamQuerySchema = z.object({
-  /**
-   * Get extended team object
-   * 
-   * @requires Authorization (CSRF)
-   */
-  is_extended: zBoolean.optional()
-});
-
-export const GetTeamResponseSchema = z.object({
-  message: z.string(),
+const TeamDataSchema = z.object({
   team: GetTeamExtendedSchema.or(TeamMinifiedSchema)
 });
 
 
 
+const RequestParamsSchema = z.object({
+  query: z.string().nonempty().describe('(slug, id, etc)')
+});
+
+const RequestQuerySchema = z.object({
+  is_extended: zBoolean.optional().describe('Get extended team object. @requires Authorization (CSRF)')
+});
+
+const ResponseSchema = CreateResponseSchema(TeamDataSchema);
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/team/{query}',
+  summary: 'Get team by query',
+  tags: ['Team Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'Team retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+
+
 /**
- * Get dubber document
+ * Get team document
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = GetTeamParamSchema.parse(req.params);
-  const { is_extended } = GetTeamQuerySchema.parse(req.query);
+  const { query } = RequestParamsSchema.parse(req.params);
+  const { is_extended } = RequestQuerySchema.parse(req.query);
 
   const repo = new TeamRepositoryClass();
   await repo.init(query);
@@ -59,7 +78,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
 
-  let team: z.infer<typeof GetTeamResponseSchema.shape.team>;
+  let team: z.infer<typeof TeamDataSchema.shape.team>;
 
 
 
@@ -85,14 +104,23 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
-    message: 'Dubber retrieved',
-    team
-  } satisfies z.infer<typeof GetTeamResponseSchema>);
+  return res.status(200).json(SendResponse({
+    ok: true,
+    message: 'Team retrieved',
+    data: {
+      team
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
-  endpoint
-];
+export default EndpointMiddlewares([], endpoint);
+
+
+
+export const TeamGetRouteSchemas = {
+  RequestParamsSchema,
+  RequestQuerySchema,
+  ResponseSchema,
+};

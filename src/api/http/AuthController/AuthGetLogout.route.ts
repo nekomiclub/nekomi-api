@@ -1,19 +1,40 @@
 import SessionService from '~/service/SessionService';
 import conf from '~/conf';
 import z from 'zod';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { ErrorConstructor } from '~/service/ExceptionService';
-import { HandleRequest } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { getSessionAuth } from '~/utils/auth-utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const GetLogoutParamSchema = z.object({
+const RequestParamsSchema = z.object({
   sessionId: z.string().nonempty().optional()
 });
 
-export const GetLogoutResponseSchema = z.object({
-  message: z.string()
+const ResponseSchema = CreateResponseSchema(z.null());
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/auth/logout/{sessionId}',
+  summary: 'Logout authenticated session or provided in params',
+  tags: ['Auth Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'Logged out',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -24,7 +45,7 @@ export const GetLogoutResponseSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   try {
     const { userId, sessionId } = await getSessionAuth(req, res);
-    const params = GetLogoutParamSchema.parse(req.params);
+    const params = RequestParamsSchema.parse(req.params);
 
     const session = new SessionService();
     await session.init({ id: userId });
@@ -40,19 +61,27 @@ const endpoint = HandleRequest(async (req, res) => {
       // Logout current session
       res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
-      return res.status(200).json({
-        message: 'Session logged out'
-      } satisfies z.infer<typeof GetLogoutResponseSchema>);
+      return res.status(200).json(SendResponse({
+        ok: true,
+        message: 'Session logged out',
+        data: null
+      }, ResponseSchema));
     } else {
       // Logout specified session
-      return res.status(200).json({
-        message: `Session "${targetSessionId}" logged out`
-      } satisfies z.infer<typeof GetLogoutResponseSchema>);
+      return res.status(200).json(SendResponse({
+        ok: true,
+        message: `Session "${targetSessionId}" logged out`,
+        data: null
+      }, ResponseSchema));
     }
   } catch (e) {
     res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
-    if (e instanceof ErrorConstructor && (e.status && e.status < 500)) return res.status(200).json({ message: 'Session logged out' });
+    if (e instanceof ErrorConstructor && (e.status && e.status < 500)) return res.status(200).json(SendResponse({
+      ok: true,
+      message: 'Session logged out',
+      data: null
+    }, ResponseSchema));
 
     throw e;
   }
@@ -60,7 +89,13 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const AuthGetLogoutRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

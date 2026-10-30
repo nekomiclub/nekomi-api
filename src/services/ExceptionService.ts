@@ -3,6 +3,7 @@ import conf, { DevelopmentMode, TestMode } from '~/conf';
 import express from 'express';
 import fs from 'fs';
 import { AxiosError } from 'axios';
+import { ErrorResponseSchema, SendResponse } from '~/utils/http-utils';
 import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils';
 
@@ -103,7 +104,7 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
 
     return true;
   } catch (e) {
-    const date = `${getUTC().fulldate} UTC ${getUTC().time}`;
+    const date = getUTC().ISO;
 
     if (e instanceof ErrorConstructor) {
       // Remove session cookie if token is invalid
@@ -112,14 +113,30 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
         || e.code === 'auth:session_not_exist'
       ) res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
 
-      res.status(e.status ?? 500).json({ message: e.message, error: e.error, code: e.code });
+      res.status(e.status ?? 500).json(SendResponse({
+        ok: false,
+        message: e.message,
+        error: e.error,
+        code: e.code,
+        data: {
+          date
+        }
+      }, ErrorResponseSchema));
 
       return false;
     } else if (e instanceof ZodError) {
       if (DevelopmentMode && !TestMode) console.log(`Validation error`, e.errors);
       if (TestMode) Logger.error(`(TESTING) Validation error`, e.errors);
 
-      res.status(400).json({ message: 'Invalid payload', code: 'sys:validation_failed', errors: e.errors, date });
+      res.status(400).json(SendResponse({
+        ok: false,
+        message: 'Invalid payload',
+        code: 'sys:validation_failed',
+        errors: e.errors,
+        data: {
+          date
+        }
+      }, ErrorResponseSchema));
 
       return false;
     } else if (e instanceof AxiosError) {
@@ -129,32 +146,54 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
 
       const emsg = `[AXIOS (${status})]: ${code} - ${message}`;
 
-      let reqURL = e.config?.url;
+      let requestUrl = e.config?.url;
 
       if (code === 'ECONNREFUSED') {
         const message = `[AXIOS (503)]: Connection refused`;
-        Logger.error(`[AXIOS (503)]: Connection to ${reqURL} refused`);
+        Logger.error(`[AXIOS (503)]: Connection to ${requestUrl} refused`);
 
-        res.status(503).json({ message, code, reqURL, date });
+        res.status(503).json(SendResponse({
+          ok: false,
+          message,
+          code,
+          data: {
+            date,
+            requestUrl
+          }
+        }, ErrorResponseSchema));
 
         return false;
       } else {
         if (status >= 500) {
-          Logger.error(`${emsg}. URL: ${reqURL}`);
+          Logger.error(`${emsg}. URL: ${requestUrl}`);
         } else {
           if (DevelopmentMode && !TestMode) console.log(emsg);
           if (TestMode) Logger.error(`(TESTING) ${emsg}`, e);
         }
       }
 
-      res.status(status).json({ message: emsg, code, reqURL, date });
+      res.status(status).json(SendResponse({
+        ok: false,
+        message: emsg,
+        code,
+        data: {
+          date,
+          requestUrl
+        }
+      }, ErrorResponseSchema));
 
       return false;
     } else {
       const emsg = `[Uncaught]: Uncaught error occured`;
       Logger.error(`[Uncaught]: Uncaught error occured at HandleRequest`, e);
 
-      res.status(500).json({ message: emsg, date });
+      res.status(500).json(SendResponse({
+        ok: false,
+        message: emsg,
+        data: {
+          date
+        }
+      }, ErrorResponseSchema));
     }
 
     return false;

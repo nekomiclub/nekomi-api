@@ -1,8 +1,8 @@
 import request from 'supertest';
 import z from 'zod';
+import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route';
+import { AnimeGetSearchRouteSchemas } from '~/api/http/AnimeController/AnimeGetSearch.route';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import { GetAnimeEpisodesResponseSchema } from '~/api/http/AnimeController/AnimeGetEpisodes.route';
-import { GetAnimeSearchQuerySchema, GetAnimeSearchResponseSchema } from '~/api/http/AnimeController/AnimeGetSearch.route';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { shouldRejectCSRF } from '~/utils/testing-utils';
@@ -28,9 +28,9 @@ describe('Test Anime HTTP API Controller', () => {
         .set('X-CSRF-Token', '~dev')
         .query({
           q: '~all'
-        } satisfies z.infer<typeof GetAnimeSearchQuerySchema>);
+        } satisfies z.infer<typeof AnimeGetSearchRouteSchemas.RequestQuerySchema>);
 
-      expect(GetAnimeSearchResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(AnimeGetSearchRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
     });
 
 
@@ -55,7 +55,7 @@ describe('Test Anime HTTP API Controller', () => {
         .set('X-CSRF-Token', '~dev')
         .expect(200);
 
-      expect(GetAnimeEpisodesResponseSchema.safeParse(res.body).success).toBeTruthy();
+      expect(AnimeGetEpisodesRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy();
     });
 
 

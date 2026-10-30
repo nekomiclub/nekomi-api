@@ -15,14 +15,6 @@ export function generateOpenAPI() {
     info: {
       title: 'nekomi-api',
       version: '0.0.0',
-      description: 'nekomi api server openapi',
     },
-
-    servers: [
-      {
-        url: '/',
-        description: 'Main gateway',
-      },
-    ],
   });
 }

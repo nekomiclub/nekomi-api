@@ -6,28 +6,50 @@ import conf, { DevelopmentMode, TestMode } from '~/conf';
 import firebase from 'firebase-admin';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
-import { HandleRequest, setSessionCookie } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { USER_RESTRICTION, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const PostAuthBodySchema = z.object({
+const RequestBodySchema = z.object({
   method: z.nativeEnum(AUTH_METHOD),
-
-  /**
-   * Authorization token
-   * 
-   * @requires AUTH_METHOD.GOOGLE
-   */
-  token: z.string().optional()
+  token: z.string().optional().describe('Authorization token. @requires AUTH_METHOD.GOOGLE')
 });
 
-export const PostAuthResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   user: UserMinifiedSchema,
   session: UserSessionSchema,
+}));
+
+
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth',
+  summary: 'Authorize in nekomi',
+  tags: ['Auth Router'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: RequestBodySchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Authorized',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -36,7 +58,7 @@ export const PostAuthResponseSchema = z.object({
  * Authorize user
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { method, token } = PostAuthBodySchema.parse(req.body);
+  const { method, token } = RequestBodySchema.parse(req.body);
 
 
 
@@ -102,16 +124,25 @@ const endpoint = HandleRequest(async (req, res) => {
 
   setSessionCookie(sessionToken, res);
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User authorized',
-    user: DTS.toUserMinified(user),
-    session: sessionData
-  } satisfies z.infer<typeof PostAuthResponseSchema>);
+    data: {
+      user: DTS.toUserMinified(user),
+      session: sessionData
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const AuthPostRouteSchemas = {
+  RequestBodySchema,
+  ResponseSchema,
+};

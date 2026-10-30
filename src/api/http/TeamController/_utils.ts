@@ -1,7 +1,6 @@
 import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
-import z from 'zod';
 import { CDNString, TeamId } from '~/intf/BrandedIds';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
@@ -21,11 +20,6 @@ export const TeamControllerACUploadMiddlewares = [
   Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   upload.single('file'),
 ];
-
-export const TeamControllerACUploadResponseSchema = z.object({
-  message: z.string(),
-  url: z.string()
-});
 
 
 

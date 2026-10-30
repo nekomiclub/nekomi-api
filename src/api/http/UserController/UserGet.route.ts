@@ -3,12 +3,13 @@ import MiddlewareService from '~/service/MiddlewareService';
 import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { HandleRequest, getSessionToken } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getSessionToken } from '~/utils/http-utils';
 import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 import { USER_RESTRICTION, UserLibSchema, UserMinifiedSchema, UserSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
@@ -25,58 +26,81 @@ const UserPublicSchema = UserSchema.pick({
   updated_at: true,
 });
 
-
-
-const ParamsSchema = z.object({
-  query: z.string().nonempty().optional(),
-});
-
-const QuerySchema = z.object({
-  /**
-   * Get user permissions & restrictions
-   */
-  get_permissions: zBoolean.optional(),
-
-  /** 
-   * Get extended user object
-   * 
-   * @requires Authorization (CSRF)
-   */
-  is_extended: zBoolean.optional(),
-
-  /** 
-   * Get user view_progress object
-   * 
-   * @requires Authorization (CSRF)
-   */
-  get_view_progress: zBoolean.optional(),
-
-  /** 
-   * Get user email
-   * 
-   * @requires Authorization (CSRF+Authorization) Owner/Moderator
-   */
-  get_email: zBoolean.optional(),
-});
-
-const ResponseSchema = z.object({
-  message: z.string(),
+const UserDataSchema = z.object({
   user: UserPublicSchema.or(UserMinifiedSchema),
 
-  /** @see QuerySchema#get_permissions */
+  /** @see RequestQuerySchema#get_permissions */
   user_permissions: z.nativeEnum(ROLE_PERMISSION).array().optional(),
 
-  /** @see QuerySchema#get_permissions */
+  /** @see RequestQuerySchema#get_permissions */
   user_restrictions: z.nativeEnum(USER_RESTRICTION).array().optional(),
 
-  /** @see QuerySchema#is_extended */
+  /** @see RequestQuerySchema#is_extended */
   user_libs: UserLibSchema.array().optional(),
 
-  /** @see QuerySchema#get_view_progress */
+  /** @see RequestQuerySchema#get_view_progress */
   user_view_progress: UserViewProgressSchema.array().optional(),
 
-  /** @see QuerySchema#get_email */
+  /** @see RequestQuerySchema#get_email */
   user_email: z.string().optional(),
+});
+
+
+
+const RequestParamsSchema = z.object({
+  query: z.string().nonempty().optional().describe('(username, id, etc)'),
+});
+
+const RequestQuerySchema = z.object({
+  get_permissions: zBoolean.optional().describe('Get user permissions & restrictions'),
+  is_extended: zBoolean.optional().describe('Get extended user object. @requires Authorization (CSRF)'),
+  get_view_progress: zBoolean.optional().describe('Get user view_progress object. @requires Authorization (CSRF)'),
+  get_email: zBoolean.optional().describe('Get user email. @requires Authorization (CSRF+Authorization) Owner/Moderator'),
+});
+
+const ResponseSchema = CreateResponseSchema(UserDataSchema);
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/user',
+  summary: 'Get the authenticated user',
+  tags: ['User Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'User info retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/user/{query}',
+  summary: 'Get user by query',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema,
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'User info retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -85,11 +109,11 @@ const ResponseSchema = z.object({
  * Get user by query or by session
  * If query is not provided, will try to parse userId from session
  * 
- * @see QuerySchema
+ * @see RequestQuerySchema
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamsSchema.parse(req.params);
-  const { get_permissions, get_view_progress, get_email, is_extended } = QuerySchema.parse(req.query);
+  const { query } = RequestParamsSchema.parse(req.params);
+  const { get_permissions, get_view_progress, get_email, is_extended } = RequestQuerySchema.parse(req.query);
 
   const repo = new UserRepositoryClass();
 
@@ -113,12 +137,12 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  let user: z.infer<typeof ResponseSchema.shape.user>;
-  let user_permissions: z.infer<typeof ResponseSchema.shape.user_permissions> | undefined;
-  let user_restrictions: z.infer<typeof ResponseSchema.shape.user_restrictions> | undefined;
-  let user_libs: z.infer<typeof ResponseSchema.shape.user_libs> | undefined;
-  let user_view_progress: z.infer<typeof ResponseSchema.shape.user_view_progress> | undefined;
-  let user_email: z.infer<typeof ResponseSchema.shape.user_email> | undefined;
+  let user: z.infer<typeof UserDataSchema.shape.user>;
+  let user_permissions: z.infer<typeof UserDataSchema.shape.user_permissions> | undefined;
+  let user_restrictions: z.infer<typeof UserDataSchema.shape.user_restrictions> | undefined;
+  let user_libs: z.infer<typeof UserDataSchema.shape.user_libs> | undefined;
+  let user_view_progress: z.infer<typeof UserDataSchema.shape.user_view_progress> | undefined;
+  let user_email: z.infer<typeof UserDataSchema.shape.user_email> | undefined;
 
 
 
@@ -153,21 +177,28 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User retrieved',
-    user,
-    user_permissions,
-    user_restrictions,
-    user_libs,
-    user_view_progress,
-    user_email,
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      user,
+      user_permissions,
+      user_restrictions,
+      user_libs,
+      user_view_progress,
+      user_email,
+    }
+  }, ResponseSchema));
 });
 
 
 
-const UserGetRoute = [
-  endpoint
-];
+export default EndpointMiddlewares([], endpoint);
 
-export default UserGetRoute;
+
+
+export const UserGetRouteSchemas = {
+  RequestParamsSchema,
+  RequestQuerySchema,
+  ResponseSchema,
+};

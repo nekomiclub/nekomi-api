@@ -1,20 +1,42 @@
 import AnimeUpdateCrawler from '~/algorithms/AnimeUpdateCrawler';
 import conf from '~/conf';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler';
-import { AnimeParamsSchema } from './anime-controller-utils';
 import { asAnimeId } from '~/intf/BrandedIds';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const GetAnimeParseParamSchema = AnimeParamsSchema;
+const RequestParamsSchema = z.object({
+  query: z.string().nonempty()
+});
 
-export const GetAnimeParseResponseSchema = z.object({
-  message: z.string()
+const ResponseSchema = CreateResponseSchema(z.null());
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/anime/:query/parse',
+  summary: 'Force re-parse anime from 3-rd parties',
+  tags: ['Anime Router'],
+  request: {
+    params: RequestParamsSchema,
+  },
+  responses: {
+    200: {
+      description: 'Anime has been re-parsed',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -23,7 +45,7 @@ export const GetAnimeParseResponseSchema = z.object({
  * Get anime force parse 
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = GetAnimeParseParamSchema.parse(req.params);
+  const { query } = RequestParamsSchema.parse(req.params);
 
   await AnimeUpdateCrawler.syncAnimeDocument(asAnimeId(query));
 
@@ -32,15 +54,23 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
-    message: 'Anime successfully re-parsed'
-  } satisfies z.infer<typeof GetAnimeParseResponseSchema>);
+  return res.status(200).json(SendResponse({
+    ok: true,
+    message: 'Anime successfully re-parsed',
+    data: null
+  }, ResponseSchema));
 });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
   Middleware.CheckAccess([ROLE_PERMISSION.ABSOLUTE]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const AnimeGetForceParseRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

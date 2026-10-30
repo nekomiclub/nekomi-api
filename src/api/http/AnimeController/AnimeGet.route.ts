@@ -2,13 +2,14 @@ import DTS from '~/service/DataTransferService';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeDescribedRecord, AnimeNamedRecordSchema, AnimeNamedSeasons, AnimeNamedStatuses, AnimeNamedTypes } from '~/data/AnimePrimitives';
-import { AnimeGetEpisodes, AnimeGetEpisodesSchema, AnimeParamsSchema } from './anime-controller-utils';
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils';
 import { AnimeMinifiedSchema, AnimeSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/schemas/entities/Anime.schema';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { asCDNString } from '~/intf/BrandedIds';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
+import { registry } from '~/service/openapi/registry';
 import { removeMarkdown } from '~/utils/utils';
 
 
@@ -46,48 +47,57 @@ const AnimePublicSchema = AnimeSchema.pick({
   genres: AnimeDescribedRecord.array(),
 });
 
-/** @see QuerySchema#is_extended */
+/** @see RequestQuerySchema#is_extended */
 const AnimeExtendedSchema = z.object({
   relations: AnimeMinifiedSchema.array(),
   screenshots: AnimeScreenshotNodePublicSchema.array()
 });
 
-
-
-const ParamSchema = AnimeParamsSchema;
-
-const QuerySchema = z.object({
-  /** 
-   * Drop synopsys makrdown
-   * 
-   * @default true
-   */
-  drop_synopsis_markdown: zBoolean.default(true),
-
-  /** 
-   * Get anime business-data (relations, screenshots)
-   * 
-   * @requires Authorization (CSRF)
-   */
-  is_extended: zBoolean.optional(),
-
-  /** 
-   * Get anime episodes
-   * 
-   * @requires Authorization (CSRF)
-   */
-  get_episodes: zBoolean.optional(),
-});
-
-const ResponseSchema = z.object({
-  message: z.string(),
+const AnimeDataSchema = z.object({
   anime: AnimePublicSchema.or(AnimeMinifiedSchema),
 
-  /** @see QuerySchema#is_extended */
+  /** @see RequestQuerySchema#is_extended */
   anime_extended: AnimeExtendedSchema.optional(),
 
-  /** @see QuerySchema#get_episodes */
+  /** @see RequestQuerySchema#get_episodes */
   anime_episodes: AnimeGetEpisodesSchema.optional()
+});
+
+
+
+const RequestParamsSchema = z.object({
+  query: z.string().nonempty()
+});
+
+const RequestQuerySchema = z.object({
+  drop_synopsis_markdown: zBoolean.default(true).describe('Drop synopsys makrdown. @default true'),
+  is_extended: zBoolean.optional().describe('Get anime business-data (relations, screenshots). @requires Authorization (CSRF)'),
+  get_episodes: zBoolean.optional().describe('Get anime episodes. @requires Authorization (CSRF)'),
+});
+
+const ResponseSchema = CreateResponseSchema(AnimeDataSchema);
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/anime/{query}',
+  summary: 'Get anime by query',
+  tags: ['Anime Router'],
+  request: {
+    params: RequestParamsSchema,
+    query: RequestQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Anime retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -96,8 +106,8 @@ const ResponseSchema = z.object({
  * Get anime document
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamSchema.parse(req.params);
-  const { drop_synopsis_markdown, is_extended, get_episodes } = QuerySchema.parse(req.query);
+  const { query } = RequestParamsSchema.parse(req.params);
+  const { drop_synopsis_markdown, is_extended, get_episodes } = RequestQuerySchema.parse(req.query);
 
   const repo = new AnimeRepositoryClass();
   await repo.init(query);
@@ -106,9 +116,9 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
 
-  let anime: z.infer<typeof ResponseSchema.shape.anime>;
-  let anime_extended: z.infer<typeof ResponseSchema.shape.anime_extended> | undefined;
-  let anime_episodes: z.infer<typeof ResponseSchema.shape.anime_episodes> | undefined;
+  let anime: z.infer<typeof AnimeDataSchema.shape.anime>;
+  let anime_extended: z.infer<typeof AnimeDataSchema.shape.anime_extended> | undefined;
+  let anime_episodes: z.infer<typeof AnimeDataSchema.shape.anime_episodes> | undefined;
 
 
 
@@ -152,16 +162,25 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Anime retrieved',
-    anime,
-    anime_extended,
-    anime_episodes
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      anime,
+      anime_extended,
+      anime_episodes
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
-  endpoint
-];
+export default EndpointMiddlewares([], endpoint);
+
+
+
+export const AnimeGetRouteSchemas = {
+  RequestParamsSchema,
+  RequestQuerySchema,
+  ResponseSchema,
+};

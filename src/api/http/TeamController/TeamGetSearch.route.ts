@@ -2,11 +2,12 @@ import DTS from '~/service/DataTransferService';
 import ITeam, { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
 import conf from '~/conf';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
 import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
@@ -16,12 +17,33 @@ export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
 
 
 
-export const GetTeamSearchQuerySchema = SearchServiceQueryParamsSchema;
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
-export const GetTeamSearchResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   results: TeamSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/team/search',
+  summary: 'Search teams',
+  tags: ['Team Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Teams searched',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -41,16 +63,25 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Dubbers searched',
-    results,
-    pagination
-  } satisfies z.infer<typeof GetTeamSearchResponseSchema>);
+    data: {
+      results,
+      pagination
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const TeamGetSearchRouteSchemas = {
+  RequestQuerySchema,
+  ResponseSchema,
+};

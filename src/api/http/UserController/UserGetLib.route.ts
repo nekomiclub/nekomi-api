@@ -3,26 +3,48 @@ import DTS from '~/service/DataTransferService';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeMinifiedSchema, IAnimeMinified } from '~/schemas/entities/Anime.schema';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { UserLibSchema, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
-const ParamsSchema = z.object({
+const RequestParamsSchema = z.object({
   query: z.string().nonempty(),
   libId: z.string().nonempty(),
 });
 
-const ResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   user: UserMinifiedSchema,
   libs: UserLibSchema.array(),
   catalog: AnimeMinifiedSchema.array(),
-  pagination: ParamsSchema.optional()
+  pagination: RequestParamsSchema.optional()
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/user/{query}/lib/{libId}',
+  summary: 'Get user by query lib by id',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'User lib retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -31,7 +53,7 @@ const ResponseSchema = z.object({
  * Get user lib
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { libId, query } = ParamsSchema.parse(req.params);
+  const { libId, query } = RequestParamsSchema.parse(req.params);
 
   const repo = new UserRepositoryClass();
   await repo.init(query);
@@ -52,17 +74,26 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User lib retrieved',
-    libs,
-    user,
-    catalog,
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      libs,
+      user,
+      catalog,
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const UserGetLibRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

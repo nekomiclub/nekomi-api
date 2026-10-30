@@ -4,18 +4,40 @@ import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const GetAnimeSearchQuerySchema = SearchServiceQueryParamsSchema;
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
-export const GetAnimeSearchResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   results: AnimeExtendedSchema.array(),
   pagination: PaginationSchema.optional()
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/anime/search',
+  summary: 'Search anime',
+  tags: ['Anime Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Anime searched',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -31,16 +53,25 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Animes searched',
-    results,
-    pagination
-  } satisfies z.infer<typeof GetAnimeSearchResponseSchema>);
+    data: {
+      results,
+      pagination
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const AnimeGetSearchRouteSchemas = {
+  RequestQuerySchema,
+  ResponseSchema,
+};

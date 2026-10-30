@@ -1,6 +1,6 @@
 import conf from '~/conf';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
@@ -8,6 +8,7 @@ import { UserRepositoryClass } from '~/repo/UserRepository';
 import { asAnimeId } from '~/intf/BrandedIds';
 import { asTeamId } from '~/intf/BrandedIds';
 import { asUserId, asUserLibId } from '~/intf/BrandedIds';
+import { registry } from '~/service/openapi/registry';
 
 
 
@@ -18,11 +19,11 @@ const editLibAnimeSchema = z.object({
 
 
 
-const ParamsSchema = z.object({
+const RequestParamsSchema = z.object({
   id: z.string().nonempty().optional()
 });
 
-const BodySchema = z.object({
+const RequestBodySchema = z.object({
   add_lib_anime: editLibAnimeSchema.optional(),
   remove_lib_anime: editLibAnimeSchema.optional(),
 
@@ -43,9 +44,35 @@ const BodySchema = z.object({
   }).optional(),
 });
 
-const ResponseSchema = z.object({
-  message: z.string(),
-  diff: z.string().array()
+const ResponseSchema = CreateResponseSchema(z.null());
+
+
+
+registry.registerPath({
+  method: 'patch',
+  path: '/user/{id}',
+  summary: 'Update user with id data',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: RequestBodySchema
+        }
+      }
+    },
+  },
+  responses: {
+    200: {
+      description: 'User data updated',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -55,10 +82,10 @@ const ResponseSchema = z.object({
  */
 const endpoint = HandleRequest(async (req, res) => {
   const { id: userId, permissions } = req._nekomi.user!;
-  const params = ParamsSchema.parse(req.params);
+  const params = RequestParamsSchema.parse(req.params);
   const targetId = asUserId(params.id ?? userId);
 
-  const { add_lib_anime, edit_view_progress, remove_lib_anime, remove_view_progress, set_username } = BodySchema.parse(req.body);
+  const { add_lib_anime, edit_view_progress, remove_lib_anime, remove_view_progress, set_username } = RequestBodySchema.parse(req.body);
   if (!Object.keys(req.body).length) return res.status(200).json({ message: `Nothing to patch...` });
 
   const repo = new UserRepositoryClass();
@@ -132,16 +159,24 @@ const endpoint = HandleRequest(async (req, res) => {
 
   await repo.save();
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User patched!',
-    diff
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: null
+  }, ResponseSchema));
 }, { middlewares: ['checkAccess', 'checkCSRF'] });
 
 
 
-export default [
+export default EndpointMiddlewares([
   Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+], endpoint);
+
+
+
+export const UserPatchSettingsRouteSchemas = {
+  RequestParamsSchema,
+  RequestBodySchema,
+  ResponseSchema,
+};
