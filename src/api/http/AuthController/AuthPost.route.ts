@@ -9,7 +9,7 @@ import { AUTH_METHOD } from '~/schemas/auth.schema';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { Middleware } from '~/service/MiddlewareService';
-import { USER_RESTRICTION, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
+import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
 import { registry } from '~/service/openapi/registry';
 
 
@@ -111,7 +111,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   // Prevent banned users from authorizing
-  if (user.restrictions.includes(USER_RESTRICTION.BANNED)) throw new NekoError('user:banned');
+  if (user.restrictions.includes(USER_RESTRICTION_ENUM.BANNED)) throw new NekoError('user:banned');
 
   const session = new SessionService();
   await session.init({ email });

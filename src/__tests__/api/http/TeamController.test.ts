@@ -2,9 +2,9 @@ import '~/service/openapi/setup';
 
 import request from 'supertest';
 import z from 'zod';
-import { GetTeamExtendedSchema, TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route';
+import { TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route';
 import { TeamGetSearchRouteSchemas } from '~/api/http/TeamController/TeamGetSearch.route';
-import { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
+import { TeamMinifiedSchema, TeamPublicSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -47,7 +47,7 @@ describe('Test Auth HTTP API Controller', () => {
       const body = TeamGetRouteSchemas.ResponseSchema.parse(res.body);
 
       expect(TeamGetRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-      expect(GetTeamExtendedSchema.safeParse(body.data.team).success).toBeTruthy(); // Extended schema must be returned
+      expect(TeamPublicSchema.safeParse(body.data.team).success).toBeTruthy(); // Extended schema must be returned
     });
 
 

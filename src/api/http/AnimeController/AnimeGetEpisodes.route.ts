@@ -9,7 +9,7 @@ import { registry } from '~/service/openapi/registry';
 
 
 const RequestParamsSchema = z.object({
-  query: z.string().nonempty()
+  qr: z.string().nonempty()
 });
 
 const ResponseSchema = CreateResponseSchema(z.object({
@@ -20,7 +20,7 @@ const ResponseSchema = CreateResponseSchema(z.object({
 
 registry.registerPath({
   method: 'get',
-  path: '/anime/{query}/episodes',
+  path: '/anime/{qr}/episodes',
   summary: 'Get anime by query episodes',
   tags: ['Anime Router'],
   request: {
@@ -44,7 +44,7 @@ registry.registerPath({
  * Get anime episodes with pagination
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = RequestParamsSchema.parse(req.params);
+  const { qr: query } = RequestParamsSchema.parse(req.params);
 
   const repo = new AnimeRepositoryClass();
   await repo.init(query);

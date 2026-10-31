@@ -6,7 +6,7 @@ import TokenService from './TokenService';
 import conf, { DevelopmentMode, TestMode } from '~/conf';
 import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
@@ -21,7 +21,7 @@ interface ICheckAccess {
   sessionId: string
 
   /** Will be null if required permissions are not specified */
-  permissions: ROLE_PERMISSION[] | null
+  permissions: ROLE_PERMISSION_ENUM[] | null
 }
 
 
@@ -31,7 +31,7 @@ export default class MiddlewareService {
    * Check user authorization
    * Will simply parse user if permissions are not specified, otherwise will ensure that user have required permission
    */
-  async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
+  async checkAccess(token: string, permissions?: ROLE_PERMISSION_ENUM[]): Promise<ICheckAccess> {
     const { payload } = TokenService.decode<SessionTokenType>(token);
     if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
@@ -39,7 +39,7 @@ export default class MiddlewareService {
     await session.init({ id: payload.user_id });
     await session.parse(token);
 
-    let userPermissions: ROLE_PERMISSION[] | null = null;
+    let userPermissions: ROLE_PERMISSION_ENUM[] | null = null;
 
 
 
@@ -48,7 +48,7 @@ export default class MiddlewareService {
       userPermissions = await parseRolesPermissions(session.document!.roles);
 
       // Pass any checks for root 
-      if (!userPermissions.includes(ROLE_PERMISSION.ABSOLUTE)) {
+      if (!userPermissions.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
         permissions.forEach(perm => {
           if (!userPermissions?.includes(perm)) throw new NekoError('sys:action_prevented', `Lack of permission: ${perm}`);
         });
@@ -104,7 +104,7 @@ class MiddlewareClass {
   /** 
    * Middleware wrapper for {@link MiddlewareService.checkAccess} 
    */
-  CheckAccess = (permissions?: ROLE_PERMISSION[]) => HandleMiddleware(async (req, res) => {
+  CheckAccess = (permissions?: ROLE_PERMISSION_ENUM[]) => HandleMiddleware(async (req, res) => {
     const token = getSessionToken(req);
 
     const { user, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);

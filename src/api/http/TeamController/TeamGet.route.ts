@@ -4,51 +4,38 @@ import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { TeamMinifiedSchema, TeamRoleSchema, TeamSchema } from '~/schemas/entities/Team.schema';
+import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { UserMinifiedSchema } from '~/schemas/entities/User.schema';
-import { asISODateString } from '~/intf/BrandedIds';
 import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
 import { registry } from '~/service/openapi/registry';
 
 
 
-const TeamExtendedMemberSchema = UserMinifiedSchema.extend({
-  role: TeamRoleSchema,
-  member_since: z.string().transform(asISODateString)
-});
-
-export const GetTeamExtendedSchema = TeamSchema.omit({
-  members: true
-}).extend({
-  members: TeamExtendedMemberSchema.array()
-});
-
-const TeamDataSchema = z.object({
-  team: GetTeamExtendedSchema.or(TeamMinifiedSchema)
-});
-
-
-
 const RequestParamsSchema = z.object({
-  query: z.string().nonempty().describe('(slug, id, etc)')
+  qr: z.string().nonempty().describe('(slug, id, etc)')
 });
 
 const RequestQuerySchema = z.object({
   is_extended: zBoolean.optional().describe('Get extended team object. @requires Authorization (CSRF)')
 });
 
-const ResponseSchema = CreateResponseSchema(TeamDataSchema);
+const ResponseSchema = CreateResponseSchema(z.object({
+  team: TeamPublicSchema,
+
+  /** @see query#is_extended */
+  team_members: TeamMemberExtendedSchema.array().optional()
+}));
 
 
 
 registry.registerPath({
   method: 'get',
-  path: '/team/{query}',
+  path: '/team/{qr}',
   summary: 'Get team by query',
   tags: ['Team Router'],
   request: {
-    params: RequestParamsSchema
+    params: RequestParamsSchema,
+    query: RequestQuerySchema
   },
   responses: {
     200: {
@@ -68,7 +55,7 @@ registry.registerPath({
  * Get team document
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = RequestParamsSchema.parse(req.params);
+  const { qr: query } = RequestParamsSchema.parse(req.params);
   const { is_extended } = RequestQuerySchema.parse(req.query);
 
   const repo = new TeamRepositoryClass();
@@ -78,19 +65,23 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
 
-  let team: z.infer<typeof TeamDataSchema.shape.team>;
+  let team: ITeamPublic | undefined = undefined;
+  let team_members: ITeamMemberExtended[] | undefined = undefined;
+
+  const refinedTeam = TeamSchema.parse(repo.document);
+
+  team = refinedTeam;
 
 
 
   if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-    const refinedTeam = TeamSchema.parse(repo.document);
     const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 
-    refinedTeam.members = users.map(user => {
+    team_members = users.map(user => {
       const refinedUser = DTS.toUserMinified(user);
       const { member_since, role } = repo.document.members.find(el => el.id === user.id)!;
 
-      const memberExtendede = TeamExtendedMemberSchema.parse({
+      const memberExtendede = TeamMemberExtendedSchema.parse({
         ...refinedUser,
         role,
         member_since,
@@ -98,9 +89,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
       return memberExtendede;
     });
-
-    team = refinedTeam;
-  } else team = DTS.refine(repo.document, TeamMinifiedSchema);
+  }
 
 
 
@@ -108,7 +97,8 @@ const endpoint = HandleRequest(async (req, res) => {
     ok: true,
     message: 'Team retrieved',
     data: {
-      team
+      team,
+      team_members
     }
   }, ResponseSchema));
 });

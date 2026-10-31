@@ -2,7 +2,7 @@ import MiddlewareService from '~/service/MiddlewareService';
 import SessionService from '~/service/SessionService';
 import express from 'express';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserId, UserSessionId } from '~/intf/BrandedIds';
 import { asUserSessionId } from '~/intf/BrandedIds';
 import { getCSRFToken, getSessionToken } from './http-utils';
@@ -13,7 +13,7 @@ import { parseRolesPermissions } from '~/repo/RoleRepository';
 interface IGetSessionAuth {
   userId: UserId
   sessionId: UserSessionId
-  permissions: ROLE_PERMISSION[]
+  permissions: ROLE_PERMISSION_ENUM[]
 }
 
 
@@ -71,9 +71,9 @@ export async function isRequesterAccountOwner(req: express.Request, targetUserId
 export async function isRequesterAdmin(req: express.Request, state?: boolean): Promise<boolean> {
   if (state) return state;
 
-  const { permissions } = await new MiddlewareService().checkAccess(getSessionToken(req), [ROLE_PERMISSION.BASIC]);
+  const { permissions } = await new MiddlewareService().checkAccess(getSessionToken(req), [ROLE_PERMISSION_ENUM.BASIC]);
 
-  state = permissions?.includes(ROLE_PERMISSION.ABSOLUTE) ?? false;
+  state = permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE) ?? false;
   return state;
 }
 

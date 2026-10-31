@@ -1,5 +1,5 @@
 import DTS from '~/service/DataTransferService';
-import IRole, { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import IRole, { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import Logger from '~/service/LoggerService';
 import UnifiedRepositoryClass from './UnifiedRepository';
 import createId, { createNanoId } from '~/utils/create-id';
@@ -78,7 +78,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       id,
       name,
       slug,
-      permissions: [ROLE_PERMISSION.BASIC]
+      permissions: [ROLE_PERMISSION_ENUM.BASIC]
     };
 
 
@@ -94,7 +94,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
-  appendPermission(perm: ROLE_PERMISSION) {
+  appendPermission(perm: ROLE_PERMISSION_ENUM) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (this._doc.permissions.includes(perm)) return;
@@ -106,7 +106,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
 
 
-  removePermission(perm: ROLE_PERMISSION) {
+  removePermission(perm: ROLE_PERMISSION_ENUM) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     if (!this._doc.permissions.includes(perm)) return;
@@ -122,8 +122,8 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 /**
  * Parse roles permissions
  */
-export async function parseRolesPermissions(slugs: string[]): Promise<ROLE_PERMISSION[]> {
-  const permissions: ROLE_PERMISSION[] = [];
+export async function parseRolesPermissions(slugs: string[]): Promise<ROLE_PERMISSION_ENUM[]> {
+  const permissions: ROLE_PERMISSION_ENUM[] = [];
 
   const roles = await RoleRepository.getMany({ slug: { $in: slugs } });
 

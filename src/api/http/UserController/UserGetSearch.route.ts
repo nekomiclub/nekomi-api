@@ -5,11 +5,13 @@ import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
-import { RequestSearch, UserSearch } from '~/service/SearchService';
+import { RequestSearch, SearchServiceQueryParamsSchema, UserSearch } from '~/service/SearchService';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { registry } from '~/service/openapi/registry';
 
 
+
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
 const ResponseSchema = CreateResponseSchema(z.object({
   results: UserMinifiedSchema.array(),
@@ -23,6 +25,9 @@ registry.registerPath({
   path: '/user/search',
   summary: 'Search users',
   tags: ['User Router'],
+  request: {
+    query: RequestQuerySchema,
+  },
   responses: {
     200: {
       description: 'Users searched',

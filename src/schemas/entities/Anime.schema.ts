@@ -15,7 +15,7 @@ export const AnimePosterNodeSchema = z.object({
   is_hero: z.boolean(),
   pull_hash: z.string(),
 
-  _unprocessedAuthorName: z.string().optional(),
+  _unprocessedAuthorName: z.string().nullish(),
 });
 
 /** Anime poster node schema with omitted internal info */
@@ -138,11 +138,11 @@ export const AnimeSchema = z.object({
 
   ashdi_url: z.string().nullable(),
 
-  genres: z.nativeEnum(ANIME_GENRE).array(),
-  rating: z.nativeEnum(ANIME_RATING).nullable(),
-  status: z.nativeEnum(ANIME_STATUS).nullable(),
-  season: z.nativeEnum(ANIME_SEASON).nullable(),
-  type: z.nativeEnum(ANIME_TYPE).nullable(),
+  genres: z.nativeEnum(ANIME_GENRE).openapi('ANIME_GENRE_ENUM').array(),
+  rating: z.nativeEnum(ANIME_RATING).openapi('ANIME_RATING_ENUM').nullable(),
+  status: z.nativeEnum(ANIME_STATUS).openapi('ANIME_STATUS_ENUM').nullable(),
+  season: z.nativeEnum(ANIME_SEASON).openapi('ANIME_SEASON_ENUM').nullable(),
+  type: z.nativeEnum(ANIME_TYPE).openapi('ANIME_TYPE_ENUM').nullable(),
 
   content_season: z.number().nullable(),
 
@@ -153,11 +153,47 @@ export const AnimeSchema = z.object({
   episodes_synced_at: z.string().transform(asISODateString).nullable(),
 
   is_DMCA_restricted: z.boolean().optional(),
-}).openapi('Anime');
+});
 
 /* --------------------- */
 /* DTS                   */
 /* --------------------- */
+
+export const AnimePublicSchema = AnimeSchema.pick({
+  id: true,
+  mal_id: true,
+  imdb_id: true,
+  slug: true,
+  hikka_slug: true,
+  year: true,
+  episodes_total: true,
+  episodes_released: true,
+  title_en: true,
+  title_ja: true,
+  title_ua: true,
+  title_synonims: true,
+  synopsis_en: true,
+  synopsis_ua: true,
+  score: true,
+  scored_by: true,
+  studios: true,
+  schedule: true,
+
+  updated_at: true,
+  created_at: true,
+
+  about_synced_at: true,
+  episodes_synced_at: true,
+
+  is_DMCA_restricted: true,
+}).extend({
+  poster: z.string().transform(asCDNString),
+  type: AnimeNamedRecordSchema.openapi('AnimeType').nullish(),
+  season: AnimeNamedRecordSchema.openapi('AnimeSeason').nullish(),
+  status: AnimeNamedRecordSchema.openapi('AnimeStatus').nullish(),
+  rating: AnimeDescribedRecord.openapi('AnimeRating').nullish(),
+  genres: AnimeDescribedRecord.openapi('AnimeGenre').array(),
+}).openapi('Anime');
 
 export const AnimeMinifiedSchema = AnimeSchema.pick({
   id: true,

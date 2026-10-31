@@ -11,7 +11,7 @@ const TeamRouter = express.Router();
 
 
 TeamRouter.get('/search', TeamGetSearchRoute);
-TeamRouter.get('/:query', TeamGetRoute);
+TeamRouter.get('/:qr', TeamGetRoute);
 
 // DubberRouter.post('/');
 

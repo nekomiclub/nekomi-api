@@ -3,7 +3,7 @@ import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { asAnimeId } from '~/intf/BrandedIds';
 import { asTeamId } from '~/intf/BrandedIds';
@@ -20,7 +20,7 @@ const editLibAnimeSchema = z.object({
 
 
 const RequestParamsSchema = z.object({
-  id: z.string().nonempty().optional()
+  id: z.string().nonempty()
 });
 
 const RequestBodySchema = z.object({
@@ -47,32 +47,6 @@ const RequestBodySchema = z.object({
 const ResponseSchema = CreateResponseSchema(z.null());
 
 
-
-registry.registerPath({
-  method: 'patch',
-  path: '/user',
-  summary: 'Update the aunthenticated user',
-  tags: ['User Router'],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: RequestBodySchema
-        }
-      }
-    },
-  },
-  responses: {
-    200: {
-      description: 'User data updated',
-      content: {
-        'application/json': {
-          schema: ResponseSchema
-        }
-      }
-    }
-  }
-});
 
 registry.registerPath({
   method: 'patch',
@@ -121,7 +95,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
     await repo.init({ id: userId });
   } else {
-    if (permissions?.includes(ROLE_PERMISSION.ABSOLUTE)) {
+    if (permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
       // Update target user if current user is eligible to do this
 
       await repo.init({ id: targetId });
@@ -195,7 +169,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
 ], endpoint);
 

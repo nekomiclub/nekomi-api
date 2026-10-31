@@ -14,7 +14,7 @@ import { registry } from '~/service/openapi/registry';
 
 
 const RequestParamsSchema = z.object({
-  query: z.string().nonempty(),
+  qr: z.string().nonempty(),
   libId: z.string().nonempty(),
 });
 
@@ -29,7 +29,7 @@ const ResponseSchema = CreateResponseSchema(z.object({
 
 registry.registerPath({
   method: 'get',
-  path: '/user/{query}/lib/{libId}',
+  path: '/user/{qr}/lib/{libId}',
   summary: 'Get user by query lib by id',
   tags: ['User Router'],
   request: {
@@ -53,7 +53,7 @@ registry.registerPath({
  * Get user lib
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { libId, query } = RequestParamsSchema.parse(req.params);
+  const { libId, qr: query } = RequestParamsSchema.parse(req.params);
 
   const repo = new UserRepositoryClass();
   await repo.init(query);

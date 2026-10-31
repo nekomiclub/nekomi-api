@@ -5,7 +5,7 @@ import z from 'zod';
 import { CDNString, asUserId } from '~/intf/BrandedIds';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 
 
@@ -18,7 +18,7 @@ const upload = multer();
 
 export const UserControllerACUploadMiddlewares = [
   Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
   upload.single('file'),
 ];
 
@@ -56,7 +56,7 @@ export default async function HandleUserControllerACUpload(req: express.Request,
 
     await repo.init({ id: userId });
   } else {
-    if (permissions?.includes(ROLE_PERMISSION.ABSOLUTE)) {
+    if (permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
       // Update target user if current user is eligible to do this
 
       await repo.init({ id: targetId });

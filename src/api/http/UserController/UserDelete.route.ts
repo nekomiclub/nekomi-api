@@ -14,23 +14,6 @@ const RequestParamsSchema = z.object({
 
 registry.registerPath({
   method: 'delete',
-  path: '/user',
-  summary: 'Delete the authenticated user',
-  tags: ['User Router'],
-  responses: {
-    501: {
-      description: 'Endpoint is not implemented',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema
-        }
-      }
-    }
-  }
-});
-
-registry.registerPath({
-  method: 'delete',
   path: '/user/{id}',
   summary: 'Delete user by id',
   tags: ['User Router'],

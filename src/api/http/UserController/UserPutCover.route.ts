@@ -7,7 +7,7 @@ import { registry } from '~/service/openapi/registry';
 
 
 const RequestParamsSchema = z.object({
-  id: z.string().nonempty().optional()
+  id: z.string().nonempty()
 });
 
 const ResponseSchema = CreateResponseSchema(z.object({
@@ -18,28 +18,11 @@ const ResponseSchema = CreateResponseSchema(z.object({
 
 registry.registerPath({
   method: 'put',
-  path: '/user/cover',
-  summary: 'Update authenticated user cover. FormData with file=File must be sent',
-  tags: ['User Router'],
-  responses: {
-    200: {
-      description: 'Cover updated',
-      content: {
-        'application/json': {
-          schema: ResponseSchema
-        }
-      }
-    }
-  }
-});
-
-registry.registerPath({
-  method: 'put',
   path: '/user/{id}/cover',
   summary: 'Update user with id cover. FormData with file=File must be sent',
   tags: ['User Router'],
   request: {
-    params: RequestParamsSchema.required()
+    params: RequestParamsSchema
   },
   responses: {
     200: {

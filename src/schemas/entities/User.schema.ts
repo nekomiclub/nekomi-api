@@ -7,14 +7,14 @@ import { asAnimeId, asCDNString, asISODateString, asUserId, asUserLibId, asUserS
 /* Native enum           */
 /* --------------------- */
 
-export enum USER_RESTRICTION {
+export enum USER_RESTRICTION_ENUM {
   BANNED = 'user:banned',
   UPLOAD_AVATAR = 'user:upload_avatar',
   UPLOAD_COVER = 'user:upload_cover',
   USERNAME_CHANGE = 'user:username_change',
 }
 
-export enum USER_LIB_TYPE {
+export enum USER_LIB_TYPE_ENUM {
   FAVORITE = 'favorite',
   WATCHING = 'watching',
   WATCHED = 'watched',
@@ -33,11 +33,11 @@ export const UserSessionSchema = z.object({
 
   expires_at: z.string().transform(asISODateString),
   created_at: z.string().transform(asISODateString),
-}).openapi('UserSession');
+});
 
 export const UserLibSchema = z.object({
   id: z.string().transform(asUserLibId),
-  type: z.nativeEnum(USER_LIB_TYPE),
+  type: z.nativeEnum(USER_LIB_TYPE_ENUM).openapi('USER_LIB_TYPE_ENUM'),
 
   anime_ids: z.string().transform(asAnimeId).array(),
 
@@ -65,7 +65,7 @@ export const UserSchema = z.object({
 
   roles: z.string().array(),
   libs: UserLibSchema.array(),
-  restrictions: z.nativeEnum(USER_RESTRICTION).array(),
+  restrictions: z.nativeEnum(USER_RESTRICTION_ENUM).openapi('USER_RESTRICTION_ENUM').array(),
   sessions: UserSessionSchema.array(),
   subscriptions: z.string().array(),
 
@@ -77,11 +77,25 @@ export const UserSchema = z.object({
   username_changed_at: z.string().transform(asISODateString),
   created_at: z.string().transform(asISODateString),
   updated_at: z.string().transform(asISODateString),
-}).openapi('User');
+});
 
 /* --------------------- */
 /* DTS                   */
 /* --------------------- */
+
+export const UserPublicSchema = UserSchema.pick({
+  id: true,
+  username: true,
+
+  avatar: true,
+  cover: true,
+
+  dubber_team_member: true,
+
+  username_changed_at: true,
+  created_at: true,
+  updated_at: true,
+}).openapi('User');
 
 export const UserMinifiedSchema = UserSchema.pick({
   id: true,
@@ -101,6 +115,7 @@ export type IUserLib = z.infer<typeof UserLibSchema>
 export type IUserViewProgress = z.infer<typeof UserViewProgressSchema>
 
 export type IUser = z.infer<typeof UserSchema>
+export type IUserPublic = z.infer<typeof UserPublicSchema>
 
 export type IUserMinified = z.infer<typeof UserMinifiedSchema>
 

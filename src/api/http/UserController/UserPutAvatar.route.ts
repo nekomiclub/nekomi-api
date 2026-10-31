@@ -7,7 +7,7 @@ import { registry } from '~/service/openapi/registry';
 
 
 const RequestParamsSchema = z.object({
-  id: z.string().nonempty().optional()
+  id: z.string().nonempty()
 });
 
 const ResponseSchema = CreateResponseSchema(z.object({
@@ -15,23 +15,6 @@ const ResponseSchema = CreateResponseSchema(z.object({
 }));
 
 
-
-registry.registerPath({
-  method: 'put',
-  path: '/user/avatar',
-  summary: 'Update authenticated user avatar. FormData with file=File must be sent',
-  tags: ['User Router'],
-  responses: {
-    200: {
-      description: 'Avatar updated',
-      content: {
-        'application/json': {
-          schema: ResponseSchema
-        }
-      }
-    }
-  }
-});
 
 registry.registerPath({
   method: 'put',
