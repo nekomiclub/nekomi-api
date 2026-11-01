@@ -1,6 +1,5 @@
 import DTS from '~/service/DataTransferService';
 import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
-import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService';
@@ -66,7 +65,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

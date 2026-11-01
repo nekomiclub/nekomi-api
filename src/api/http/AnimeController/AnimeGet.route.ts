@@ -7,7 +7,7 @@ import { AnimeMinifiedSchema, AnimePosterNodeSchema, AnimePublicSchema, AnimeScr
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
+import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils';
 import { registry } from '~/service/openapi/registry';
 import { removeMarkdown } from '~/utils/utils';
 
@@ -38,8 +38,8 @@ const RequestParamsSchema = z.object({
 
 const RequestQuerySchema = z.object({
   drop_synopsis_markdown: zBoolean.optional().describe('Drop synopsys makrdown. @default true'),
-  is_extended: zBoolean.optional().describe('Get anime business-data (relations, screenshots). @requires Authorization (CSRF)'),
-  get_episodes: zBoolean.optional().describe('Get anime episodes. @requires Authorization (CSRF)'),
+  is_extended: zBoolean.optional().describe('Get anime business-data (relations, screenshots). @requires Authorization (API Key)'),
+  get_episodes: zBoolean.optional().describe('Get anime episodes. @requires Authorization (API Key)'),
 });
 
 const ResponseSchema = CreateResponseSchema(AnimeDataSchema);
@@ -79,9 +79,9 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new AnimeRepositoryClass();
   await repo.init(query);
 
-  let isCSRFValid = false;
+  let isAPIKeyValid = false;
 
-  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+  const checkAPIKey = async (...args: ArgumentTypes<typeof isRequesterAPIValid>) => { return isAPIKeyValid = await isRequesterAPIValid(...args); };
 
   let anime: z.infer<typeof AnimeDataSchema.shape.anime>;
   let anime_extended: z.infer<typeof AnimeDataSchema.shape.anime_extended> | undefined;
@@ -107,7 +107,7 @@ const endpoint = HandleRequest(async (req, res) => {
   anime = animeRefined;
 
   // Handle is_extended
-  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (is_extended && isEligible(`is_extended`, await checkAPIKey(req, isAPIKeyValid))) {
     // Append anime_extended
     const relationsResults = await repo.getMany({ mal_id: { $in: repo.document.relations.map(el => el.mal_id) } });
     const relations: IAnimeMinified[] = relationsResults.map(el => DTS.toAnimeMinified(el));
@@ -122,7 +122,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   // Handle get_episodes
-  if (get_episodes && isEligible(`get_episodes`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (get_episodes && isEligible(`get_episodes`, await checkAPIKey(req, isAPIKeyValid))) {
     anime_episodes = await AnimeGetEpisodes(repo.document);
   }
 

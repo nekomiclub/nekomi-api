@@ -1,6 +1,5 @@
 import DTS from '~/service/DataTransferService';
 import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
-import conf from '~/conf';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
@@ -65,7 +64,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

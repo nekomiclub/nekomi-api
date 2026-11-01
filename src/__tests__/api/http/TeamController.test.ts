@@ -1,5 +1,6 @@
 import '~/service/openapi/setup';
 
+import conf from '~/conf';
 import request from 'supertest';
 import z from 'zod';
 import { TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route';
@@ -8,7 +9,7 @@ import { TeamMinifiedSchema, TeamPublicSchema } from '~/schemas/entities/Team.sc
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { shouldRejectCSRF } from '~/utils/testing-utils';
+import { shouldRejectAPIKey } from '~/utils/testing-utils';
 
 
 
@@ -42,7 +43,7 @@ describe('Test Auth HTTP API Controller', () => {
           is_extended: true
         } satisfies z.infer<typeof TeamGetRouteSchemas.RequestQuerySchema>)
         .expect(200)
-        .set(`X-CSRF-Token`, `~dev`);
+        .set(`X-API-Key`, conf.env.API_KEY_SK);
 
       const body = TeamGetRouteSchemas.ResponseSchema.parse(res.body);
 
@@ -52,16 +53,16 @@ describe('Test Auth HTTP API Controller', () => {
 
 
 
-    it('Should reject extended team retrieve is CSRF invalid', async () => {
+    it('Should reject extended team retrieve is API Key invalid', async () => {
       const res = await request(app)
         .get(`/team/${teamService.document.id}`)
         .query({
           is_extended: true
         } satisfies z.infer<typeof TeamGetRouteSchemas.RequestQuerySchema>)
         .expect(401)
-        .set(`X-CSRF-Token`, `_INVALID`);
+        .set(`X-API-Key`, `_INVALID`);
 
-      expect(res.body.code).toBe(`auth:csrf_token_invalid`); // Error code must match provided
+      expect(res.body.code).toBe(`auth:api_key_invalid`); // Error code must match provided
     });
   });
 
@@ -72,7 +73,7 @@ describe('Test Auth HTTP API Controller', () => {
       const res = await request(app)
         .get('/team/search')
         .expect(200)
-        .set('X-CSRF-Token', '~dev')
+        .set('X-API-Key', conf.env.API_KEY_SK)
         .query({
           q: `~all`
         } satisfies z.infer<typeof TeamGetSearchRouteSchemas.RequestQuerySchema>);
@@ -82,7 +83,7 @@ describe('Test Auth HTTP API Controller', () => {
 
 
 
-    it('Should reject invalid CSRF', async () => await shouldRejectCSRF('/team/search', 'get'));
+    it('Should reject invalid API Key', async () => await shouldRejectAPIKey('/team/search', 'get'));
   });
 
 

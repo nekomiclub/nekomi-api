@@ -1,4 +1,3 @@
-import conf from '~/conf';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
@@ -164,13 +163,13 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'User patched!',
     data: null
   }, ResponseSchema));
-}, { middlewares: ['checkAccess', 'checkCSRF'] });
+}, { middlewares: ['checkAccess', 'checkAPIKey'] });
 
 
 
 export default EndpointMiddlewares([
   Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

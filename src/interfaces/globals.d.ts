@@ -14,15 +14,6 @@ declare global {
 
 
 
-        /** 
-         * CSRF origin
-         * 
-         * @requires Middleware.CheckCSRF()
-         */
-        csrfOrigin?: string
-
-
-
         /**
          * Revalidated session token
          * 

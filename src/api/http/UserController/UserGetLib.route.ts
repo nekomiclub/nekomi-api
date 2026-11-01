@@ -1,6 +1,5 @@
 import AnimeRepository from '~/repo/AnimeRepository';
 import DTS from '~/service/DataTransferService';
-import conf from '~/conf';
 import z from 'zod';
 import { AnimeMinifiedSchema, IAnimeMinified } from '~/schemas/entities/Anime.schema';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
@@ -92,7 +91,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

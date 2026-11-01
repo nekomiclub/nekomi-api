@@ -82,12 +82,12 @@ export function traceRequest() {
 
 
 /** 
- * Get current session
+ * Get authorization token
  * If user passed throught Middleware.CheckAccess() middleware, will retrieve fresh session token
  * 
  * @throws auth:token_miss if session cookie is missing
  */
-export function getSessionToken(req: express.Request): string {
+export function getAuthorizationToken(req: express.Request): string {
   const token = req._nekomi.sessionToken ?? req.headers['authorization']?.replace('Bearer ', '') ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
   if (!token) throw new NekoError('auth:token_miss');
 
@@ -97,13 +97,13 @@ export function getSessionToken(req: express.Request): string {
 
 
 /** 
- * Get CSRF token
+ * Get API key
  * 
- * @throws auth:csrf_token_miss if csrf token header is missing
+ * @throws auth:api_key_miss if api key header is missing
  */
-export function getCSRFToken(req: express.Request): string {
-  const token = req.header('X-CSRF-Token');
-  if (!token) throw new NekoError('auth:csrf_token_miss');
+export function getAPIKey(req: express.Request): string {
+  const token = req.header('x-api-key');
+  if (!token) throw new NekoError('auth:api_key_miss');
 
   return token;
 }

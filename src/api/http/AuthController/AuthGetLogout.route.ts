@@ -102,12 +102,12 @@ const endpoint = HandleRequest(async (req, res) => {
 
     throw e;
   }
-}, { middlewares: ['checkCSRF'] });
+}, { middlewares: ['checkAPIKey'] });
 
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

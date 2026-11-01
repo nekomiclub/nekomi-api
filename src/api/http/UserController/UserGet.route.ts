@@ -1,13 +1,12 @@
 import DTS from '~/service/DataTransferService';
 import MiddlewareService from '~/service/MiddlewareService';
-import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getSessionToken } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getAuthorizationToken } from '~/utils/http-utils';
 import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
+import { isEligible, isRequesterAPIValid, isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 import { registry } from '~/service/openapi/registry';
 
@@ -45,8 +44,8 @@ const RequestParamsSchema = z.object({
 
 const RequestQuerySchema = z.object({
   get_permissions: zBoolean.optional().describe('Get user permissions & restrictions'),
-  is_extended: zBoolean.optional().describe('Get extended user object. @requires Authorization (CSRF)'),
-  get_email: zBoolean.optional().describe('Get user email. @requires Authorization (CSRF+Authorization) Owner/Moderator'),
+  is_extended: zBoolean.optional().describe('Get extended user object. @requires Authorization (API Key)'),
+  get_email: zBoolean.optional().describe('Get user email. @requires Authorization (API Key+Authorization) Owner/Moderator'),
 });
 
 const ResponseSchema = CreateResponseSchema(UserDataSchema);
@@ -110,18 +109,18 @@ const endpoint = HandleRequest(async (req, res) => {
 
   let isUserOwner = false;
   let isUserAdmin = false;
-  let isCSRFValid = false;
+  let isAPIKeyValid = false;
 
-  const isAdmin = async (...args: ArgumentTypes<typeof isRequesterAdmin>) => { return isUserAdmin = await isRequesterAdmin(...args); };
-  const isOwner = async (...args: ArgumentTypes<typeof isRequesterAccountOwner>) => { return isUserOwner = await isRequesterAccountOwner(...args); };
-  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+  const checkIsAdmin = async (...args: ArgumentTypes<typeof isRequesterAdmin>) => { return isUserAdmin = await isRequesterAdmin(...args); };
+  const checkIsOwner = async (...args: ArgumentTypes<typeof isRequesterAccountOwner>) => { return isUserOwner = await isRequesterAccountOwner(...args); };
+  const checkIsAPIKey = async (...args: ArgumentTypes<typeof isRequesterAPIValid>) => { return isAPIKeyValid = await isRequesterAPIValid(...args); };
 
 
 
   // Initialize repository
   if (!query) {
     // Get query from session
-    const { user } = await new MiddlewareService().checkAccess(getSessionToken(req));
+    const { user } = await new MiddlewareService().checkAccess(getAuthorizationToken(req));
 
     await repo.init({ id: user.id });
   } else await repo.init(query);
@@ -141,7 +140,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   // Handle get_permissions
   if (get_permissions) {
-    if (isEligible(`get_permissions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, repo.document.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+    if (isEligible(`get_permissions`, (await checkIsAdmin(req, isUserAdmin) || await checkIsOwner(req, repo.document.id, isUserOwner)) && await checkIsAPIKey(req, isAPIKeyValid))) {
       user_permissions = {
         permissions: await parseRolesPermissions(repo.document.roles),
         restrictions: repo.document.restrictions
@@ -150,7 +149,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   // Handle is_extended
-  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (is_extended && isEligible(`is_extended`, await checkIsAPIKey(req, isAPIKeyValid))) {
     user_extended = {
       libs: await DTS.parseUserLibs(req, repo.document),
       view_progress: repo.document.view_progress,
@@ -159,7 +158,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   // Handle get_email
-  if (get_email && isEligible(`get_email`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (get_email && isEligible(`get_email`, await checkIsAPIKey(req, isAPIKeyValid))) {
     user_email = repo.document.email;
   }
 

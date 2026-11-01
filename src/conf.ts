@@ -62,7 +62,6 @@ const vars = {
   defaultPoster: asCDNString('https://media.nekomi.club/cd0c5c50-8e72-4c13-a40d-01ef3d43f918'),
 
   USERNAME_UPDATE_TIMEOUT: ms('7days'),
-  CSRF_TOKEN_LIFETIME_MS: ms('1min'),
   SESSION_LIFETIME_MS: ms('31day'),
   SESSION_LIMITATION_TIMEOUT_MS: ms('1day'),
   SESSION_REFRESH_BY_MS: ms('7day'),

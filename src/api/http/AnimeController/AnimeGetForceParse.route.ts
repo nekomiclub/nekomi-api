@@ -1,5 +1,4 @@
 import AnimeUpdateCrawler from '~/algorithms/AnimeUpdateCrawler';
-import conf from '~/conf';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
@@ -64,7 +63,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
   Middleware.CheckAccess([ROLE_PERMISSION_ENUM.ABSOLUTE]),
 ], endpoint);
 

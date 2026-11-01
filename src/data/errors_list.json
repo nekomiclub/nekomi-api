@@ -71,13 +71,13 @@
     "status": 403,
     "message": "Session token is expired"
   },
-  "auth:csrf_token_invalid": {
+  "auth:api_key_invalid": {
     "status": 401,
-    "message": "CSRF token is invalid"
+    "message": "API key is invalid"
   },
-  "auth:csrf_token_miss": {
+  "auth:api_key_miss": {
     "status": 401,
-    "message": "CSRF token is not provided"
+    "message": "API key is not provided"
   },
   "auth:failed": {
     "status": 403,

@@ -1,12 +1,11 @@
 import DTS from '~/service/DataTransferService';
 import UserRepository from '~/repo/UserRepository';
-import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/schemas/entities/Team.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { isEligible, isRequesterCSRF } from '~/utils/auth-utils';
+import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils';
 import { registry } from '~/service/openapi/registry';
 
 
@@ -16,7 +15,7 @@ const RequestParamsSchema = z.object({
 });
 
 const RequestQuerySchema = z.object({
-  is_extended: zBoolean.optional().describe('Get extended team object. @requires Authorization (CSRF)')
+  is_extended: zBoolean.optional().describe('Get extended team object. @requires Authorization (API Key)')
 });
 
 const ResponseSchema = CreateResponseSchema(z.object({
@@ -61,9 +60,9 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new TeamRepositoryClass();
   await repo.init(query);
 
-  let isCSRFValid = false;
+  let isAPIKeyValid = false;
 
-  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+  const checkAPIKey = async (...args: ArgumentTypes<typeof isRequesterAPIValid>) => { return isAPIKeyValid = await isRequesterAPIValid(...args); };
 
   let team: ITeamPublic | undefined = undefined;
   let team_members: ITeamMemberExtended[] | undefined = undefined;
@@ -74,7 +73,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (is_extended && isEligible(`is_extended`, await checkAPIKey(req, isAPIKeyValid))) {
     const users = await UserRepository.getMany({ id: { $in: repo.document.members.map(el => el.id) } });
 
     team_members = users.map(user => {

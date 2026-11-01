@@ -1,5 +1,6 @@
 import '~/service/openapi/setup';
 
+import conf from '~/conf';
 import request from 'supertest';
 import z from 'zod';
 import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route';
@@ -7,7 +8,7 @@ import { AnimeGetSearchRouteSchemas } from '~/api/http/AnimeController/AnimeGetS
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { shouldRejectCSRF } from '~/utils/testing-utils';
+import { shouldRejectAPIKey } from '~/utils/testing-utils';
 
 
 
@@ -27,7 +28,7 @@ describe('Test Anime HTTP API Controller', () => {
       const res = await request(app)
         .get('/anime/search')
         .expect(200)
-        .set('X-CSRF-Token', '~dev')
+        .set('X-API-Key', conf.env.API_KEY_SK)
         .query({
           q: '~all'
         } satisfies z.infer<typeof AnimeGetSearchRouteSchemas.RequestQuerySchema>);
@@ -37,7 +38,7 @@ describe('Test Anime HTTP API Controller', () => {
 
 
 
-    it('Should reject invalid CSRF', async () => await shouldRejectCSRF('/anime/search', 'get'));
+    it('Should reject invalid API Key', async () => await shouldRejectAPIKey('/anime/search', 'get'));
   });
 
 
@@ -54,7 +55,7 @@ describe('Test Anime HTTP API Controller', () => {
     it('Should return anime episodes', async () => {
       const res = await request(app)
         .get(`/anime/${animeService.document.id}/episodes`)
-        .set('X-CSRF-Token', '~dev')
+        .set('X-API-Key', conf.env.API_KEY_SK)
         .expect(200);
 
       expect(AnimeGetEpisodesRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy();
@@ -62,7 +63,7 @@ describe('Test Anime HTTP API Controller', () => {
 
 
 
-    it('Should reject invalid CSRF', async () => await shouldRejectCSRF(`/anime/${animeService.document.id}/episodes`, 'get'));
+    it('Should reject invalid API Key', async () => await shouldRejectAPIKey(`/anime/${animeService.document.id}/episodes`, 'get'));
   });
 
 

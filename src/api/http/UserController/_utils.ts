@@ -1,4 +1,3 @@
-import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
 import z from 'zod';
@@ -17,7 +16,7 @@ type UploadMethodType = keyof Pick<UserRepositoryClass, 'uploadAvatar' | 'upload
 const upload = multer();
 
 export const UserControllerACUploadMiddlewares = [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
   Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
   upload.single('file'),
 ];

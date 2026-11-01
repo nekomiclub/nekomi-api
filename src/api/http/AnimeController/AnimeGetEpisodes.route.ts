@@ -1,4 +1,3 @@
-import conf from '~/conf';
 import z from 'zod';
 import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
@@ -60,12 +59,12 @@ const endpoint = HandleRequest(async (req, res) => {
       anime_episodes
     }
   }, ResponseSchema));
-}, { middlewares: ['checkCSRF'] });
+}, { middlewares: ['checkAPIKey'] });
 
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

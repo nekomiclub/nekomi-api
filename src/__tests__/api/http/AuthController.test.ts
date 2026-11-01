@@ -11,7 +11,7 @@ import { UserRepositoryClass } from '~/repo/UserRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createNanoId } from '~/utils/create-id';
-import { shouldRejectCSRF, supertestCookieExist, supertestCookieRemoved } from '~/utils/testing-utils';
+import { shouldRejectAPIKey, supertestCookieExist, supertestCookieRemoved } from '~/utils/testing-utils';
 
 
 
@@ -40,7 +40,7 @@ describe(`Test Auth HTTP API Controller`, () => {
     it(`Should reject login with google provider if token is not provided`, async () => {
       const res = await request(app)
         .post('/auth')
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .expect(401)
         .send({
           method: AUTH_METHOD.GOOGLE,
@@ -51,14 +51,14 @@ describe(`Test Auth HTTP API Controller`, () => {
 
 
 
-    it(`Should reject invalid CSRF`, async () => await shouldRejectCSRF('/auth', 'post'));
+    it(`Should reject invalid API Key`, async () => await shouldRejectAPIKey('/auth', 'post'));
 
 
 
     async function invokePostAuth({ email }: { email: string }) {
       const res = await request(app)
         .post('/auth')
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .send({
           method: AUTH_METHOD.GOOGLE,
           token: email
@@ -92,7 +92,7 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get('/auth/logout')
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
       expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
@@ -120,7 +120,7 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/${sessionTarget.session.id}`)
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
       expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
@@ -142,7 +142,7 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/_INVALID`)
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=_INVALID`);
 
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
@@ -150,6 +150,6 @@ describe(`Test Auth HTTP API Controller`, () => {
 
 
 
-    it(`Should reject invalid CSRF`, async () => await shouldRejectCSRF('/auth/logout/_INVALID', 'get'));
+    it(`Should reject invalid API Key`, async () => await shouldRejectAPIKey('/auth/logout/_INVALID', 'get'));
   });
 });

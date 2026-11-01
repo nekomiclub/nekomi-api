@@ -51,7 +51,7 @@ const endpoint = HandleRequest(async (req, res) => {
       url
     }
   }, ResponseSchemas));
-}, { middlewares: ['checkAccess', 'checkCSRF'] });
+}, { middlewares: ['checkAccess', 'checkAPIKey'] });
 
 
 

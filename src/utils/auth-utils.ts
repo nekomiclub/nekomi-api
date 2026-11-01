@@ -5,7 +5,7 @@ import { NekoError } from '~/service/ExceptionService';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserId, UserSessionId } from '~/intf/BrandedIds';
 import { asUserSessionId } from '~/intf/BrandedIds';
-import { getCSRFToken, getSessionToken } from './http-utils';
+import { getAPIKey, getAuthorizationToken } from './http-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
 
@@ -31,7 +31,7 @@ export async function getSessionAuth(req: express.Request, res: express.Response
       permissions: req._nekomi.user?.permissions ?? []
     };
   } else {
-    const { user, sessionId } = await new SessionService().parse(getSessionToken(req));
+    const { user, sessionId } = await new SessionService().parse(getAuthorizationToken(req));
 
     const permissions = await parseRolesPermissions(user.roles);
 
@@ -54,7 +54,7 @@ export async function getSessionAuth(req: express.Request, res: express.Response
 export async function isRequesterAccountOwner(req: express.Request, targetUserId: string, state?: boolean): Promise<boolean> {
   if (state) return state;
 
-  const { user: currentUser } = await new MiddlewareService().checkAccess(getSessionToken(req));
+  const { user: currentUser } = await new MiddlewareService().checkAccess(getAuthorizationToken(req));
 
   state = currentUser.id === targetUserId;
   return state;
@@ -71,7 +71,7 @@ export async function isRequesterAccountOwner(req: express.Request, targetUserId
 export async function isRequesterAdmin(req: express.Request, state?: boolean): Promise<boolean> {
   if (state) return state;
 
-  const { permissions } = await new MiddlewareService().checkAccess(getSessionToken(req), [ROLE_PERMISSION_ENUM.BASIC]);
+  const { permissions } = await new MiddlewareService().checkAccess(getAuthorizationToken(req), [ROLE_PERMISSION_ENUM.BASIC]);
 
   state = permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE) ?? false;
   return state;
@@ -80,15 +80,15 @@ export async function isRequesterAdmin(req: express.Request, state?: boolean): P
 
 
 /**
- * Check is requester csrf token is valid
+ * Check is requester API Key is valid
  * Will mutate provided state
  * 
- * @requires CSRF
+ * @requires API Key
  */
-export async function isRequesterCSRF(req: express.Request, origins?: string[], state?: boolean): Promise<boolean> {
+export async function isRequesterAPIValid(req: express.Request, state?: boolean): Promise<boolean> {
   if (state) return state;
 
-  await new MiddlewareService().checkCSRF(getCSRFToken(req), origins);
+  await new MiddlewareService().checkAPIKey(getAPIKey(req));
 
   state = true;
   return state;

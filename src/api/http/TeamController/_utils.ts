@@ -1,4 +1,3 @@
-import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
 import { CDNString, TeamId } from '~/intf/BrandedIds';
@@ -16,7 +15,7 @@ type UploadMethodType = keyof Pick<TeamRepositoryClass, 'uploadAvatar' | 'upload
 const upload = multer();
 
 export const TeamControllerACUploadMiddlewares = [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
   Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
   upload.single('file'),
 ];

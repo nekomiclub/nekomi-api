@@ -2,11 +2,11 @@ import DTS from '~/service/DataTransferService';
 import Logger from '~/service/LoggerService';
 import SessionService from '~/service/SessionService';
 import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
-import conf, { DevelopmentMode, TestMode } from '~/conf';
 import firebase from 'firebase-admin';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils';
+import { DevelopmentMode, TestMode } from '~/conf';
 import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
 import { Middleware } from '~/service/MiddlewareService';
 import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
@@ -137,7 +137,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
+  Middleware.CheckAPIKey(),
 ], endpoint);
 
 

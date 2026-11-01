@@ -1,11 +1,14 @@
 import z from 'zod';
 import { asUserId, asUserSessionId } from '~/intf/BrandedIds';
+import { registry } from '~/service/openapi/registry';
 
 
 
 export enum AUTH_METHOD {
   GOOGLE = 'provider:google'
 }
+
+registry.register('AUTH_METHOD_ENUM', z.nativeEnum(AUTH_METHOD));
 
 
 
@@ -15,12 +18,6 @@ export const SessionTokenSchema = z.object({
   session_id: z.string().nonempty().transform(asUserSessionId),
 });
 
-export const CSRFTokenSchema = z.object({
-  token_id: z.string().nonempty(),
-  origin: z.string().nonempty(),
-});
-
 
 
 export type SessionTokenType = z.infer<typeof SessionTokenSchema>
-export type CSRFTokenType = z.infer<typeof CSRFTokenSchema>
