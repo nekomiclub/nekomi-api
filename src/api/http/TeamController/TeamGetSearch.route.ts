@@ -1,5 +1,5 @@
 import DTS from '~/service/DataTransferService';
-import ITeam, { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
+import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
 import conf from '~/conf';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
@@ -8,12 +8,6 @@ import { PaginationSchema } from '~/utils/pagination';
 import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 import { registry } from '~/service/openapi/registry';
-
-
-
-export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
-  short_about: z.string().optional()
-});
 
 
 
@@ -54,12 +48,7 @@ registry.registerPath({
 const endpoint = HandleRequest(async (req, res) => {
   const { results: searches, pagination } = await RequestSearch<ITeam>(req, new TeamRepositoryClass(), TeamSearch);
 
-  const results = searches.map(result => {
-    return {
-      ...DTS.toTeamMinified(result),
-      short_about: result.about?.slice(0, 200)
-    } satisfies z.infer<typeof TeamSearchResultSchema>;
-  });
+  const results = searches.map(result => DTS.toTeamSearchResult(result));
 
 
 

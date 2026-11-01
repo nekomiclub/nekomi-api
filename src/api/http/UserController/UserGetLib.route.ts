@@ -22,7 +22,8 @@ const ResponseSchema = CreateResponseSchema(z.object({
   user: UserMinifiedSchema,
   libs: UserLibSchema.array(),
   catalog: AnimeMinifiedSchema.array(),
-  pagination: RequestParamsSchema.optional()
+  pagination: RequestParamsSchema.optional(),
+  is_owner: z.boolean(),
 }));
 
 
@@ -61,9 +62,11 @@ const endpoint = HandleRequest(async (req, res) => {
   const lib = repo.document?.libs.find(el => el.id === libId);
   if (!lib) throw new NekoError(`sys:not_found`, `User lib "${libId}" is not found`);
 
+  const is_owner = await isRequesterAccountOwner(req, repo.document.id);
+
   // Ensure that only owner or admin can retrieve private lib
   if (!lib.is_public) {
-    if (!await isRequesterAdmin(req) && !await isRequesterAccountOwner(req, repo.document.id)) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
+    if (!await isRequesterAdmin(req) && !is_owner) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
@@ -81,6 +84,7 @@ const endpoint = HandleRequest(async (req, res) => {
       libs,
       user,
       catalog,
+      is_owner
     }
   }, ResponseSchema));
 });

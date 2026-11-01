@@ -1,5 +1,5 @@
 import DTS from '~/service/DataTransferService';
-import IAnime, { AnimeExtendedSchema, IAnimeExtended } from '~/schemas/entities/Anime.schema';
+import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
 import conf from '~/conf';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
@@ -14,7 +14,7 @@ import { registry } from '~/service/openapi/registry';
 const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
 const ResponseSchema = CreateResponseSchema(z.object({
-  results: AnimeExtendedSchema.array(),
+  results: AnimeSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
 }));
 
@@ -49,7 +49,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new AnimeRepositoryClass();
   const { results: raw, pagination } = await RequestSearch<IAnime>(req, repo, AnimeSearch);
 
-  const results: IAnimeExtended[] = raw.map(result => DTS.toAnimeExtended(result));
+  const results: IAnimeSearchResult[] = raw.map(result => DTS.toAnimeSearchResult(result));
 
 
 

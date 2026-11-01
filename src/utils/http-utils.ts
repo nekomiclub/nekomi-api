@@ -88,7 +88,7 @@ export function traceRequest() {
  * @throws auth:token_miss if session cookie is missing
  */
 export function getSessionToken(req: express.Request): string {
-  const token = req._nekomi.sessionToken ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
+  const token = req._nekomi.sessionToken ?? req.headers['authorization']?.replace('Bearer ', '') ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
   if (!token) throw new NekoError('auth:token_miss');
 
   return token;

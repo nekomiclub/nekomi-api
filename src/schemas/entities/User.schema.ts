@@ -104,6 +104,8 @@ export const UserMinifiedSchema = UserSchema.pick({
   cover: true,
 }).openapi('UserMinified');
 
+export const UserSearchResultSchema = UserMinifiedSchema.openapi('UserSearchResult');
+
 /* --------------------- */
 /* Inferred type         */
 /* --------------------- */
@@ -116,8 +118,8 @@ export type IUserViewProgress = z.infer<typeof UserViewProgressSchema>
 
 export type IUser = z.infer<typeof UserSchema>
 export type IUserPublic = z.infer<typeof UserPublicSchema>
-
 export type IUserMinified = z.infer<typeof UserMinifiedSchema>
+export type IUserSearchResult = z.infer<typeof UserSearchResultSchema>
 
 
 

@@ -111,6 +111,7 @@ class MiddlewareClass {
 
 
 
+
     req._nekomi.middlewaresPassed?.push('checkAccess');
 
     req._nekomi.user = {

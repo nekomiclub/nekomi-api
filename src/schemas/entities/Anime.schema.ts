@@ -208,9 +208,7 @@ export const AnimeMinifiedSchema = AnimeSchema.pick({
 }).openapi('AnimeMinified');
 
 export const AnimeExtendedSchema = AnimeMinifiedSchema.extend({
-  ...AnimeSchema.pick({
-    year: true,
-  }).shape,
+  year: z.number().nullable(),
   short_synopsys: z.string().optional(),
   subtitle: z.string().nullish(),
   type: AnimeNamedRecordSchema.optional(),
@@ -220,7 +218,19 @@ export const AnimeExtendedSchema = AnimeMinifiedSchema.extend({
   genres: AnimeDescribedRecord.array(),
 }).openapi('AnimeExtended');
 
-
+export const AnimeSearchResultSchema = AnimeSchema.pick({
+  id: true,
+  slug: true,
+  title_ua: true,
+  title_en: true,
+  score: true,
+  episodes_released: true,
+  episodes_total: true,
+  year: true,
+}).extend({
+  poster: z.string().transform(asCDNString),
+  type: AnimeNamedRecordSchema.optional(),
+}).openapi('AnimeSearchResult');
 
 /* --------------------- */
 /* Inferred types        */
@@ -242,9 +252,9 @@ export type IAnimeEpisode = z.infer<typeof AnimeEpisodeSchema>
 export type IAnimeSchedule = z.infer<typeof AnimeScheduleSchema>
 
 export type IAnime = z.infer<typeof AnimeSchema>
-
 export type IAnimeMinified = z.infer<typeof AnimeMinifiedSchema>
 export type IAnimeExtended = z.infer<typeof AnimeExtendedSchema>
+export type IAnimeSearchResult = z.infer<typeof AnimeSearchResultSchema>
 
 
 

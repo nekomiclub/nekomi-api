@@ -1,6 +1,6 @@
-import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
-import ITeam, { ITeamMinified, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
-import IUser, { IUserLib, IUserMinified, UserMinifiedSchema } from '~/schemas/entities/User.schema';
+import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
+import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
+import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
@@ -120,6 +120,16 @@ class DTSClass {
 
 
 
+  toAnimeSearchResult(payload: IAnime): IAnimeSearchResult {
+    return AnimeSearchResultSchema.parse({
+      ...payload,
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      type: payload.type ? AnimeNamedRecordSchema[payload.type] : undefined,
+    } satisfies IAnimeSearchResult);
+  }
+
+
+
   animePoster(object: IAnimePosterNode): IAnimePosterNode {
     const keys: (keyof IAnimePosterNode)[] = [
       '_unprocessedAuthorName',
@@ -160,6 +170,15 @@ class DTSClass {
 
 
 
+  toTeamSearchResult(payload: ITeam): ITeamSearchResult {
+    return TeamSearchResultSchema.parse({
+      ...DTS.toTeamMinified(payload),
+      short_about: payload.about?.slice(0, 200)
+    } satisfies ITeamSearchResult);
+  }
+
+
+
   user(object: HydratedDocument<IUser> | IUser, exposed?: boolean): IUser {
     const keys: (keyof IUser)[] = [
       'roles',
@@ -184,6 +203,12 @@ class DTSClass {
 
   toUserMinified(payload: IUser): IUserMinified {
     return UserMinifiedSchema.parse(payload);
+  }
+
+
+
+  toUserSearchResult(payload: IUser): IUserSearchResult {
+    return UserSearchResultSchema.parse(payload);
   }
 
 

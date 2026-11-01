@@ -1,5 +1,5 @@
 import DTS from '~/service/DataTransferService';
-import IUser, { IUserMinified, UserMinifiedSchema } from '~/schemas/entities/User.schema';
+import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
@@ -14,7 +14,7 @@ import { registry } from '~/service/openapi/registry';
 const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
 const ResponseSchema = CreateResponseSchema(z.object({
-  results: UserMinifiedSchema.array(),
+  results: UserSearchResultSchema.array(),
   pagination: PaginationSchema.optional(),
 }));
 
@@ -49,7 +49,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
   const { results: searches, pagination } = await RequestSearch<IUser>(req, repo, UserSearch);
 
-  const results: IUserMinified[] = searches.map(result => DTS.toUserMinified(result));
+  const results: IUserSearchResult[] = searches.map(result => DTS.toUserMinified(result));
 
 
 

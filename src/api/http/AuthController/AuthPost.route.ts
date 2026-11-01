@@ -22,6 +22,7 @@ const RequestBodySchema = z.object({
 const ResponseSchema = CreateResponseSchema(z.object({
   user: UserMinifiedSchema,
   session: UserSessionSchema,
+  token: z.string()
 }));
 
 
@@ -120,16 +121,15 @@ const endpoint = HandleRequest(async (req, res) => {
 
   await session.save();
 
-
-
-  setSessionCookie(sessionToken, res);
+  await setSessionCookie(sessionToken, res);
 
   return res.status(200).json(SendResponse({
     ok: true,
     message: 'User authorized',
     data: {
       user: DTS.toUserMinified(user),
-      session: sessionData
+      session: sessionData,
+      token: sessionToken
     }
   }, ResponseSchema));
 });

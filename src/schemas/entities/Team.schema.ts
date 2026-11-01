@@ -93,6 +93,10 @@ export const TeamMinifiedSchema = TeamSchema.pick({
   avatar: true,
 }).openapi('TeamMinified');
 
+export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
+  short_about: z.string().optional()
+}).openapi('TeamSearchResult');
+
 
 
 /* --------------------- */
@@ -106,8 +110,8 @@ export type ITeamMemberExtended = z.infer<typeof TeamMemberExtendedSchema>
 
 export type ITeam = z.infer<typeof TeamSchema>
 export type ITeamPublic = z.infer<typeof TeamPublicSchema>
-
 export type ITeamMinified = z.infer<typeof TeamMinifiedSchema>
+export type ITeamSearchResult = z.infer<typeof TeamSearchResultSchema>
 
 
 
