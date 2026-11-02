@@ -556,7 +556,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       try {
         await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), this._doc.id);
       } catch (e) {
-        Logger.warn(`[${this.RepositoryName}]: Cannot delete user old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
+        Logger.warn(`[${this.RepositoryName}]: Cannot delete user old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`, e);
       }
     }
 
