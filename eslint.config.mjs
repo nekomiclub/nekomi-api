@@ -1,6 +1,6 @@
 /**
- * @fileoverview nodejs eslint config
- * @version 31.08.2025
+ * @fileoverview nodejs eslint@9 config
+ * @version 04.11.2026
  */
 
 

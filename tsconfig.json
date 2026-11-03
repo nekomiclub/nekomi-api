@@ -12,7 +12,6 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "allowJs": false,
-    "declaration": true,
     "sourceMap": true,
 
     // Type checking

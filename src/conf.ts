@@ -76,20 +76,6 @@ const vars = {
   }
 };
 
-/** Funny thing to rickroll some endpoints */
-const rickrollEndpoints: RegExp[] = [
-  /\/\.env(.+)?/gi,
-  /\/cgi-bin(.+)?/gi,
-  /\/login(.+)?/gi,
-  /\/dns-query(.+)?/gi,
-  /\/query(.+)?/gi,
-  /\/hello.world(.+)?/gi,
-  /\/geoserver(.+)?/gi,
-  /\/\.git(.+)?/gi,
-  /\/\phpMyAdmin(.+)?/gi,
-  /\/\resolve(.+)?/gi,
-];
-
 
 
 const StaticData = {
@@ -178,8 +164,6 @@ const conf = {
   vars,
   domains,
   StaticData,
-
-  rickrollEndpoints
 };
 
 export default conf;

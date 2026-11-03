@@ -2,7 +2,7 @@ export FORCE_COLOR=1
 
 status=0
 
-npx lint-staged || status=1
-npm run check-types || status=1
+pnpm exec lint-staged || status=1
+pnpm check-types || status=1
 
 exit $status

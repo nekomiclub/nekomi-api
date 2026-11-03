@@ -2,6 +2,6 @@ export FORCE_COLOR=1
 
 status=0
 
-npm run test || status=1
+pnpm test || status=1
 
 exit $status
