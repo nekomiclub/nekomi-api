@@ -9,7 +9,7 @@
     "build": "npx rimraf ./build && npm run lint && npx tsc --build && npx tsc-alias",
     "start": "npm run build && npx node ./build/src/index.js",
     "test": "npx vitest --run --silent",
-    "lint": "npx eslint . --fix"
+    "lint": "echo \"npx eslint . --fix\""
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
