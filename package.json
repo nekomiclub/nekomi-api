@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npx nodemon",
     "build": "npx rimraf ./build && npm run lint",
-    "start": "npm run build && npx node ./build/src/index.js",
+    "start": "npx tsx ./src/index.ts",
     "test": "npx vitest --run --silent",
     "lint": "npx eslint . --fix"
   },
