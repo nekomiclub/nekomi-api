@@ -1,5 +1,4 @@
 import z from 'zod';
-import { asAnimeId, asCDNString, asISODateString, asUserId, asUserLibId, asUserSessionId } from '~/intf/BrandedIds';
 
 
 
@@ -27,22 +26,22 @@ export enum USER_LIB_TYPE_ENUM {
 /* --------------------- */
 
 export const UserSessionSchema = z.object({
-  id: z.string().transform(asUserSessionId),
+  id: z.string(),
 
   is_limited: z.boolean(),
 
-  expires_at: z.string().transform(asISODateString),
-  created_at: z.string().transform(asISODateString),
+  expires_at: z.string(),
+  created_at: z.string(),
 });
 
 export const UserLibSchema = z.object({
-  id: z.string().transform(asUserLibId),
+  id: z.string(),
   type: z.nativeEnum(USER_LIB_TYPE_ENUM).openapi('USER_LIB_TYPE_ENUM'),
 
-  anime_ids: z.string().transform(asAnimeId).array(),
+  anime_ids: z.string().array(),
 
   is_public: z.boolean(),
-  created_at: z.string().transform(asISODateString),
+  created_at: z.string(),
 }).openapi('UserLib');
 
 export const UserViewProgressSchema = z.object({
@@ -52,16 +51,16 @@ export const UserViewProgressSchema = z.object({
   episode: z.number(),
   progress: z.number(), // seconds
 
-  updated_at: z.string().transform(asISODateString),
+  updated_at: z.string(),
 }).openapi('UserViewProgress');
 
 export const UserSchema = z.object({
-  id: z.string().transform(asUserId),
+  id: z.string(),
   username: z.string(),
   email: z.string().email(),
 
-  avatar: z.string().transform(asCDNString),
-  cover: z.string().transform(asCDNString),
+  avatar: z.string(),
+  cover: z.string(),
 
   roles: z.string().array(),
   libs: UserLibSchema.array(),
@@ -74,9 +73,9 @@ export const UserSchema = z.object({
   telegram_id: z.number().nullable(),
   dubber_team_member: z.string().nullable(),
 
-  username_changed_at: z.string().transform(asISODateString),
-  created_at: z.string().transform(asISODateString),
-  updated_at: z.string().transform(asISODateString),
+  username_changed_at: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 /* --------------------- */

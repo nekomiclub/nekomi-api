@@ -1,11 +1,11 @@
-import Logger from './LoggerService';
-import conf, { DevelopmentMode, TestMode } from '~/conf';
+import Logger from './LoggerService.js';
+import conf, { DevelopmentMode, TestMode } from '~/conf.js';
 import express from 'express';
 import fs from 'fs';
 import { AxiosError } from 'axios';
-import { ErrorResponseSchema, SendResponse } from '~/utils/http-utils';
+import { ErrorResponseSchema, SendResponse } from '~/utils/http-utils.js';
 import { ZodError } from 'zod';
-import { getUTC } from '~/utils/utils';
+import { getUTC } from '~/utils/utils.js';
 
 
 

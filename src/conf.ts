@@ -5,10 +5,10 @@ dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
 import ms from 'ms';
-import parseEnv from './utils/parse-env';
-import { IHomeFeedHero } from './schemas/general.schema';
-import { asAnimeId, asCDNString } from './interfaces/BrandedIds';
-import { getUTC } from './utils/utils';
+import parseEnv from './utils/parse-env.js';
+import { IHomeFeedHero } from './schemas/general.schema.js';
+import { asAnimeId, asCDNString } from './interfaces/BrandedIds.js';
+import { getUTC } from './utils/utils.js';
 
 
 

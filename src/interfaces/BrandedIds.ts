@@ -1,5 +1,5 @@
-declare const __brand: unique symbol;
-export type BrandedId<T, B extends string> = T & { [__brand]: B; };
+export declare const __brand: unique symbol;
+export type BrandedId<T, B extends string> = T & { [__brand]: B };
 
 export function asBrandedId<T>(val: string) {
   return val as T;
@@ -7,20 +7,20 @@ export function asBrandedId<T>(val: string) {
 
 
 
-export type ISODateString = BrandedId<string, 'ISODateString'>;
-export type CDNString = BrandedId<string, 'CDNString'>;
+export type ISODateString = string
+export type CDNString = string
 
 
 
-export type AnimeId = BrandedId<string, 'animeId'>;
+export type AnimeId = string
 
-export type UserId = BrandedId<string, 'userId'>;
-export type UserLibId = BrandedId<string, 'userLibId'>;
-export type UserSessionId = BrandedId<string, 'userSessionId'>;
+export type UserId = string
+export type UserLibId = string
+export type UserSessionId = string
 
-export type TeamId = BrandedId<string, 'teamId'>;
+export type TeamId = string
 
-export type RoleId = BrandedId<string, 'roleId'>;
+export type RoleId = string
 
 
 

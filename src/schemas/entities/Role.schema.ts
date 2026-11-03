@@ -1,5 +1,4 @@
 import z from 'zod';
-import { asRoleId } from '~/intf/BrandedIds';
 
 /* --------------------- */
 /* Native enum           */
@@ -15,7 +14,7 @@ export enum ROLE_PERMISSION_ENUM {
 /* --------------------- */
 
 export const RoleSchema = z.object({
-  id: z.string().transform(asRoleId),
+  id: z.string(),
   slug: z.string(),
   name: z.string(),
   permissions: z.nativeEnum(ROLE_PERMISSION_ENUM).openapi('ROLE_PERMISSION_ENUM').array(),

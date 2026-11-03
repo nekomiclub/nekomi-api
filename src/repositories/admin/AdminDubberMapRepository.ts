@@ -1,11 +1,11 @@
-import AdminRepository from './AdminRepository';
-import DTS from '~/service/DataTransferService';
-import Logger from '~/service/LoggerService';
-import createId, { createNanoId } from '~/utils/create-id';
-import { ADMIN_SLUG, AdminTeamsMapType, IAdminTeamMapData } from '~/schemas/entities/Admin.schema';
-import { NekoError } from '~/service/ExceptionService';
-import { TestMode } from '~/conf';
-import { getUTC } from '~/utils/utils';
+import AdminRepository from './AdminRepository.js';
+import DTS from '~/service/DataTransferService.js';
+import Logger from '~/service/LoggerService.js';
+import createId, { createNanoId } from '~/utils/create-id.js';
+import { ADMIN_SLUG, AdminTeamsMapType, IAdminTeamMapData } from '~/schemas/entities/Admin.schema.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { TestMode } from '~/conf.js';
+import { getUTC } from '~/utils/utils.js';
 
 
 

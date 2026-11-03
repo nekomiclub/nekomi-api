@@ -1,17 +1,17 @@
-import DTS from '~/service/DataTransferService';
-import ITeam from '~/schemas/entities/Team.schema';
-import Logger from '~/service/LoggerService';
-import UnifiedRepositoryClass from './UnifiedRepository';
-import conf, { TestMode } from '~/conf';
-import createId, { createNanoId } from '~/utils/create-id';
-import createSlug from '~/utils/create-slug';
+import DTS from '~/service/DataTransferService.js';
+import ITeam from '~/schemas/entities/Team.schema.js';
+import Logger from '~/service/LoggerService.js';
+import UnifiedRepositoryClass from './UnifiedRepository.js';
+import conf, { TestMode } from '~/conf.js';
+import createId, { createNanoId } from '~/utils/create-id.js';
+import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
-import { CDNString, asTeamId } from '~/intf/BrandedIds';
-import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
-import { NekoError } from '~/service/ExceptionService';
-import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { RepositoryQueriesType } from '~/intf/types';
-import { getUTC, trimString } from '~/utils/utils';
+import { CDNString, asTeamId } from '~/intf/BrandedIds.js';
+import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
+import { RepositoryQueriesType } from '~/intf/types.js';
+import { getUTC, trimString } from '~/utils/utils.js';
 
 
 

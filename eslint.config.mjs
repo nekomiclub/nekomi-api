@@ -1,9 +1,7 @@
 /**
- * ESLINT CONFIG  
- * 
- * @copyright fullkekw
- * @version 07.03.2025
-*/
+ * @fileoverview nodejs eslint config
+ * @version 31.08.2025
+ */
 
 
 
@@ -36,7 +34,7 @@ export default [{
     '@typescript-eslint': typescriptEslint,
     'sort-imports-es6-autofix': sortImportsEs6Autofix,
     'unused-imports': unusedImports,
-    'path': pathPlugin,
+    'path': pathPlugin
   },
 
   languageOptions: {
@@ -49,6 +47,10 @@ export default [{
     indent: ['error', 2, {
       SwitchCase: 1,
     }],
+
+    '@typescript-eslint/no-unused-expressions': 'off',
+
+    'linebreak-style': ['error', 'windows'],
 
     'no-unused-vars': ['off', {
       vars: 'all',
@@ -64,12 +66,11 @@ export default [{
     }],
 
     'prefer-const': 'off',
-    'linebreak-style': 'off',
-    'no-empty': 'warn',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    'no-empty': 'warn',
     '@typescript-eslint/no-explicit-any': 'off',
     'unused-imports/no-unused-imports': 'error',
 

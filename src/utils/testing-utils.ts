@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { ErrorConstructor } from '~/service/ExceptionService';
-import { app } from '..';
+import { ErrorConstructor } from '~/service/ExceptionService.js';
+import { app } from '../index.js';
 import { expect } from 'vitest';
 
 

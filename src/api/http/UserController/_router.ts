@@ -1,10 +1,10 @@
-import UserDeleteRoute from './UserDelete.route';
-import UserGetLibRoute from './UserGetLib.route';
-import UserGetRoute from './UserGet.route';
-import UserGetSearchRoute from './UserGetSearch.route';
-import UserPatchSettingsRoute from './UserPatchSettings.route';
-import UserPutAvatarRoute from './UserPutAvatar.route';
-import UserPutCoverRoute from './UserPutCover.route';
+import UserDeleteRoute from './UserDelete.route.js';
+import UserGetLibRoute from './UserGetLib.route.js';
+import UserGetRoute from './UserGet.route.js';
+import UserGetSearchRoute from './UserGetSearch.route.js';
+import UserPatchSettingsRoute from './UserPatchSettings.route.js';
+import UserPutAvatarRoute from './UserPutAvatar.route.js';
+import UserPutCoverRoute from './UserPutCover.route.js';
 import express from 'express';
 
 

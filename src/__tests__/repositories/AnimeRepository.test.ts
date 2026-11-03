@@ -1,14 +1,14 @@
-import '~/service/openapi/setup';
+import '~/service/openapi/setup.js';
 
-import AnimeValidators from '~/utils/validators/anime-validators';
-import createSlug from '~/utils/create-slug';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';
-import { AnimeRepositoryClass } from '~/repositories/AnimeRepository';
-import { IAnimeSchedule } from '~/schemas/entities/Anime.schema';
+import AnimeValidators from '~/utils/validators/anime-validators.js';
+import createSlug from '~/utils/create-slug.js';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';
+import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
+import { IAnimeSchedule } from '~/schemas/entities/Anime.schema.js';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { createNanoId } from '~/utils/create-id';
-import { getUTC } from '~/utils/utils';
-import { shouldfail } from '~/utils/testing-utils';
+import { createNanoId } from '~/utils/create-id.js';
+import { getUTC } from '~/utils/utils.js';
+import { shouldfail } from '~/utils/testing-utils.js';
 
 
 

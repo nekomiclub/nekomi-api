@@ -1,19 +1,17 @@
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { Middleware } from '~/service/MiddlewareService';
-import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
-import { UserRepositoryClass } from '~/repo/UserRepository';
-import { asAnimeId } from '~/intf/BrandedIds';
-import { asTeamId } from '~/intf/BrandedIds';
-import { asUserId, asUserLibId } from '~/intf/BrandedIds';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import { UserRepositoryClass } from '~/repo/UserRepository.js';
+import { asUserId } from '~/intf/BrandedIds.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 
 const editLibAnimeSchema = z.object({
-  lib_id: z.string().nonempty().transform(asUserLibId),
-  anime_id: z.string().nonempty().transform(asAnimeId),
+  lib_id: z.string().nonempty(),
+  anime_id: z.string().nonempty(),
 });
 
 
@@ -27,8 +25,8 @@ const RequestBodySchema = z.object({
   remove_lib_anime: editLibAnimeSchema.optional(),
 
   edit_view_progress: z.object({
-    anime_id: z.string().nonempty().transform(asAnimeId),
-    dubber_id: z.string().nonempty().transform(asTeamId),
+    anime_id: z.string().nonempty(),
+    dubber_id: z.string().nonempty(),
     episode: z.number(),
     progress: z.number(),
     viewtime: z.number(),

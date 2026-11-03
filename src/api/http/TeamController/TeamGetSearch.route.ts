@@ -1,12 +1,12 @@
-import DTS from '~/service/DataTransferService';
-import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
+import DTS from '~/service/DataTransferService.js';
+import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { Middleware } from '~/service/MiddlewareService';
-import { PaginationSchema } from '~/utils/pagination';
-import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService';
-import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { PaginationSchema } from '~/utils/pagination.js';
+import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService.js';
+import { TeamRepositoryClass } from '~/repo/TeamRepository.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

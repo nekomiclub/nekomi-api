@@ -1,17 +1,17 @@
-import AnimeRepository from '~/repo/AnimeRepository';
-import CacheService from '~/service/CacheService';
-import DTS from '~/service/DataTransferService';
-import Logger from '~/service/LoggerService';
-import conf, { DevelopmentMode } from '~/conf';
+import AnimeRepository from '~/repo/AnimeRepository.js';
+import CacheService from '~/service/CacheService.js';
+import DTS from '~/service/DataTransferService.js';
+import Logger from '~/service/LoggerService.js';
+import conf, { DevelopmentMode } from '~/conf.js';
 import ms from 'ms';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
-import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema';
-import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema';
-import { Middleware } from '~/service/MiddlewareService';
-import { getUTC, removeMarkdown } from '~/utils/utils';
-import { registry } from '~/service/openapi/registry';
+import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema.js';
+import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { getUTC, removeMarkdown } from '~/utils/utils.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

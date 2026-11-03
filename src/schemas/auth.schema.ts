@@ -1,6 +1,5 @@
 import z from 'zod';
-import { asUserId, asUserSessionId } from '~/intf/BrandedIds';
-import { registry } from '~/service/openapi/registry';
+import { registry } from '~/service/openapi/registry.js';
 
 
 
@@ -14,8 +13,8 @@ registry.register('AUTH_METHOD_ENUM', z.nativeEnum(AUTH_METHOD));
 
 export const SessionTokenSchema = z.object({
   token_id: z.string().nonempty(),
-  user_id: z.string().nonempty().transform(asUserId),
-  session_id: z.string().nonempty().transform(asUserSessionId),
+  user_id: z.string().nonempty(),
+  session_id: z.string().nonempty(),
 });
 
 

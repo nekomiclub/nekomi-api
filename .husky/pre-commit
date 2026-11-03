@@ -1,1 +1,8 @@
-npm run lint && npm run test && git add .
+export FORCE_COLOR=1
+
+status=0
+
+npx lint-staged || status=1
+npm run check-types || status=1
+
+exit $status

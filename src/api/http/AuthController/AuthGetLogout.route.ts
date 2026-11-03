@@ -1,11 +1,11 @@
-import SessionService from '~/service/SessionService';
-import conf from '~/conf';
+import SessionService from '~/service/SessionService.js';
+import conf from '~/conf.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { ErrorConstructor } from '~/service/ExceptionService';
-import { Middleware } from '~/service/MiddlewareService';
-import { getSessionAuth } from '~/utils/auth-utils';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { ErrorConstructor } from '~/service/ExceptionService.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { getSessionAuth } from '~/utils/auth-utils.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

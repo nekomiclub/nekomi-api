@@ -1,4 +1,4 @@
-import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';
+import { ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';
 
 export interface IHikkaAnime {
   data_type: string;

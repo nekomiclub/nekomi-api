@@ -1,5 +1,5 @@
 import z from 'zod';
-import { getUTC } from '~/utils/utils';
+import { getUTC } from '~/utils/utils.js';
 
 
 

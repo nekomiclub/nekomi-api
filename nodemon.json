@@ -8,6 +8,5 @@
     "dist",
     "src/__tests__"
   ],
-  "delay": "350ms",
-  "exec": "npm run lint && npx tsx ./src/index.ts"
+  "exec": "npx tsx ./src/index.ts"
 }

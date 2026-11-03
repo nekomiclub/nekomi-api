@@ -1,14 +1,14 @@
-import IUser, { IUserSession } from '~/schemas/entities/User.schema';
-import Logger from './LoggerService';
-import TokenService, { TOKEN_METHOD } from './TokenService';
-import conf, { DevelopmentMode } from '~/conf';
+import IUser, { IUserSession } from '~/schemas/entities/User.schema.js';
+import Logger from './LoggerService.js';
+import TokenService, { TOKEN_METHOD } from './TokenService.js';
+import conf, { DevelopmentMode } from '~/conf.js';
 import ms from 'ms';
-import { ISODateString, UserSessionId, asUserSessionId } from '~/intf/BrandedIds';
-import { NekoError } from './ExceptionService';
-import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
-import { UserModel } from '~/repo/UserRepository';
-import { calcISO, getUTC } from '~/utils/utils';
-import { createNanoId, createUserSessionId } from '~/utils/create-id';
+import { ISODateString, UserSessionId, asUserSessionId } from '~/intf/BrandedIds.js';
+import { NekoError } from './ExceptionService.js';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema.js';
+import { UserModel } from '~/repo/UserRepository.js';
+import { calcISO, getUTC } from '~/utils/utils.js';
+import { createNanoId, createUserSessionId } from '~/utils/create-id.js';
 
 
 

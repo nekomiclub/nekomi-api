@@ -1,9 +1,9 @@
 import z from 'zod';
-import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils';
-import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { Middleware } from '~/service/MiddlewareService';
-import { registry } from '~/service/openapi/registry';
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils.js';
+import { AnimeRepositoryClass } from '~/repo/AnimeRepository.js';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 
