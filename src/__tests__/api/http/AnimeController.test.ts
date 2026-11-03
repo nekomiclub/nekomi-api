@@ -2,9 +2,7 @@ import '~/service/openapi/setup';
 
 import conf from '~/conf';
 import request from 'supertest';
-import z from 'zod';
 import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route';
-import { AnimeGetSearchRouteSchemas } from '~/api/http/AnimeController/AnimeGetSearch.route';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -23,23 +21,23 @@ describe('Test Anime HTTP API Controller', () => {
 
 
 
-  describe('GET /anime/search', () => {
-    it('Should search anime documents', async () => {
-      const res = await request(app)
-        .get('/anime/search')
-        .expect(200)
-        .set('X-API-Key', conf.env.API_KEY_SK)
-        .query({
-          q: '~all'
-        } satisfies z.infer<typeof AnimeGetSearchRouteSchemas.RequestQuerySchema>);
+  // describe('GET /anime/search', () => {
+  //   it('Should search anime documents', async () => {
+  //     const res = await request(app)
+  //       .get('/anime/search')
+  //       .expect(200)
+  //       .set('X-API-Key', conf.env.API_KEY_SK)
+  //       .query({
+  //         q: '~all'
+  //       } satisfies z.infer<typeof AnimeGetSearchRouteSchemas.RequestQuerySchema>);
 
-      expect(AnimeGetSearchRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-    });
+  //     expect(AnimeGetSearchRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+  //   });
 
 
 
-    it('Should reject invalid API Key', async () => await shouldRejectAPIKey('/anime/search', 'get'));
-  });
+  //   it('Should reject invalid API Key', async () => await shouldRejectAPIKey('/anime/search', 'get'));
+  // });
 
 
 

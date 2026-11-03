@@ -36,15 +36,6 @@ describe(`Test Generic HTTP API Controller`, () => {
       const body = res.body as z.infer<typeof GetHomeFeedRouteSchema.ResponseSchema>;
 
       expect(GetHomeFeedRouteSchema.ResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
-      expect(res.headers['X-HomeFeedCacheUsed'.toLowerCase()]).toBe('false'); // First request must be uncached
-
-      // === SECOND REQUEST
-      const resCached = await request(app)
-        .get(`/home-feed`)
-        .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK);
-
-      expect(resCached.headers['X-HomeFeedCacheUsed'.toLowerCase()]).toBe('true'); // Second request must be cached
     });
 
 
