@@ -11,7 +11,7 @@ export const AnimePosterNodeSchema = z.object({
   medium: z.string().transform(asCDNString),
   original: z.string().transform(asCDNString),
 
-  authorId: z.string().nullable(),
+  authorId: z.string().nullish(),
   is_hero: z.boolean(),
   pull_hash: z.string(),
 

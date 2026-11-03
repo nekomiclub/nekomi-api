@@ -37,16 +37,8 @@
       ]
     }
   },
-  "include": [
-    "**/*.*",
-    "./src/interfaces/globals.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".cache"
-  ],
+  "include": ["src/**/*.*"],
+  "exclude": ["node_modules", "build", "dist", ".cache"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

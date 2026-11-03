@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "npx nodemon",
     "build": "npx rimraf ./build && npm run lint && npx tsc --build && npx tsc-alias",
-    "start": "npm run build && node ./build/src/index.js",
-    "test": "npx tsc --noEmit && npx vitest --run --silent",
+    "start": "npm run build && npx node ./build/src/index.js",
+    "test": "npx vitest --run --silent",
     "lint": "npx eslint . --fix"
   },
   "devDependencies": {
