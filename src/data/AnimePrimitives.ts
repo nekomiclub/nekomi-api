@@ -1,4 +1,7 @@
 import z from 'zod';
+import { registry } from '~/service/openapi/registry';
+
+
 
 export enum ANIME_GENRE {
   ACTION = 'action',
@@ -46,6 +49,10 @@ export enum ANIME_GENRE {
   YURI = 'yuri'
 }
 
+registry.register('ANIME_GENRE_ENUM', z.nativeEnum(ANIME_GENRE));
+
+
+
 export enum ANIME_RATING {
   G = 'g',
   PG = 'pg',
@@ -55,11 +62,19 @@ export enum ANIME_RATING {
   RX = 'rx'
 }
 
+registry.register('ANIME_RATING_ENUM', z.nativeEnum(ANIME_RATING));
+
+
+
 export enum ANIME_STATUS {
   FINISHED = 'finished',
   ONGOING = 'ongoing',
   ANNOUNCED = 'announced'
 }
+
+registry.register('ANIME_STATUS_ENUM', z.nativeEnum(ANIME_STATUS));
+
+
 
 export enum ANIME_SEASON {
   SUMMER = 'summer',
@@ -67,6 +82,10 @@ export enum ANIME_SEASON {
   WINTER = 'winter',
   SPRING = 'spring'
 }
+
+registry.register('ANIME_SEASON_ENUM', z.nativeEnum(ANIME_SEASON));
+
+
 
 export enum ANIME_TYPE {
   TV = 'tv',
@@ -76,6 +95,8 @@ export enum ANIME_TYPE {
   ONA = 'ona',
   UNKNOWN = 'unknown'
 }
+
+registry.register('ANIME_TYPE_ENUM', z.nativeEnum(ANIME_TYPE));
 
 
 

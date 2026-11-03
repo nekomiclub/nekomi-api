@@ -1,21 +1,42 @@
 import DTS from '~/service/DataTransferService';
-import IAnime, { AnimeExtendedSchema, IAnimeExtended } from '~/schemas/entities/Anime.schema';
-import conf from '~/conf';
+import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
 import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const GetAnimeSearchQuerySchema = SearchServiceQueryParamsSchema;
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
-export const GetAnimeSearchResponseSchema = z.object({
-  message: z.string(),
-  results: AnimeExtendedSchema.array(),
+const ResponseSchema = CreateResponseSchema(z.object({
+  results: AnimeSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/anime/search',
+  summary: 'Search anime',
+  tags: ['Anime Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Anime searched',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -27,20 +48,29 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new AnimeRepositoryClass();
   const { results: raw, pagination } = await RequestSearch<IAnime>(req, repo, AnimeSearch);
 
-  const results: IAnimeExtended[] = raw.map(result => DTS.toAnimeExtended(result));
+  const results: IAnimeSearchResult[] = raw.map(result => DTS.toAnimeSearchResult(result));
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Animes searched',
-    results,
-    pagination
-  } satisfies z.infer<typeof GetAnimeSearchResponseSchema>);
+    data: {
+      results,
+      pagination
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey(),
+], endpoint);
+
+
+
+export const AnimeGetSearchRouteSchemas = {
+  RequestQuerySchema,
+  ResponseSchema,
+};

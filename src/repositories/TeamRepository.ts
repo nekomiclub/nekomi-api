@@ -55,7 +55,7 @@ const schema = new Schema<RepositoryType>({
   },
 }, { strict: false, versionKey: false });
 
-const model = mongoose.model<RepositoryType>('dubber', schema);
+const model = mongoose.model<RepositoryType>('teams', schema);
 
 
 
@@ -279,7 +279,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       try {
         await NekomiUploadService.deleteFile(NekomiUploadService.getId(this._doc[key]), userId);
       } catch (e) {
-        Logger.warn(`[${this.RepositoryName}]: Cannot delete team old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`);
+        Logger.warn(`[${this.RepositoryName}]: Cannot delete team old "${type}" (${this._doc[key]}) [id: ${this._doc.id}]`, e);
       }
     }
 

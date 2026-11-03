@@ -1,3 +1,5 @@
+import '~/service/openapi/setup';
+
 import AnimeValidators from '~/utils/validators/anime-validators';
 import createSlug from '~/utils/create-slug';
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';

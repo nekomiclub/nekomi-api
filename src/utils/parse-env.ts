@@ -16,7 +16,8 @@ const EnvSchema = z.object({
   DATABASE_USR: z.string(),
   DATABASE_PWD: z.string(),
 
-  CSRF_SK: z.string(),
+  API_KEY_SK: z.string(),
+
   MAL_CLIENT_SK: z.string(),
   ASHDI_API_SK: z.string(),
   MOONANIME_API_SK: z.string(),

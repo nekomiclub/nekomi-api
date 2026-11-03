@@ -14,15 +14,15 @@ const UserRouter = express.Router();
 
 
 UserRouter.get('/search', UserGetSearchRoute);
-UserRouter.get(['/', '/:query'], UserGetRoute);
-UserRouter.get('/:query/lib/:libId', UserGetLibRoute);
+UserRouter.get(['/', '/:qr'], UserGetRoute);
+UserRouter.get('/:qr/lib/:libId', UserGetLibRoute);
 
-UserRouter.patch(['/', '/:id'], UserPatchSettingsRoute);
+UserRouter.patch('/:id', UserPatchSettingsRoute);
 
-UserRouter.put(['/avatar', '/:id/avatar'], UserPutAvatarRoute);
-UserRouter.put(['/cover', '/:id/cover'], UserPutCoverRoute);
+UserRouter.put('/:id/avatar', UserPutAvatarRoute);
+UserRouter.put('/:id/cover', UserPutCoverRoute);
 
-UserRouter.delete(['/', '/:id'], UserDeleteRoute);
+UserRouter.delete('/:id', UserDeleteRoute);
 
 
 

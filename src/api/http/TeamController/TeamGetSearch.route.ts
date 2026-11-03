@@ -1,27 +1,42 @@
 import DTS from '~/service/DataTransferService';
-import ITeam, { TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
-import conf from '~/conf';
+import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
 import { RequestSearch, SearchServiceQueryParamsSchema, TeamSearch } from '~/service/SearchService';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
-  short_about: z.string().optional()
-});
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
 
-
-
-export const GetTeamSearchQuerySchema = SearchServiceQueryParamsSchema;
-
-export const GetTeamSearchResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   results: TeamSearchResultSchema.array(),
   pagination: PaginationSchema.optional()
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/team/search',
+  summary: 'Search teams',
+  tags: ['Team Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Teams searched',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -32,25 +47,29 @@ export const GetTeamSearchResponseSchema = z.object({
 const endpoint = HandleRequest(async (req, res) => {
   const { results: searches, pagination } = await RequestSearch<ITeam>(req, new TeamRepositoryClass(), TeamSearch);
 
-  const results = searches.map(result => {
-    return {
-      ...DTS.toTeamMinified(result),
-      short_about: result.about?.slice(0, 200)
-    } satisfies z.infer<typeof TeamSearchResultSchema>;
-  });
+  const results = searches.map(result => DTS.toTeamSearchResult(result));
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Dubbers searched',
-    results,
-    pagination
-  } satisfies z.infer<typeof GetTeamSearchResponseSchema>);
+    data: {
+      results,
+      pagination
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey(),
+], endpoint);
+
+
+
+export const TeamGetSearchRouteSchemas = {
+  RequestQuerySchema,
+  ResponseSchema,
+};

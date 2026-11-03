@@ -11,9 +11,9 @@ const AnimeRouter = express.Router();
 
 
 AnimeRouter.get('/search', AnimeGetSearchRoute);
-AnimeRouter.get('/:query', AnimeGetRoute);
-AnimeRouter.get('/:query/episodes', AnimeGetEpisodesRoute);
-AnimeRouter.get('/:query/parse', AnimeGetForceParseRoute);
+AnimeRouter.get('/:qr', AnimeGetRoute);
+AnimeRouter.get('/:qr/episodes', AnimeGetEpisodesRoute);
+AnimeRouter.get('/:qr/parse', AnimeGetForceParseRoute);
 
 // AnimeRouter.post('/');
 

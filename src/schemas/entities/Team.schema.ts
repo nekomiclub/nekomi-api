@@ -1,16 +1,19 @@
 import z from 'zod';
+import { UserMinifiedSchema } from './User.schema';
 import { asCDNString, asISODateString, asTeamId, asUserId } from '~/intf/BrandedIds';
+
+
 
 /* --------------------- */
 /* Native enum           */
 /* --------------------- */
 
-export const TeamRoleSchema = z.enum([
+export const TEAM_ROLE_ENUM = z.enum([
   'leader',
   'editor',
   'member',
   'pending',
-]);
+]).openapi('TEAM_ROLE_ENUM');
 
 /* --------------------- */
 /* Team member schema    */
@@ -18,9 +21,14 @@ export const TeamRoleSchema = z.enum([
 
 export const TeamMemberSchema = z.object({
   id: z.string().transform(asUserId),
-  role: TeamRoleSchema,
+  role: TEAM_ROLE_ENUM,
   member_since: z.string().transform(asISODateString),
-});
+}).openapi('TeamMember');
+
+export const TeamMemberExtendedSchema = UserMinifiedSchema.extend({
+  role: TEAM_ROLE_ENUM,
+  member_since: z.string().transform(asISODateString)
+}).openapi('TeamMemberExtended');
 
 /* --------------------- */
 /* Base team schema      */
@@ -60,27 +68,50 @@ export const TeamSchema = z.object({
 /* DTS                   */
 /* --------------------- */
 
+export const TeamPublicSchema = TeamSchema.pick({
+  id: true,
+  slug: true,
+  name: true,
+  about: true,
+
+  avatar: true,
+  cover: true,
+
+  socials: true,
+  support: true,
+
+  members: true,
+
+  created_at: true,
+  updated_at: true,
+}).openapi('Team');
+
 export const TeamMinifiedSchema = TeamSchema.pick({
   id: true,
   slug: true,
   name: true,
   avatar: true,
-});
+}).openapi('TeamMinified');
 
-/** @deprecated reworked into TeamMinifiedSchema */
-export type TeamCardType = Pick<ITeam, 'id' | 'name' | 'slug' | 'avatar'>
+export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
+  short_about: z.string().optional()
+}).openapi('TeamSearchResult');
+
+
 
 /* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
-export type TeamRoleType = z.infer<typeof TeamRoleSchema>
+export type TeamRoleType = z.infer<typeof TEAM_ROLE_ENUM>
 
 export type ITeamMember = z.infer<typeof TeamMemberSchema>
+export type ITeamMemberExtended = z.infer<typeof TeamMemberExtendedSchema>
 
 export type ITeam = z.infer<typeof TeamSchema>
-
+export type ITeamPublic = z.infer<typeof TeamPublicSchema>
 export type ITeamMinified = z.infer<typeof TeamMinifiedSchema>
+export type ITeamSearchResult = z.infer<typeof TeamSearchResultSchema>
 
 
 

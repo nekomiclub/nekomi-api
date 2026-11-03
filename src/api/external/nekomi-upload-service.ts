@@ -70,6 +70,6 @@ export class NekomiUploadService {
 
 
   static getId(val: string): string {
-    return val.split('/')[val.split('/').length - 1];
+    return val.split('/')[val.split('/').length - 1].split('.')[0];
   }
 }

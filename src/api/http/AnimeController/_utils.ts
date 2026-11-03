@@ -6,10 +6,6 @@ import { TeamId } from '~/intf/BrandedIds';
 
 
 
-export const AnimeParamsSchema = z.object({
-  query: z.string().nonempty()
-});
-
 export const AnimeGetEpisodesSchema = z.object({
   player: AnimePlayerSchema,
   player_teams: TeamMinifiedSchema.array(),

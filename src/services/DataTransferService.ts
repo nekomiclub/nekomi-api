@@ -1,6 +1,6 @@
-import IAnime, { AnimeCardType, AnimeExtendedSchema, AnimeMinifiedSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode } from '~/schemas/entities/Anime.schema';
-import ITeam, { ITeamMinified, TeamCardType, TeamMinifiedSchema } from '~/schemas/entities/Team.schema';
-import IUser, { IUserLib, IUserMinified, UserCardType, UserMinifiedSchema } from '~/schemas/entities/User.schema';
+import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
+import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
+import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/schemas/entities/User.schema';
 import conf from '~/conf';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
@@ -93,26 +93,12 @@ class DTSClass {
 
 
 
-  /** @deprecated use toAnimeMinified instead */
-  toAnimeCard({ id, slug, episodes_total, title_en, title_ua, genres, score, posters }: IAnime): AnimeCardType {
-    return {
-      id,
-      slug,
-      episodes_total,
-      score,
-      poster: asCDNString(posters.find(el => el.is_hero)?.small ?? posters[0]?.small ?? conf.vars.defaultPoster),
-      title: title_ua ?? title_en ?? 'Untitled',
-      genres: genres.map(el => AnimeDescribedGenres[el]),
-    };
-  }
-
-
-
   toAnimeMinified(payload: IAnime): IAnimeMinified {
     return AnimeMinifiedSchema.parse({
       ...payload,
       title: payload.title_ua ?? payload.title_en ?? payload.title_ja ?? 'Аніме без назви',
       poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      genres: payload.genres.map(el => AnimeDescribedGenres[el])
     } satisfies IAnimeMinified);
   }
 
@@ -130,6 +116,16 @@ class DTSClass {
       rating: payload.rating ? AnimeDescribedRatings[payload.rating] : undefined,
       genres: payload.genres.map(el => AnimeDescribedGenres[el]),
     } satisfies IAnimeExtended);
+  }
+
+
+
+  toAnimeSearchResult(payload: IAnime): IAnimeSearchResult {
+    return AnimeSearchResultSchema.parse({
+      ...payload,
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      type: payload.type ? AnimeNamedRecordSchema[payload.type] : undefined,
+    } satisfies IAnimeSearchResult);
   }
 
 
@@ -168,13 +164,17 @@ class DTSClass {
 
 
 
-  /** @deprecated use toTeamMinified instead */
-  toTeamCard({ id, avatar, name, slug }: ITeam): TeamCardType {
-    return { avatar, id, name, slug };
-  }
-
   toTeamMinified(payload: ITeam): ITeamMinified {
     return TeamMinifiedSchema.parse(payload);
+  }
+
+
+
+  toTeamSearchResult(payload: ITeam): ITeamSearchResult {
+    return TeamSearchResultSchema.parse({
+      ...DTS.toTeamMinified(payload),
+      short_about: payload.about?.slice(0, 200)
+    } satisfies ITeamSearchResult);
   }
 
 
@@ -201,13 +201,14 @@ class DTSClass {
 
 
 
-  /** @deprecated use toUserMinified instead */
-  toUserCard({ avatar, id, username, cover }: IUser): UserCardType {
-    return { avatar, id, username, cover };
-  }
-
   toUserMinified(payload: IUser): IUserMinified {
     return UserMinifiedSchema.parse(payload);
+  }
+
+
+
+  toUserSearchResult(payload: IUser): IUserSearchResult {
+    return UserSearchResultSchema.parse(payload);
   }
 
 

@@ -14,7 +14,7 @@ const AnimeModel = mongoose.model('anime', new Schema({
   slug: String,
 }, { strict: false, versionKey: false }));
 
-const TeamModel = mongoose.model('dubber', new Schema({
+const TeamModel = mongoose.model('team', new Schema({
   id: String,
   slug: String,
 }, { strict: false, versionKey: false }));

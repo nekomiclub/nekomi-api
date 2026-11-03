@@ -1,11 +1,9 @@
-import conf from '~/conf';
 import express from 'express';
 import multer from 'multer';
-import z from 'zod';
 import { CDNString, TeamId } from '~/intf/BrandedIds';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { TeamRepositoryClass } from '~/repo/TeamRepository';
 
 
@@ -17,15 +15,10 @@ type UploadMethodType = keyof Pick<TeamRepositoryClass, 'uploadAvatar' | 'upload
 const upload = multer();
 
 export const TeamControllerACUploadMiddlewares = [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  Middleware.CheckAccess([ROLE_PERMISSION.BASIC]),
+  Middleware.CheckAPIKey(),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
   upload.single('file'),
 ];
-
-export const TeamControllerACUploadResponseSchema = z.object({
-  message: z.string(),
-  url: z.string()
-});
 
 
 
@@ -46,7 +39,7 @@ export default async function HandleTeamControllerACUpload(req: express.Request,
 
 
   // Skip validation for root
-  if (!permissions?.includes(ROLE_PERMISSION.ABSOLUTE)) {
+  if (!permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
     const member = repo.document?.members.find(el => el.id === userId);
 
     if (!member || member.role !== 'leader') throw new NekoError('sys:action_prevented', `Only leader can update team settings`);

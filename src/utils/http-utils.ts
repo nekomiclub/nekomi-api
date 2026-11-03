@@ -2,6 +2,7 @@ import Logger from '~/service/LoggerService';
 import axios from 'axios';
 import conf, { ProductionMode } from '~/conf';
 import express from 'express';
+import z, { ZodType } from 'zod';
 import { HandleRequestError, NekoError } from '~/service/ExceptionService';
 import { IncomingHttpHeaders } from 'http';
 import { MiddlewareType } from '~/service/MiddlewareService';
@@ -81,13 +82,13 @@ export function traceRequest() {
 
 
 /** 
- * Get current session
+ * Get authorization token
  * If user passed throught Middleware.CheckAccess() middleware, will retrieve fresh session token
  * 
  * @throws auth:token_miss if session cookie is missing
  */
-export function getSessionToken(req: express.Request): string {
-  const token = req._nekomi.sessionToken ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
+export function getAuthorizationToken(req: express.Request): string {
+  const token = req._nekomi.sessionToken ?? req.headers['authorization']?.replace('Bearer ', '') ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
   if (!token) throw new NekoError('auth:token_miss');
 
   return token;
@@ -96,13 +97,13 @@ export function getSessionToken(req: express.Request): string {
 
 
 /** 
- * Get CSRF token
+ * Get API key
  * 
- * @throws auth:csrf_token_miss if csrf token header is missing
+ * @throws auth:api_key_miss if api key header is missing
  */
-export function getCSRFToken(req: express.Request): string {
-  const token = req.header('X-CSRF-Token');
-  if (!token) throw new NekoError('auth:csrf_token_miss');
+export function getAPIKey(req: express.Request): string {
+  const token = req.header('x-api-key');
+  if (!token) throw new NekoError('auth:api_key_miss');
 
   return token;
 }
@@ -128,3 +129,36 @@ export function setSessionCookie(token: string, res: express.Response) {
 export const $http = axios.create({
   timeout: 10000
 });
+
+
+
+/** Base HTTP response schema */
+export const BaseResponseSchema = z.object({
+  ok: z.boolean(),
+  message: z.string(),
+  code: z.string().nullish(),
+  error: z.string().nullish(),
+  errors: z.any().array().nullish(),
+}).openapi('BaseResponseSchema');
+
+export const ErrorResponseSchema = CreateResponseSchema(z.object({
+  date: z.string().date(),
+  requestUrl: z.string().url().nullish(),
+})).openapi('ErrorResponseSchema');
+
+
+
+/** Create http response zod schema */
+export function CreateResponseSchema<T extends ZodType>(payload: T) {
+  return BaseResponseSchema.extend({
+    data: payload
+  });
+}
+
+
+/** Send typed response */
+export const SendResponse = <T extends ZodType>(payload: z.infer<T>, schema: T) => payload;
+
+
+
+export const EndpointMiddlewares = (middlewares: express.RequestHandler[], endpoint: express.RequestHandler) => [...middlewares, endpoint];

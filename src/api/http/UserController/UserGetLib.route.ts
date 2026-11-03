@@ -1,28 +1,50 @@
 import AnimeRepository from '~/repo/AnimeRepository';
 import DTS from '~/service/DataTransferService';
-import conf from '~/conf';
 import z from 'zod';
 import { AnimeMinifiedSchema, IAnimeMinified } from '~/schemas/entities/Anime.schema';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { NekoError } from '~/service/ExceptionService';
 import { UserLibSchema, UserMinifiedSchema } from '~/schemas/entities/User.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
-const ParamsSchema = z.object({
-  query: z.string().nonempty(),
+const RequestParamsSchema = z.object({
+  qr: z.string().nonempty(),
   libId: z.string().nonempty(),
 });
 
-const ResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   user: UserMinifiedSchema,
   libs: UserLibSchema.array(),
   catalog: AnimeMinifiedSchema.array(),
-  pagination: ParamsSchema.optional()
+  pagination: RequestParamsSchema.optional(),
+  is_owner: z.boolean(),
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/user/{qr}/lib/{libId}',
+  summary: 'Get user by query lib by id',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'User lib retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -31,7 +53,7 @@ const ResponseSchema = z.object({
  * Get user lib
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { libId, query } = ParamsSchema.parse(req.params);
+  const { libId, qr: query } = RequestParamsSchema.parse(req.params);
 
   const repo = new UserRepositoryClass();
   await repo.init(query);
@@ -39,9 +61,11 @@ const endpoint = HandleRequest(async (req, res) => {
   const lib = repo.document?.libs.find(el => el.id === libId);
   if (!lib) throw new NekoError(`sys:not_found`, `User lib "${libId}" is not found`);
 
+  const is_owner = await isRequesterAccountOwner(req, repo.document.id);
+
   // Ensure that only owner or admin can retrieve private lib
   if (!lib.is_public) {
-    if (!await isRequesterAdmin(req) && !await isRequesterAccountOwner(req, repo.document.id)) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
+    if (!await isRequesterAdmin(req) && !is_owner) throw new NekoError('sys:action_prevented', `You are not eligible for retrieve user private lib`);
   }
 
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
@@ -52,17 +76,27 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User lib retrieved',
-    libs,
-    user,
-    catalog,
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      libs,
+      user,
+      catalog,
+      is_owner
+    }
+  }, ResponseSchema));
 });
 
 
 
-export default [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey(),
+], endpoint);
+
+
+
+export const UserGetLibRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

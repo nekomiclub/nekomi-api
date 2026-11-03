@@ -11,7 +11,7 @@ export const HomeFeedHeroSchema = z.object({
   poster: z.string(),
   cover: z.string(),
   video: z.string().nullish(),
-});
+}).openapi('HomeFeedHero');
 
 
 

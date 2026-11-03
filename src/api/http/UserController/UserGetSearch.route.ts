@@ -1,19 +1,42 @@
 import DTS from '~/service/DataTransferService';
-import IUser, { IUserMinified, UserMinifiedSchema } from '~/schemas/entities/User.schema';
-import conf from '~/conf';
+import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/schemas/entities/User.schema';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
 import { PaginationSchema } from '~/utils/pagination';
-import { RequestSearch, UserSearch } from '~/service/SearchService';
+import { RequestSearch, SearchServiceQueryParamsSchema, UserSearch } from '~/service/SearchService';
 import { UserRepositoryClass } from '~/repo/UserRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
-const ResponseSchema = z.object({
-  message: z.string(),
-  results: UserMinifiedSchema.array(),
+const RequestQuerySchema = SearchServiceQueryParamsSchema;
+
+const ResponseSchema = CreateResponseSchema(z.object({
+  results: UserSearchResultSchema.array(),
   pagination: PaginationSchema.optional(),
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/user/search',
+  summary: 'Search users',
+  tags: ['User Router'],
+  request: {
+    query: RequestQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Users searched',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -25,22 +48,28 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
   const { results: searches, pagination } = await RequestSearch<IUser>(req, repo, UserSearch);
 
-  const results: IUserMinified[] = searches.map(result => DTS.toUserMinified(result));
+  const results: IUserSearchResult[] = searches.map(result => DTS.toUserMinified(result));
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Users searched',
-    results,
-    pagination
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      results,
+      pagination
+    }
+  }, ResponseSchema));
 });
 
 
 
-const UserGetSearchRoute = [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey(),
+], endpoint);
 
-export default UserGetSearchRoute;
+
+
+export const UserGetSearchRouteSchemas = {
+  ResponseSchema
+};

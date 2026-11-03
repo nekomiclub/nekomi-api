@@ -229,3 +229,8 @@ export function getObjectKeyByValue<
     key => obj[key] === value
   ) ?? null;
 }
+
+
+
+/** Return data with strict types */
+export const asType = <T>(data: T) => data satisfies T;

@@ -1,12 +1,11 @@
-import CSRFService from './CSRFService';
 import DTS from './DataTransferService';
 import IUser from '~/schemas/entities/User.schema';
 import SessionService from './SessionService';
 import TokenService from './TokenService';
-import conf, { DevelopmentMode, TestMode } from '~/conf';
-import { HandleMiddleware, getCSRFToken, getSessionToken } from '~/utils/http-utils';
+import conf from '~/conf';
+import { HandleMiddleware, getAPIKey, getAuthorizationToken } from '~/utils/http-utils';
 import { NekoError } from './ExceptionService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
 
@@ -21,7 +20,7 @@ interface ICheckAccess {
   sessionId: string
 
   /** Will be null if required permissions are not specified */
-  permissions: ROLE_PERMISSION[] | null
+  permissions: ROLE_PERMISSION_ENUM[] | null
 }
 
 
@@ -31,7 +30,7 @@ export default class MiddlewareService {
    * Check user authorization
    * Will simply parse user if permissions are not specified, otherwise will ensure that user have required permission
    */
-  async checkAccess(token: string, permissions?: ROLE_PERMISSION[]): Promise<ICheckAccess> {
+  async checkAccess(token: string, permissions?: ROLE_PERMISSION_ENUM[]): Promise<ICheckAccess> {
     const { payload } = TokenService.decode<SessionTokenType>(token);
     if (!SessionTokenSchema.safeParse(payload).success) throw new NekoError('auth:session_token_invalid');
 
@@ -39,7 +38,7 @@ export default class MiddlewareService {
     await session.init({ id: payload.user_id });
     await session.parse(token);
 
-    let userPermissions: ROLE_PERMISSION[] | null = null;
+    let userPermissions: ROLE_PERMISSION_ENUM[] | null = null;
 
 
 
@@ -48,7 +47,7 @@ export default class MiddlewareService {
       userPermissions = await parseRolesPermissions(session.document!.roles);
 
       // Pass any checks for root 
-      if (!userPermissions.includes(ROLE_PERMISSION.ABSOLUTE)) {
+      if (!userPermissions.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
         permissions.forEach(perm => {
           if (!userPermissions?.includes(perm)) throw new NekoError('sys:action_prevented', `Lack of permission: ${perm}`);
         });
@@ -66,31 +65,12 @@ export default class MiddlewareService {
 
 
 
-  /**
-   * Parse & verify CSRF token
-   * If origins provided, will match token origin with allowed
-   * 
-   * @param token In development or test mode "~dev" value can be passed to use fresh nekomi-api token
-   * @returns origin
-   */
-  async checkCSRF(token: string, origins: string[] = []): Promise<string> {
-    // In development mode append nekomi api origin to pass "~dev" token
-    if ((DevelopmentMode || TestMode) && origins?.length) origins.push(conf.domains.NEKOMI_API_DOMAIN);
+  /** Verify API key */
+  async checkAPIKey(token: string): Promise<boolean> {
+    const isMatched = conf.env.API_KEY_SK === token;
+    if (!isMatched) throw new NekoError('auth:api_key_invalid', `API key is invalid`);
 
-    // In development mode issue fresh token for "~dev"
-    if ((DevelopmentMode || TestMode) && token === '~dev') token = CSRFService.signToken(null);
-
-
-
-    const csrf = await CSRFService.verify(token);
-    if (!csrf.verified) throw new NekoError('auth:csrf_token_invalid');
-
-    // Pass verifying if origin is nekomi admin
-    if (csrf.origin !== conf.domains.NEKOMI_ADMIN_DOMAIN) {
-      if (origins.length !== 0 && !origins.includes(csrf.origin!)) throw new NekoError('auth:csrf_token_invalid', `Origin is not allowed`);
-    }
-
-    return csrf.origin!;
+    return isMatched;
   }
 }
 
@@ -104,10 +84,11 @@ class MiddlewareClass {
   /** 
    * Middleware wrapper for {@link MiddlewareService.checkAccess} 
    */
-  CheckAccess = (permissions?: ROLE_PERMISSION[]) => HandleMiddleware(async (req, res) => {
-    const token = getSessionToken(req);
+  CheckAccess = (permissions?: ROLE_PERMISSION_ENUM[]) => HandleMiddleware(async (req, res) => {
+    const token = getAuthorizationToken(req);
 
     const { user, permissions: userPermissions, sessionId } = await this.service.checkAccess(token, permissions);
+
 
 
 
@@ -122,13 +103,12 @@ class MiddlewareClass {
 
 
 
-  /** Middleware wrapper for {@link MiddlewareService.checkCSRF} */
-  CheckCSRF = (origins?: string[]) => HandleMiddleware(async (req) => {
-    const token = getCSRFToken(req);
-    const origin = await this.service.checkCSRF(token, origins);
+  /** Middleware wrapper for {@link MiddlewareService.checkAPIKey} */
+  CheckAPIKey = () => HandleMiddleware(async (req) => {
+    const token = getAPIKey(req);
+    await this.service.checkAPIKey(token);
 
-    req._nekomi.middlewaresPassed?.push('checkCSRF');
-    req._nekomi.csrfOrigin = origin;
+    req._nekomi.middlewaresPassed?.push('checkAPIKey');
   });
 }
 

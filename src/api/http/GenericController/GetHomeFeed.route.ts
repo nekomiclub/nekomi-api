@@ -5,29 +5,48 @@ import Logger from '~/service/LoggerService';
 import conf, { DevelopmentMode } from '~/conf';
 import ms from 'ms';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 
 import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema';
 import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema';
 import { Middleware } from '~/service/MiddlewareService';
 import { getUTC, removeMarkdown } from '~/utils/utils';
+import { registry } from '~/service/openapi/registry';
 
 
 
-const FeedSchema = z.object({
+const HomeFeedData = z.object({
   hero: HomeFeedHeroSchema.array(),
   hot: AnimeMinifiedSchema.array(),
   highest_rate: AnimeMinifiedSchema.array(),
   updated_recently: AnimeMinifiedSchema.array(),
 });
 
-export const GetHomeFeedResponseSchema = FeedSchema.extend({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(HomeFeedData);
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/home-feed',
+  summary: 'Get home feed',
+  tags: ['Generic Router'],
+  request: {},
+  responses: {
+    200: {
+      description: 'Home feed retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema,
+        }
+      }
+    }
+  }
 });
 
 
 
-const FeedCache = new CacheService<z.infer<typeof FeedSchema>>('HomeFeed', { ttl: ms('1day') });
+const FeedCache = new CacheService<z.infer<typeof HomeFeedData>>('HomeFeed', { ttl: ms('1day') });
 const feedCacheId = `~feed`;
 
 
@@ -44,7 +63,7 @@ const endpoint = HandleRequest(async (req, res) => {
     highest_rate: [],
     hot: [],
     updated_recently: []
-  } satisfies z.infer<typeof FeedSchema>;
+  } satisfies z.infer<typeof HomeFeedData>;
 
 
 
@@ -110,15 +129,21 @@ const endpoint = HandleRequest(async (req, res) => {
   // Set testing header
   if (DevelopmentMode) res.setHeader(`X-HomeFeedCacheUsed`, `${Boolean(cache)}`);
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Home feed retrieved',
-    ...feed
-  } satisfies z.infer<typeof GetHomeFeedResponseSchema>);
-}, { middlewares: ['checkCSRF'] });
+    data: feed
+  }, ResponseSchema));
+}, { middlewares: ['checkAPIKey'] });
 
 
 
-export default [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey()
+], endpoint);
+
+
+
+export const GetHomeFeedRouteSchema = {
+  ResponseSchema
+};

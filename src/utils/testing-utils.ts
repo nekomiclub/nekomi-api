@@ -26,12 +26,12 @@ export async function shouldfail(func: () => Promise<void> | void, code?: string
 
 
 
-export async function shouldRejectCSRF(url: string, method: 'get' | 'post' | 'put' | 'delete' | 'patch') {
+export async function shouldRejectAPIKey(url: string, method: 'get' | 'post' | 'put' | 'delete' | 'patch') {
   const res = await request(app)[method](url)
     .expect(401)
-    .set(`X-CSRF-Token`, `_INVALID`);
+    .set(`X-API-Key`, `_INVALID`);
 
-  expect(res.body.code).toBe(`auth:csrf_token_invalid`); // Error code must match provided
+  expect(res.body.code).toBe(`auth:api_key_invalid`); // Error code must match provided
 }
 
 

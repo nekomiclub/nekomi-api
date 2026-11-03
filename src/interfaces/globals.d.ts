@@ -1,5 +1,5 @@
 import { MiddlewareType } from '~/service/MiddlewareService';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserId } from './BrandedIds';
 
 
@@ -11,15 +11,6 @@ declare global {
       _nekomi: {
         /** Request passed middlewares */
         middlewaresPassed: MiddlewareType[]
-
-
-
-        /** 
-         * CSRF origin
-         * 
-         * @requires Middleware.CheckCSRF()
-         */
-        csrfOrigin?: string
 
 
 
@@ -40,7 +31,7 @@ declare global {
         user?: {
           id: UserId
           sessionId: string
-          permissions: ROLE_PERMISSION[] | null
+          permissions: ROLE_PERMISSION_ENUM[] | null
         }
       }
     }

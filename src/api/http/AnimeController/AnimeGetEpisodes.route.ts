@@ -1,17 +1,40 @@
-import conf from '~/conf';
 import z from 'zod';
-import { AnimeGetEpisodes, AnimeGetEpisodesSchema, AnimeParamsSchema } from './anime-controller-utils';
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils';
 import { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { Middleware } from '~/service/MiddlewareService';
+import { registry } from '~/service/openapi/registry';
 
 
 
-export const GetAnimeEpisodesParamSchema = AnimeParamsSchema;
+const RequestParamsSchema = z.object({
+  qr: z.string().nonempty()
+});
 
-export const GetAnimeEpisodesResponseSchema = z.object({
-  message: z.string(),
+const ResponseSchema = CreateResponseSchema(z.object({
   anime_episodes: AnimeGetEpisodesSchema
+}));
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/anime/{qr}/episodes',
+  summary: 'Get anime by query episodes',
+  tags: ['Anime Router'],
+  request: {
+    params: RequestParamsSchema,
+  },
+  responses: {
+    200: {
+      description: 'Anime episodes retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -20,7 +43,7 @@ export const GetAnimeEpisodesResponseSchema = z.object({
  * Get anime episodes with pagination
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = GetAnimeEpisodesParamSchema.parse(req.params);
+  const { qr: query } = RequestParamsSchema.parse(req.params);
 
   const repo = new AnimeRepositoryClass();
   await repo.init(query);
@@ -29,15 +52,24 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: `Anime episodes retrieved`,
-    anime_episodes
-  } satisfies z.infer<typeof GetAnimeEpisodesResponseSchema>);
-});
+    data: {
+      anime_episodes
+    }
+  }, ResponseSchema));
+}, { middlewares: ['checkAPIKey'] });
 
 
 
-export default [
-  Middleware.CheckCSRF([conf.domains.NEKOMI_DOMAIN]),
-  endpoint
-];
+export default EndpointMiddlewares([
+  Middleware.CheckAPIKey(),
+], endpoint);
+
+
+
+export const AnimeGetEpisodesRouteSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};

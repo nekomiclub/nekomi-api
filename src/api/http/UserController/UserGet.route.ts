@@ -1,82 +1,96 @@
 import DTS from '~/service/DataTransferService';
 import MiddlewareService from '~/service/MiddlewareService';
-import conf from '~/conf';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { HandleRequest, getSessionToken } from '~/utils/http-utils';
-import { ROLE_PERMISSION } from '~/schemas/entities/Role.schema';
-import { USER_RESTRICTION, UserLibSchema, UserMinifiedSchema, UserSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getAuthorizationToken } from '~/utils/http-utils';
+import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
 import { UserRepositoryClass } from '~/repo/UserRepository';
-import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterCSRF } from '~/utils/auth-utils';
+import { isEligible, isRequesterAPIValid, isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
 import { parseRolesPermissions } from '~/repo/RoleRepository';
+import { registry } from '~/service/openapi/registry';
 
 
 
-const UserPublicSchema = UserSchema.pick({
-  id: true,
-  username: true,
-  avatar: true,
-  cover: true,
-  total_viewtime: true,
-  dubber_team_member: true,
-  roles: true,
-  username_changed_at: true,
-  created_at: true,
-  updated_at: true,
+const UserExtendedSchema = z.object({
+  libs: UserLibSchema.array(),
+  total_viewtime: z.number(),
+  view_progress: UserViewProgressSchema.array(),
 });
 
-
-
-const ParamsSchema = z.object({
-  query: z.string().nonempty().optional(),
+const UserPermissionsSchema = z.object({
+  permissions: z.nativeEnum(ROLE_PERMISSION_ENUM).openapi('ROLE_PERMISSION_ENUM').array(),
+  restrictions: z.nativeEnum(USER_RESTRICTION_ENUM).openapi('USER_RESTRICTION_ENUM').array()
 });
 
-const QuerySchema = z.object({
-  /**
-   * Get user permissions & restrictions
-   */
-  get_permissions: zBoolean.optional(),
+const UserDataSchema = z.object({
+  user: UserPublicSchema,
 
-  /** 
-   * Get extended user object
-   * 
-   * @requires Authorization (CSRF)
-   */
-  is_extended: zBoolean.optional(),
+  /** @see query#is_extended */
+  user_extended: UserExtendedSchema.optional(),
 
-  /** 
-   * Get user view_progress object
-   * 
-   * @requires Authorization (CSRF)
-   */
-  get_view_progress: zBoolean.optional(),
+  /** @see query#get_permissions */
+  user_permissions: UserPermissionsSchema.optional(),
 
-  /** 
-   * Get user email
-   * 
-   * @requires Authorization (CSRF+Authorization) Owner/Moderator
-   */
-  get_email: zBoolean.optional(),
-});
-
-const ResponseSchema = z.object({
-  message: z.string(),
-  user: UserPublicSchema.or(UserMinifiedSchema),
-
-  /** @see QuerySchema#get_permissions */
-  user_permissions: z.nativeEnum(ROLE_PERMISSION).array().optional(),
-
-  /** @see QuerySchema#get_permissions */
-  user_restrictions: z.nativeEnum(USER_RESTRICTION).array().optional(),
-
-  /** @see QuerySchema#is_extended */
-  user_libs: UserLibSchema.array().optional(),
-
-  /** @see QuerySchema#get_view_progress */
-  user_view_progress: UserViewProgressSchema.array().optional(),
-
-  /** @see QuerySchema#get_email */
+  /** @see query#get_email */
   user_email: z.string().optional(),
+});
+
+
+
+const RequestParamsSchema = z.object({
+  qr: z.string().nonempty().optional().describe('(username, id, etc)'),
+});
+
+const RequestQuerySchema = z.object({
+  get_permissions: zBoolean.optional().describe('Get user permissions & restrictions'),
+  is_extended: zBoolean.optional().describe('Get extended user object. @requires Authorization (API Key)'),
+  get_email: zBoolean.optional().describe('Get user email. @requires Authorization (API Key+Authorization) Owner/Moderator'),
+});
+
+const ResponseSchema = CreateResponseSchema(UserDataSchema);
+
+
+
+registry.registerPath({
+  method: 'get',
+  path: '/user',
+  summary: 'Get the authenticated user',
+  tags: ['User Router'],
+  request: {
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'User info retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/user/{qr}',
+  summary: 'Get user by query',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema.required(),
+    query: RequestQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'User info retrieved',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
 });
 
 
@@ -85,89 +99,91 @@ const ResponseSchema = z.object({
  * Get user by query or by session
  * If query is not provided, will try to parse userId from session
  * 
- * @see QuerySchema
+ * @see RequestQuerySchema
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { query } = ParamsSchema.parse(req.params);
-  const { get_permissions, get_view_progress, get_email, is_extended } = QuerySchema.parse(req.query);
+  const { qr: query } = RequestParamsSchema.parse(req.params);
+  const { get_permissions, get_email, is_extended } = RequestQuerySchema.parse(req.query);
 
   const repo = new UserRepositoryClass();
 
   let isUserOwner = false;
   let isUserAdmin = false;
-  let isCSRFValid = false;
+  let isAPIKeyValid = false;
 
-  const isAdmin = async (...args: ArgumentTypes<typeof isRequesterAdmin>) => { return isUserAdmin = await isRequesterAdmin(...args); };
-  const isOwner = async (...args: ArgumentTypes<typeof isRequesterAccountOwner>) => { return isUserOwner = await isRequesterAccountOwner(...args); };
-  const isCSRF = async (...args: ArgumentTypes<typeof isRequesterCSRF>) => { return isCSRFValid = await isRequesterCSRF(...args); };
+  const checkIsAdmin = async (...args: ArgumentTypes<typeof isRequesterAdmin>) => { return isUserAdmin = await isRequesterAdmin(...args); };
+  const checkIsOwner = async (...args: ArgumentTypes<typeof isRequesterAccountOwner>) => { return isUserOwner = await isRequesterAccountOwner(...args); };
+  const checkIsAPIKey = async (...args: ArgumentTypes<typeof isRequesterAPIValid>) => { return isAPIKeyValid = await isRequesterAPIValid(...args); };
 
 
 
   // Initialize repository
   if (!query) {
     // Get query from session
-    const { user } = await new MiddlewareService().checkAccess(getSessionToken(req));
+    const { user } = await new MiddlewareService().checkAccess(getAuthorizationToken(req));
 
     await repo.init({ id: user.id });
   } else await repo.init(query);
 
 
 
-  let user: z.infer<typeof ResponseSchema.shape.user>;
-  let user_permissions: z.infer<typeof ResponseSchema.shape.user_permissions> | undefined;
-  let user_restrictions: z.infer<typeof ResponseSchema.shape.user_restrictions> | undefined;
-  let user_libs: z.infer<typeof ResponseSchema.shape.user_libs> | undefined;
-  let user_view_progress: z.infer<typeof ResponseSchema.shape.user_view_progress> | undefined;
-  let user_email: z.infer<typeof ResponseSchema.shape.user_email> | undefined;
+  let user: IUserPublic | undefined;
+  let user_extended: z.infer<typeof UserExtendedSchema> | undefined;
+  let user_permissions: z.infer<typeof UserPermissionsSchema> | undefined;
+  let user_email: string | undefined;
 
 
 
-  if (is_extended && isEligible(`is_extended`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-    const userRefined = UserPublicSchema.parse(repo.document);
+  const userRefined = UserPublicSchema.parse(repo.document);
 
-    user = userRefined;
-  } else user = DTS.toUserMinified(repo.document);
+  user = userRefined;
 
   // Handle get_permissions
   if (get_permissions) {
-    if (isEligible(`get_restrictions`, (await isAdmin(req, isUserAdmin) || await isOwner(req, repo.document.id, isUserOwner)) && await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-      user_permissions = await parseRolesPermissions(repo.document.roles);
-      user_restrictions = repo.document.restrictions;
+    if (isEligible(`get_permissions`, (await checkIsAdmin(req, isUserAdmin) || await checkIsOwner(req, repo.document.id, isUserOwner)) && await checkIsAPIKey(req, isAPIKeyValid))) {
+      user_permissions = {
+        permissions: await parseRolesPermissions(repo.document.roles),
+        restrictions: repo.document.restrictions
+      };
     }
   }
 
   // Handle is_extended
-  if (is_extended && isEligible(`get_libs`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-    user_libs = await DTS.parseUserLibs(req, repo.document);
+  if (is_extended && isEligible(`is_extended`, await checkIsAPIKey(req, isAPIKeyValid))) {
+    user_extended = {
+      libs: await DTS.parseUserLibs(req, repo.document),
+      view_progress: repo.document.view_progress,
+      total_viewtime: repo.document.total_viewtime
+    };
   }
 
   // Handle get_email
-  if (get_email && isEligible(`get_email`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
+  if (get_email && isEligible(`get_email`, await checkIsAPIKey(req, isAPIKeyValid))) {
     user_email = repo.document.email;
   }
 
-  // Handle get_view_progress
-  if (get_view_progress && isEligible(`get_view_progress`, await isCSRF(req, [conf.domains.NEKOMI_DOMAIN], isCSRFValid))) {
-    user_view_progress = repo.document.view_progress;
-  }
 
 
-
-  return res.status(200).json({
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'User retrieved',
-    user,
-    user_permissions,
-    user_restrictions,
-    user_libs,
-    user_view_progress,
-    user_email,
-  } satisfies z.infer<typeof ResponseSchema>);
+    data: {
+      user,
+      user_extended,
+      user_permissions,
+      user_email,
+    }
+  }, ResponseSchema));
 });
 
 
 
-const UserGetRoute = [
-  endpoint
-];
+export default EndpointMiddlewares([], endpoint);
 
-export default UserGetRoute;
+
+
+export const UserGetRouteSchemas = {
+  RequestParamsSchema,
+  RequestQuerySchema,
+  ResponseSchema,
+};

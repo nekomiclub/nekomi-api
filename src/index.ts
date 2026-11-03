@@ -1,20 +1,21 @@
+import './services/openapi/setup';
+
 import conf, { ProductionMode, TestMode } from './conf';
 
-import AnimeRouter from './api/http/AnimeController/AnimeRouter';
-import AuthRouter from './api/http/AuthController/AuthRouter';
+import AnimeRouter from './api/http/AnimeController/_router';
+import AuthRouter from './api/http/AuthController/_router';
 import DatabaseService from './services/DatabaseService';
-import GenericRouter from './api/http/GenericController/GenericRouter';
+import GenericRouter from './api/http/GenericController/_router';
 import Logger from './services/LoggerService';
 import Runtime from './runtime';
-import TeamRouter from './api/http/TeamController/TeamRouter';
-import UserRouter from './api/http/UserController/UserRouter';
+import TeamRouter from './api/http/TeamController/_router';
+import UserRouter from './api/http/UserController/_router';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import swaggerRouter from './services/openapi/swagger';
 import { traceRequest } from './utils/http-utils';
-
-
 
 
 
@@ -39,8 +40,10 @@ app.use(cors({
 
 
 //* === HTTP Routing
+app.use('/docs', swaggerRouter);
+
 app.use('/anime', AnimeRouter);
-app.use(['/dubber', '/team'], TeamRouter);
+app.use('/team', TeamRouter);
 app.use('/user', UserRouter);
 app.use('/auth', AuthRouter);
 app.use('/', GenericRouter);

@@ -1,15 +1,17 @@
+import '~/service/openapi/setup';
+
 import SessionService from '~/service/SessionService';
 import conf from '~/conf';
 import request from 'supertest';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema';
-import { GetLogoutResponseSchema } from '~/api/http/AuthController/AuthGetLogout.route';
-import { PostAuthBodySchema, PostAuthResponseSchema } from '~/api/http/AuthController/AuthPost.route';
+import { AuthGetLogoutRouteSchemas } from '~/api/http/AuthController/AuthGetLogout.route';
+import { AuthPostRouteSchemas } from '~/api/http/AuthController/AuthPost.route';
 import { UserRepositoryClass } from '~/repo/UserRepository';
 import { app } from '~/index';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createNanoId } from '~/utils/create-id';
-import { shouldRejectCSRF, supertestCookieExist, supertestCookieRemoved } from '~/utils/testing-utils';
+import { shouldRejectAPIKey, supertestCookieExist, supertestCookieRemoved } from '~/utils/testing-utils';
 
 
 
@@ -38,34 +40,34 @@ describe(`Test Auth HTTP API Controller`, () => {
     it(`Should reject login with google provider if token is not provided`, async () => {
       const res = await request(app)
         .post('/auth')
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .expect(401)
         .send({
           method: AUTH_METHOD.GOOGLE,
-        } satisfies z.infer<typeof PostAuthBodySchema>);
+        } satisfies z.infer<typeof AuthPostRouteSchemas.RequestBodySchema>);
 
       expect(res.body.code).toBe('auth:token_miss'); // Error code must match provided
     });
 
 
 
-    it(`Should reject invalid CSRF`, async () => await shouldRejectCSRF('/auth', 'post'));
+    it(`Should reject invalid API Key`, async () => await shouldRejectAPIKey('/auth', 'post'));
 
 
 
     async function invokePostAuth({ email }: { email: string }) {
       const res = await request(app)
         .post('/auth')
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .send({
           method: AUTH_METHOD.GOOGLE,
           token: email
-        } satisfies z.infer<typeof PostAuthBodySchema>);
+        } satisfies z.infer<typeof AuthPostRouteSchemas.RequestBodySchema>);
 
-      const body = res.body as z.infer<typeof PostAuthResponseSchema>;
+      const body = res.body as z.infer<typeof AuthPostRouteSchemas.ResponseSchema>;
       console.log(body);
 
-      expect(PostAuthResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
+      expect(AuthPostRouteSchemas.ResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieExist(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be assigned
     }
   });
@@ -90,10 +92,10 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get('/auth/logout')
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
-      expect(GetLogoutResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
 
 
@@ -118,10 +120,10 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/${sessionTarget.session.id}`)
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
 
-      expect(GetLogoutResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
+      expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeFalsy(); // Cookie must not removed
 
 
@@ -140,7 +142,7 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/_INVALID`)
         .expect(200)
-        .set(`X-CSRF-Token`, '~dev')
+        .set(`X-API-Key`, conf.env.API_KEY_SK)
         .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=_INVALID`);
 
       expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
@@ -148,6 +150,6 @@ describe(`Test Auth HTTP API Controller`, () => {
 
 
 
-    it(`Should reject invalid CSRF`, async () => await shouldRejectCSRF('/auth/logout/_INVALID', 'get'));
+    it(`Should reject invalid API Key`, async () => await shouldRejectAPIKey('/auth/logout/_INVALID', 'get'));
   });
 });

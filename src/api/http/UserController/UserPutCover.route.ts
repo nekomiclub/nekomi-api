@@ -1,7 +1,40 @@
-import HandleUserControllerACUpload, { UserControllerACUploadMiddlewares, UserControllerACUploadResponse } from './user-controller-utils';
+import HandleUserControllerACUpload, { UserControllerACUploadMiddlewares } from './_utils';
 import z from 'zod';
-import { HandleRequest } from '~/utils/http-utils';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
 import { UserRepositoryClass } from '~/repo/UserRepository';
+import { registry } from '~/service/openapi/registry';
+
+
+
+const RequestParamsSchema = z.object({
+  id: z.string().nonempty()
+});
+
+const ResponseSchema = CreateResponseSchema(z.object({
+  url: z.string().url()
+}));
+
+
+
+registry.registerPath({
+  method: 'put',
+  path: '/user/{id}/cover',
+  summary: 'Update user with id cover. FormData with file=File must be sent',
+  tags: ['User Router'],
+  request: {
+    params: RequestParamsSchema
+  },
+  responses: {
+    200: {
+      description: 'Cover updated',
+      content: {
+        'application/json': {
+          schema: ResponseSchema
+        }
+      }
+    }
+  }
+});
 
 
 
@@ -12,15 +45,26 @@ const endpoint = HandleRequest(async (req, res) => {
   const repo = new UserRepositoryClass();
   const url = await HandleUserControllerACUpload(req, repo, 'uploadCover');
 
-  return res.status(200).json({
+
+
+  return res.status(200).json(SendResponse({
+    ok: true,
     message: 'Cover updated!',
-    url
-  } satisfies z.infer<typeof UserControllerACUploadResponse>);
-}, { middlewares: ['checkAccess', 'checkCSRF'] });
+    data: {
+      url
+    }
+  }, ResponseSchema));
+}, { middlewares: ['checkAccess', 'checkAPIKey'] });
 
 
 
-export default [
-  ...UserControllerACUploadMiddlewares,
-  endpoint
-];
+export default EndpointMiddlewares([
+  ...UserControllerACUploadMiddlewares
+], endpoint);
+
+
+
+export const UserPutCoverRequestSchemas = {
+  RequestParamsSchema,
+  ResponseSchema,
+};
