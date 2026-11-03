@@ -2,8 +2,8 @@ name: nekomi-api ci
 
 on:
   push:
-    tags:
-      - v*
+    branches: 
+      - main
 
 env:
   SERVICE_NAME: nekomi-api

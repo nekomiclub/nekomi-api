@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "npx nodemon",
-    "build": "npx rimraf ./build && npm run lint && npx tsc --build && npx tsc-alias",
+    "build": "npx rimraf ./build && npm run lint",
     "start": "npm run build && npx node ./build/src/index.js",
     "test": "npx vitest --run --silent",
-    "lint": "echo \"npx eslint . --fix\""
+    "lint": "npx eslint . --fix"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
