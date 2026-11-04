@@ -40,7 +40,7 @@ permissions:
 
 jobs:
   test-and-build:
-    if: github.event_name == 'pull_request' || github.event.head_commit.message != 'Merge pull request'
+    if: github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'Merge pull request')
 
     name: Test & build application
     runs-on: ubuntu-latest
