@@ -1,20 +1,20 @@
-import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository';
-import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/schemas/entities/Anime.schema';
-import Logger from '~/service/LoggerService';
-import StackServiceClass from '~/service/StackService';
+import AnimeRepository, { AnimeRepositoryClass } from '~/repo/AnimeRepository.js';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/schemas/entities/Anime.schema.js';
+import Logger from '~/service/LoggerService.js';
+import StackServiceClass from '~/service/StackService.js';
 import axios from 'axios';
-import conf from '~/conf';
+import conf from '~/conf.js';
 import fs from 'fs';
 import ms from 'ms';
-import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives';
-import { AnimeId, ISODateString } from '~/intf/BrandedIds';
-import { ArgumentTypes } from '~/intf/types';
-import { HikkaAPI } from '~/api/external/hikka.api';
-import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api';
-import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api';
-import { IdsMoeAPI } from '~/api/external/idsmoe.api';
-import { JikanAPI } from '~/api/external/jikan.api';
-import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils';
+import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives.js';
+import { AnimeId, ISODateString } from '~/intf/BrandedIds.js';
+import { ArgumentTypes } from '~/intf/types.js';
+import { HikkaAPI } from '~/api/external/hikka.api.js';
+import { IHikkaGenre, IHikkaScheduleItem } from '~/intf/external-api/IHikka.api.js';
+import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/intf/external-api/IJikan.api.js';
+import { IdsMoeAPI } from '~/api/external/idsmoe.api.js';
+import { JikanAPI } from '~/api/external/jikan.api.js';
+import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils.js';
 
 
 

@@ -1,7 +1,7 @@
-import conf from '~/conf';
+import conf from '~/conf.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

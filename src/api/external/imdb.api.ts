@@ -1,6 +1,6 @@
 import axios from 'axios';
-import conf from '~/conf';
-import { IMDBTitle } from '~/intf/external-api/IMDB.api';
+import conf from '~/conf.js';
+import { IMDBTitle } from '~/intf/external-api/IMDB.api.js';
 
 
 

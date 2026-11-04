@@ -4,11 +4,12 @@ import { config as dotenvCfg } from 'dotenv';
 dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
+import fs from 'fs';
 import ms from 'ms';
-import parseEnv from './utils/parse-env';
-import { IHomeFeedHero } from './schemas/general.schema';
-import { asAnimeId, asCDNString } from './interfaces/BrandedIds';
-import { getUTC } from './utils/utils';
+import parseEnv from './utils/parse-env.js';
+import { IHomeFeedHero } from './schemas/general.schema.js';
+import { asAnimeId, asCDNString } from './interfaces/BrandedIds.js';
+import { getUTC } from './utils/utils.js';
 
 
 
@@ -21,7 +22,7 @@ export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'loca
 
 
 // Initialize firebase
-firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
+if (fs.existsSync('./firebase.json')) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
 
 
 
@@ -75,20 +76,6 @@ const vars = {
     cache: env.DOCKER ? '/.cache' : './.cache'
   }
 };
-
-/** Funny thing to rickroll some endpoints */
-const rickrollEndpoints: RegExp[] = [
-  /\/\.env(.+)?/gi,
-  /\/cgi-bin(.+)?/gi,
-  /\/login(.+)?/gi,
-  /\/dns-query(.+)?/gi,
-  /\/query(.+)?/gi,
-  /\/hello.world(.+)?/gi,
-  /\/geoserver(.+)?/gi,
-  /\/\.git(.+)?/gi,
-  /\/\phpMyAdmin(.+)?/gi,
-  /\/\resolve(.+)?/gi,
-];
 
 
 
@@ -178,8 +165,6 @@ const conf = {
   vars,
   domains,
   StaticData,
-
-  rickrollEndpoints
 };
 
 export default conf;

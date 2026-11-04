@@ -1,9 +1,9 @@
-import DTS from '~/service/DataTransferService';
-import Logger from '~/service/LoggerService';
+import DTS from '~/service/DataTransferService.js';
+import Logger from '~/service/LoggerService.js';
 import { HydratedDocument, Model, SortOrder } from 'mongoose';
-import { NekoError } from '~/service/ExceptionService';
-import { NestedKey, RepositoryGetQueryType, RepositoryQueriesType, ValueFromPath } from '~/intf/types';
-import { excludeValuesFromArray } from '~/utils/utils';
+import { NekoError } from '~/service/ExceptionService.js';
+import { NestedKey, RepositoryGetQueryType, RepositoryQueriesType, ValueFromPath } from '~/intf/types.js';
+import { excludeValuesFromArray } from '~/utils/utils.js';
 
 
 
@@ -45,7 +45,7 @@ export class UnifiedModelClass<RepositoryType> {
 
 
 
-  async init(query: RepositoryGetQueryType<RepositoryType>) {
+  public async init(query: RepositoryGetQueryType<RepositoryType>) {
     const document = await this.model.findOne(this.query2find(query));
     if (!document) throw new NekoError('sys:not_found', `Entity "${JSON.stringify(query)}" is not found`);
 

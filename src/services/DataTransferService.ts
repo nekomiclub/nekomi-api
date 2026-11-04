@@ -1,13 +1,13 @@
-import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/schemas/entities/Anime.schema';
-import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/schemas/entities/Team.schema';
-import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/schemas/entities/User.schema';
-import conf from '~/conf';
+import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/schemas/entities/Anime.schema.js';
+import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/schemas/entities/Team.schema.js';
+import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/schemas/entities/User.schema.js';
+import conf from '~/conf.js';
 import express from 'express';
 import z, { ZodSchema } from 'zod';
-import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives';
+import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 import { HydratedDocument } from 'mongoose';
-import { asCDNString } from '~/intf/BrandedIds';
-import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils';
+import { asCDNString } from '~/intf/BrandedIds.js';
+import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 
 
 

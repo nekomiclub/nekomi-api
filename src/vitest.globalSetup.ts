@@ -1,4 +1,4 @@
-import conf from './conf';
+import conf from './conf.js';
 import mongoose, { Schema } from 'mongoose';
 
 

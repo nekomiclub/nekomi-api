@@ -1,13 +1,13 @@
-import DTS from './DataTransferService';
-import IUser from '~/schemas/entities/User.schema';
-import SessionService from './SessionService';
-import TokenService from './TokenService';
-import conf from '~/conf';
-import { HandleMiddleware, getAPIKey, getAuthorizationToken } from '~/utils/http-utils';
-import { NekoError } from './ExceptionService';
-import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema';
-import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema';
-import { parseRolesPermissions } from '~/repo/RoleRepository';
+import DTS from './DataTransferService.js';
+import IUser from '~/schemas/entities/User.schema.js';
+import SessionService from './SessionService.js';
+import TokenService from './TokenService.js';
+import conf from '~/conf.js';
+import { HandleMiddleware, getAPIKey, getAuthorizationToken } from '~/utils/http-utils.js';
+import { NekoError } from './ExceptionService.js';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema.js';
+import { parseRolesPermissions } from '~/repo/RoleRepository.js';
 
 
 

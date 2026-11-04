@@ -1,7 +1,7 @@
-import AnimeGetEpisodesRoute from './AnimeGetEpisodes.route';
-import AnimeGetForceParseRoute from './AnimeGetForceParse.route';
-import AnimeGetRoute from './AnimeGet.route';
-import AnimeGetSearchRoute from './AnimeGetSearch.route';
+import AnimeGetEpisodesRoute from './AnimeGetEpisodes.route.js';
+import AnimeGetForceParseRoute from './AnimeGetForceParse.route.js';
+import AnimeGetRoute from './AnimeGet.route.js';
+import AnimeGetSearchRoute from './AnimeGetSearch.route.js';
 import express from 'express';
 
 

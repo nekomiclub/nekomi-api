@@ -1,5 +1,5 @@
-import Logger from './LoggerService';
-import conf from '~/conf';
+import Logger from './LoggerService.js';
+import conf from '~/conf.js';
 import mongoose from 'mongoose';
 import ms from 'ms';
 

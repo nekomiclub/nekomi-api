@@ -1,12 +1,12 @@
-import DTS from '~/service/DataTransferService';
-import UserRepository from '~/repo/UserRepository';
+import DTS from '~/service/DataTransferService.js';
+import UserRepository from '~/repo/UserRepository.js';
 import z from 'zod';
-import { ArgumentTypes, zBoolean } from '~/intf/types';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/schemas/entities/Team.schema';
-import { TeamRepositoryClass } from '~/repo/TeamRepository';
-import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils';
-import { registry } from '~/service/openapi/registry';
+import { ArgumentTypes, zBoolean } from '~/intf/types.js';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/schemas/entities/Team.schema.js';
+import { TeamRepositoryClass } from '~/repo/TeamRepository.js';
+import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

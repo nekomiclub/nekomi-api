@@ -1,7 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 import { Router } from 'express';
 
-import { generateOpenAPI } from './generate';
+import { generateOpenAPI } from './generate.js';
 
 
 

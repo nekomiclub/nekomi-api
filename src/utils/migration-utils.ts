@@ -1,5 +1,5 @@
-import Logger from '~/service/LoggerService';
-import conf from '~/conf';
+import Logger from '~/service/LoggerService.js';
+import conf from '~/conf.js';
 import fs from 'fs';
 import path from 'path';
 

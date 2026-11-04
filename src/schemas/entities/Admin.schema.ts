@@ -1,5 +1,4 @@
 import z from 'zod';
-import { asISODateString, asTeamId } from '~/intf/BrandedIds';
 
 /* --------------------- */
 /* Native enum           */
@@ -21,8 +20,8 @@ export enum ADMIN_SLUG {
 export const AdminBaseSchema = z.object({
   id: z.string(),
   slug: z.nativeEnum(ADMIN_SLUG),
-  updated_at: z.string().transform(asISODateString),
-  created_at: z.string().transform(asISODateString),
+  updated_at: z.string(),
+  created_at: z.string(),
   data: z.unknown(),
 });
 
@@ -31,7 +30,7 @@ export const AdminBaseSchema = z.object({
 /* --------------------- */
 
 export const AdminTeamMapDataSchema = z.object({
-  dubber_id: z.string().transform(asTeamId).nullable(),
+  dubber_id: z.string().nullable(),
   subtitles: z.boolean(),
   synonyms: z.string().array(),
 });
@@ -46,7 +45,7 @@ export const AdminTeamsMapSchema = AdminBaseSchema.extend({
 /* --------------------- */
 
 export const AdminPosterLocaleMapDataSchema = z.object({
-  dubber_id: z.string().transform(asTeamId).nullable(),
+  dubber_id: z.string().nullable(),
   synonym: z.string().array(),
 });
 

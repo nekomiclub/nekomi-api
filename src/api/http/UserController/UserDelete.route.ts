@@ -1,7 +1,7 @@
 import z from 'zod';
-import { EndpointMiddlewares, ErrorResponseSchema, HandleRequest } from '~/utils/http-utils';
-import { NekoError } from '~/service/ExceptionService';
-import { registry } from '~/service/openapi/registry';
+import { EndpointMiddlewares, ErrorResponseSchema, HandleRequest } from '~/utils/http-utils.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

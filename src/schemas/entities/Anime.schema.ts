@@ -1,15 +1,14 @@
 import z from 'zod';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, AnimeDescribedRecord, AnimeNamedRecordSchema } from '~/data/AnimePrimitives';
-import { asAnimeId, asCDNString, asISODateString, asTeamId } from '~/intf/BrandedIds';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, AnimeDescribedRecord, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 
 /* --------------------- */
 /* Poster & Screenshots  */
 /* --------------------- */
 
 export const AnimePosterNodeSchema = z.object({
-  small: z.string().transform(asCDNString),
-  medium: z.string().transform(asCDNString),
-  original: z.string().transform(asCDNString),
+  small: z.string(),
+  medium: z.string(),
+  original: z.string(),
 
   authorId: z.string().nullish(),
   is_hero: z.boolean(),
@@ -25,8 +24,8 @@ export const AnimePosterNodePublicSchema = AnimePosterNodeSchema.omit({
 }).openapi('AnimePoster');
 
 export const AnimeScreenshotNodeSchema = z.object({
-  preview: z.string().transform(asCDNString),
-  original: z.string().transform(asCDNString),
+  preview: z.string(),
+  original: z.string(),
   pull_hash: z.string(),
 });
 
@@ -64,7 +63,7 @@ export const AnimePlayerVODSchema = z.object({
 
 export const AnimePlayerTeamSchema = z.object({
   id: z.string(),
-  dubber_ids: z.string().transform(asTeamId).array(),
+  dubber_ids: z.string().array(),
   dubber_name: z.string(),
   vods: AnimePlayerVODSchema.array(),
 }).openapi('AnimePlayerTeam');
@@ -81,7 +80,7 @@ export const AnimePlayerSchema = z.object({
 export const AnimeEpisodeSchema = z.object({
   episode: z.number(),
   title: z.string(),
-  aired: z.string().transform(asISODateString).nullable(),
+  aired: z.string().nullable(),
   score: z.number().nullable(),
   filler: z.boolean(),
   recap: z.boolean(),
@@ -89,7 +88,7 @@ export const AnimeEpisodeSchema = z.object({
 
 export const AnimeScheduleSchema = z.object({
   episode: z.number(),
-  airing_at: z.string().transform(asISODateString),
+  airing_at: z.string(),
 }).openapi('AnimeSchedule');
 
 /* --------------------- */
@@ -97,7 +96,7 @@ export const AnimeScheduleSchema = z.object({
 /* --------------------- */
 
 export const AnimeSchema = z.object({
-  id: z.string().transform(asAnimeId),
+  id: z.string(),
 
   mal_id: z.number().nullable(),
   imdb_id: z.string().nullable(),
@@ -146,11 +145,11 @@ export const AnimeSchema = z.object({
 
   content_season: z.number().nullable(),
 
-  updated_at: z.string().transform(asISODateString),
-  created_at: z.string().transform(asISODateString),
+  updated_at: z.string(),
+  created_at: z.string(),
 
-  about_synced_at: z.string().transform(asISODateString).nullable(),
-  episodes_synced_at: z.string().transform(asISODateString).nullable(),
+  about_synced_at: z.string().nullable(),
+  episodes_synced_at: z.string().nullable(),
 
   is_DMCA_restricted: z.boolean().optional(),
 });
@@ -187,7 +186,7 @@ export const AnimePublicSchema = AnimeSchema.pick({
 
   is_DMCA_restricted: true,
 }).extend({
-  poster: z.string().transform(asCDNString),
+  poster: z.string(),
   type: AnimeNamedRecordSchema.openapi('AnimeType').nullish(),
   season: AnimeNamedRecordSchema.openapi('AnimeSeason').nullish(),
   status: AnimeNamedRecordSchema.openapi('AnimeStatus').nullish(),
@@ -203,7 +202,7 @@ export const AnimeMinifiedSchema = AnimeSchema.pick({
   score: true,
 }).extend({
   title: z.string(),
-  poster: z.string().transform(asCDNString),
+  poster: z.string(),
   genres: AnimeDescribedRecord.array()
 }).openapi('AnimeMinified');
 
@@ -228,7 +227,7 @@ export const AnimeSearchResultSchema = AnimeSchema.pick({
   episodes_total: true,
   year: true,
 }).extend({
-  poster: z.string().transform(asCDNString),
+  poster: z.string(),
   type: AnimeNamedRecordSchema.optional(),
 }).openapi('AnimeSearchResult');
 

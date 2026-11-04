@@ -1,7 +1,7 @@
 import express from 'express';
 
-import GetHomeFeedRoute from './GetHomeFeed.route';
-import GetPingRoute from './GetPing.route';
+import GetHomeFeedRoute from './GetHomeFeed.route.js';
+import GetPingRoute from './GetPing.route.js';
 
 
 

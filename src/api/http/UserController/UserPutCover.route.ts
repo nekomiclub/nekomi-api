@@ -1,8 +1,8 @@
-import HandleUserControllerACUpload, { UserControllerACUploadMiddlewares } from './_utils';
+import HandleUserControllerACUpload, { UserControllerACUploadMiddlewares } from './_utils.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { UserRepositoryClass } from '~/repo/UserRepository';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { UserRepositoryClass } from '~/repo/UserRepository.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

@@ -1,21 +1,21 @@
-import './services/openapi/setup';
+import './services/openapi/setup.js';
 
-import conf, { ProductionMode, TestMode } from './conf';
+import conf, { ProductionMode, TestMode } from './conf.js';
 
-import AnimeRouter from './api/http/AnimeController/_router';
-import AuthRouter from './api/http/AuthController/_router';
-import DatabaseService from './services/DatabaseService';
-import GenericRouter from './api/http/GenericController/_router';
-import Logger from './services/LoggerService';
-import Runtime from './runtime';
-import TeamRouter from './api/http/TeamController/_router';
-import UserRouter from './api/http/UserController/_router';
+import AnimeRouter from './api/http/AnimeController/_router.js';
+import AuthRouter from './api/http/AuthController/_router.js';
+import DatabaseService from './services/DatabaseService.js';
+import GenericRouter from './api/http/GenericController/_router.js';
+import Logger from './services/LoggerService.js';
+import Runtime from './runtime.js';
+import TeamRouter from './api/http/TeamController/_router.js';
+import UserRouter from './api/http/UserController/_router.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import swaggerRouter from './services/openapi/swagger';
-import { traceRequest } from './utils/http-utils';
+import swaggerRouter from './services/openapi/swagger.js';
+import { traceRequest } from './utils/http-utils.js';
 
 
 

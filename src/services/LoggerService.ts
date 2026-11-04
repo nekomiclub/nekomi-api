@@ -1,6 +1,6 @@
-import conf from '~/conf';
+import conf from '~/conf.js';
 import winston, { format } from 'winston';
-import { getUTC } from '~/utils/utils';
+import { getUTC } from '~/utils/utils.js';
 
 
 

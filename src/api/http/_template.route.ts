@@ -1,4 +1,4 @@
-import { HandleRequest } from '~/utils/http-utils';
+import { HandleRequest } from '~/utils/http-utils.js';
 
 
 

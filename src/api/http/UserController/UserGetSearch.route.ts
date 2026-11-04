@@ -1,12 +1,12 @@
-import DTS from '~/service/DataTransferService';
-import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/schemas/entities/User.schema';
+import DTS from '~/service/DataTransferService.js';
+import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/schemas/entities/User.schema.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils';
-import { Middleware } from '~/service/MiddlewareService';
-import { PaginationSchema } from '~/utils/pagination';
-import { RequestSearch, SearchServiceQueryParamsSchema, UserSearch } from '~/service/SearchService';
-import { UserRepositoryClass } from '~/repo/UserRepository';
-import { registry } from '~/service/openapi/registry';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { PaginationSchema } from '~/utils/pagination.js';
+import { RequestSearch, SearchServiceQueryParamsSchema, UserSearch } from '~/service/SearchService.js';
+import { UserRepositoryClass } from '~/repo/UserRepository.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

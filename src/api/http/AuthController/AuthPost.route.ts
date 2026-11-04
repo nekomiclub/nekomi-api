@@ -1,16 +1,16 @@
-import DTS from '~/service/DataTransferService';
-import Logger from '~/service/LoggerService';
-import SessionService from '~/service/SessionService';
-import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository';
+import DTS from '~/service/DataTransferService.js';
+import Logger from '~/service/LoggerService.js';
+import SessionService from '~/service/SessionService.js';
+import UserRepository, { UserRepositoryClass } from '~/repo/UserRepository.js';
 import firebase from 'firebase-admin';
 import z from 'zod';
-import { AUTH_METHOD } from '~/schemas/auth.schema';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils';
-import { DevelopmentMode, TestMode } from '~/conf';
-import { ErrorConstructor, NekoError } from '~/service/ExceptionService';
-import { Middleware } from '~/service/MiddlewareService';
-import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema';
-import { registry } from '~/service/openapi/registry';
+import { AUTH_METHOD } from '~/schemas/auth.schema.js';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils.js';
+import { DevelopmentMode, TestMode } from '~/conf.js';
+import { ErrorConstructor, NekoError } from '~/service/ExceptionService.js';
+import { Middleware } from '~/service/MiddlewareService.js';
+import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema.js';
+import { registry } from '~/service/openapi/registry.js';
 
 
 

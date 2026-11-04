@@ -1,6 +1,5 @@
 import z from 'zod';
-import { UserMinifiedSchema } from './User.schema';
-import { asCDNString, asISODateString, asTeamId, asUserId } from '~/intf/BrandedIds';
+import { UserMinifiedSchema } from './User.schema.js';
 
 
 
@@ -20,14 +19,14 @@ export const TEAM_ROLE_ENUM = z.enum([
 /* --------------------- */
 
 export const TeamMemberSchema = z.object({
-  id: z.string().transform(asUserId),
+  id: z.string(),
   role: TEAM_ROLE_ENUM,
-  member_since: z.string().transform(asISODateString),
+  member_since: z.string(),
 }).openapi('TeamMember');
 
 export const TeamMemberExtendedSchema = UserMinifiedSchema.extend({
   role: TEAM_ROLE_ENUM,
-  member_since: z.string().transform(asISODateString)
+  member_since: z.string()
 }).openapi('TeamMemberExtended');
 
 /* --------------------- */
@@ -35,13 +34,13 @@ export const TeamMemberExtendedSchema = UserMinifiedSchema.extend({
 /* --------------------- */
 
 export const TeamSchema = z.object({
-  id: z.string().transform(asTeamId),
+  id: z.string(),
   slug: z.string(),
   name: z.string(),
   about: z.string().nullable(),
 
-  avatar: z.string().transform(asCDNString),
-  cover: z.string().transform(asCDNString),
+  avatar: z.string(),
+  cover: z.string(),
 
   socials: z.object({
     telegram: z.string().optional(),
@@ -60,8 +59,8 @@ export const TeamSchema = z.object({
 
   members: z.array(TeamMemberSchema),
 
-  created_at: z.string().transform(asISODateString),
-  updated_at: z.string().transform(asISODateString),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 /* --------------------- */

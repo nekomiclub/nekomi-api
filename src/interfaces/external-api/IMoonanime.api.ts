@@ -1,4 +1,4 @@
-import { ISODateString } from '~/intf/BrandedIds';
+import { ISODateString } from '~/intf/BrandedIds.js';
 
 
 

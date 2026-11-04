@@ -1,22 +1,22 @@
-import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository';
-import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository';
-import DTS from '~/service/DataTransferService';
-import Logger from '~/service/LoggerService';
-import StackServiceClass from '~/service/StackService';
+import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository.js';
+import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository.js';
+import DTS from '~/service/DataTransferService.js';
+import Logger from '~/service/LoggerService.js';
+import StackServiceClass from '~/service/StackService.js';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
-import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema';
-import { ANIME_STATUS } from '~/data/AnimePrimitives';
-import { AnimeId } from '~/intf/BrandedIds';
-import { ArgumentTypes } from '~/intf/types';
-import { AshdiAPI } from '~/api/external/ashdi.api';
-import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api';
-import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/schemas/entities/Anime.schema';
-import { MoonanimeAPI } from '~/api/external/moonanime.api';
-import { NekoError } from '~/service/ExceptionService';
-import { TeamId } from '~/intf/BrandedIds';
-import { asTeamId } from '~/intf/BrandedIds';
-import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils';
+import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema.js';
+import { ANIME_STATUS } from '~/data/AnimePrimitives.js';
+import { AnimeId } from '~/intf/BrandedIds.js';
+import { ArgumentTypes } from '~/intf/types.js';
+import { AshdiAPI } from '~/api/external/ashdi.api.js';
+import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api.js';
+import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/schemas/entities/Anime.schema.js';
+import { MoonanimeAPI } from '~/api/external/moonanime.api.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { TeamId } from '~/intf/BrandedIds.js';
+import { asTeamId } from '~/intf/BrandedIds.js';
+import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils.js';
 
 
 

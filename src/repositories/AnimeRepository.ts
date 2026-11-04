@@ -1,20 +1,20 @@
-import AnimeValidators from '~/utils/validators/anime-validators';
-import DTS from '~/service/DataTransferService';
-import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/schemas/entities/Anime.schema';
-import Logger from '~/service/LoggerService';
-import TeamRepository from './TeamRepository';
-import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository';
-import conf, { TestMode } from '~/conf';
-import createId, { createNanoId } from '~/utils/create-id';
-import createSlug from '~/utils/create-slug';
+import AnimeValidators from '~/utils/validators/anime-validators.js';
+import DTS from '~/service/DataTransferService.js';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/schemas/entities/Anime.schema.js';
+import Logger from '~/service/LoggerService.js';
+import TeamRepository from './TeamRepository.js';
+import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
+import conf, { TestMode } from '~/conf.js';
+import createId, { createNanoId } from '~/utils/create-id.js';
+import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
-import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives';
-import { ISODateString, asAnimeId } from '~/intf/BrandedIds';
-import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api';
-import { NekoError } from '~/service/ExceptionService';
-import { NekomiUploadService } from '~/api/external/nekomi-upload-service';
-import { RepositoryQueriesType } from '~/intf/types';
-import { getUTC, trimString } from '~/utils/utils';
+import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';
+import { ISODateString, asAnimeId } from '~/intf/BrandedIds.js';
+import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api.js';
+import { NekoError } from '~/service/ExceptionService.js';
+import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
+import { RepositoryQueriesType } from '~/intf/types.js';
+import { getUTC, trimString } from '~/utils/utils.js';
 
 
 
