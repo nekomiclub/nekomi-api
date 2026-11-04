@@ -3,6 +3,6 @@ export FORCE_COLOR=1
 status=0
 
 pnpm exec lint-staged || status=1
-pnpm check-types || status=1
+pnpm typecheck || status=1
 
 exit $status

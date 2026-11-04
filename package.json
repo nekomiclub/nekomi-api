@@ -9,7 +9,7 @@
     "prebuild": "pnpm exec rimraf dist",
     "build": "pnpm exec tsc && pnpm exec tsc-alias",
     "start": "pnpm exec node ./dist/index.js",
-    "check-types": "pnpm exec tsc --noEmit",
+    "typecheck": "pnpm exec tsc --noEmit",
     "test": "pnpm exec vitest --run --silent"
   },
   "lint-staged": {
