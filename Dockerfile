@@ -28,16 +28,14 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 # ---- Runtime ----
 FROM node:${NODE_VERSION}-alpine AS runtime
 ENV NODE_ENV=production
-ENV PORT=43080
-ENV ENV="deploy"
 ENV DOCKER="true"
 WORKDIR /app
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY package.json ./
+COPY package.json errors_list.json ./
 
 USER node
-EXPOSE 43080
+EXPOSE 80
 
 CMD ["node", "dist/index.js"]
