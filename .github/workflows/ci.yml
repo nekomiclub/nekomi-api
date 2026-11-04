@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  # Implicitly provide env variables for test till them were be refactored
+  # Implicitly provide env variables for tests
   HOST: ${{ vars.HOST }}
   PORT: ${{ vars.PORT }}
 
@@ -42,7 +42,7 @@ jobs:
   test-and-build:
     if: github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'Merge pull request')
 
-    name: Test & build application
+    name: Build & Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

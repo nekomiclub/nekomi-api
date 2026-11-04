@@ -1,20 +1,19 @@
 {
   "name": "nekomi-api",
+  "version": "0.0.0",
   "private": true,
-  "version": "3.1.0",
-  "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "pnpm exec nodemon",
-    "prebuild": "pnpm exec rimraf dist",
-    "build": "pnpm exec tsc && pnpm exec tsc-alias",
-    "start": "pnpm exec node ./dist/index.js",
-    "typecheck": "pnpm exec tsc --noEmit",
-    "test": "pnpm exec vitest --run --silent",
-    "lint": "pnpm exec lint-staged"
+    "dev": "nodemon",
+    "prebuild": "rimraf dist",
+    "build": "tsc && tsc-alias",
+    "start": "node ./dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --run --silent",
+    "lint": "lint-staged"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "pnpm exec eslint --fix"
+    "*.{ts,tsx}": "eslint --fix"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",

@@ -56,7 +56,7 @@ const statusesList: Record<number, string> = {
   504: 'Gateway Timeout',
 };
 
-const errorsList = JSON.parse(fs.readFileSync('./src/data/errors_list.json').toString()) as Record<string, IError>[];
+const errorsList = JSON.parse(fs.readFileSync('./errors_list.json').toString()) as Record<string, IError>[];
 
 
 
