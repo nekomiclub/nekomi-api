@@ -4,6 +4,7 @@ import { config as dotenvCfg } from 'dotenv';
 dotenvCfg({ quiet: true });
 
 import firebaseAdmin from 'firebase-admin';
+import fs from 'fs';
 import ms from 'ms';
 import parseEnv from './utils/parse-env.js';
 import { IHomeFeedHero } from './schemas/general.schema.js';
@@ -21,7 +22,7 @@ export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'loca
 
 
 // Initialize firebase
-firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
+if (fs.existsSync('./firebase.json')) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
 
 
 
