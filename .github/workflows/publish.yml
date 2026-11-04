@@ -10,6 +10,30 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   KEEP_VERSIONS: 6
 
+  # Implicitly provide env variables for test till them
+  HOST: ${{ vars.HOST }}
+  PORT: ${{ vars.PORT }}
+
+  ENV: ${{ vars.ENV }}
+
+  DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+  DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+  DATABASE_USR: ${{ secrets.DATABASE_USR }}
+  DATABASE_PWD: ${{ secrets.DATABASE_PWD }}
+
+  API_KEY_SK: ${{ secrets.API_KEY_SK }}
+
+  MAL_CLIENT_SK: ${{ secrets.MAL_CLIENT_SK }}
+  ASHDI_API_SK: ${{ secrets.ASHDI_API_SK }}
+  MOONANIME_API_SK: ${{ secrets.MOONANIME_API_SK }}
+  IDS_MOE_SK: ${{ secrets.IDS_MOE_SK }}
+  USER_SESSION_SK: ${{ secrets.USER_SESSION_SK }}
+
+  NEKOMI_API_URL: ${{ vars.NEKOMI_API_URL }}
+  NEKOMI_NEXTJS_URL: ${{ vars.NEKOMI_NEXTJS_URL }}
+  NEKOMI_UPLOAD_SERVICE_URL: ${{ vars.NEKOMI_UPLOAD_SERVICE_URL }}
+  ASHDI_API_URL: ${{ vars.ASHDI_API_URL }}
+
 jobs:
   test-and-build:
     name: Lint, test & build
