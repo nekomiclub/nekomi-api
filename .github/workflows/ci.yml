@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
 
@@ -39,6 +40,9 @@ permissions:
 
 jobs:
   test-and-build:
+    if: github.event_name == 'pull_request' || github.event.head_commit.message != 'Merge pull request'
+
+    name: Test & build application
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
