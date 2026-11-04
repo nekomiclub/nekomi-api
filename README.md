@@ -5,7 +5,7 @@
   ·
   <a href="https://api.nekomi.club/docs">OpenAPI</a>
   ·
-  <a href="./src/data/errors_list.json">API errors list</a>
+  <a href="./errors_list.json">API errors list</a>
 </p>
 
 **The heart of the nekomi, and a place where all the roads lead.**

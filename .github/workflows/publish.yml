@@ -10,7 +10,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   KEEP_VERSIONS: 6
 
-  # Implicitly provide env variables for test till them
+  # Implicitly provide env variables for tests
   HOST: ${{ vars.HOST }}
   PORT: ${{ vars.PORT }}
 
