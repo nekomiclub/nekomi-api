@@ -158,9 +158,10 @@ const StaticData = {
 
 
 const conf = {
-  mongodbUrl: `mongodb+srv://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
-  startedAt: `${getUTC().fulldate} ${getUTC().time}.${getUTC().str.ms}`,
-  startedMode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
+  mongodb_uri: `mongodb+srv://${env.DATABASE_USR}:${env.DATABASE_PWD}@${env.DATABASE_HOST}/${env.DATABASE_NAME}`,
+  started_at: getUTC().ISO,
+  started_mode: `${ProductionMode ? 'Production' : DevelopmentMode ? 'Development' : 'UNKNOWN'}`,
+
   URL,
   env,
   vars,

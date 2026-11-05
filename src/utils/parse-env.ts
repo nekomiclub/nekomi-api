@@ -8,6 +8,10 @@ const EnvSchema = z.object({
   HOST: z.string(),
 
   ENV: z.enum(['local', 'deploy']),
+
+  GIT_SHA: z.string().optional(),
+  APP_VERSION: z.string().optional(),
+
   DOCKER: zBoolean.optional(),
   VITEST: zBoolean.optional(),
 

@@ -69,7 +69,7 @@ async function runtime() {
       //* === HTTP Server
       await new Promise(res => {
         app.listen(conf.env.PORT, conf.env.HOST, () => {
-          Logger.debug(`[System/Init]: HTTP server started in ${conf.startedMode} mode at http://${conf.env.HOST}:${conf.env.PORT}`);
+          Logger.debug(`[System/Init]: HTTP server started in ${conf.started_mode} mode at http://${conf.env.HOST}:${conf.env.PORT}`);
 
           res(1);
         });
@@ -79,8 +79,8 @@ async function runtime() {
       ----------------------------
       NEKOMI-API STARTED UP
       
-      Date: ${conf.startedAt} UTC
-      Mode: ${conf.startedMode}
+      Date: ${conf.started_at}
+      Mode: ${conf.started_mode}
       HTTP: http://${conf.env.HOST}:${conf.env.PORT}
       ----------------------------\n\n`);
     }

@@ -19,7 +19,7 @@ class DatabaseServiceConstructor {
     mongoose.set('strictQuery', false);
 
     try {
-      await mongoose.connect(conf.mongodbUrl, {
+      await mongoose.connect(conf.mongodb_uri, {
         retryWrites: true,
       });
 

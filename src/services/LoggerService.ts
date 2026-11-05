@@ -1,5 +1,6 @@
+
 import DailyRotateFile from 'winston-daily-rotate-file';
-import conf from '~/conf.js';
+import conf from 'src/conf.js';
 import toBytes from 'src/utils/to-bytes.js';
 import winston, { format } from 'winston';
 import { getUTC } from '~/utils/utils.js';

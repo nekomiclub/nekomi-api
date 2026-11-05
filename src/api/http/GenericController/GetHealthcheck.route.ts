@@ -6,20 +6,23 @@ import { registry } from '~/service/openapi/registry.js';
 
 
 export const GetPingResponseSchema = CreateResponseSchema(z.object({
-  started_at: z.string()
+  started_at: z.string().describe('ISO started at timestamp'),
+  commit_hash: z.string().describe('Current build commit hash'),
+  version: z.string().describe('Current build version'),
+  environment: z.string().describe('Runtime environment'),
 }));
 
 
 
 registry.registerPath({
   method: 'get',
-  path: '/',
-  summary: 'Ping the API',
+  path: '/healthcheck',
+  summary: 'Check API health',
   tags: ['Generic Router'],
   request: {},
   responses: {
     200: {
-      description: 'API ping succeeded',
+      description: 'API is healthy!',
       content: {
         'application/json': {
           schema: GetPingResponseSchema
@@ -34,9 +37,12 @@ registry.registerPath({
 const endpoint = HandleRequest(async (req, res) => {
   return res.status(200).json(SendResponse({
     ok: true,
-    message: 'pong!',
+    message: 'API is healthy!',
     data: {
-      started_at: conf.startedAt
+      started_at: conf.started_at,
+      commit_hash: conf.env.GIT_SHA?.slice(0, 7) ?? 'unknown',
+      version: conf.env.APP_VERSION ?? 'v0.0.0',
+      environment: conf.started_mode.toLowerCase(),
     }
   }, GetPingResponseSchema));
 });

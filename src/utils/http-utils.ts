@@ -71,6 +71,9 @@ export function traceRequest() {
   return HandleMiddleware(async (req) => {
     const ip = getRequestIP(req.headers);
 
+    // Supress health check logging
+    if (req.url.match('/healthcheck')) return;
+
     req._nekomi = {
       middlewaresPassed: []
     };
