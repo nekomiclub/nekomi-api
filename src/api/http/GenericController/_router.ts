@@ -1,7 +1,9 @@
 import express from 'express';
 
-import GetHomeFeedRoute from './GetHomeFeed.route.js';
-import GetPingRoute from './GetHealthcheck.route.js';
+import DeleteFeedRoute from 'src/api/http/GenericController/DeleteFeed.route.js';
+import GetHealthcheck from './GetHealthcheck.route.js';
+import GetHomeFeedRoute from './GetFeed.route.js';
+import PostFeedRoute from 'src/api/http/GenericController/PostFeed.route.js';
 
 
 
@@ -9,8 +11,11 @@ const GenericRouter = express.Router();
 
 
 
-GenericRouter.get(['/', '/ping', '/healthcheck'], GetPingRoute);
-GenericRouter.get('/home-feed', GetHomeFeedRoute);
+GenericRouter.get(['/', '/ping', '/healthcheck'], GetHealthcheck);
+
+GenericRouter.get(['/feed', '/home-feed'], GetHomeFeedRoute);
+GenericRouter.post('/feed', PostFeedRoute);
+GenericRouter.delete('/feed/:anime_id', DeleteFeedRoute);
 
 
 

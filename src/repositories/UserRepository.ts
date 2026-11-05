@@ -52,7 +52,7 @@ const schema = new Schema<RepositoryType>({
   username_changed_at: String,
 }, { strict: false, versionKey: false });
 
-const model = mongoose.model<RepositoryType>('user', schema);
+const model = mongoose.model<RepositoryType>('users', schema);
 
 
 
@@ -169,7 +169,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   /**
    * Create new user document
    */
-  async create(props?: ICreateProps): Promise<IUser> {
+  async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
     const id = asUserId(TestMode ? `~testing-${createNanoId()}` : createId());

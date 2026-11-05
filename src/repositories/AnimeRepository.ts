@@ -79,7 +79,7 @@ const schema = new Schema<RepositoryType>({
   is_DMCA_restricted: Boolean,
 }, { strict: false, versionKey: false });
 
-const model = mongoose.model<RepositoryType>('anime', schema);
+const model = mongoose.model<RepositoryType>('animes', schema);
 
 
 
@@ -134,7 +134,7 @@ export const DefaultAnimePoster: IAnimePosterNode = {
 
 
 
-/** Bare user model implementation */
+/** Bare model implementation */
 export class AnimeModel extends UnifiedModelClass<RepositoryType> {
   constructor() {
     super(model, queries);
@@ -206,7 +206,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   /** 
    * Creates new anime document and initialize service part of repository
    */
-  async create(props?: ICreateProps): Promise<IAnime> {
+  async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
     const id = asAnimeId(TestMode ? `~testing-${createNanoId()}` : createId());
