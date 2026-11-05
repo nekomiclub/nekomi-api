@@ -52,12 +52,16 @@ export async function getSessionAuth(req: express.Request, res: express.Response
  * @requires Session
  */
 export async function isRequesterAccountOwner(req: express.Request, targetUserId: string, state?: boolean): Promise<boolean> {
-  if (state) return state;
+  try {
+    if (state) return state;
 
-  const { user: currentUser } = await new MiddlewareService().checkAccess(getAuthorizationToken(req));
+    const { user: currentUser } = await new MiddlewareService().checkAccess(getAuthorizationToken(req));
 
-  state = currentUser.id === targetUserId;
-  return state;
+    state = currentUser.id === targetUserId;
+    return state;
+  } catch (e) {
+    return false;
+  }
 }
 
 

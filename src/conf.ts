@@ -21,11 +21,6 @@ export const DevelopmentMode = !ProductionMode || !TestMode || env.ENV === 'loca
 
 
 
-// Initialize firebase
-if (fs.existsSync('./firebase.json')) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(`./firebase.json`) });
-
-
-
 const URL = {
   nekomiSite: env.NEKOMI_NEXTJS_URL,
   nekomiApi: env.NEKOMI_API_URL,
@@ -73,9 +68,15 @@ const vars = {
 
   volumes: {
     logs: env.DOCKER ? '/logs' : './logs',
-    cache: env.DOCKER ? '/.cache' : './.cache'
+    cache: env.DOCKER ? '/.cache' : './.cache',
+    firebase: env.DOCKER ? '/firebase.json' : './firebase.json'
   }
 };
+
+
+
+// Initialize firebase
+if (fs.existsSync(vars.volumes.firebase)) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(vars.volumes.firebase) });
 
 
 
