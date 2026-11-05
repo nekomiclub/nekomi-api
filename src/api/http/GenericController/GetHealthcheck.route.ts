@@ -41,7 +41,7 @@ const endpoint = HandleRequest(async (req, res) => {
     data: {
       started_at: conf.started_at,
       commit_hash: conf.env.GIT_SHA?.slice(0, 7) ?? 'unknown',
-      version: conf.env.APP_VERSION ?? 'v0.0.0',
+      version: conf.env.APP_VERSION ? `v${conf.env.APP_VERSION}` : 'v0.0.0',
       environment: conf.started_mode.toLowerCase(),
     }
   }, GetPingResponseSchema));

@@ -7,16 +7,17 @@ import ms from 'ms';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
+import FeedRepository from 'src/repositories/FeedRepository.js';
 import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema.js';
-import { HomeFeedHeroSchema, IHomeFeedHero } from '~/schemas/general.schema.js';
+import { FeedHydratedSchema, IFeedHydrated } from 'src/schemas/entities/Feed.schema.js';
 import { Middleware } from '~/service/MiddlewareService.js';
-import { getUTC, removeMarkdown } from '~/utils/utils.js';
 import { registry } from '~/service/openapi/registry.js';
+import { removeMarkdown } from '~/utils/utils.js';
 
 
 
 const HomeFeedData = z.object({
-  hero: HomeFeedHeroSchema.array(),
+  hero: FeedHydratedSchema.array(),
   hot: AnimeMinifiedSchema.array(),
   highest_rate: AnimeMinifiedSchema.array(),
   updated_recently: AnimeMinifiedSchema.array(),
@@ -28,13 +29,13 @@ const ResponseSchema = CreateResponseSchema(HomeFeedData);
 
 registry.registerPath({
   method: 'get',
-  path: '/home-feed',
-  summary: 'Get home feed',
+  path: '/feed',
+  summary: 'Get feed',
   tags: ['Generic Router'],
   request: {},
   responses: {
     200: {
-      description: 'Home feed retrieved',
+      description: 'Feed retrieved',
       content: {
         'application/json': {
           schema: ResponseSchema,
@@ -69,36 +70,35 @@ const endpoint = HandleRequest(async (req, res) => {
 
   if (!cache) {
     try {
-      /**
-       * Process hero documents
-       * TODO: Implement retrieving data from DB
-       */
-      const heroDocuments = await AnimeRepository.getMany({ id: { $in: conf.StaticData.HomeFeed.hero.map(el => el.id) } });
+      /** Process hero documents */
+      const heroFeedDocuments = await FeedRepository.getMany();
+      const heroAnimeDocuments = await AnimeRepository.getMany({ id: { $in: heroFeedDocuments.map(el => el.anime_id) } });
 
-      feed.hero = heroDocuments.map(el => {
-        const hero = conf.StaticData.HomeFeed.hero.find(hero => hero.id === el.id)!;
-        const synopsys = el.synopsis_ua ?? el.synopsis_en;
+      feed.hero = heroFeedDocuments.map(hero => {
+        const anime = heroAnimeDocuments.find(anime => hero.anime_id === anime.id);
+        if (!anime) return undefined;
+
+        const synopsys = anime.synopsis_ua ?? anime.synopsis_en;
 
         return {
-          id: el.id,
-          slug: el.slug,
-          title: el.title_ua ?? el.title_en ?? 'Untitled',
+          id: anime.id,
+          slug: anime.slug,
+          title: anime.title_ua ?? anime.title_en ?? 'Untitled',
           synopsys: synopsys && removeMarkdown(synopsys),
-          poster: el.posters.find(el => el.is_hero)?.original ?? el.posters[0]?.original ?? conf.vars.defaultPoster,
-          cover: hero.cover,
-          video: hero.video,
-        } satisfies IHomeFeedHero;
-      });
+          poster: anime.posters.find(el => el.is_hero)?.original ?? anime.posters[0]?.original ?? conf.vars.defaultPoster,
+          cover: hero.cover_url,
+          video: hero.video_url,
+        } satisfies IFeedHydrated;
+      }).filter(el => Boolean(el)) as IFeedHydrated[];
 
 
 
       /**
        * Process hot documents
-       * TODO: Implement retrieving data from DB
+       * 
+       * @deprecated
        */
-      const hotDocuments = await AnimeRepository.getMany({ id: { $in: conf.StaticData.HomeFeed.hot } });
-
-      feed.hot = hotDocuments.map(el => DTS.toAnimeMinified(el));
+      feed.hot = [];
 
 
 
@@ -110,7 +110,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
       // Process recent documents
-      const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({ $or: [{ year: getUTC().year }, { year: getUTC().year + 1 }] }, { sort: { updated_at: 'descending' }, limit: 20 });
+      const updatedRecentlyDocuments = await AnimeRepository.getSortedMany({}, { sort: { episodes_synced_at: 'descending' }, limit: 20 });
 
       feed.updated_recently = updatedRecentlyDocuments.map(el => DTS.toAnimeMinified(el));
 

@@ -27,7 +27,7 @@ const schema = new Schema<RepositoryType>({
   permissions: [Schema.Types.Mixed],
 }, { strict: false, versionKey: false });
 
-const model = mongoose.model<RepositoryType>('role', schema);
+const model = mongoose.model<RepositoryType>('roles', schema);
 
 
 

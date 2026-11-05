@@ -3,7 +3,7 @@ import '~/service/openapi/setup.js';
 import conf from '~/conf.js';
 import request from 'supertest';
 import z from 'zod';
-import { GetHomeFeedRouteSchema } from '~/api/http/GenericController/GetHomeFeed.route.js';
+import { GetHomeFeedRouteSchema } from 'src/api/http/GenericController/GetFeed.route.js';
 import { GetPingResponseSchema } from 'src/api/http/GenericController/GetHealthcheck.route.js';
 import { app } from '~/index.js';
 import { describe, expect, it } from 'vitest';

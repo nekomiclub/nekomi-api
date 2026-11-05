@@ -1,5 +1,6 @@
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 
+import conf from 'src/conf.js';
 import { registry } from './registry.js';
 
 
@@ -14,7 +15,13 @@ export function generateOpenAPI() {
 
     info: {
       title: 'nekomi-api',
-      version: '0.0.0',
+      version: conf.env.APP_VERSION ? `v${conf.env.APP_VERSION}` : 'v0.0.0',
+      description: 'Express API ⚙️',
+      termsOfService: 'https://nekomi.club/legal/terms-of-service',
+      license: {
+        name: 'Licensed under GNU AGPL 3.0',
+        url: 'https://github.com/nekomiclub/nekomi-api/blob/main/LICENSE'
+      }
     },
   });
 }
