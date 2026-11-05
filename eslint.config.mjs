@@ -15,6 +15,8 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import { FlatCompat } from '@eslint/eslintrc';
 import { fileURLToPath } from 'node:url';
 
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
@@ -34,7 +36,7 @@ export default [{
     '@typescript-eslint': typescriptEslint,
     'sort-imports-es6-autofix': sortImportsEs6Autofix,
     'unused-imports': unusedImports,
-    'path': pathPlugin
+    'path': pathPlugin,
   },
 
   languageOptions: {

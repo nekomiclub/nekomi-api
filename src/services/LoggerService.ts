@@ -1,4 +1,7 @@
-import conf from '~/conf.js';
+
+import DailyRotateFile from 'winston-daily-rotate-file';
+import conf from 'src/conf.js';
+import toBytes from 'src/utils/to-bytes.js';
 import winston, { format } from 'winston';
 import { getUTC } from '~/utils/utils.js';
 
@@ -35,18 +38,18 @@ const logger = winston.createLogger({
         format.colorize({ all: true, colors: { http: 'grey' } })
       )
     }),
-    new winston.transports.File({
+    new DailyRotateFile({
+      format: fileFormat,
+      dirname: conf.vars.volumes.logs,
+      zippedArchive: true,
+      maxSize: toBytes('20mb'),
+      datePattern: 'YYYY-MM-DD-HH',
+      createSymlink: true,
+
       level: 'debug',
-      dirname: conf.vars.volumes.logs,
-      filename: 'latest.log',
-      format: fileFormat
-    }),
-    new winston.transports.File({
-      level: 'error',
-      dirname: conf.vars.volumes.logs,
-      filename: 'error.log',
-      format: fileFormat
-    }),
+      filename: 'app-%DATE%.log',
+      maxFiles: '7d'
+    })
   ],
 });
 

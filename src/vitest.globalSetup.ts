@@ -31,7 +31,7 @@ export async function setup() {
 export async function teardown() {
   mongoose.set('strictQuery', false);
 
-  await mongoose.connect(conf.mongodbUrl, {
+  await mongoose.connect(conf.mongodb_uri, {
     retryWrites: true,
   });
 
