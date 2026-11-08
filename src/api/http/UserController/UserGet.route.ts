@@ -1,14 +1,14 @@
-import DTS from '~/service/DataTransferService.js';
-import MiddlewareService from '~/service/MiddlewareService.js';
+import DTS from '~/services/DataTransferService.js';
+import MiddlewareService from '~/services/MiddlewareService.js';
 import z from 'zod';
-import { ArgumentTypes, zBoolean } from '~/intf/types.js';
+import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getAuthorizationToken } from '~/utils/http-utils.js';
 import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/schemas/entities/User.schema.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
-import { UserRepositoryClass } from '~/repo/UserRepository.js';
+import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 import { isEligible, isRequesterAPIValid, isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
-import { parseRolesPermissions } from '~/repo/RoleRepository.js';
-import { registry } from '~/service/openapi/registry.js';
+import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

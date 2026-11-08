@@ -1,9 +1,9 @@
 import FormData from 'form-data';
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 import conf from '~/conf.js';
 import { $http } from '~/utils/http-utils.js';
-import { CDNString } from '~/intf/BrandedIds.js';
-import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api.js';
+import { CDNString } from '~/interfaces/BrandedIds.js';
+import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
 
 
 

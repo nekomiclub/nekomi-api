@@ -1,6 +1,6 @@
 import axios from 'axios';
 import conf from '~/conf.js';
-import { IShikimoriAnime } from '~/intf/external-api/IShikimori.api.js';
+import { IShikimoriAnime } from '~/interfaces/external-api/IShikimori.api.js';
 
 
 

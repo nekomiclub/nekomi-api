@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { ISODateString, asISODateString } from '~/intf/BrandedIds.js';
+import { ISODateString, asISODateString } from '~/interfaces/BrandedIds.js';
 
 
 

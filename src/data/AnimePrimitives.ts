@@ -1,5 +1,5 @@
 import z from 'zod';
-import { registry } from '~/service/openapi/registry.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

@@ -1,8 +1,8 @@
-import AnimeRepository from '~/repo/AnimeRepository.js';
+import AnimeRepository from '~/repositories/AnimeRepository.js';
 import Fuse, { FuseOptionKey } from 'fuse.js';
-import TeamRepository from '~/repo/TeamRepository.js';
-import UnifiedRepositoryClass from '~/repo/UnifiedRepository.js';
-import UserRepository from '~/repo/UserRepository.js';
+import TeamRepository from '~/repositories/TeamRepository.js';
+import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
+import UserRepository from '~/repositories/UserRepository.js';
 import express from 'express';
 import z from 'zod';
 import { IPagination } from '~/utils/pagination.js';

@@ -1,13 +1,13 @@
-import '~/service/openapi/setup.js';
+import '~/services/openapi/setup.js';
 
-import SessionService from '~/service/SessionService.js';
+import SessionService from '~/services/SessionService.js';
 import conf from '~/conf.js';
 import request from 'supertest';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema.js';
 import { AuthGetLogoutRouteSchemas } from '~/api/http/AuthController/AuthGetLogout.route.js';
 import { AuthPostRouteSchemas } from '~/api/http/AuthController/AuthPost.route.js';
-import { UserRepositoryClass } from '~/repo/UserRepository.js';
+import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 import { app } from '~/index.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createNanoId } from '~/utils/create-id.js';

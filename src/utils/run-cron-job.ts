@@ -1,4 +1,4 @@
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 
 
 

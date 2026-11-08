@@ -7,7 +7,7 @@ import { HandleMiddleware, getAPIKey, getAuthorizationToken } from '~/utils/http
 import { NekoError } from './ExceptionService.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
 import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema.js';
-import { parseRolesPermissions } from '~/repo/RoleRepository.js';
+import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
 
 
 

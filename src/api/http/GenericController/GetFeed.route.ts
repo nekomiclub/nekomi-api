@@ -1,17 +1,17 @@
-import AnimeRepository from '~/repo/AnimeRepository.js';
-import CacheService from '~/service/CacheService.js';
-import DTS from '~/service/DataTransferService.js';
-import Logger from '~/service/LoggerService.js';
+import AnimeRepository from '~/repositories/AnimeRepository.js';
+import CacheService from '~/services/CacheService.js';
+import DTS from '~/services/DataTransferService.js';
+import Logger from '~/services/LoggerService.js';
 import conf, { DevelopmentMode } from '~/conf.js';
 import ms from 'ms';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
-import FeedRepository from 'src/repositories/FeedRepository.js';
+import FeedRepository from '~/repositories/FeedRepository.js';
 import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema.js';
-import { FeedHydratedSchema, IFeedHydrated } from 'src/schemas/entities/Feed.schema.js';
-import { Middleware } from '~/service/MiddlewareService.js';
-import { registry } from '~/service/openapi/registry.js';
+import { FeedHydratedSchema, IFeedHydrated } from '~/schemas/entities/Feed.schema.js';
+import { Middleware } from '~/services/MiddlewareService.js';
+import { registry } from '~/services/openapi/registry.js';
 import { removeMarkdown } from '~/utils/utils.js';
 
 

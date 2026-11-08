@@ -1,11 +1,11 @@
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { Middleware } from '~/service/MiddlewareService.js';
-import { NekoError } from '~/service/ExceptionService.js';
+import { Middleware } from '~/services/MiddlewareService.js';
+import { NekoError } from '~/services/ExceptionService.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
-import { UserRepositoryClass } from '~/repo/UserRepository.js';
-import { asUserId } from '~/intf/BrandedIds.js';
-import { registry } from '~/service/openapi/registry.js';
+import { UserRepositoryClass } from '~/repositories/UserRepository.js';
+import { asUserId } from '~/interfaces/BrandedIds.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

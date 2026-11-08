@@ -1,6 +1,6 @@
 import axios from 'axios';
 import conf from '~/conf.js';
-import { IMoonanime3Episode } from '~/intf/external-api/IMoonanime.api.js';
+import { IMoonanime3Episode } from '~/interfaces/external-api/IMoonanime.api.js';
 
 
 

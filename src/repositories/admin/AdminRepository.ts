@@ -1,8 +1,8 @@
 import IAdmin, { ADMIN_SLUG } from '~/schemas/entities/Admin.schema.js';
-import UnifiedRepositoryClass from '~/repo/UnifiedRepository.js';
+import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
 import mongoose, { Schema } from 'mongoose';
-import { NekoError } from '~/service/ExceptionService.js';
-import { RepositoryQueriesType } from '~/intf/types.js';
+import { NekoError } from '~/services/ExceptionService.js';
+import { RepositoryQueriesType } from '~/interfaces/types.js';
 import { getUTC } from '~/utils/utils.js';
 
 

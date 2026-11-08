@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { ErrorConstructor } from '~/service/ExceptionService.js';
+import { ErrorConstructor } from '~/services/ExceptionService.js';
 import { app } from '../index.js';
 import { expect } from 'vitest';
 

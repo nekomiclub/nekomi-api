@@ -1,12 +1,12 @@
-import MiddlewareService from '~/service/MiddlewareService.js';
-import SessionService from '~/service/SessionService.js';
+import MiddlewareService from '~/services/MiddlewareService.js';
+import SessionService from '~/services/SessionService.js';
 import express from 'express';
-import { NekoError } from '~/service/ExceptionService.js';
+import { NekoError } from '~/services/ExceptionService.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
-import { UserId, UserSessionId } from '~/intf/BrandedIds.js';
-import { asUserSessionId } from '~/intf/BrandedIds.js';
+import { UserId, UserSessionId } from '~/interfaces/BrandedIds.js';
+import { asUserSessionId } from '~/interfaces/BrandedIds.js';
 import { getAPIKey, getAuthorizationToken } from './http-utils.js';
-import { parseRolesPermissions } from '~/repo/RoleRepository.js';
+import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
 
 
 

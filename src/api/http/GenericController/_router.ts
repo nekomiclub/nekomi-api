@@ -1,9 +1,9 @@
 import express from 'express';
 
-import DeleteFeedRoute from 'src/api/http/GenericController/DeleteFeed.route.js';
+import DeleteFeedRoute from '~/api/http/GenericController/DeleteFeed.route.js';
 import GetHealthcheck from './GetHealthcheck.route.js';
 import GetHomeFeedRoute from './GetFeed.route.js';
-import PostFeedRoute from 'src/api/http/GenericController/PostFeed.route.js';
+import PostFeedRoute from '~/api/http/GenericController/PostFeed.route.js';
 
 
 

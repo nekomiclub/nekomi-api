@@ -1,10 +1,10 @@
-import '~/service/openapi/setup.js';
+import '~/services/openapi/setup.js';
 
 import conf from '~/conf.js';
 import request from 'supertest';
 import z from 'zod';
-import { GetHomeFeedRouteSchema } from 'src/api/http/GenericController/GetFeed.route.js';
-import { GetPingResponseSchema } from 'src/api/http/GenericController/GetHealthcheck.route.js';
+import { GetHomeFeedRouteSchema } from '~/api/http/GenericController/GetFeed.route.js';
+import { GetPingResponseSchema } from '~/api/http/GenericController/GetHealthcheck.route.js';
 import { app } from '~/index.js';
 import { describe, expect, it } from 'vitest';
 import { shouldRejectAPIKey } from '~/utils/testing-utils.js';

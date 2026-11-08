@@ -1,6 +1,6 @@
 import conf from '~/conf.js';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { IJWTokenPayload } from '~/intf/types.js';
+import { IJWTokenPayload } from '~/interfaces/types.js';
 import { NekoError } from './ExceptionService.js';
 
 

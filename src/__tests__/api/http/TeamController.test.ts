@@ -1,4 +1,4 @@
-import '~/service/openapi/setup.js';
+import '~/services/openapi/setup.js';
 
 import conf from '~/conf.js';
 import request from 'supertest';
@@ -6,7 +6,7 @@ import z from 'zod';
 import { TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route.js';
 import { TeamGetSearchRouteSchemas } from '~/api/http/TeamController/TeamGetSearch.route.js';
 import { TeamMinifiedSchema, TeamPublicSchema } from '~/schemas/entities/Team.schema.js';
-import { TeamRepositoryClass } from '~/repo/TeamRepository.js';
+import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 import { app } from '~/index.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { shouldRejectAPIKey } from '~/utils/testing-utils.js';

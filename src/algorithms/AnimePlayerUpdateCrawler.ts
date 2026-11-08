@@ -1,21 +1,21 @@
-import AdminTeamMapRepositoryClass from '~/repo/admin/AdminDubberMapRepository.js';
-import AnimeRepository, { AnimeModel } from '~/repo/AnimeRepository.js';
-import DTS from '~/service/DataTransferService.js';
-import Logger from '~/service/LoggerService.js';
-import StackServiceClass from '~/service/StackService.js';
+import AdminTeamMapRepositoryClass from '~/repositories/admin/AdminDubberMapRepository.js';
+import AnimeRepository, { AnimeModel } from '~/repositories/AnimeRepository.js';
+import DTS from '~/services/DataTransferService.js';
+import Logger from '~/services/LoggerService.js';
+import StackServiceClass from '~/services/StackService.js';
 import arrayEqual from 'array-equal';
 import ms from 'ms';
 import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema.js';
 import { ANIME_STATUS } from '~/data/AnimePrimitives.js';
-import { AnimeId } from '~/intf/BrandedIds.js';
-import { ArgumentTypes } from '~/intf/types.js';
+import { AnimeId } from '~/interfaces/BrandedIds.js';
+import { ArgumentTypes } from '~/interfaces/types.js';
 import { AshdiAPI } from '~/api/external/ashdi.api.js';
-import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/intf/external-api/IAshdi.api.js';
+import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/interfaces/external-api/IAshdi.api.js';
 import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/schemas/entities/Anime.schema.js';
 import { MoonanimeAPI } from '~/api/external/moonanime.api.js';
-import { NekoError } from '~/service/ExceptionService.js';
-import { TeamId } from '~/intf/BrandedIds.js';
-import { asTeamId } from '~/intf/BrandedIds.js';
+import { NekoError } from '~/services/ExceptionService.js';
+import { TeamId } from '~/interfaces/BrandedIds.js';
+import { asTeamId } from '~/interfaces/BrandedIds.js';
 import { buffer2hash, getUTC, retrieveNumberFromString, sleep, trimString } from '~/utils/utils.js';
 
 

@@ -1,11 +1,11 @@
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 import axios from 'axios';
 import conf, { ProductionMode } from '~/conf.js';
 import express from 'express';
 import z, { ZodType } from 'zod';
-import { HandleRequestError, NekoError } from '~/service/ExceptionService.js';
+import { HandleRequestError, NekoError } from '~/services/ExceptionService.js';
 import { IncomingHttpHeaders } from 'http';
-import { MiddlewareType } from '~/service/MiddlewareService.js';
+import { MiddlewareType } from '~/services/MiddlewareService.js';
 
 
 

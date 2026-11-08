@@ -3,10 +3,10 @@ import Logger from './LoggerService.js';
 import TokenService, { TOKEN_METHOD } from './TokenService.js';
 import conf, { DevelopmentMode } from '~/conf.js';
 import ms from 'ms';
-import { ISODateString, UserSessionId, asUserSessionId } from '~/intf/BrandedIds.js';
+import { ISODateString, UserSessionId, asUserSessionId } from '~/interfaces/BrandedIds.js';
 import { NekoError } from './ExceptionService.js';
 import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema.js';
-import { UserModel } from '~/repo/UserRepository.js';
+import { UserModel } from '~/repositories/UserRepository.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
 import { createNanoId, createUserSessionId } from '~/utils/create-id.js';
 

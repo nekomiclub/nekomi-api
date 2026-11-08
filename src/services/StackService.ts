@@ -1,6 +1,6 @@
 import Logger from './LoggerService.js';
 import createId from '~/utils/create-id.js';
-import { BrandedId, ISODateString, asBrandedId } from '~/intf/BrandedIds.js';
+import { BrandedId, ISODateString, asBrandedId } from '~/interfaces/BrandedIds.js';
 import { DevelopmentMode } from '~/conf.js';
 import { getUTC } from '~/utils/utils.js';
 

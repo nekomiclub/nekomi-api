@@ -1,6 +1,6 @@
-import DTS from '~/service/DataTransferService.js';
+import DTS from '~/services/DataTransferService.js';
 import IUser, { IUserViewProgress, USER_LIB_TYPE_ENUM, USER_RESTRICTION_ENUM } from '~/schemas/entities/User.schema.js';
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 import RoleRepository from './RoleRepository.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
@@ -8,13 +8,13 @@ import UserValidators from '~/utils/validators/user-validators.js';
 import conf, { TestMode } from '~/conf.js';
 import createId, { createNanoId, createUserLibId } from '~/utils/create-id.js';
 import mongoose, { Schema } from 'mongoose';
-import { AnimeId, CDNString } from '~/intf/BrandedIds.js';
-import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api.js';
-import { NekoError } from '~/service/ExceptionService.js';
+import { AnimeId, CDNString } from '~/interfaces/BrandedIds.js';
+import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
+import { NekoError } from '~/services/ExceptionService.js';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
-import { RepositoryQueriesType } from '~/intf/types.js';
-import { UserLibId } from '~/intf/BrandedIds.js';
-import { asUserId } from '~/intf/BrandedIds.js';
+import { RepositoryQueriesType } from '~/interfaces/types.js';
+import { UserLibId } from '~/interfaces/BrandedIds.js';
+import { asUserId } from '~/interfaces/BrandedIds.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
 
 

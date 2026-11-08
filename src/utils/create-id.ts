@@ -1,5 +1,5 @@
 import * as uuid from 'uuid';
-import { asUserLibId, asUserSessionId } from '~/intf/BrandedIds.js';
+import { asUserLibId, asUserSessionId } from '~/interfaces/BrandedIds.js';
 import { nanoid } from 'nanoid';
 
 

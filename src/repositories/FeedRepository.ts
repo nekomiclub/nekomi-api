@@ -1,11 +1,11 @@
-import AnimeRepository from 'src/repositories/AnimeRepository.js';
-import DTS from '~/service/DataTransferService.js';
-import Logger from '~/service/LoggerService.js';
+import AnimeRepository from '~/repositories/AnimeRepository.js';
+import DTS from '~/services/DataTransferService.js';
+import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import mongoose, { Schema } from 'mongoose';
-import { IFeed } from 'src/schemas/entities/Feed.schema.js';
-import { NekoError } from '~/service/ExceptionService.js';
-import { RepositoryQueriesType } from '~/intf/types.js';
+import { IFeed } from '~/schemas/entities/Feed.schema.js';
+import { NekoError } from '~/services/ExceptionService.js';
+import { RepositoryQueriesType } from '~/interfaces/types.js';
 
 
 

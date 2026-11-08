@@ -1,4 +1,4 @@
-import '~/service/openapi/setup.js';
+import '~/services/openapi/setup.js';
 
 import AnimeValidators from '~/utils/validators/anime-validators.js';
 import createSlug from '~/utils/create-slug.js';

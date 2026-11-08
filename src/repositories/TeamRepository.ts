@@ -1,16 +1,16 @@
-import DTS from '~/service/DataTransferService.js';
+import DTS from '~/services/DataTransferService.js';
 import ITeam from '~/schemas/entities/Team.schema.js';
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import conf, { TestMode } from '~/conf.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
-import { CDNString, asTeamId } from '~/intf/BrandedIds.js';
-import { NUS_UPLOAD_TYPE } from '~/intf/external-api/INekomiUploadService.api.js';
-import { NekoError } from '~/service/ExceptionService.js';
+import { CDNString, asTeamId } from '~/interfaces/BrandedIds.js';
+import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
+import { NekoError } from '~/services/ExceptionService.js';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
-import { RepositoryQueriesType } from '~/intf/types.js';
+import { RepositoryQueriesType } from '~/interfaces/types.js';
 import { getUTC, trimString } from '~/utils/utils.js';
 
 

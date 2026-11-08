@@ -6,7 +6,7 @@ import express from 'express';
 import z, { ZodSchema } from 'zod';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 import { HydratedDocument } from 'mongoose';
-import { asCDNString } from '~/intf/BrandedIds.js';
+import { asCDNString } from '~/interfaces/BrandedIds.js';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 
 

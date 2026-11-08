@@ -1,10 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import { CDNString, TeamId } from '~/intf/BrandedIds.js';
-import { Middleware } from '~/service/MiddlewareService.js';
-import { NekoError } from '~/service/ExceptionService.js';
+import { CDNString, TeamId } from '~/interfaces/BrandedIds.js';
+import { Middleware } from '~/services/MiddlewareService.js';
+import { NekoError } from '~/services/ExceptionService.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
-import { TeamRepositoryClass } from '~/repo/TeamRepository.js';
+import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 
 
 

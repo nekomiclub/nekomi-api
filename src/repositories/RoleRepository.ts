@@ -1,13 +1,13 @@
-import DTS from '~/service/DataTransferService.js';
+import DTS from '~/services/DataTransferService.js';
 import IRole, { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
-import Logger from '~/service/LoggerService.js';
+import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import mongoose, { Schema } from 'mongoose';
-import { NekoError } from '~/service/ExceptionService.js';
-import { RepositoryQueriesType } from '~/intf/types.js';
+import { NekoError } from '~/services/ExceptionService.js';
+import { RepositoryQueriesType } from '~/interfaces/types.js';
 import { TestMode } from '~/conf.js';
-import { asRoleId } from '~/intf/BrandedIds.js';
+import { asRoleId } from '~/interfaces/BrandedIds.js';
 
 
 

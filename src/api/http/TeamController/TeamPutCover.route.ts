@@ -1,8 +1,8 @@
 import HandleTeamControllerACUpload, { TeamControllerACUploadMiddlewares } from './_utils.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { TeamRepositoryClass } from '~/repo/TeamRepository.js';
-import { registry } from '~/service/openapi/registry.js';
+import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

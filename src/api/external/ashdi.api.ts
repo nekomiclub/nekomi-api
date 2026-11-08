@@ -1,6 +1,6 @@
 import axios from 'axios';
 import conf from '~/conf.js';
-import { IAshdiTeam, IAshdiTitle } from '~/intf/external-api/IAshdi.api.js';
+import { IAshdiTeam, IAshdiTitle } from '~/interfaces/external-api/IAshdi.api.js';
 
 
 

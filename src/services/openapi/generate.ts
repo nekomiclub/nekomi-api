@@ -1,6 +1,6 @@
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 
-import conf from 'src/conf.js';
+import conf from '~/conf.js';
 import { registry } from './registry.js';
 
 

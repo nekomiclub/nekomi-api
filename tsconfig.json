@@ -21,11 +21,6 @@
 
     // Imports
     "paths": {
-      "*": ["./*"],
-      "~/intf/*": ["./src/interfaces/*"],
-      "~/service/*": ["./src/services/*"],
-      "~/repo/*": ["./src/repositories/*"],
-      "~/utils/*": ["./src/utils/*"],
       "~/*": ["./src/*"]
     }
   },

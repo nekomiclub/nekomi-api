@@ -1,9 +1,9 @@
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { FeedRepositoryClass } from 'src/repositories/FeedRepository.js';
-import { Middleware } from 'src/services/MiddlewareService.js';
-import { ROLE_PERMISSION_ENUM } from 'src/schemas/entities/Role.schema.js';
-import { registry } from '~/service/openapi/registry.js';
+import { FeedRepositoryClass } from '~/repositories/FeedRepository.js';
+import { Middleware } from '~/services/MiddlewareService.js';
+import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

@@ -1,12 +1,12 @@
-import DTS from '~/service/DataTransferService.js';
+import DTS from '~/services/DataTransferService.js';
 import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/schemas/entities/Anime.schema.js';
 import z from 'zod';
-import { AnimeRepositoryClass } from '~/repo/AnimeRepository.js';
-import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/service/SearchService.js';
+import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
+import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/services/SearchService.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { Middleware } from '~/service/MiddlewareService.js';
+import { Middleware } from '~/services/MiddlewareService.js';
 import { PaginationSchema } from '~/utils/pagination.js';
-import { registry } from '~/service/openapi/registry.js';
+import { registry } from '~/services/openapi/registry.js';
 
 
 

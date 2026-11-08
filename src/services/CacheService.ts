@@ -1,7 +1,7 @@
 import Logger from './LoggerService.js';
 import ms from 'ms';
 import { DevelopmentMode } from '~/conf.js';
-import { ISODateString } from '~/intf/BrandedIds.js';
+import { ISODateString } from '~/interfaces/BrandedIds.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
 
 

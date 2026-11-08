@@ -1,5 +1,5 @@
 import z, { ZodError } from 'zod';
-import { zBoolean } from '~/intf/types.js';
+import { zBoolean } from '~/interfaces/types.js';
 
 
 

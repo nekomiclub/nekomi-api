@@ -1,6 +1,6 @@
 import axios from 'axios';
 import conf from '~/conf.js';
-import { IdsMoeKeys } from '~/intf/external-api/IdsMoe.api.js';
+import { IdsMoeKeys } from '~/interfaces/external-api/IdsMoe.api.js';
 
 
 

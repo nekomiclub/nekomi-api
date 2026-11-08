@@ -1,4 +1,4 @@
-import '~/service/openapi/setup.js';
+import '~/services/openapi/setup.js';
 
 import { describe, expect, test } from 'vitest';
 import { extractAnimeContentSeason } from '~/utils/utils.js';
