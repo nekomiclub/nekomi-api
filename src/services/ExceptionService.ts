@@ -1,5 +1,5 @@
 import Logger from './LoggerService.js';
-import conf, { DevelopmentMode, TestMode } from '~/conf.js';
+import conf, { isDevelopment, isTest } from '~/conf.js';
 import express from 'express';
 import fs from 'fs';
 import { AxiosError } from 'axios';
@@ -111,7 +111,7 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
       if (
         e.code === 'auth:session_token_invalid'
         || e.code === 'auth:session_not_exist'
-      ) res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
+      ) res.clearCookie(conf.variables.SESSION_COOKIE_NAME);
 
       res.status(e.status ?? 500).json(SendResponse({
         ok: false,
@@ -125,8 +125,8 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
 
       return false;
     } else if (e instanceof ZodError) {
-      if (DevelopmentMode && !TestMode) console.log(`Validation error`, e.errors);
-      if (TestMode) Logger.error(`(TESTING) Validation error`, e.errors);
+      if (isDevelopment && !isTest) console.log(`Validation error`, e.errors);
+      if (isTest) Logger.error(`(TESTING) Validation error`, e.errors);
 
       res.status(400).json(SendResponse({
         ok: false,
@@ -167,8 +167,8 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${requestUrl}`);
         } else {
-          if (DevelopmentMode && !TestMode) console.log(emsg);
-          if (TestMode) Logger.error(`(TESTING) ${emsg}`, e);
+          if (isDevelopment && !isTest) console.log(emsg);
+          if (isTest) Logger.error(`(TESTING) ${emsg}`, e);
         }
       }
 

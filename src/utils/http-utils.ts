@@ -1,6 +1,6 @@
 import Logger from '~/services/LoggerService.js';
 import axios from 'axios';
-import conf, { ProductionMode } from '~/conf.js';
+import conf, { isProduction } from '~/conf.js';
 import express from 'express';
 import z, { ZodType } from 'zod';
 import { HandleRequestError, NekoError } from '~/services/ExceptionService.js';
@@ -91,7 +91,7 @@ export function traceRequest() {
  * @throws auth:token_miss if session cookie is missing
  */
 export function getAuthorizationToken(req: express.Request): string {
-  const token = req._nekomi.sessionToken ?? req.headers['authorization']?.replace('Bearer ', '') ?? req.cookies[conf.vars.SESSION_COOKIE_NAME] as string | undefined;
+  const token = req._nekomi.sessionToken ?? req.headers['authorization']?.replace('Bearer ', '') ?? req.cookies[conf.variables.SESSION_COOKIE_NAME] as string | undefined;
   if (!token) throw new NekoError('auth:token_miss');
 
   return token;
@@ -117,11 +117,11 @@ export function getAPIKey(req: express.Request): string {
  * Set session cookie in response
  */
 export function setSessionCookie(token: string, res: express.Response) {
-  return res.cookie(conf.vars.SESSION_COOKIE_NAME, token, {
+  return res.cookie(conf.variables.SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    maxAge: conf.vars.SESSION_COOKIE_MAX_AGE_MS,
-    secure: ProductionMode,
-    domain: ProductionMode ? conf.vars.SESSION_COOKIE_DOMAIN : undefined,
+    maxAge: conf.variables.SESSION_COOKIE_MAX_AGE_MS,
+    secure: isProduction,
+    domain: isProduction ? conf.variables.SESSION_COOKIE_DOMAIN : undefined,
     sameSite: 'lax',
   });
 }

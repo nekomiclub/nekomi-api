@@ -29,10 +29,8 @@ env:
   IDS_MOE_SK: ${{ secrets.IDS_MOE_SK }}
   USER_SESSION_SK: ${{ secrets.USER_SESSION_SK }}
 
-  NEKOMI_API_URL: ${{ vars.NEKOMI_API_URL }}
   NEKOMI_NEXTJS_URL: ${{ vars.NEKOMI_NEXTJS_URL }}
   NEKOMI_UPLOAD_SERVICE_URL: ${{ vars.NEKOMI_UPLOAD_SERVICE_URL }}
-  ASHDI_API_URL: ${{ vars.ASHDI_API_URL }}
 
 jobs:
   test-and-build:

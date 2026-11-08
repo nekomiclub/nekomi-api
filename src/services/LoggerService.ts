@@ -40,7 +40,7 @@ const logger = winston.createLogger({
     }),
     new DailyRotateFile({
       format: fileFormat,
-      dirname: conf.vars.volumes.logs,
+      dirname: conf.variables.volumes.logs,
       zippedArchive: true,
       maxSize: toBytes('20mb'),
       datePattern: 'YYYY-MM-DD-HH',

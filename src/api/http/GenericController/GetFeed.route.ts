@@ -2,7 +2,7 @@ import AnimeRepository from '~/repositories/AnimeRepository.js';
 import CacheService from '~/services/CacheService.js';
 import DTS from '~/services/DataTransferService.js';
 import Logger from '~/services/LoggerService.js';
-import conf, { DevelopmentMode } from '~/conf.js';
+import conf, { isDevelopment } from '~/conf.js';
 import ms from 'ms';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
@@ -85,7 +85,7 @@ const endpoint = HandleRequest(async (req, res) => {
           slug: anime.slug,
           title: anime.title_ua ?? anime.title_en ?? 'Untitled',
           synopsys: synopsys && removeMarkdown(synopsys),
-          poster: anime.posters.find(el => el.is_hero)?.original ?? anime.posters[0]?.original ?? conf.vars.defaultPoster,
+          poster: anime.posters.find(el => el.is_hero)?.original ?? anime.posters[0]?.original ?? conf.variables.default_anime_poster_url,
           cover: hero.cover_url,
           video: hero.video_url,
         } satisfies IFeedHydrated;
@@ -127,7 +127,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
   // Set testing header
-  if (DevelopmentMode) res.setHeader(`X-HomeFeedCacheUsed`, `${Boolean(cache)}`);
+  if (isDevelopment) res.setHeader(`X-HomeFeedCacheUsed`, `${Boolean(cache)}`);
 
   return res.status(200).json(SendResponse({
     ok: true,

@@ -1,6 +1,6 @@
 import '~/services/openapi/setup.js';
 
-import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import request from 'supertest';
 import z from 'zod';
 import { TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route.js';
@@ -43,7 +43,7 @@ describe('Test Auth HTTP API Controller', () => {
           is_extended: true
         } satisfies z.infer<typeof TeamGetRouteSchemas.RequestQuerySchema>)
         .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK);
+        .set(`X-API-Key`, env('API_KEY_SK'));
 
       const body = TeamGetRouteSchemas.ResponseSchema.parse(res.body);
 
@@ -73,7 +73,7 @@ describe('Test Auth HTTP API Controller', () => {
       const res = await request(app)
         .get('/team/search')
         .expect(200)
-        .set('X-API-Key', conf.env.API_KEY_SK)
+        .set('X-API-Key', env('API_KEY_SK'))
         .query({
           q: `~all`
         } satisfies z.infer<typeof TeamGetSearchRouteSchemas.RequestQuerySchema>);

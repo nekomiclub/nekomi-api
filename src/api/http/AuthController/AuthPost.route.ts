@@ -6,10 +6,10 @@ import firebase from 'firebase-admin';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils.js';
-import { DevelopmentMode, TestMode } from '~/conf.js';
 import { ErrorConstructor, NekoError } from '~/services/ExceptionService.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema.js';
+import { isDevelopment, isTest } from '~/conf.js';
 import { registry } from '~/services/openapi/registry.js';
 
 
@@ -73,7 +73,7 @@ const endpoint = HandleRequest(async (req, res) => {
     if (!token) throw new NekoError('auth:token_miss');
 
     try {
-      if (TestMode) {
+      if (isTest) {
         // Set email as token in test mode
         email = token;
       } else {
@@ -84,7 +84,7 @@ const endpoint = HandleRequest(async (req, res) => {
       }
     } catch (e) {
       if (e instanceof ErrorConstructor) throw e;
-      if (DevelopmentMode) Logger.error(`[Auth (${method})]: Authorization failed`, e);
+      if (isDevelopment) Logger.error(`[Auth (${method})]: Authorization failed`, e);
 
       throw new NekoError(`auth:failed`);
     }

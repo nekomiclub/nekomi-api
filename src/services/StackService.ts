@@ -1,8 +1,8 @@
 import Logger from './LoggerService.js';
 import createId from '~/utils/create-id.js';
 import { BrandedId, ISODateString, asBrandedId } from '~/interfaces/BrandedIds.js';
-import { DevelopmentMode } from '~/conf.js';
 import { getUTC } from '~/utils/utils.js';
+import { isDevelopment } from '~/conf.js';
 
 
 
@@ -56,7 +56,7 @@ export default class StackServiceClass<T> {
     this._stack = this._stack.filter(el => el.id !== id);
     this.run();
 
-    if (DevelopmentMode) Logger.debug(`${this.name} Item "${id}" removed from the stack`);
+    if (isDevelopment) Logger.debug(`${this.name} Item "${id}" removed from the stack`);
   }
 
 

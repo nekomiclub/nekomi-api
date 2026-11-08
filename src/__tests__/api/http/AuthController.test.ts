@@ -2,6 +2,7 @@ import '~/services/openapi/setup.js';
 
 import SessionService from '~/services/SessionService.js';
 import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import request from 'supertest';
 import z from 'zod';
 import { AUTH_METHOD } from '~/schemas/auth.schema.js';
@@ -40,7 +41,7 @@ describe(`Test Auth HTTP API Controller`, () => {
     it(`Should reject login with google provider if token is not provided`, async () => {
       const res = await request(app)
         .post('/auth')
-        .set(`X-API-Key`, conf.env.API_KEY_SK)
+        .set(`X-API-Key`, env('API_KEY_SK'))
         .expect(401)
         .send({
           method: AUTH_METHOD.GOOGLE,
@@ -58,7 +59,7 @@ describe(`Test Auth HTTP API Controller`, () => {
     async function invokePostAuth({ email }: { email: string }) {
       const res = await request(app)
         .post('/auth')
-        .set(`X-API-Key`, conf.env.API_KEY_SK)
+        .set(`X-API-Key`, env('API_KEY_SK'))
         .send({
           method: AUTH_METHOD.GOOGLE,
           token: email
@@ -68,7 +69,7 @@ describe(`Test Auth HTTP API Controller`, () => {
       console.log(body);
 
       expect(AuthPostRouteSchemas.ResponseSchema.safeParse(body).success).toBeTruthy(); // Response must match schema
-      expect(supertestCookieExist(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be assigned
+      expect(supertestCookieExist(res.headers, conf.variables.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be assigned
     }
   });
 
@@ -92,11 +93,11 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get('/auth/logout')
         .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK)
-        .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
+        .set(`X-API-Key`, env('API_KEY_SK'))
+        .set('Cookie', `${conf.variables.SESSION_COOKIE_NAME}=${session.token}`);
 
       expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-      expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
+      expect(supertestCookieRemoved(res.headers, conf.variables.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
 
 
 
@@ -120,11 +121,11 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/${sessionTarget.session.id}`)
         .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK)
-        .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=${session.token}`);
+        .set(`X-API-Key`, env('API_KEY_SK'))
+        .set('Cookie', `${conf.variables.SESSION_COOKIE_NAME}=${session.token}`);
 
       expect(AuthGetLogoutRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy(); // Response must match schema
-      expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeFalsy(); // Cookie must not removed
+      expect(supertestCookieRemoved(res.headers, conf.variables.SESSION_COOKIE_NAME)).toBeFalsy(); // Cookie must not removed
 
 
       // Ensure that user session revoked
@@ -142,10 +143,10 @@ describe(`Test Auth HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/auth/logout/_INVALID`)
         .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK)
-        .set('Cookie', `${conf.vars.SESSION_COOKIE_NAME}=_INVALID`);
+        .set(`X-API-Key`, env('API_KEY_SK'))
+        .set('Cookie', `${conf.variables.SESSION_COOKIE_NAME}=_INVALID`);
 
-      expect(supertestCookieRemoved(res.headers, conf.vars.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
+      expect(supertestCookieRemoved(res.headers, conf.variables.SESSION_COOKIE_NAME)).toBeTruthy(); // Cookie must be removed
     });
 
 

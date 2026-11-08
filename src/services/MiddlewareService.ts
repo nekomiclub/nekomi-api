@@ -2,7 +2,7 @@ import DTS from './DataTransferService.js';
 import IUser from '~/schemas/entities/User.schema.js';
 import SessionService from './SessionService.js';
 import TokenService from './TokenService.js';
-import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import { HandleMiddleware, getAPIKey, getAuthorizationToken } from '~/utils/http-utils.js';
 import { NekoError } from './ExceptionService.js';
 import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
@@ -67,7 +67,7 @@ export default class MiddlewareService {
 
   /** Verify API key */
   async checkAPIKey(token: string): Promise<boolean> {
-    const isMatched = conf.env.API_KEY_SK === token;
+    const isMatched = env('API_KEY_SK') === token;
     if (!isMatched) throw new NekoError('auth:api_key_invalid', `API key is invalid`);
 
     return isMatched;

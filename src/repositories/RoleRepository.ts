@@ -6,8 +6,8 @@ import createId, { createNanoId } from '~/utils/create-id.js';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/services/ExceptionService.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
-import { TestMode } from '~/conf.js';
 import { asRoleId } from '~/interfaces/BrandedIds.js';
+import { isTest } from '~/conf.js';
 
 
 
@@ -68,7 +68,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create({ name, slug, saveDocument }: ICreateProps): Promise<RepositoryType> {
     saveDocument = saveDocument ?? true;
 
-    const id = asRoleId(TestMode ? `~testing-${createNanoId()}` : createId());
+    const id = asRoleId(isTest ? `~testing-${createNanoId()}` : createId());
     const exist = await this.safeGetOne(slug);
     if (exist) throw new NekoError('sys:already_exist', `Role with slug (${slug}) is already exist`);
 

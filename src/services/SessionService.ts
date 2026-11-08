@@ -1,7 +1,7 @@
 import IUser, { IUserSession } from '~/schemas/entities/User.schema.js';
 import Logger from './LoggerService.js';
 import TokenService, { TOKEN_METHOD } from './TokenService.js';
-import conf, { DevelopmentMode } from '~/conf.js';
+import conf, { isDevelopment } from '~/conf.js';
 import ms from 'ms';
 import { ISODateString, UserSessionId, asUserSessionId } from '~/interfaces/BrandedIds.js';
 import { NekoError } from './ExceptionService.js';
@@ -53,7 +53,7 @@ export default class SessionService extends UserModel {
     const session: IUserSession = {
       id: sessionId,
       is_limited: props?.is_limited ?? true,
-      expires_at: getUTC(getUTC().timestamp + conf.vars.SESSION_LIFETIME_MS).ISO,
+      expires_at: getUTC(getUTC().timestamp + conf.variables.SESSION_LIFETIME_MS).ISO,
       created_at: getUTC().ISO,
     };
 
@@ -90,7 +90,7 @@ export default class SessionService extends UserModel {
     const session = this._doc.sessions.find(el => el.id === sessionId);
     if (!session) throw new NekoError('auth:session_not_exist', `Session "${sessionId}" is not exist`);
 
-    const newExpires = getUTC(getUTC().timestamp + conf.vars.SESSION_REFRESH_BY_MS).ISO;
+    const newExpires = getUTC(getUTC().timestamp + conf.variables.SESSION_REFRESH_BY_MS).ISO;
 
     if (getUTC(newExpires).timestamp > getUTC(session.expires_at).timestamp) {
       session.expires_at = newExpires;
@@ -153,21 +153,21 @@ export default class SessionService extends UserModel {
     this.document?.sessions.forEach(el => {
       // Delete session if it has expired
       if (getUTC().timestamp > calcISO(el.expires_at)) {
-        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} expired`);
+        if (isDevelopment) Logger.debug(`[SessionService (DEV)]: Session ${el.id} expired`);
 
         return;
       }
 
       // Delete session if max age reached
-      if (getUTC().timestamp > calcISO(el.created_at, conf.vars.SESSION_COOKIE_MAX_AGE_MS)) {
-        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} max age reached`);
+      if (getUTC().timestamp > calcISO(el.created_at, conf.variables.SESSION_COOKIE_MAX_AGE_MS)) {
+        if (isDevelopment) Logger.debug(`[SessionService (DEV)]: Session ${el.id} max age reached`);
 
         return;
       }
 
       // Disable limitations if session is not new 
-      if (el.is_limited && getUTC().timestamp > calcISO(el.created_at, conf.vars.SESSION_LIMITATION_TIMEOUT_MS)) {
-        if (DevelopmentMode) Logger.debug(`[SessionService (DEV)]: Session ${el.id} limitation disabled`);
+      if (el.is_limited && getUTC().timestamp > calcISO(el.created_at, conf.variables.SESSION_LIMITATION_TIMEOUT_MS)) {
+        if (isDevelopment) Logger.debug(`[SessionService (DEV)]: Session ${el.id} limitation disabled`);
 
         el.is_limited = false;
       }

@@ -5,7 +5,7 @@ import { IHikkaMALIntegration } from '~/interfaces/external-api/IHikka.api.js';
 
 
 
-const baseURL = conf.URL.hikkaAPI;
+const baseURL = conf.variables.hikka_api_url;
 
 export class HikkaAPI {
   static async getMALIntegration(slug: string): Promise<IHikkaMALIntegration> {

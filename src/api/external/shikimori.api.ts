@@ -4,7 +4,7 @@ import { IShikimoriAnime } from '~/interfaces/external-api/IShikimori.api.js';
 
 
 
-const baseURL = conf.URL.shikimoriAPi;
+const baseURL = conf.variables.shikimori_api_url;
 
 export class ShikimoriAPI {
   static async getAnime(malId: number): Promise<IShikimoriAnime> {

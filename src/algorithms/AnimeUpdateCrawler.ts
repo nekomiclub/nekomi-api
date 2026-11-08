@@ -50,7 +50,7 @@ let UAPOSTERS_CACHE: IUAPostersCacheItem[] | null = null;
 
 
 
-const CACHE_FOLDER = conf.vars.volumes.cache;
+const CACHE_FOLDER = conf.variables.volumes.cache;
 const ANIME_LISTS_CACHE_PATH = `${CACHE_FOLDER}/bulk-ids.json`;
 const UAPOSTERS_CACHE_PATH = `${CACHE_FOLDER}/bulk-posters.json`;
 const CACHE_REVALIDATION_TIMEOUT_MS = ms('3day');
@@ -345,7 +345,7 @@ class AnimeUpdateCrawlerClass {
               continue;
             }
 
-            const node = await repo.uploadPoster(buffer, conf.vars.INTERNAL_ID, authorId, !authorId ? poster.author : undefined);
+            const node = await repo.uploadPoster(buffer, conf.variables.INTERNAL_ID, authorId, !authorId ? poster.author : undefined);
 
             nodes.push(node);
           }
@@ -358,7 +358,7 @@ class AnimeUpdateCrawlerClass {
           for (const key in deprecatedNodes) {
             const node = deprecatedNodes[key];
 
-            await repo.removePoster(node.pull_hash, conf.vars.INTERNAL_ID);
+            await repo.removePoster(node.pull_hash, conf.variables.INTERNAL_ID);
           }
 
 

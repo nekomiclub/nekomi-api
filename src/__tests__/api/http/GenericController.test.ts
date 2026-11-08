@@ -1,6 +1,6 @@
 import '~/services/openapi/setup.js';
 
-import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import request from 'supertest';
 import z from 'zod';
 import { GetHomeFeedRouteSchema } from '~/api/http/GenericController/GetFeed.route.js';
@@ -31,7 +31,7 @@ describe(`Test Generic HTTP API Controller`, () => {
       const res = await request(app)
         .get(`/home-feed`)
         .expect(200)
-        .set(`X-API-Key`, conf.env.API_KEY_SK);
+        .set(`X-API-Key`, env('API_KEY_SK'));
 
       const body = res.body as z.infer<typeof GetHomeFeedRouteSchema.ResponseSchema>;
 

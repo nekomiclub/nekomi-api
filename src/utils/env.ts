@@ -1,9 +1,16 @@
+/** @fileoverview Node.js env parser */
+
+import { config as dotenvCfg } from 'dotenv';
+
+dotenvCfg({ quiet: true });
+
 import z, { ZodError } from 'zod';
 import { zBoolean } from '~/interfaces/types.js';
 
 
 
-const EnvSchema = z.object({
+/** Environment config schema */
+export const EnvConfigSchema = z.object({
   PORT: z.coerce.number(),
   HOST: z.string(),
 
@@ -28,36 +35,26 @@ const EnvSchema = z.object({
   IDS_MOE_SK: z.string(),
   USER_SESSION_SK: z.string(),
 
-  NEKOMI_API_URL: z.string().url(),
   NEKOMI_NEXTJS_URL: z.string().url(),
   NEKOMI_UPLOAD_SERVICE_URL: z.string().url(),
   ASHDI_API_URL: z.string().url(),
 });
 
+export type TEnvConfigSchema = z.infer<typeof EnvConfigSchema>
 
 
-function parseEnv(): z.infer<typeof EnvSchema> {
+
+/** Get enviromental variable function */
+function env<K extends keyof TEnvConfigSchema>(key: K): TEnvConfigSchema[K] {
   try {
-    return EnvSchema.parse(process.env);
+    return EnvConfigSchema.parse(process.env)[key];
   } catch (e) {
     if (e instanceof ZodError) {
-      console.error(`
-
-
------------------------------------------
-
-ENVIRONMENT ERROR: ${JSON.stringify(e.errors, null, 2)}
-
------------------------------------------
-
-  
-        `);
-
-      throw '';
+      throw new Error(`[Env]: Env parse is invalid. Errors: ${JSON.stringify(e.errors, null, 2)}`);
     } else throw e;
   }
 }
 
 
 
-export default parseEnv;
+export default env;

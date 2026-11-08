@@ -5,7 +5,7 @@ import path from 'path';
 
 
 
-const MIGRATION_CACHE_PATH = `${conf.vars.volumes.logs}/migration.json`;
+const MIGRATION_CACHE_PATH = `${conf.variables.volumes.logs}/migration.json`;
 
 
 

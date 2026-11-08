@@ -1,4 +1,5 @@
 import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { registry } from '~/services/openapi/registry.js';
@@ -40,8 +41,8 @@ const endpoint = HandleRequest(async (req, res) => {
     message: 'API is healthy!',
     data: {
       started_at: conf.started_at,
-      commit_hash: conf.env.GIT_SHA?.slice(0, 7) ?? 'unknown',
-      version: conf.env.APP_VERSION ? `v${conf.env.APP_VERSION}` : 'v0.0.0',
+      commit_hash: env('GIT_SHA')?.slice(0, 7) ?? 'unknown',
+      version: env('APP_VERSION') ? `v${env('APP_VERSION')}` : 'v0.0.0',
       environment: conf.started_mode.toLowerCase(),
     }
   }, GetPingResponseSchema));

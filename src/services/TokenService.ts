@@ -1,4 +1,5 @@
 import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { IJWTokenPayload } from '~/interfaces/types.js';
 import { NekoError } from './ExceptionService.js';
@@ -17,8 +18,8 @@ class TokenServiceClass {
    */
   sign<T extends object>(method: TOKEN_METHOD, payload: T): string {
     if (method === TOKEN_METHOD.USER_SESSION_TOKEN) {
-      return jwt.sign(payload, conf.env.USER_SESSION_SK, {
-        expiresIn: conf.vars.SESSION_COOKIE_MAX_AGE_MS / 1000
+      return jwt.sign(payload, env('USER_SESSION_SK'), {
+        expiresIn: conf.variables.SESSION_COOKIE_MAX_AGE_MS / 1000
       });
     }
 
@@ -66,7 +67,7 @@ class TokenServiceClass {
    */
   verify(token: string, method: TOKEN_METHOD): boolean {
     try {
-      if (method === TOKEN_METHOD.USER_SESSION_TOKEN) return Boolean(jwt.verify(token, conf.env.USER_SESSION_SK));
+      if (method === TOKEN_METHOD.USER_SESSION_TOKEN) return Boolean(jwt.verify(token, env('USER_SESSION_SK')));
 
       throw new NekoError('sys:type_invalid', `JWT verify method (${method}) is invalid`);
     } catch (e) {

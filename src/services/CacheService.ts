@@ -1,8 +1,8 @@
 import Logger from './LoggerService.js';
 import ms from 'ms';
-import { DevelopmentMode } from '~/conf.js';
 import { ISODateString } from '~/interfaces/BrandedIds.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
+import { isDevelopment } from '~/conf.js';
 
 
 
@@ -65,7 +65,7 @@ export default class CacheService<T = any> {
     const record = this.cache.find(el => el.id === id);
     if (!record) return;
 
-    if (DevelopmentMode) Logger.debug(`[CacheService:${this.name} (DEV)]: Cache retrieved`);
+    if (isDevelopment) Logger.debug(`[CacheService:${this.name} (DEV)]: Cache retrieved`);
 
     return record.data;
   }

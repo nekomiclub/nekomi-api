@@ -1,6 +1,6 @@
 import './services/openapi/setup.js';
 
-import conf, { ProductionMode, TestMode } from './conf.js';
+import conf, { isProduction, isTest } from './conf.js';
 
 import AnimeRouter from './api/http/AnimeController/_router.js';
 import AuthRouter from './api/http/AuthController/_router.js';
@@ -13,6 +13,7 @@ import UserRouter from './api/http/UserController/_router.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import env from '~/utils/env.js';
 import express from 'express';
 import swaggerRouter from './services/openapi/swagger.js';
 import { traceRequest } from './utils/http-utils.js';
@@ -29,8 +30,8 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(traceRequest());
 
 app.use(cors({
-  origin: ProductionMode ? [
-    conf.URL.nekomiSite
+  origin: isProduction ? [
+    conf.variables.nekomi_nextjs_url
   ] : [
     'http://127.0.0.1:3001',
   ],
@@ -53,7 +54,7 @@ app.use('/', GenericRouter);
 async function runtime() {
   try {
     //* === Clear up console
-    if (!TestMode) {
+    if (!isTest) {
       console.clear();
       Logger.debug(`------------------ DRY RUN ------------------`);
     }
@@ -65,11 +66,11 @@ async function runtime() {
 
 
 
-    if (!TestMode) {
+    if (!isTest) {
       //* === HTTP Server
       await new Promise(res => {
-        app.listen(conf.env.PORT, conf.env.HOST, () => {
-          Logger.debug(`[System/Init]: HTTP server started in ${conf.started_mode} mode at http://${conf.env.HOST}:${conf.env.PORT}`);
+        app.listen(env('PORT'), env('HOST'), () => {
+          Logger.debug(`[System/Init]: HTTP server started in ${conf.started_mode} mode at http://${env('HOST')}:${env('PORT')}`);
 
           res(1);
         });
@@ -81,13 +82,13 @@ async function runtime() {
       
       Date: ${conf.started_at}
       Mode: ${conf.started_mode}
-      HTTP: http://${conf.env.HOST}:${conf.env.PORT}
+      HTTP: http://${env('HOST')}:${env('PORT')}
       ----------------------------\n\n`);
     }
 
 
 
-    if (!TestMode) await Runtime();
+    if (!isTest) await Runtime();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

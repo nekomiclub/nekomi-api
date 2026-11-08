@@ -76,7 +76,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
     if (sessionId === targetSessionId) {
       // Logout current session
-      res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
+      res.clearCookie(conf.variables.SESSION_COOKIE_NAME);
 
       return res.status(200).json(SendResponse({
         ok: true,
@@ -92,7 +92,7 @@ const endpoint = HandleRequest(async (req, res) => {
       }, ResponseSchema));
     }
   } catch (e) {
-    res.clearCookie(conf.vars.SESSION_COOKIE_NAME);
+    res.clearCookie(conf.variables.SESSION_COOKIE_NAME);
 
     if (e instanceof ErrorConstructor && (e.status && e.status < 500)) return res.status(200).json(SendResponse({
       ok: true,

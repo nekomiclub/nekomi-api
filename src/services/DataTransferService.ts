@@ -97,7 +97,7 @@ class DTSClass {
     return AnimeMinifiedSchema.parse({
       ...payload,
       title: payload.title_ua ?? payload.title_en ?? payload.title_ja ?? 'Аніме без назви',
-      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.variables.default_anime_poster_url),
       genres: payload.genres.map(el => AnimeDescribedGenres[el])
     } satisfies IAnimeMinified);
   }
@@ -123,7 +123,7 @@ class DTSClass {
   toAnimeSearchResult(payload: IAnime): IAnimeSearchResult {
     return AnimeSearchResultSchema.parse({
       ...payload,
-      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.vars.defaultPoster),
+      poster: asCDNString(payload.posters.find(el => el.is_hero)?.small ?? payload.posters[0]?.small ?? conf.variables.default_anime_poster_url),
       type: payload.type ? AnimeNamedRecordSchema[payload.type] : undefined,
     } satisfies IAnimeSearchResult);
   }

@@ -1,6 +1,6 @@
 import '~/services/openapi/setup.js';
 
-import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import request from 'supertest';
 import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route.js';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
@@ -26,7 +26,7 @@ describe('Test Anime HTTP API Controller', () => {
   //     const res = await request(app)
   //       .get('/anime/search')
   //       .expect(200)
-  //       .set('X-API-Key', conf.env.API_KEY_SK)
+  //       .set('X-API-Key', env('API_KEY_SK'))
   //       .query({
   //         q: '~all'
   //       } satisfies z.infer<typeof AnimeGetSearchRouteSchemas.RequestQuerySchema>);
@@ -53,7 +53,7 @@ describe('Test Anime HTTP API Controller', () => {
     it('Should return anime episodes', async () => {
       const res = await request(app)
         .get(`/anime/${animeService.document.id}/episodes`)
-        .set('X-API-Key', conf.env.API_KEY_SK)
+        .set('X-API-Key', env('API_KEY_SK'))
         .expect(200);
 
       expect(AnimeGetEpisodesRouteSchemas.ResponseSchema.safeParse(res.body).success).toBeTruthy();

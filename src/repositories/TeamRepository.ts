@@ -2,7 +2,7 @@ import DTS from '~/services/DataTransferService.js';
 import ITeam from '~/schemas/entities/Team.schema.js';
 import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
-import conf, { TestMode } from '~/conf.js';
+import conf, { isTest } from '~/conf.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
@@ -123,7 +123,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = asTeamId(TestMode ? `~testing-${createNanoId()}` : createId());
+    const id = asTeamId(isTest ? `~testing-${createNanoId()}` : createId());
     const name = `Dubber ${createNanoId()}`;
     const slug = createSlug(name);
 
@@ -134,8 +134,8 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       name,
       slug,
       about: null,
-      avatar: conf.vars.defaultAvatar,
-      cover: conf.vars.defaultCover,
+      avatar: conf.variables.default_avatar_url,
+      cover: conf.variables.default_team_cover_url,
       created_at: getUTC().ISO,
       updated_at: getUTC().ISO,
       members: [],
@@ -230,7 +230,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_AVATAR,
       key: 'avatar',
-      defaultUrl: conf.vars.defaultAvatar,
+      defaultUrl: conf.variables.default_avatar_url,
       userId
     });
   }
@@ -250,7 +250,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_COVER,
       key: 'cover',
-      defaultUrl: conf.vars.defaultCover,
+      defaultUrl: conf.variables.default_team_cover_url,
       userId
     });
   }

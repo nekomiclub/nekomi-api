@@ -5,7 +5,7 @@ import RoleRepository from './RoleRepository.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
 import UserValidators from '~/utils/validators/user-validators.js';
-import conf, { TestMode } from '~/conf.js';
+import conf, { isTest } from '~/conf.js';
 import createId, { createNanoId, createUserLibId } from '~/utils/create-id.js';
 import mongoose, { Schema } from 'mongoose';
 import { AnimeId, CDNString } from '~/interfaces/BrandedIds.js';
@@ -172,15 +172,15 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = asUserId(TestMode ? `~testing-${createNanoId()}` : createId());
+    const id = asUserId(isTest ? `~testing-${createNanoId()}` : createId());
 
     const payload: RepositoryType = {
       id,
       username: `user_${createNanoId(4)}`,
       email: `example_${createNanoId(4)}@nekomi.club`,
 
-      avatar: conf.vars.defaultAvatar,
-      cover: conf.vars.defaultCover,
+      avatar: conf.variables.default_avatar_url,
+      cover: conf.variables.default_user_cover_url,
 
       roles: ['user'],
       libs: [
@@ -225,13 +225,13 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Reject users from setting username that match "testing"
-    if (!TestMode && username.match(/testing/gi)) throw new NekoError('user:username_not_available');
+    if (!isTest && username.match(/testing/gi)) throw new NekoError('user:username_not_available');
 
     // Ensure username change is not restricted
     if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 
     // Ensure that user username is not on cooldown
-    const usernameTimeoutTs = calcISO(this._doc.username_changed_at, conf.vars.USERNAME_UPDATE_TIMEOUT);
+    const usernameTimeoutTs = calcISO(this._doc.username_changed_at, conf.variables.USERNAME_UPDATE_TIMEOUT);
     if (usernameTimeoutTs > getUTC().timestamp) throw new NekoError('user:username_timeout', `You can change username only after ${getUTC(usernameTimeoutTs).ISO}`);
 
     // Validate username
@@ -504,7 +504,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_AVATAR,
       key: 'avatar',
-      defaultUrl: conf.vars.defaultAvatar
+      defaultUrl: conf.variables.default_avatar_url
     });
   }
 
@@ -528,7 +528,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     return await this._uploadAC(buffer, {
       type: NUS_UPLOAD_TYPE.PHOTO_COVER,
       key: 'cover', defaultUrl:
-        conf.vars.defaultCover
+        conf.variables.default_user_cover_url
     });
   }
 

@@ -90,7 +90,7 @@ const endpoint = HandleRequest(async (req, res) => {
   // Append general anime document
   const animeRefined = AnimePublicSchema.parse({
     ...repo.document,
-    poster: repo.document.posters.find(el => el.is_hero)?.medium ?? repo.document.posters[0]?.medium ?? conf.vars.defaultPoster,
+    poster: repo.document.posters.find(el => el.is_hero)?.medium ?? repo.document.posters[0]?.medium ?? conf.variables.default_anime_poster_url,
     genres: repo.document.genres.map(el => AnimeDescribedGenres[el]),
     rating: repo.document.rating && AnimeDescribedRatings[repo.document.rating],
     status: repo.document.status && AnimeNamedStatuses[repo.document.status],

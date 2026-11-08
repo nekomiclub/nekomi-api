@@ -27,7 +27,7 @@ interface IUploadFile {
 
 
 
-const baseURL = conf.URL.nekomiUploadService;
+const baseURL = conf.variables.nekomi_uploads_service_url;
 
 export class NekomiUploadService {
   static async uploadFile({ buffer, type, uploaderId }: IUploadFileProps): Promise<IUploadFile> {

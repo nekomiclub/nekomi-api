@@ -18,7 +18,7 @@ interface IJikanGetAnimeEpisodes {
 
 
 
-const baseURL = conf.URL.jikanAPI;
+const baseURL = conf.variables.jikan_api_url;
 
 export class JikanAPI {
   static async getAnime(malId: number): Promise<IJikanAnime> {

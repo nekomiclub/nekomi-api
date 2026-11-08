@@ -4,7 +4,7 @@ import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule
 import Logger from '~/services/LoggerService.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
-import conf, { TestMode } from '~/conf.js';
+import conf, { isTest } from '~/conf.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
@@ -124,9 +124,9 @@ interface ISetScoreProps {
 
 
 export const DefaultAnimePoster: IAnimePosterNode = {
-  small: conf.vars.defaultPoster,
-  medium: conf.vars.defaultPoster,
-  original: conf.vars.defaultPoster,
+  small: conf.variables.default_anime_poster_url,
+  medium: conf.variables.default_anime_poster_url,
+  original: conf.variables.default_anime_poster_url,
   authorId: null,
   pull_hash: 'null',
   is_hero: true,
@@ -209,7 +209,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = asAnimeId(TestMode ? `~testing-${createNanoId()}` : createId());
+    const id = asAnimeId(isTest ? `~testing-${createNanoId()}` : createId());
     const title = `Untitled ${id.toLowerCase()}`;
     const slug = createSlug(title);
 
@@ -223,7 +223,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
       hikka_slug: null,
 
       posters: [DefaultAnimePoster],
-      hero_poster_author: conf.vars.INTERNAL_ID,
+      hero_poster_author: conf.variables.INTERNAL_ID,
 
       year: null,
       episodes_total: null,
@@ -316,12 +316,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     slug = createSlug(trimString(slug));
 
-    if (!TestMode && slug.match(/testing/gi)) slug = createNanoId(12);
+    if (!isTest && slug.match(/testing/gi)) slug = createNanoId(12);
 
     let isDocumentExist = false;
 
     // Define is document exist
-    if (TestMode) {
+    if (isTest) {
       isDocumentExist = Boolean(opts?._documentExist);
     } else {
       const exist = await this.safeGetOne(slug);

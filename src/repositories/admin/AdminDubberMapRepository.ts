@@ -4,8 +4,8 @@ import Logger from '~/services/LoggerService.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import { ADMIN_SLUG, AdminTeamsMapType, IAdminTeamMapData } from '~/schemas/entities/Admin.schema.js';
 import { NekoError } from '~/services/ExceptionService.js';
-import { TestMode } from '~/conf.js';
 import { getUTC } from '~/utils/utils.js';
+import { isTest } from '~/conf.js';
 
 
 
@@ -24,7 +24,7 @@ export default class AdminTeamMapRepositoryClass extends AdminRepository {
     const exist = await this.safeGetOne({ slug });
     if (exist) throw new NekoError('sys:already_exist', `Admin document "${slug}" already exist`);
 
-    const id = TestMode ? `~testing-${createNanoId()}` : createId();
+    const id = isTest ? `~testing-${createNanoId()}` : createId();
 
     const payload: AdminTeamsMapType = {
       id,
