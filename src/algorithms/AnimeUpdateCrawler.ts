@@ -4,6 +4,7 @@ import Logger from '~/services/LoggerService.js';
 import StackServiceClass from '~/services/StackService.js';
 import axios from 'axios';
 import conf from '~/conf.js';
+import env from '~/utils/env.js';
 import fs from 'fs';
 import ms from 'ms';
 import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives.js';
@@ -302,6 +303,7 @@ class AnimeUpdateCrawlerClass {
         let idsMoeId: string | null = null;
 
         try {
+          if (!env('IDS_MOE_SK')) throw new Error('No IDS_MOE_SK specified');
           const res = await IdsMoeAPI.getIds(repo.document.mal_id);
 
           idsMoeId = res.imdb;

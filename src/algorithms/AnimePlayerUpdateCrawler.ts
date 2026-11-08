@@ -4,6 +4,7 @@ import DTS from '~/services/DataTransferService.js';
 import Logger from '~/services/LoggerService.js';
 import StackServiceClass from '~/services/StackService.js';
 import arrayEqual from 'array-equal';
+import env from '~/utils/env.js';
 import ms from 'ms';
 import { ADMIN_SLUG, IAdminTeamMapData } from '~/schemas/entities/Admin.schema.js';
 import { ANIME_STATUS } from '~/data/AnimePrimitives.js';
@@ -235,6 +236,8 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
   private async retrieveMoonanime(malId: number, params: { slice: number[] }): Promise<IUnifiedEpisode[] | null> {
+    if (!env('MOONANIME_API_SK')) return null;
+
     try {
       const episodes = await MoonanimeAPI.getEpisodes(malId);
       const unified: IUnifiedEpisode[] = [];
@@ -268,6 +271,8 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
   private async retrieveAshdi(imdbId: string, params: { contentSeason: number, slice: number[] }): Promise<IUnifiedEpisode[] | null> {
+    if (!env('ASHDI_API_SK')) return null;
+
     const minSliceIndex = params.slice[0];
     const maxSliceIndex = params.slice[1];
 

@@ -14,30 +14,28 @@ export const EnvConfigSchema = z.object({
   PORT: z.coerce.number(),
   HOST: z.string(),
 
-  ENV: z.enum(['local', 'deploy']),
+  ENV: z.enum(['local', 'deploy']).describe('Local env meaning this is development instance of the App. In local env some runtime processes will not run (CRON, database migrations). In deploy mode runtime functions will be invoked'),
 
-  GIT_SHA: z.string().optional(),
-  APP_VERSION: z.string().optional(),
+  GIT_SHA: z.string().optional().describe('Optional git commit hash. Provided by publish workflow when release builds'),
+  APP_VERSION: z.string().optional().describe('Optional git tag. Provided by publish workflow when release builds'),
 
-  DOCKER: zBoolean.optional(),
-  VITEST: zBoolean.optional(),
+  DOCKER: zBoolean.optional().describe('Whether is app runs in docker'),
+  VITEST: zBoolean.optional().describe('Whether is app runs by vitest'),
 
   DATABASE_HOST: z.string(),
   DATABASE_NAME: z.string(),
   DATABASE_USR: z.string(),
   DATABASE_PWD: z.string(),
 
-  API_KEY_SK: z.string(),
+  API_KEY_SK: z.string().describe('General API key for client-server messaging'),
+  USER_SESSION_SK: z.string().describe('Any secure string key to hash user session token JWTs'),
 
-  MAL_CLIENT_SK: z.string(),
-  ASHDI_API_SK: z.string(),
-  MOONANIME_API_SK: z.string(),
-  IDS_MOE_SK: z.string(),
-  USER_SESSION_SK: z.string(),
+  ASHDI_API_SK: z.string().optional(),
+  MOONANIME_API_SK: z.string().optional(),
+  IDS_MOE_SK: z.string().optional(),
 
   NEKOMI_NEXTJS_URL: z.string().url(),
   NEKOMI_UPLOAD_SERVICE_URL: z.string().url(),
-  ASHDI_API_URL: z.string().url(),
 });
 
 export type TEnvConfigSchema = z.infer<typeof EnvConfigSchema>

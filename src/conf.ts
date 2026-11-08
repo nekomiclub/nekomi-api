@@ -11,8 +11,8 @@ import { getUTC } from './utils/utils.js';
 
 
 
-export const isProduction = env('ENV') === 'deploy';
 export const isTest = Boolean(env('VITEST'));
+export const isProduction = env('ENV') === 'deploy';
 export const isDevelopment = !isProduction || !isTest || env('ENV') === 'local';
 
 
@@ -58,7 +58,7 @@ const variables = {
 
 
 
-// Initialize firebase
+// Initialize firebase if creds are available
 if (fs.existsSync(variables.volumes.firebase)) firebaseAdmin.initializeApp({ credential: firebaseAdmin.credential.cert(variables.volumes.firebase) });
 
 

@@ -23,7 +23,6 @@ env:
 
   API_KEY_SK: ${{ secrets.API_KEY_SK }}
 
-  MAL_CLIENT_SK: ${{ secrets.MAL_CLIENT_SK }}
   ASHDI_API_SK: ${{ secrets.ASHDI_API_SK }}
   MOONANIME_API_SK: ${{ secrets.MOONANIME_API_SK }}
   IDS_MOE_SK: ${{ secrets.IDS_MOE_SK }}
