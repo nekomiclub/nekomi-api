@@ -3,7 +3,7 @@ import UserRepository from '~/repositories/UserRepository.js';
 import z from 'zod';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/schemas/entities/Team.schema.js';
+import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/domain/team.schema.js';
 import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils.js';
 import { registry } from '~/services/openapi/registry.js';

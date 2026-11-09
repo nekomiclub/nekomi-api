@@ -1,9 +1,7 @@
 import z from 'zod';
 
-
-
 /* --------------------- */
-/* Native enum           */
+/* Enums                 */
 /* --------------------- */
 
 export enum USER_RESTRICTION_ENUM {
@@ -22,7 +20,7 @@ export enum USER_LIB_TYPE_ENUM {
 }
 
 /* --------------------- */
-/* Schema                */
+/* Session schema        */
 /* --------------------- */
 
 export const UserSessionSchema = z.object({
@@ -34,6 +32,10 @@ export const UserSessionSchema = z.object({
   created_at: z.string(),
 });
 
+/* --------------------- */
+/* Lib schema            */
+/* --------------------- */
+
 export const UserLibSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(USER_LIB_TYPE_ENUM).openapi('USER_LIB_TYPE_ENUM'),
@@ -44,6 +46,10 @@ export const UserLibSchema = z.object({
   created_at: z.string(),
 }).openapi('UserLib');
 
+/* --------------------- */
+/* View progress schema  */
+/* --------------------- */
+
 export const UserViewProgressSchema = z.object({
   anime_id: z.string(),
   dubber_id: z.string(),
@@ -53,6 +59,10 @@ export const UserViewProgressSchema = z.object({
 
   updated_at: z.string(),
 }).openapi('UserViewProgress');
+
+/* --------------------- */
+/* Base schema           */
+/* --------------------- */
 
 export const UserSchema = z.object({
   id: z.string(),
@@ -106,7 +116,7 @@ export const UserMinifiedSchema = UserSchema.pick({
 export const UserSearchResultSchema = UserMinifiedSchema.openapi('UserSearchResult');
 
 /* --------------------- */
-/* Inferred type         */
+/* Inferred types        */
 /* --------------------- */
 
 export type IUserSession = z.infer<typeof UserSessionSchema>

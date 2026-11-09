@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import IUser, { IUserViewProgress, USER_LIB_TYPE_ENUM, USER_RESTRICTION_ENUM } from '~/schemas/entities/User.schema.js';
+import IUser, { IUserViewProgress, USER_LIB_TYPE_ENUM, USER_RESTRICTION_ENUM } from '~/domain/user.schema.js';
 import Logger from '~/services/LoggerService.js';
 import RoleRepository from './RoleRepository.js';
 import TeamRepository from './TeamRepository.js';

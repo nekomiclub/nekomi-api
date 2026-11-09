@@ -3,7 +3,7 @@ import conf from '~/conf.js';
 import z from 'zod';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedSeasons, AnimeNamedStatuses, AnimeNamedTypes } from '~/data/AnimePrimitives.js';
 import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils.js';
-import { AnimeMinifiedSchema, AnimePosterNodeSchema, AnimePublicSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/schemas/entities/Anime.schema.js';
+import { AnimeMinifiedSchema, AnimePosterNodeSchema, AnimePublicSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/domain/anime.schema.js';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';

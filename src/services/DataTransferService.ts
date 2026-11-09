@@ -1,6 +1,6 @@
-import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/schemas/entities/Anime.schema.js';
-import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/schemas/entities/Team.schema.js';
-import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/schemas/entities/User.schema.js';
+import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/domain/anime.schema.js';
+import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/domain/team.schema.js';
+import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/domain/user.schema.js';
 import conf from '~/conf.js';
 import express from 'express';
 import z, { ZodSchema } from 'zod';

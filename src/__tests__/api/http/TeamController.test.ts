@@ -5,7 +5,7 @@ import request from 'supertest';
 import z from 'zod';
 import { TeamGetRouteSchemas } from '~/api/http/TeamController/TeamGet.route.js';
 import { TeamGetSearchRouteSchemas } from '~/api/http/TeamController/TeamGetSearch.route.js';
-import { TeamMinifiedSchema, TeamPublicSchema } from '~/schemas/entities/Team.schema.js';
+import { TeamMinifiedSchema, TeamPublicSchema } from '~/domain/team.schema.js';
 import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 import { app } from '~/index.js';
 import { beforeAll, describe, expect, it } from 'vitest';

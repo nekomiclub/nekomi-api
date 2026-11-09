@@ -1,5 +1,5 @@
 import AnimeRepository, { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
-import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/schemas/entities/Anime.schema.js';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/domain/anime.schema.js';
 import Logger from '~/services/LoggerService.js';
 import StackServiceClass from '~/services/StackService.js';
 import axios from 'axios';

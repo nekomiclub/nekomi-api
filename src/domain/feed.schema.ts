@@ -1,7 +1,7 @@
 import z from 'zod';
 
 /* --------------------- */
-/* Base Feed schema      */
+/* Base schema           */
 /* --------------------- */
 
 export const FeedSchema = z.object({

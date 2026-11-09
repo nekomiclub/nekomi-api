@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import ITeam from '~/schemas/entities/Team.schema.js';
+import ITeam from '~/domain/team.schema.js';
 import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import conf, { isTest } from '~/conf.js';

@@ -8,7 +8,7 @@ import { AUTH_METHOD } from '~/schemas/auth.schema.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, setSessionCookie } from '~/utils/http-utils.js';
 import { ErrorConstructor, NekoError } from '~/services/ExceptionService.js';
 import { Middleware } from '~/services/MiddlewareService.js';
-import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/schemas/entities/User.schema.js';
+import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/domain/user.schema.js';
 import { isDevelopment, isTest } from '~/conf.js';
 import { registry } from '~/services/openapi/registry.js';
 

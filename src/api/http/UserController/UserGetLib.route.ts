@@ -1,11 +1,11 @@
 import AnimeRepository from '~/repositories/AnimeRepository.js';
 import DTS from '~/services/DataTransferService.js';
 import z from 'zod';
-import { AnimeMinifiedSchema, IAnimeMinified } from '~/schemas/entities/Anime.schema.js';
+import { AnimeMinifiedSchema, IAnimeMinified } from '~/domain/anime.schema.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { NekoError } from '~/services/ExceptionService.js';
-import { UserLibSchema, UserMinifiedSchema } from '~/schemas/entities/User.schema.js';
+import { UserLibSchema, UserMinifiedSchema } from '~/domain/user.schema.js';
 import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 import { registry } from '~/services/openapi/registry.js';

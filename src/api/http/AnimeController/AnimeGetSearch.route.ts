@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/schemas/entities/Anime.schema.js';
+import IAnime, { AnimeSearchResultSchema, IAnimeSearchResult } from '~/domain/anime.schema.js';
 import z from 'zod';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
 import { AnimeSearch, RequestSearch, SearchServiceQueryParamsSchema } from '~/services/SearchService.js';

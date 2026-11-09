@@ -92,7 +92,7 @@ export const AnimeScheduleSchema = z.object({
 }).openapi('AnimeSchedule');
 
 /* --------------------- */
-/* Base anime schema     */
+/* Base schema           */
 /* --------------------- */
 
 export const AnimeSchema = z.object({

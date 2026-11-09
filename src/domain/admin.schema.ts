@@ -14,7 +14,7 @@ export enum ADMIN_SLUG {
 }
 
 /* --------------------- */
-/* Base Admin schema     */
+/* Base schema           */
 /* --------------------- */
 
 export const AdminBaseSchema = z.object({
@@ -53,6 +53,12 @@ export const AdminPosterLocaleMapSchema = AdminBaseSchema.extend({
   slug: z.literal(ADMIN_SLUG.POSTER_LOCALE_MAP),
   data: AdminPosterLocaleMapDataSchema.array(),
 });
+
+/* --------------------- */
+/* DTS                   */
+/* --------------------- */
+
+// <none>
 
 /* --------------------- */
 /* Inferred types        */

@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/schemas/entities/User.schema.js';
+import IUser, { IUserSearchResult, UserSearchResultSchema } from '~/domain/user.schema.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { Middleware } from '~/services/MiddlewareService.js';

@@ -1,6 +1,6 @@
 import AnimeValidators from '~/utils/validators/anime-validators.js';
 import DTS from '~/services/DataTransferService.js';
-import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/schemas/entities/Anime.schema.js';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/domain/anime.schema.js';
 import Logger from '~/services/LoggerService.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';

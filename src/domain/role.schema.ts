@@ -10,7 +10,7 @@ export enum ROLE_PERMISSION_ENUM {
 }
 
 /* --------------------- */
-/* Schema                */
+/* Base schema           */
 /* --------------------- */
 
 export const RoleSchema = z.object({
@@ -21,7 +21,7 @@ export const RoleSchema = z.object({
 }).openapi('Role');
 
 /* --------------------- */
-/* Inferred type         */
+/* Inferred types        */
 /* --------------------- */
 
 export type IRole = z.infer<typeof RoleSchema>

@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import IRole, { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import IRole, { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import createId, { createNanoId } from '~/utils/create-id.js';

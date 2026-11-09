@@ -4,7 +4,7 @@ import AnimeValidators from '~/utils/validators/anime-validators.js';
 import createSlug from '~/utils/create-slug.js';
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';
 import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
-import { IAnimeSchedule } from '~/schemas/entities/Anime.schema.js';
+import { IAnimeSchedule } from '~/domain/anime.schema.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createNanoId } from '~/utils/create-id.js';
 import { getUTC } from '~/utils/utils.js';

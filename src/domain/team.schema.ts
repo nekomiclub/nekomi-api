@@ -1,10 +1,8 @@
 import z from 'zod';
-import { UserMinifiedSchema } from './User.schema.js';
-
-
+import { UserMinifiedSchema } from './user.schema.js';
 
 /* --------------------- */
-/* Native enum           */
+/* Enums                 */
 /* --------------------- */
 
 export const TEAM_ROLE_ENUM = z.enum([
@@ -30,7 +28,7 @@ export const TeamMemberExtendedSchema = UserMinifiedSchema.extend({
 }).openapi('TeamMemberExtended');
 
 /* --------------------- */
-/* Base team schema      */
+/* Base schema           */
 /* --------------------- */
 
 export const TeamSchema = z.object({
@@ -95,8 +93,6 @@ export const TeamMinifiedSchema = TeamSchema.pick({
 export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
   short_about: z.string().optional()
 }).openapi('TeamSearchResult');
-
-
 
 /* --------------------- */
 /* Inferred types        */

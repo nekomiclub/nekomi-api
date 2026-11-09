@@ -1,4 +1,4 @@
-import IUser, { IUserSession } from '~/schemas/entities/User.schema.js';
+import IUser, { IUserSession } from '~/domain/user.schema.js';
 import Logger from './LoggerService.js';
 import TokenService, { TOKEN_METHOD } from './TokenService.js';
 import conf, { isDevelopment } from '~/conf.js';

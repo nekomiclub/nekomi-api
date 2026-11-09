@@ -1,5 +1,5 @@
 import DTS from '~/services/DataTransferService.js';
-import ITeam, { TeamSearchResultSchema } from '~/schemas/entities/Team.schema.js';
+import ITeam, { TeamSearchResultSchema } from '~/domain/team.schema.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { Middleware } from '~/services/MiddlewareService.js';

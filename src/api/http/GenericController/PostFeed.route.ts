@@ -2,7 +2,7 @@ import FeedRepository from '~/repositories/FeedRepository.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { Middleware } from '~/services/MiddlewareService.js';
-import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { registry } from '~/services/openapi/registry.js';
 
 

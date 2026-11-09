@@ -1,4 +1,4 @@
-import IAdmin, { ADMIN_SLUG } from '~/schemas/entities/Admin.schema.js';
+import IAdmin, { ADMIN_SLUG } from '~/domain/admin.schema.js';
 import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/services/ExceptionService.js';

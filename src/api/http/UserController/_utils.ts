@@ -4,7 +4,7 @@ import z from 'zod';
 import { CDNString, asUserId } from '~/interfaces/BrandedIds.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { NekoError } from '~/services/ExceptionService.js';
-import { ROLE_PERMISSION_ENUM } from '~/schemas/entities/Role.schema.js';
+import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 
 

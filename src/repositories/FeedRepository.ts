@@ -3,7 +3,7 @@ import DTS from '~/services/DataTransferService.js';
 import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
 import mongoose, { Schema } from 'mongoose';
-import { IFeed } from '~/schemas/entities/Feed.schema.js';
+import { IFeed } from '~/domain/feed.schema.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
 

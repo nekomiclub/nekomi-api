@@ -8,8 +8,8 @@ import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
 import FeedRepository from '~/repositories/FeedRepository.js';
-import { AnimeMinifiedSchema } from '~/schemas/entities/Anime.schema.js';
-import { FeedHydratedSchema, IFeedHydrated } from '~/schemas/entities/Feed.schema.js';
+import { AnimeMinifiedSchema } from '~/domain/anime.schema.js';
+import { FeedHydratedSchema, IFeedHydrated } from '~/domain/feed.schema.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
 import { removeMarkdown } from '~/utils/utils.js';
