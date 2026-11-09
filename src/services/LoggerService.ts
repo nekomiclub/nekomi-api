@@ -43,7 +43,7 @@ const logger = winston.createLogger({
       dirname: conf.variables.volumes.logs,
       zippedArchive: true,
       maxSize: toBytes('20mb'),
-      datePattern: 'YYYY-MM-DD-HH',
+      datePattern: 'YYYY-MM-DD',
       createSymlink: true,
 
       level: 'debug',
