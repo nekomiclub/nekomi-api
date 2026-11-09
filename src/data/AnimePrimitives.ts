@@ -49,7 +49,7 @@ export enum ANIME_GENRE {
   YURI = 'yuri'
 }
 
-registry.register('ANIME_GENRE_ENUM', z.nativeEnum(ANIME_GENRE));
+registry.register('ANIME_GENRE_ENUM', z.enum(ANIME_GENRE));
 
 
 
@@ -62,7 +62,7 @@ export enum ANIME_RATING {
   RX = 'rx'
 }
 
-registry.register('ANIME_RATING_ENUM', z.nativeEnum(ANIME_RATING));
+registry.register('ANIME_RATING_ENUM', z.enum(ANIME_RATING));
 
 
 
@@ -72,7 +72,7 @@ export enum ANIME_STATUS {
   ANNOUNCED = 'announced'
 }
 
-registry.register('ANIME_STATUS_ENUM', z.nativeEnum(ANIME_STATUS));
+registry.register('ANIME_STATUS_ENUM', z.enum(ANIME_STATUS));
 
 
 
@@ -83,7 +83,7 @@ export enum ANIME_SEASON {
   SPRING = 'spring'
 }
 
-registry.register('ANIME_SEASON_ENUM', z.nativeEnum(ANIME_SEASON));
+registry.register('ANIME_SEASON_ENUM', z.enum(ANIME_SEASON));
 
 
 
@@ -96,7 +96,7 @@ export enum ANIME_TYPE {
   UNKNOWN = 'unknown'
 }
 
-registry.register('ANIME_TYPE_ENUM', z.nativeEnum(ANIME_TYPE));
+registry.register('ANIME_TYPE_ENUM', z.enum(ANIME_TYPE));
 
 
 

@@ -6,6 +6,7 @@ import z, { ZodType } from 'zod';
 import { HandleRequestError, NekoError } from '~/services/ExceptionService.js';
 import { IncomingHttpHeaders } from 'http';
 import { MiddlewareType } from '~/services/MiddlewareService.js';
+import { getUTC } from '~/utils/utils.js';
 
 
 
@@ -84,6 +85,22 @@ export function traceRequest() {
 
 
 
+/** Handle not found middleware */
+export function handleNotFound() {
+  return HandleMiddleware(async (req, res) => {
+    return res.status(404).json(SendResponse({
+      ok: false,
+      message: `Not found`,
+      error: `Cannot ${req.method.toUpperCase()} ${req.path}`,
+      data: {
+        date: getUTC().ISO
+      }
+    }, ErrorResponseSchema));
+  });
+}
+
+
+
 /** 
  * Get authorization token
  * If user passed throught Middleware.CheckAccess() middleware, will retrieve fresh session token
@@ -141,7 +158,7 @@ export const BaseResponseSchema = z.object({
   message: z.string(),
   code: z.string().nullish(),
   error: z.string().nullish(),
-  errors: z.any().array().nullish(),
+  errors: z.record(z.string(), z.string()).optional(),
 }).openapi('BaseResponseSchema');
 
 export const ErrorResponseSchema = CreateResponseSchema(z.object({

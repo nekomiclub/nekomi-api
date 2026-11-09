@@ -16,7 +16,7 @@ import cors from 'cors';
 import env from '~/utils/env.js';
 import express from 'express';
 import swaggerRouter from './services/openapi/swagger.js';
-import { traceRequest } from './utils/http-utils.js';
+import { handleNotFound, traceRequest } from './utils/http-utils.js';
 
 
 
@@ -48,6 +48,8 @@ app.use('/team', TeamRouter);
 app.use('/user', UserRouter);
 app.use('/auth', AuthRouter);
 app.use('/', GenericRouter);
+
+app.use(handleNotFound());
 
 
 

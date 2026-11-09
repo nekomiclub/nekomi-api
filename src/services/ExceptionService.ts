@@ -2,9 +2,9 @@ import Logger from './LoggerService.js';
 import conf, { isDevelopment, isTest } from '~/conf.js';
 import express from 'express';
 import fs from 'fs';
+import z, { ZodError } from 'zod';
 import { AxiosError } from 'axios';
 import { ErrorResponseSchema, SendResponse } from '~/utils/http-utils.js';
-import { ZodError } from 'zod';
 import { getUTC } from '~/utils/utils.js';
 
 
@@ -125,14 +125,17 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
 
       return false;
     } else if (e instanceof ZodError) {
-      if (isDevelopment && !isTest) console.log(`Validation error`, e.errors);
-      if (isTest) Logger.error(`(TESTING) Validation error`, e.errors);
+      if (isDevelopment && !isTest) console.log(`Validation error`, z.prettifyError(e));
+      if (isTest) Logger.error(`(TESTING) Validation error`, z.prettifyError(e));
+
+      const errors: Record<string, string> = {};
+      e.issues.forEach(el => errors[el.path.join('.')] = el.message);
 
       res.status(400).json(SendResponse({
         ok: false,
         message: 'Invalid payload',
         code: 'sys:validation_failed',
-        errors: e.errors,
+        errors,
         data: {
           date
         }

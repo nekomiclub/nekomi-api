@@ -48,7 +48,7 @@ function env<K extends keyof TEnvConfigSchema>(key: K): TEnvConfigSchema[K] {
     return EnvConfigSchema.parse(process.env)[key];
   } catch (e) {
     if (e instanceof ZodError) {
-      throw new Error(`[Env]: Env parse is invalid. Errors: ${JSON.stringify(e.errors, null, 2)}`);
+      throw new Error(`[Env]: Env parse is invalid. Errors: ${z.prettifyError(e)}`);
     } else throw e;
   }
 }
