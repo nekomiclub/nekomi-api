@@ -159,7 +159,7 @@ export class UnifiedModelClass<RepositoryType> {
 
 
 
-/** Unified repository to provide CRUD access to models */
+/** Unified repository to provide CRUD access to models @deprecated */
 export default class UnifiedRepositoryClass<RepositoryType> extends UnifiedModelClass<RepositoryType> {
   /**
    * Get single document with query

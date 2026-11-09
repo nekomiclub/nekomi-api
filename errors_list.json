@@ -11,6 +11,10 @@
     "status": 500,
     "message": "You cannot have access to document-related methods, if constructor is not initialized (no document)"
   },
+  "sys:modify_conflict": {
+    "status": 500,
+    "message": "Document was modified by someone else"
+  },
   "sys:type_invalid": {
     "status": 400,
     "message": "Type invalid"

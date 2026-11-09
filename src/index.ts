@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 
+import Mongo from '~/services/MongoDB.service.js';
 import env from '~/utils/env.js';
 
 import AnimeRouter from './api/http/AnimeController/_router.js';
@@ -12,7 +13,7 @@ import AuthRouter from './api/http/AuthController/_router.js';
 import GenericRouter from './api/http/GenericController/_router.js';
 import TeamRouter from './api/http/TeamController/_router.js';
 import UserRouter from './api/http/UserController/_router.js';
-import conf, { isProduction, isTesting } from './conf.js';
+import conf, { isTesting } from './conf.js';
 import Runtime from './runtime.js';
 import DatabaseService from './services/DatabaseService.js';
 import Logger from './services/LoggerService.js';
@@ -31,11 +32,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(traceRequest());
 
 app.use(cors({
-  origin: isProduction ? [
-    conf.variables.nekomi_nextjs_url
-  ] : [
-    'http://127.0.0.1:3001',
-  ],
+  origin: [conf.variables.nekomi_nextjs_url],
   credentials: true,
 }));
 
@@ -66,6 +63,7 @@ async function runtime() {
 
     //* === Establish database connection
     await DatabaseService.connect();
+    await Mongo.connect();
 
 
 

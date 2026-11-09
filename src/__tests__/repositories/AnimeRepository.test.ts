@@ -1,5 +1,3 @@
-import '~/services/openapi/setup.js';
-
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';

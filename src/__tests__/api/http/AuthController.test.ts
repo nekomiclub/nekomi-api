@@ -1,5 +1,3 @@
-import '~/services/openapi/setup.js';
-
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 import z from 'zod';

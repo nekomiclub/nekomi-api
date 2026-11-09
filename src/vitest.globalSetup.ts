@@ -1,6 +1,8 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose, { Schema } from 'mongoose';
 
+import Mongo from '~/services/MongoDB.service.js';
+
 import conf from './conf.js';
 
 
@@ -28,12 +30,15 @@ let mongod: MongoMemoryServer;
 
 
 export async function setup() {
-
+  mongod = await MongoMemoryServer.create();
+  await Mongo.connect(mongod.getUri(), 'test');
 }
 
 
 
 export async function teardown() {
+  mongod.stop();
+
   mongoose.set('strictQuery', false);
 
   await mongoose.connect(conf.mongodb_uri, {
@@ -63,6 +68,8 @@ export async function teardown() {
       { slug: { $regex: /testing/gi } },
     ]
   });
+
+  await mongoose.disconnect();
 
 
 

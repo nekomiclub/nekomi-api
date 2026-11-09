@@ -7,7 +7,8 @@ import env from '~/utils/env.js';
 
 
 class MongoService {
-  private _database: Db | null = null;
+  private _client: MongoClient | undefined;
+  private _database: Db | undefined;
 
 
 
@@ -25,9 +26,16 @@ class MongoService {
     await client.connect();
     await client.db('admin').command({ ping: 1 }); // Send a ping to confirm a successful connection
 
+    this._client = client;
     this._database = client.db(dbName);
 
     Logger.debug(`[Runtime]: 🔗 MongoDB connection established`);
+  }
+
+
+
+  disconnect() {
+    this._client?.close();
   }
 
 

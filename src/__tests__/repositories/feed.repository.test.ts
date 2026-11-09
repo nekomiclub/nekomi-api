@@ -47,7 +47,7 @@ import FeedRepository, { FeedRepositoryClass } from '~/repositories/feed.reposit
 // Helpers
 // ---------------------------------------------------------------------------
 
-const feedEntities = () => ctx.db.collection('feeds');
+const entities = () => ctx.db.collection('feeds');
 
 const anime_id = 'anime-1';
 
@@ -81,7 +81,7 @@ describe('FeedRepository', () => {
       const result = await FeedRepository.insertOne(makeInput({ anime_id }));
 
       expect(result).toMatchObject({ anime_id });
-      expect(await feedEntities()?.countDocuments({ anime_id })).toBe(1);
+      expect(await entities()?.countDocuments({ anime_id })).toBe(1);
     });
 
 
@@ -151,7 +151,7 @@ describe('FeedRepository', () => {
 
 
     it('should throw validation error if document has invalid structure', async () => {
-      await feedEntities().insertOne({ anime_id: 1212 });
+      await entities().insertOne({ anime_id: 1212 });
 
       await expect(FeedRepository.findOne(
         // @ts-ignore
@@ -194,7 +194,7 @@ describe('FeedRepository', () => {
 
 
     it('should return null if document has invalid structure', async () => {
-      await feedEntities().insertOne({ anime_id: 1212 });
+      await entities().insertOne({ anime_id: 1212 });
 
       const found = await FeedRepository.safeFindOne('1212');
 
@@ -219,8 +219,8 @@ describe('FeedRepository', () => {
 
       await FeedRepository.deleteOne('anime-2');
 
-      expect(await feedEntities().countDocuments({ anime_id: 'anime-1' })).toBe(1);
-      expect(await feedEntities().countDocuments({ anime_id: 'anime-2' })).toBe(0);
+      expect(await entities().countDocuments({ anime_id: 'anime-1' })).toBe(1);
+      expect(await entities().countDocuments({ anime_id: 'anime-2' })).toBe(0);
     });
   });
 
@@ -230,13 +230,13 @@ describe('FeedRepository', () => {
     it('should delete many documents with matching anime_id', async () => {
       await FeedRepository.insertOne(makeInput({ anime_id: 'anime-1' }));
       await FeedRepository.insertOne(makeInput({ anime_id: 'anime-2' }));
-      await feedEntities().insertOne(makeInput({ anime_id: 'anime-2' }));  // Implicitly create second record with same id
+      await entities().insertOne(makeInput({ anime_id: 'anime-2' }));  // Implicitly create second record with same id
 
 
       const response = await FeedRepository.deleteMany('anime-2');
 
-      expect(await feedEntities().countDocuments({ anime_id: 'anime-1' })).toBe(1);
-      expect(await feedEntities().countDocuments({ anime_id: 'anime-2' })).toBe(0);
+      expect(await entities().countDocuments({ anime_id: 'anime-1' })).toBe(1);
+      expect(await entities().countDocuments({ anime_id: 'anime-2' })).toBe(0);
 
       expect(response.deletedCount).toBe(2);
     });
@@ -250,7 +250,7 @@ describe('FeedRepository', () => {
 
       const response = await FeedRepository.deleteMany();
 
-      expect(await feedEntities().countDocuments()).toBe(0);
+      expect(await entities().countDocuments()).toBe(0);
 
       expect(response.deletedCount).toBe(3);
     });
