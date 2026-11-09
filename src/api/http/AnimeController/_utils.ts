@@ -1,8 +1,9 @@
-import IAnime, { AnimeEpisodeSchema, AnimePlayerSchema } from '~/domain/anime.schema.js';
-import TeamRepository from '~/repositories/TeamRepository.js';
 import z from 'zod';
+
+import IAnime, { AnimeEpisodeSchema, AnimePlayerSchema } from '~/domain/anime.schema.js';
 import { ITeamMinified, TeamMinifiedSchema } from '~/domain/team.schema.js';
 import { TeamId } from '~/interfaces/BrandedIds.js';
+import TeamRepository from '~/repositories/TeamRepository.js';
 
 
 

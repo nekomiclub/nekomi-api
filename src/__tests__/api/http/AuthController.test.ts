@@ -1,17 +1,18 @@
 import '~/services/openapi/setup.js';
 
-import SessionService from '~/services/SessionService.js';
-import conf from '~/conf.js';
-import env from '~/utils/env.js';
 import request from 'supertest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import z from 'zod';
-import { AUTH_METHOD } from '~/schemas/auth.schema.js';
+
 import { AuthGetLogoutRouteSchemas } from '~/api/http/AuthController/AuthGetLogout.route.js';
 import { AuthPostRouteSchemas } from '~/api/http/AuthController/AuthPost.route.js';
-import { UserRepositoryClass } from '~/repositories/UserRepository.js';
+import conf from '~/conf.js';
 import { app } from '~/index.js';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { UserRepositoryClass } from '~/repositories/UserRepository.js';
+import { AUTH_METHOD } from '~/schemas/auth.schema.js';
+import SessionService from '~/services/SessionService.js';
 import { createNanoId } from '~/utils/create-id.js';
+import env from '~/utils/env.js';
 import { shouldRejectAPIKey, supertestCookieExist, supertestCookieRemoved } from '~/utils/testing-utils.js';
 
 

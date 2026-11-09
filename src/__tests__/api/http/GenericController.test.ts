@@ -1,12 +1,13 @@
 import '~/services/openapi/setup.js';
 
-import env from '~/utils/env.js';
 import request from 'supertest';
+import { describe, expect, it } from 'vitest';
 import z from 'zod';
+
 import { GetHomeFeedRouteSchema } from '~/api/http/GenericController/GetFeed.route.js';
 import { GetPingResponseSchema } from '~/api/http/GenericController/GetHealthcheck.route.js';
 import { app } from '~/index.js';
-import { describe, expect, it } from 'vitest';
+import env from '~/utils/env.js';
 import { shouldRejectAPIKey } from '~/utils/testing-utils.js';
 
 

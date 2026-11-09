@@ -1,8 +1,9 @@
 import '~/services/openapi/setup.js';
 
 import { describe, expect, test } from 'vitest';
-import { extractAnimeContentSeason } from '~/utils/utils.js';
+
 import { getContentSeason } from '~/algorithms/AnimeUpdateCrawler.js';
+import { extractAnimeContentSeason } from '~/utils/utils.js';
 
 
 

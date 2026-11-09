@@ -1,14 +1,15 @@
+import z from 'zod';
+
+import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
+import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/domain/user.schema.js';
+import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
+import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
+import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 import DTS from '~/services/DataTransferService.js';
 import MiddlewareService from '~/services/MiddlewareService.js';
-import z from 'zod';
-import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse, getAuthorizationToken } from '~/utils/http-utils.js';
-import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/domain/user.schema.js';
-import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
-import { UserRepositoryClass } from '~/repositories/UserRepository.js';
-import { isEligible, isRequesterAPIValid, isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
-import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
 import { registry } from '~/services/openapi/registry.js';
+import { isEligible, isRequesterAccountOwner, isRequesterAdmin,isRequesterAPIValid } from '~/utils/auth-utils.js';
+import { CreateResponseSchema, EndpointMiddlewares, getAuthorizationToken,HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
 
 

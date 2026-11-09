@@ -5,14 +5,17 @@
 
 
 
-import js from '@eslint/js';
 import path from 'node:path';
-import pathPlugin from 'eslint-plugin-path';
-import tsParser from '@typescript-eslint/parser';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import unusedImports from 'eslint-plugin-unused-imports';
-import { FlatCompat } from '@eslint/eslintrc';
 import { fileURLToPath } from 'node:url';
+
+import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import importPlugin from 'eslint-plugin-import';
+import pathPlugin from 'eslint-plugin-path';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 
 
@@ -35,6 +38,8 @@ export default [{
     '@typescript-eslint': typescriptEslint,
     'unused-imports': unusedImports,
     'path': pathPlugin,
+    'simple-import-sort': simpleImportSort,
+    'import': importPlugin
   },
 
   languageOptions: {
@@ -79,6 +84,11 @@ export default [{
     //   ignoreMemberSort: false,
     //   memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
     // }],
+
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    'import/newline-after-import': 'error',
+    'import/no-duplicates': 'error',
 
     'path/no-relative-imports': ['error', {
       maxDepth: 0,

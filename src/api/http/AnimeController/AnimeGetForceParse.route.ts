@@ -1,12 +1,12 @@
-import AnimeUpdateCrawler from '~/algorithms/AnimeUpdateCrawler.js';
 import z from 'zod';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { Middleware } from '~/services/MiddlewareService.js';
-import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 
 import AnimePlayerUpdateCrawler from '~/algorithms/AnimePlayerUpdateCrawler.js';
+import AnimeUpdateCrawler from '~/algorithms/AnimeUpdateCrawler.js';
+import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { asAnimeId } from '~/interfaces/BrandedIds.js';
+import { Middleware } from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
 
 

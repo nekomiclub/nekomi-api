@@ -35,10 +35,11 @@ vi.mock('~/repositories/AnimeRepository.js', () => ({
 
 
 // Imports after mocks
+import { ZodError } from 'zod';
+
+import { ICreateFeedEntitySchema } from '~/domain/feed.schema.js';
 import AnimeRepository from '~/repositories/AnimeRepository.js';
 import FeedRepository, { FeedRepositoryClass } from '~/repositories/feed.repository.js';
-import { ICreateFeedEntitySchema } from '~/domain/feed.schema.js';
-import { ZodError } from 'zod';
 
 
 

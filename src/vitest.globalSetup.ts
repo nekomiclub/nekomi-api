@@ -1,6 +1,7 @@
-import conf from './conf.js';
-import mongoose, { Schema } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose, { Schema } from 'mongoose';
+
+import conf from './conf.js';
 
 
 

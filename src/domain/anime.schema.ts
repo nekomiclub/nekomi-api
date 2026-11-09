@@ -1,4 +1,5 @@
 import z from 'zod';
+
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE, AnimeDescribedRecord, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 
 /* --------------------- */

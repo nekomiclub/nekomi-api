@@ -1,4 +1,5 @@
 import z from 'zod';
+
 import { UserMinifiedSchema } from './user.schema.js';
 
 /* --------------------- */

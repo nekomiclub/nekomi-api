@@ -1,7 +1,8 @@
+import { Collection, Db, InsertOneOptions, MongoClient, OptionalUnlessRequiredId } from 'mongodb';
+import z, { ZodObject } from 'zod';
+
 import Logger from '~/services/LoggerService.js';
 import env from '~/utils/env.js';
-import z, { ZodObject } from 'zod';
-import { Collection, Db, InsertOneOptions, MongoClient, OptionalUnlessRequiredId } from 'mongodb';
 
 
 

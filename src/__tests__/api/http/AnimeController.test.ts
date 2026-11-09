@@ -1,11 +1,12 @@
 import '~/services/openapi/setup.js';
 
-import env from '~/utils/env.js';
 import request from 'supertest';
-import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route.js';
-import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
-import { app } from '~/index.js';
 import { beforeAll, describe, expect, it } from 'vitest';
+
+import { AnimeGetEpisodesRouteSchemas } from '~/api/http/AnimeController/AnimeGetEpisodes.route.js';
+import { app } from '~/index.js';
+import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
+import env from '~/utils/env.js';
 import { shouldRejectAPIKey } from '~/utils/testing-utils.js';
 
 

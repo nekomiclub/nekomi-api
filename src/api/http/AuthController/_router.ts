@@ -1,6 +1,7 @@
+import express from 'express';
+
 import AuthGetLogoutRoute from './AuthGetLogout.route.js';
 import AuthPostRoute from './AuthPost.route.js';
-import express from 'express';
 
 
 

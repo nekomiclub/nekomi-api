@@ -1,11 +1,12 @@
+import express from 'express';
+import { HydratedDocument } from 'mongoose';
+import z, { ZodSchema } from 'zod';
+
+import conf from '~/conf.js';
+import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/domain/anime.schema.js';
 import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/domain/team.schema.js';
 import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/domain/user.schema.js';
-import conf from '~/conf.js';
-import express from 'express';
-import z, { ZodSchema } from 'zod';
-import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
-import { HydratedDocument } from 'mongoose';
 import { asCDNString } from '~/interfaces/BrandedIds.js';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 

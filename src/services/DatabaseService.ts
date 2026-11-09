@@ -1,7 +1,9 @@
-import Logger from './LoggerService.js';
-import conf from '~/conf.js';
 import mongoose from 'mongoose';
 import ms from 'ms';
+
+import conf from '~/conf.js';
+
+import Logger from './LoggerService.js';
 
 
 

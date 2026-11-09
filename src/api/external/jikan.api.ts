@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import conf from '~/conf.js';
 import { IJikanAnime, IJikanAnimeEpisode } from '~/interfaces/external-api/IJikan.api.js';
 

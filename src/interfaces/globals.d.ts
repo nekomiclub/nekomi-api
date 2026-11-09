@@ -1,5 +1,6 @@
-import { MiddlewareType } from '~/services/MiddlewareService';
 import { ROLE_PERMISSION_ENUM } from '~/domain/Role.schema';
+import { MiddlewareType } from '~/services/MiddlewareService';
+
 import { UserId } from './BrandedIds';
 
 

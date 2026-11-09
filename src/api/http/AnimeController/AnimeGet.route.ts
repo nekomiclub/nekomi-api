@@ -1,15 +1,17 @@
-import DTS from '~/services/DataTransferService.js';
-import conf from '~/conf.js';
 import z from 'zod';
+
+import conf from '~/conf.js';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedSeasons, AnimeNamedStatuses, AnimeNamedTypes } from '~/data/AnimePrimitives.js';
-import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils.js';
 import { AnimeMinifiedSchema, AnimePosterNodeSchema, AnimePublicSchema, AnimeScreenshotNodePublicSchema, IAnimeMinified, IAnimeScreenshotNodePublic } from '~/domain/anime.schema.js';
-import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
-import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils.js';
+import { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
+import DTS from '~/services/DataTransferService.js';
 import { registry } from '~/services/openapi/registry.js';
+import { isEligible, isRequesterAPIValid } from '~/utils/auth-utils.js';
+import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { removeMarkdown } from '~/utils/utils.js';
+
+import { AnimeGetEpisodes, AnimeGetEpisodesSchema } from './_utils.js';
 
 
 

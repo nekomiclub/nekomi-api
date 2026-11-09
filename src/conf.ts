@@ -3,10 +3,12 @@ import { config as dotenvCfg } from 'dotenv';
 // Configure .env
 dotenvCfg({ quiet: true });
 
-import env from '~/utils/env.js';
 import firebaseAdmin from 'firebase-admin';
 import fs from 'fs';
 import ms from 'ms';
+
+import env from '~/utils/env.js';
+
 import { getUTC } from './utils/utils.js';
 
 

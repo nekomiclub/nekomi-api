@@ -1,7 +1,6 @@
 import conf from '~/conf.js';
+import { IHikkaAnime , IHikkaMALIntegration } from '~/interfaces/external-api/IHikka.api.js';
 import { $http } from '~/utils/http-utils.js';
-import { IHikkaAnime } from '~/interfaces/external-api/IHikka.api.js';
-import { IHikkaMALIntegration } from '~/interfaces/external-api/IHikka.api.js';
 
 
 

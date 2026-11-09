@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import conf from '~/conf.js';
 import { IMDBTitle } from '~/interfaces/external-api/IMDB.api.js';
 

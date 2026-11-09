@@ -1,8 +1,9 @@
+import express from 'express';
+
 import TeamGetRoute from './TeamGet.route.js';
 import TeamGetSearchRoute from './TeamGetSearch.route.js';
 import TeamPutAvatarRoute from './TeamPutAvatar.route.js';
 import TeamPutCoverRoute from './TeamPutCover.route.js';
-import express from 'express';
 
 
 

@@ -1,20 +1,21 @@
-import AnimeRepository, { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
-import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/domain/anime.schema.js';
-import Logger from '~/services/LoggerService.js';
-import StackServiceClass from '~/services/StackService.js';
 import axios from 'axios';
-import conf from '~/conf.js';
-import env from '~/utils/env.js';
 import fs from 'fs';
 import ms from 'ms';
-import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives.js';
-import { AnimeId, ISODateString } from '~/interfaces/BrandedIds.js';
-import { ArgumentTypes } from '~/interfaces/types.js';
+
 import { HikkaAPI } from '~/api/external/hikka.api.js';
-import { IHikkaGenre, IHikkaScheduleItem } from '~/interfaces/external-api/IHikka.api.js';
-import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/interfaces/external-api/IJikan.api.js';
 import { IdsMoeAPI } from '~/api/external/idsmoe.api.js';
 import { JikanAPI } from '~/api/external/jikan.api.js';
+import conf from '~/conf.js';
+import { ANIME_GENRE, ANIME_SEASON } from '~/data/AnimePrimitives.js';
+import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeStudio } from '~/domain/anime.schema.js';
+import { AnimeId, ISODateString } from '~/interfaces/BrandedIds.js';
+import { IHikkaGenre, IHikkaScheduleItem } from '~/interfaces/external-api/IHikka.api.js';
+import { IJikanAnimeEpisode, IJikanMalEntity, IJikanRelation } from '~/interfaces/external-api/IJikan.api.js';
+import { ArgumentTypes } from '~/interfaces/types.js';
+import AnimeRepository, { AnimeRepositoryClass } from '~/repositories/AnimeRepository.js';
+import Logger from '~/services/LoggerService.js';
+import StackServiceClass from '~/services/StackService.js';
+import env from '~/utils/env.js';
 import { buffer2hash, extractAnimeContentSeason, getUTC, sleep } from '~/utils/utils.js';
 
 
