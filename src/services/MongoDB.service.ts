@@ -1,25 +1,30 @@
 import Logger from '~/services/LoggerService.js';
 import env from '~/utils/env.js';
 import z, { ZodObject } from 'zod';
-import { Db, InsertOneOptions, MongoClient, OptionalUnlessRequiredId } from 'mongodb';
+import { Collection, Db, InsertOneOptions, MongoClient, OptionalUnlessRequiredId } from 'mongodb';
 
 
 
 class MongoService {
-  private database: Db | null = null;
+  private _database: Db | null = null;
 
 
 
-  async connect() {
-    const client = new MongoClient(`mongodb+srv://${env('DATABASE_USR')}:${env('DATABASE_PWD')}@${env('DATABASE_HOST')}`, {
+  get database() {
+    return this._database;
+  }
+
+
+
+  async connect(uri = `mongodb+srv://${env('DATABASE_USR')}:${env('DATABASE_PWD')}@${env('DATABASE_HOST')}`, dbName = env('DATABASE_NAME')) {
+    const client = new MongoClient(uri, {
       retryWrites: true
     });
 
     await client.connect();
     await client.db('admin').command({ ping: 1 }); // Send a ping to confirm a successful connection
 
-    this.database = client.db(env('DATABASE_NAME'));
-    // this.database = client.db('testing');
+    this._database = client.db(dbName);
 
     Logger.debug(`[Runtime]: 🔗 MongoDB connection established`);
   }
@@ -27,10 +32,10 @@ class MongoService {
 
 
   /** Create mongodb typed collection */
-  model<TSchema extends ZodObject>(name: string, schema: TSchema) {
-    if (!this.database) throw new Error('Client is not connected to the database');
+  collection<TSchema extends ZodObject>(name: string, schema: TSchema): Collection<z.infer<TSchema>> {
+    if (!this._database) throw new Error('Client is not connected to the database');
 
-    const collection = this.database.collection<z.infer<typeof schema>>(name);
+    const collection = this._database.collection<z.infer<typeof schema>>(name);
 
     return new Proxy(collection, {
       get(target, prop, receiver) {

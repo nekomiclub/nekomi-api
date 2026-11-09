@@ -1,6 +1,6 @@
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
-import { FeedRepositoryClass } from '~/repositories/FeedRepository.js';
+import { FeedRepositoryClass } from '~/repositories/feed.repository.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { registry } from '~/services/openapi/registry.js';
@@ -42,8 +42,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const repo = new FeedRepositoryClass();
 
-  await repo.init(params.anime_id);
-  await repo.deleteOne();
+  await repo.deleteOne(params.anime_id);
 
 
 

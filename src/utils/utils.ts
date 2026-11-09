@@ -234,3 +234,8 @@ export function getObjectKeyByValue<
 
 /** Return data with strict types */
 export const asType = <T>(data: T) => data satisfies T;
+
+
+
+/** Join strings with space */
+export const joinStrings = (...strings: (string | number | null | undefined | boolean)[]) => strings.filter(Boolean).join(' ');

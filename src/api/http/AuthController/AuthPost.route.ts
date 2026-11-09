@@ -9,7 +9,7 @@ import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse,
 import { ErrorConstructor, NekoError } from '~/services/ExceptionService.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { USER_RESTRICTION_ENUM, UserMinifiedSchema, UserSessionSchema } from '~/domain/user.schema.js';
-import { isDevelopment, isTest } from '~/conf.js';
+import { isDevelopment, isTesting } from '~/conf.js';
 import { registry } from '~/services/openapi/registry.js';
 
 
@@ -73,7 +73,7 @@ const endpoint = HandleRequest(async (req, res) => {
     if (!token) throw new NekoError('auth:token_miss');
 
     try {
-      if (isTest) {
+      if (isTesting) {
         // Set email as token in test mode
         email = token;
       } else {

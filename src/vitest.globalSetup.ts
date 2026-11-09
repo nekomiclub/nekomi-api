@@ -1,5 +1,6 @@
 import conf from './conf.js';
 import mongoose, { Schema } from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 
 
@@ -19,6 +20,9 @@ const TeamModel = mongoose.model('team', new Schema({
   slug: String,
 }, { strict: false, versionKey: false }));
 
+
+
+let mongod: MongoMemoryServer;
 
 
 

@@ -1,6 +1,6 @@
 import './services/openapi/setup.js';
 
-import conf, { isProduction, isTest } from './conf.js';
+import conf, { isProduction, isTesting } from './conf.js';
 
 import AnimeRouter from './api/http/AnimeController/_router.js';
 import AuthRouter from './api/http/AuthController/_router.js';
@@ -56,7 +56,7 @@ app.use(handleNotFound());
 async function runtime() {
   try {
     //* === Clear up console
-    if (!isTest) {
+    if (!isTesting) {
       console.clear();
       Logger.debug(`------------------ DRY RUN ------------------`);
     }
@@ -68,7 +68,7 @@ async function runtime() {
 
 
 
-    if (!isTest) {
+    if (!isTesting) {
       //* === HTTP Server
       await new Promise(res => {
         app.listen(env('PORT'), env('HOST'), () => {
@@ -90,7 +90,7 @@ async function runtime() {
 
 
 
-    if (!isTest) await Runtime();
+    if (!isTesting) await Runtime();
   } catch (e) {
     Logger.error(`[System/Init]: Some error occured in runtime`, e);
   }

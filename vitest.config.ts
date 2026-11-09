@@ -1,12 +1,14 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     globalSetup: './src/vitest.globalSetup.ts',
+    setupFiles: ['./src/services/openapi/setup.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

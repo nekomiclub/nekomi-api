@@ -11,9 +11,9 @@ import { getUTC } from './utils/utils.js';
 
 
 
-export const isTest = Boolean(env('VITEST'));
+export const isTesting = Boolean(env('VITEST'));
 export const isProduction = env('ENV') === 'deploy';
-export const isDevelopment = !isProduction || !isTest || env('ENV') === 'local';
+export const isDevelopment = !isProduction || !isTesting || env('ENV') === 'local';
 
 
 
@@ -65,7 +65,7 @@ if (fs.existsSync(variables.volumes.firebase)) firebaseAdmin.initializeApp({ cre
 
 const started_mode = isProduction ? 'Production'
   : isDevelopment ? 'Development'
-    : isTest ? 'Testing'
+    : isTesting ? 'Testing'
       : 'undefined';
 
 

@@ -3,3 +3,4 @@ allowBuilds:
   "@firebase/util": false
   "@scarf/scarf": false
   protobufjs: false
+  mongodb-memory-server: true

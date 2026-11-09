@@ -6,8 +6,8 @@ import z from 'zod';
 
 export const FeedSchema = z.object({
   anime_id: z.string(),
-  cover_url: z.string().url(),
-  video_url: z.string().url(),
+  cover_url: z.url(),
+  video_url: z.url(),
 });
 
 /* --------------------- */
@@ -26,8 +26,21 @@ export const FeedHydratedSchema = z.object({
 }).openapi('FeedHydrated');
 
 /* --------------------- */
+/* Repository schemas    */
+/* --------------------- */
+
+export const CreateFeedSchema = FeedSchema.pick({
+  anime_id: true,
+  cover_url: true,
+  video_url: true,
+});
+
+/* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
-export type IFeed = z.infer<typeof FeedSchema>
-export type IFeedHydrated = z.infer<typeof FeedHydratedSchema>
+export type FeedEntity = z.infer<typeof FeedSchema>
+
+export type FeedEntityHydrated = z.infer<typeof FeedHydratedSchema>
+
+export type ICreateFeedEntitySchema = z.infer<typeof CreateFeedSchema>

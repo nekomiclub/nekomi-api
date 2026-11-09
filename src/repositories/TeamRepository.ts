@@ -2,7 +2,7 @@ import DTS from '~/services/DataTransferService.js';
 import ITeam from '~/domain/team.schema.js';
 import Logger from '~/services/LoggerService.js';
 import UnifiedRepositoryClass from './UnifiedRepository.js';
-import conf, { isTest } from '~/conf.js';
+import conf, { isTesting } from '~/conf.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
@@ -123,7 +123,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = asTeamId(isTest ? `~testing-${createNanoId()}` : createId());
+    const id = asTeamId(isTesting ? `~testing-${createNanoId()}` : createId());
     const name = `Dubber ${createNanoId()}`;
     const slug = createSlug(name);
 

@@ -7,12 +7,12 @@ import ms from 'ms';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
-import FeedRepository from '~/repositories/FeedRepository.js';
 import { AnimeMinifiedSchema } from '~/domain/anime.schema.js';
-import { FeedHydratedSchema, IFeedHydrated } from '~/domain/feed.schema.js';
+import { FeedHydratedSchema, FeedEntityHydrated } from '~/domain/feed.schema.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
 import { removeMarkdown } from '~/utils/utils.js';
+import FeedRepository from '~/repositories/feed.repository.js';
 
 
 
@@ -71,7 +71,7 @@ const endpoint = HandleRequest(async (req, res) => {
   if (!cache) {
     try {
       /** Process hero documents */
-      const heroFeedDocuments = await FeedRepository.getMany();
+      const heroFeedDocuments = await FeedRepository.findMany();
       const heroAnimeDocuments = await AnimeRepository.getMany({ id: { $in: heroFeedDocuments.map(el => el.anime_id) } });
 
       feed.hero = heroFeedDocuments.map(hero => {
@@ -88,8 +88,8 @@ const endpoint = HandleRequest(async (req, res) => {
           poster: anime.posters.find(el => el.is_hero)?.original ?? anime.posters[0]?.original ?? conf.variables.default_anime_poster_url,
           cover: hero.cover_url,
           video: hero.video_url,
-        } satisfies IFeedHydrated;
-      }).filter(el => Boolean(el)) as IFeedHydrated[];
+        } satisfies FeedEntityHydrated;
+      }).filter(el => Boolean(el)) as FeedEntityHydrated[];
 
 
 

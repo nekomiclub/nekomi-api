@@ -1,5 +1,5 @@
 import Logger from './LoggerService.js';
-import conf, { isDevelopment, isTest } from '~/conf.js';
+import conf, { isDevelopment, isTesting } from '~/conf.js';
 import express from 'express';
 import fs from 'fs';
 import z, { ZodError } from 'zod';
@@ -125,8 +125,8 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
 
       return false;
     } else if (e instanceof ZodError) {
-      if (isDevelopment && !isTest) console.log(`Validation error`, z.prettifyError(e));
-      if (isTest) Logger.error(`(TESTING) Validation error`, z.prettifyError(e));
+      if (isDevelopment && !isTesting) console.log(`Validation error`, z.prettifyError(e));
+      if (isTesting) Logger.error(`(TESTING) Validation error`, z.prettifyError(e));
 
       const errors: Record<string, string> = {};
       e.issues.forEach(el => errors[el.path.join('.')] = el.message);
@@ -170,8 +170,8 @@ export async function HandleRequestError(req: express.Request, res: express.Resp
         if (status >= 500) {
           Logger.error(`${emsg}. URL: ${requestUrl}`);
         } else {
-          if (isDevelopment && !isTest) console.log(emsg);
-          if (isTest) Logger.error(`(TESTING) ${emsg}`, e);
+          if (isDevelopment && !isTesting) console.log(emsg);
+          if (isTesting) Logger.error(`(TESTING) ${emsg}`, e);
         }
       }
 

@@ -4,7 +4,7 @@ import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule
 import Logger from '~/services/LoggerService.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
-import conf, { isTest } from '~/conf.js';
+import conf, { isTesting } from '~/conf.js';
 import createId, { createNanoId } from '~/utils/create-id.js';
 import createSlug from '~/utils/create-slug.js';
 import mongoose, { Schema } from 'mongoose';
@@ -209,7 +209,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
   async create(props?: ICreateProps): Promise<RepositoryType> {
     const saveDocument = props?.saveDocument ?? true;
 
-    const id = asAnimeId(isTest ? `~testing-${createNanoId()}` : createId());
+    const id = asAnimeId(isTesting ? `~testing-${createNanoId()}` : createId());
     const title = `Untitled ${id.toLowerCase()}`;
     const slug = createSlug(title);
 
@@ -316,12 +316,12 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
 
     slug = createSlug(trimString(slug));
 
-    if (!isTest && slug.match(/testing/gi)) slug = createNanoId(12);
+    if (!isTesting && slug.match(/testing/gi)) slug = createNanoId(12);
 
     let isDocumentExist = false;
 
     // Define is document exist
-    if (isTest) {
+    if (isTesting) {
       isDocumentExist = Boolean(opts?._documentExist);
     } else {
       const exist = await this.safeGetOne(slug);

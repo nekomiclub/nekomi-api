@@ -1,4 +1,4 @@
-import FeedRepository from '~/repositories/FeedRepository.js';
+import FeedRepository from '~/repositories/feed.repository.js';
 import z from 'zod';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 import { Middleware } from '~/services/MiddlewareService.js';
@@ -40,7 +40,7 @@ registry.registerPath({
 const endpoint = HandleRequest(async (req, res) => {
   const body = RequestBodySchema.parse(req.body);
 
-  await FeedRepository.create(body);
+  await FeedRepository.insertOne(body);
 
 
 

@@ -8,7 +8,6 @@
 import js from '@eslint/js';
 import path from 'node:path';
 import pathPlugin from 'eslint-plugin-path';
-import sortImportsEs6Autofix from 'eslint-plugin-sort-imports-es6-autofix';
 import tsParser from '@typescript-eslint/parser';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -34,7 +33,6 @@ export default [{
 ), {
   plugins: {
     '@typescript-eslint': typescriptEslint,
-    'sort-imports-es6-autofix': sortImportsEs6Autofix,
     'unused-imports': unusedImports,
     'path': pathPlugin,
   },
@@ -76,11 +74,11 @@ export default [{
     '@typescript-eslint/no-explicit-any': 'off',
     'unused-imports/no-unused-imports': 'error',
 
-    'sort-imports-es6-autofix/sort-imports-es6': [2, {
-      ignoreCase: false,
-      ignoreMemberSort: false,
-      memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
-    }],
+    // 'sort-imports-es6-autofix/sort-imports-es6': [2, {
+    //   ignoreCase: false,
+    //   ignoreMemberSort: false,
+    //   memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
+    // }],
 
     'path/no-relative-imports': ['error', {
       maxDepth: 0,

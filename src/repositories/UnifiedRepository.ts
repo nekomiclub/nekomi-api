@@ -26,7 +26,7 @@ interface IGetTopOfManyProps<T> {
 
 
 
-/** Unified model */
+/** Unified model @deprecated */
 export class UnifiedModelClass<RepositoryType> {
   protected RepositoryName = 'UnifiedRepository (unassigned)';
 
