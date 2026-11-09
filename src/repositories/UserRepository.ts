@@ -184,11 +184,11 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
       roles: ['user'],
       libs: [
-        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.FAVORITE, is_public: true, created_at: getUTC().ISO },
-        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.PLANS, is_public: false, created_at: getUTC().ISO },
-        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.WATCHED, is_public: true, created_at: getUTC().ISO },
-        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.WATCHING, is_public: true, created_at: getUTC().ISO },
-        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.DELAYED, is_public: false, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.enum.FAVORITE, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.enum.PLANS, is_public: false, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.enum.WATCHED, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.enum.WATCHING, is_public: true, created_at: getUTC().ISO },
+        { id: createUserLibId(), anime_ids: [], type: USER_LIB_TYPE_ENUM.enum.DELAYED, is_public: false, created_at: getUTC().ISO },
       ],
       restrictions: [],
       sessions: [],
@@ -228,7 +228,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!isTest && username.match(/testing/gi)) throw new NekoError('user:username_not_available');
 
     // Ensure username change is not restricted
-    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.enum.USERNAME_CHANGE)) throw new NekoError(`sys:action_prevented`, `Username change is restricted by the administration`);
 
     // Ensure that user username is not on cooldown
     const usernameTimeoutTs = calcISO(this._doc.username_changed_at, conf.variables.USERNAME_UPDATE_TIMEOUT);
@@ -497,7 +497,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Ensure avatar upload is not restricted
-    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.UPLOAD_AVATAR)) throw new NekoError(`sys:action_prevented`, `Avatar upload is restricted by the administration`);
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.enum.UPLOAD_AVATAR)) throw new NekoError(`sys:action_prevented`, `Avatar upload is restricted by the administration`);
 
 
 
@@ -521,7 +521,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Ensure cover upload is not restricted
-    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.UPLOAD_COVER)) throw new NekoError(`sys:action_prevented`, `Cover upload is restricted by the administration`);
+    if (!props?.bypassRestriction && this._doc.restrictions.includes(USER_RESTRICTION_ENUM.enum.UPLOAD_COVER)) throw new NekoError(`sys:action_prevented`, `Cover upload is restricted by the administration`);
 
 
 

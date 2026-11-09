@@ -19,8 +19,8 @@ const UserExtendedSchema = z.object({
 });
 
 const UserPermissionsSchema = z.object({
-  permissions: z.nativeEnum(ROLE_PERMISSION_ENUM).openapi('ROLE_PERMISSION_ENUM').array(),
-  restrictions: z.nativeEnum(USER_RESTRICTION_ENUM).openapi('USER_RESTRICTION_ENUM').array()
+  permissions: ROLE_PERMISSION_ENUM.array(),
+  restrictions: USER_RESTRICTION_ENUM.array()
 });
 
 const UserDataSchema = z.object({

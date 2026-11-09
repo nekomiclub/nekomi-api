@@ -92,7 +92,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
     await repo.init({ id: userId });
   } else {
-    if (permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
+    if (permissions?.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE)) {
       // Update target user if current user is eligible to do this
 
       await repo.init({ id: targetId });
@@ -166,7 +166,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 
 export default EndpointMiddlewares([
-  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.enum.BASIC]),
   Middleware.CheckAPIKey(),
 ], endpoint);
 

@@ -16,7 +16,7 @@ const upload = multer();
 
 export const TeamControllerACUploadMiddlewares = [
   Middleware.CheckAPIKey(),
-  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.enum.BASIC]),
   upload.single('file'),
 ];
 
@@ -39,7 +39,7 @@ export default async function HandleTeamControllerACUpload(req: express.Request,
 
 
   // Skip validation for root
-  if (!permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
+  if (!permissions?.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE)) {
     const member = repo.document?.members.find(el => el.id === userId);
 
     if (!member || member.role !== 'leader') throw new NekoError('sys:action_prevented', `Only leader can update team settings`);

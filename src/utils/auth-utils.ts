@@ -75,9 +75,9 @@ export async function isRequesterAccountOwner(req: express.Request, targetUserId
 export async function isRequesterAdmin(req: express.Request, state?: boolean): Promise<boolean> {
   if (state) return state;
 
-  const { permissions } = await new MiddlewareService().checkAccess(getAuthorizationToken(req), [ROLE_PERMISSION_ENUM.BASIC]);
+  const { permissions } = await new MiddlewareService().checkAccess(getAuthorizationToken(req), [ROLE_PERMISSION_ENUM.enum.BASIC]);
 
-  state = permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE) ?? false;
+  state = permissions?.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE) ?? false;
   return state;
 }
 

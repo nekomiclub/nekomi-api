@@ -5,12 +5,12 @@ import { UserMinifiedSchema } from './user.schema.js';
 /* Enums                 */
 /* --------------------- */
 
-export const TEAM_ROLE_ENUM = z.enum([
-  'leader',
-  'editor',
-  'member',
-  'pending',
-]).openapi('TEAM_ROLE_ENUM');
+export const TEAM_ROLE_ENUM = z.enum({
+  LEADER: 'leader',
+  EDITOR: 'editor',
+  MEMBER: 'member',
+  PENDING: 'pending',
+});
 
 /* --------------------- */
 /* Team member schema    */
@@ -98,7 +98,7 @@ export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
 /* Inferred types        */
 /* --------------------- */
 
-export type TeamRoleType = z.infer<typeof TEAM_ROLE_ENUM>
+export type TEAM_ROLE_ENUM = z.infer<typeof TEAM_ROLE_ENUM>
 
 export type ITeamMember = z.infer<typeof TeamMemberSchema>
 export type ITeamMemberExtended = z.infer<typeof TeamMemberExtendedSchema>

@@ -64,7 +64,7 @@ const endpoint = HandleRequest(async (req, res) => {
 
 export default EndpointMiddlewares([
   Middleware.CheckAPIKey(),
-  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.ABSOLUTE]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.enum.ABSOLUTE]),
 ], endpoint);
 
 

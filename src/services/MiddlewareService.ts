@@ -47,7 +47,7 @@ export default class MiddlewareService {
       userPermissions = await parseRolesPermissions(session.document!.roles);
 
       // Pass any checks for root 
-      if (!userPermissions.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
+      if (!userPermissions.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE)) {
         permissions.forEach(perm => {
           if (!userPermissions?.includes(perm)) throw new NekoError('sys:action_prevented', `Lack of permission: ${perm}`);
         });

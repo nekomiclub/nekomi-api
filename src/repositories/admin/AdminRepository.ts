@@ -1,4 +1,4 @@
-import IAdmin, { ADMIN_SLUG } from '~/domain/admin.schema.js';
+import IAdmin, { ADMIN_SLUG_ENUM } from '~/domain/admin.schema.js';
 import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
 import mongoose, { Schema } from 'mongoose';
 import { NekoError } from '~/services/ExceptionService.js';
@@ -47,7 +47,7 @@ export default class AdminRepository extends UnifiedRepositoryClass<RepositoryTy
 
 
 
-  async deleteOne(slug: ADMIN_SLUG): Promise<void> {
+  async deleteOne(slug: ADMIN_SLUG_ENUM): Promise<void> {
     throw new NekoError('sys:not_implemented');
   }
 

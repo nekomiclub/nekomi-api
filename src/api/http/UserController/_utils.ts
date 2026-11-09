@@ -17,7 +17,7 @@ const upload = multer();
 
 export const UserControllerACUploadMiddlewares = [
   Middleware.CheckAPIKey(),
-  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.BASIC]),
+  Middleware.CheckAccess([ROLE_PERMISSION_ENUM.enum.BASIC]),
   upload.single('file'),
 ];
 
@@ -55,7 +55,7 @@ export default async function HandleUserControllerACUpload(req: express.Request,
 
     await repo.init({ id: userId });
   } else {
-    if (permissions?.includes(ROLE_PERMISSION_ENUM.ABSOLUTE)) {
+    if (permissions?.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE)) {
       // Update target user if current user is eligible to do this
 
       await repo.init({ id: targetId });

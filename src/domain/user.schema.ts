@@ -4,20 +4,20 @@ import z from 'zod';
 /* Enums                 */
 /* --------------------- */
 
-export enum USER_RESTRICTION_ENUM {
-  BANNED = 'user:banned',
-  UPLOAD_AVATAR = 'user:upload_avatar',
-  UPLOAD_COVER = 'user:upload_cover',
-  USERNAME_CHANGE = 'user:username_change',
-}
+export const USER_RESTRICTION_ENUM = z.enum({
+  BANNED: 'user:banned',
+  UPLOAD_AVATAR: 'user:upload_avatar',
+  UPLOAD_COVER: 'user:upload_cover',
+  USERNAME_CHANGE: 'user:username_change',
+}).openapi('USER_RESTRICTION_ENUM');
 
-export enum USER_LIB_TYPE_ENUM {
-  FAVORITE = 'favorite',
-  WATCHING = 'watching',
-  WATCHED = 'watched',
-  DELAYED = 'delayed',
-  PLANS = 'plans',
-}
+export const USER_LIB_TYPE_ENUM = z.enum({
+  FAVORITE: 'favorite',
+  WATCHING: 'watching',
+  WATCHED: 'watched',
+  DELAYED: 'delayed',
+  PLANS: 'plans',
+});
 
 /* --------------------- */
 /* Session schema        */
@@ -38,7 +38,7 @@ export const UserSessionSchema = z.object({
 
 export const UserLibSchema = z.object({
   id: z.string(),
-  type: z.nativeEnum(USER_LIB_TYPE_ENUM).openapi('USER_LIB_TYPE_ENUM'),
+  type: USER_LIB_TYPE_ENUM.openapi('USER_LIB_TYPE_ENUM'),
 
   anime_ids: z.string().array(),
 
@@ -74,7 +74,7 @@ export const UserSchema = z.object({
 
   roles: z.string().array(),
   libs: UserLibSchema.array(),
-  restrictions: z.nativeEnum(USER_RESTRICTION_ENUM).openapi('USER_RESTRICTION_ENUM').array(),
+  restrictions: USER_RESTRICTION_ENUM.array(),
   sessions: UserSessionSchema.array(),
   subscriptions: z.string().array(),
 
@@ -118,6 +118,9 @@ export const UserSearchResultSchema = UserMinifiedSchema.openapi('UserSearchResu
 /* --------------------- */
 /* Inferred types        */
 /* --------------------- */
+
+export type USER_RESTRICTION_ENUM = z.infer<typeof USER_RESTRICTION_ENUM>
+export type USER_LIB_TYPE_ENUM = z.infer<typeof USER_LIB_TYPE_ENUM>
 
 export type IUserSession = z.infer<typeof UserSessionSchema>
 

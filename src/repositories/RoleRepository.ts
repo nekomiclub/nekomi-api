@@ -78,7 +78,7 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
       id,
       name,
       slug,
-      permissions: [ROLE_PERMISSION_ENUM.BASIC]
+      permissions: [ROLE_PERMISSION_ENUM.enum.BASIC]
     };
 
 

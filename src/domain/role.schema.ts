@@ -1,13 +1,13 @@
 import z from 'zod';
 
 /* --------------------- */
-/* Native enum           */
+/* Enums                 */
 /* --------------------- */
 
-export enum ROLE_PERMISSION_ENUM {
-  ABSOLUTE = 'sys:absolute',
-  BASIC = 'sys:basic',
-}
+export const ROLE_PERMISSION_ENUM = z.enum({
+  ABSOLUTE: 'sys:absolute',
+  BASIC: 'sys:basic',
+}).openapi('ROLE_PERMISSION_ENUM');
 
 /* --------------------- */
 /* Base schema           */
@@ -17,12 +17,14 @@ export const RoleSchema = z.object({
   id: z.string(),
   slug: z.string(),
   name: z.string(),
-  permissions: z.nativeEnum(ROLE_PERMISSION_ENUM).openapi('ROLE_PERMISSION_ENUM').array(),
+  permissions: ROLE_PERMISSION_ENUM.array(),
 }).openapi('Role');
 
 /* --------------------- */
 /* Inferred types        */
 /* --------------------- */
+
+export type ROLE_PERMISSION_ENUM = z.infer<typeof ROLE_PERMISSION_ENUM>
 
 export type IRole = z.infer<typeof RoleSchema>
 

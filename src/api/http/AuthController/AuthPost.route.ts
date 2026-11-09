@@ -112,7 +112,7 @@ const endpoint = HandleRequest(async (req, res) => {
   }
 
   // Prevent banned users from authorizing
-  if (user.restrictions.includes(USER_RESTRICTION_ENUM.BANNED)) throw new NekoError('user:banned');
+  if (user.restrictions.includes(USER_RESTRICTION_ENUM.enum.BANNED)) throw new NekoError('user:banned');
 
   const session = new SessionService();
   await session.init({ email });

@@ -6,7 +6,7 @@ import StackServiceClass from '~/services/StackService.js';
 import arrayEqual from 'array-equal';
 import env from '~/utils/env.js';
 import ms from 'ms';
-import { ADMIN_SLUG, IAdminTeamMapData } from '~/domain/admin.schema.js';
+import { ADMIN_SLUG_ENUM, IAdminTeamMapData } from '~/domain/admin.schema.js';
 import { ANIME_STATUS } from '~/data/AnimePrimitives.js';
 import { AnimeId } from '~/interfaces/BrandedIds.js';
 import { ArgumentTypes } from '~/interfaces/types.js';
@@ -403,7 +403,7 @@ class AnimePlayerUpdateCrawlerClass {
 
   async updateTeamsMap() {
     const admin = new AdminTeamMapRepositoryClass();
-    const teams = await admin.getOne({ slug: ADMIN_SLUG.TEAMS_MAP });
+    const teams = await admin.getOne({ slug: ADMIN_SLUG_ENUM.enum.TEAMS_MAP });
 
     this.teams = teams.data;
   }
