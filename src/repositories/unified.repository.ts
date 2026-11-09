@@ -152,7 +152,7 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
   /** Delete many documents matching filter */
-  async _deleteMany(filter: Filter<RepositoryType>): Promise<DeleteResult> {
+  async _deleteMany(filter?: Filter<RepositoryType>): Promise<DeleteResult> {
     return await this.collection.deleteMany(filter);
   }
 

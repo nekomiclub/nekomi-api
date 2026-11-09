@@ -1,36 +1,21 @@
-import { Db, MongoClient } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import z, { ZodError } from 'zod';
 
-import UnifiedRepositoryClass from '~/repositories/unified.repository.js';
-import Mongo from '~/services/MongoDB.service.js';
+import { clearDb, getDb, stopMongo } from '~/__tests__/_helpers/mongo.js';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-const ctx = vi.hoisted(() => ({
-  mongod: undefined as unknown as MongoMemoryServer,
-  client: undefined as unknown as MongoClient,
-  db: undefined as unknown as Db,
-}));
-
 vi.mock('~/services/MongoDB.service.js', async () => {
-  const { MongoMemoryServer } = await import('mongodb-memory-server');
-  const { MongoClient } = await import('mongodb');
-
-  ctx.mongod = await MongoMemoryServer.create();
-  ctx.client = await MongoClient.connect(ctx.mongod.getUri());
-  ctx.db = ctx.client.db('test');
-
-  return {
-    default: {
-      // Same call shape as the real service: collection(name, schema)
-      collection: (name: string) => ctx.db.collection(name),
-    },
-  };
+  const { createMongoServiceMock } = await import('../_helpers/mongo.js');
+  return createMongoServiceMock();
 });
+
+
+// Imports after mocks
+import UnifiedRepositoryClass from '~/repositories/unified.repository.js';
+import Mongo from '~/services/MongoDB.service.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,7 +30,7 @@ const collection = Mongo.collection('unified', schema);
 
 const UnifiedRepository = new UnifiedRepositoryClass(collection, schema, false);
 
-const entities = () => ctx.db.collection('unified');
+const entities = () => getDb().collection('unified');
 
 const id = 'unified-id';
 
@@ -57,11 +42,8 @@ const makeInput = (overrides: Partial<z.infer<typeof schema>> = {}): z.infer<typ
 
 
 
-beforeEach(async () => {
-  await UnifiedRepository._deleteMany({});
-
-  vi.clearAllMocks();
-});
+beforeEach(clearDb);
+afterAll(stopMongo);
 
 // ---------------------------------------------------------------------------
 // Tests
