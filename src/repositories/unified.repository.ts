@@ -77,10 +77,12 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
     protected readonly schema: ZodObject,
 
     /** Whether to should emit internal document on insertOne */
-    private emit = true,
+    protected emit = true,
   ) { super(collection, schema); }
 
-  /** Insert single document */
+
+
+  /** Insert single document. Will emit internal document. @note DO NOT USE RAW METHOD IN PRODUCTION */
   async _insertOne(input: RepositoryType): Promise<InsertOneResult<RepositoryType>> {
     const parsed = this.schema.parse(input) as OptionalUnlessRequiredId<RepositoryType>;
 
@@ -96,7 +98,7 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
 
-  /** Insert many document */
+  /** Insert many document @note DO NOT USE RAW METHOD IN PRODUCTION */
   async _insertMany(inputs: RepositoryType[]): Promise<InsertManyResult<RepositoryType>> {
     const parsed = inputs.map(el => this.schema.parse(el)) as OptionalUnlessRequiredId<RepositoryType>[];
 
@@ -106,7 +108,7 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
   /** Get documents by filter matching limiting & sorting */
-  async _find(filter: Filter<RepositoryType>, args?: IFindArgs) {
+  public async find(filter: Filter<RepositoryType>, args?: IFindArgs) {
     const cursor = this.collection.find(filter);
 
     if (args?.sort) cursor.sort(args.sort);
@@ -122,7 +124,7 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
   /** Get single document matching filter */
-  async _findOne(filter: Filter<RepositoryType>): Promise<RepositoryType> {
+  public async findOne(filter: Filter<RepositoryType>): Promise<RepositoryType> {
     const document = await this.collection.findOne(filter);
     if (!document) throw new NekoError('sys:not_found', `Requested document is not found`);
 
@@ -134,9 +136,9 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
   /** Get single document matching filter and preserved error */
-  async _safeFindOne(filter: Filter<RepositoryType>): Promise<RepositoryType | null> {
+  public async safeFindOne(filter: Filter<RepositoryType>): Promise<RepositoryType | null> {
     try {
-      return await this._findOne(filter);
+      return await this.findOne(filter);
     } catch (e) {
       return null;
     }
@@ -144,21 +146,21 @@ class UnifiedRepositoryClass<RepositoryType extends object> extends UnifiedColle
 
 
 
-  /** Delete single document matching filter */
+  /** Delete single document matching filter @note DO NOT USE RAW METHOD IN PRODUCTION */
   async _deleteOne(filter: Filter<RepositoryType>): Promise<DeleteResult> {
     return await this.collection.deleteOne(filter);
   }
 
 
 
-  /** Delete many documents matching filter */
+  /** Delete many documents matching filter @note DO NOT USE RAW METHOD IN PRODUCTION */
   async _deleteMany(filter?: Filter<RepositoryType>): Promise<DeleteResult> {
     return await this.collection.deleteMany(filter);
   }
 
 
 
-  /** Replace single document matching filter */
+  /** Replace single document matching filter @note DO NOT USE RAW METHOD IN PRODUCTION */
   async _replaceOne(filter: Filter<RepositoryType>, input: RepositoryType): Promise<UpdateResult<RepositoryType>> {
     const parsed = this.schema.parse(input) as RepositoryType;
 

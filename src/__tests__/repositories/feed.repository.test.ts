@@ -40,7 +40,6 @@ const makeInput = (overrides: Partial<ICreateFeedEntitySchema> = {}): ICreateFee
 const animeExists = () => vi.mocked(AnimeRepository.safeGetOne).mockResolvedValue({} as never);
 const animeMissing = () => vi.mocked(AnimeRepository.safeGetOne).mockResolvedValue(null as never);
 
-
 beforeEach(clearDb);
 afterAll(stopMongo);
 

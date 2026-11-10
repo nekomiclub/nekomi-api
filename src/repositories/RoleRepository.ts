@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 import { isTesting } from '~/conf.js';
-import IRole, { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
+import RoleEntity, { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { asRoleId } from '~/interfaces/BrandedIds.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
 import DTS from '~/services/DataTransferService.js';
@@ -14,7 +14,7 @@ import UnifiedRepositoryClass from './UnifiedRepository.js';
 
 
 /** Repository type. Reffers to the model interface */
-type RepositoryType = IRole;
+type RepositoryType = RoleEntity;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
   return { $or: [{ id: query }, { slug: query }] };
@@ -43,6 +43,7 @@ interface ICreateProps {
 
 
 
+/** @deprecated */
 export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);

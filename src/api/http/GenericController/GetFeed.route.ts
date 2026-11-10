@@ -71,7 +71,7 @@ const endpoint = HandleRequest(async (req, res) => {
   if (!cache) {
     try {
       /** Process hero documents */
-      const heroFeedDocuments = await FeedRepository.find();
+      const heroFeedDocuments = await FeedRepository.find({});
       const heroAnimeDocuments = await AnimeRepository.getMany({ id: { $in: heroFeedDocuments.map(el => el.anime_id) } });
 
       feed.hero = heroFeedDocuments.map(hero => {

@@ -21,13 +21,23 @@ export const RoleSchema = z.object({
 }).openapi('Role');
 
 /* --------------------- */
+/* Repository schemas    */
+/* --------------------- */
+
+export const CreateRoleSchema = RoleSchema.pick({
+  name: true
+});
+
+/* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
 export type ROLE_PERMISSION_ENUM = z.infer<typeof ROLE_PERMISSION_ENUM>
 
-export type IRole = z.infer<typeof RoleSchema>
+export type RoleEntity = z.infer<typeof RoleSchema>
+
+export type ICreateRoleEntity = z.infer<typeof CreateRoleSchema>
 
 
 
-export default IRole;
+export default RoleEntity;

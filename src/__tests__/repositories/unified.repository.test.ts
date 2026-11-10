@@ -40,8 +40,6 @@ const makeInput = (overrides: Partial<z.infer<typeof schema>> = {}): z.infer<typ
   ...overrides,
 }) as z.infer<typeof schema>;
 
-
-
 beforeEach(clearDb);
 afterAll(stopMongo);
 
@@ -96,7 +94,7 @@ describe('UnifiedRepository', () => {
     it('should not find document', async () => {
       await UnifiedRepository._insertOne(makeInput({ id }));
 
-      const found = await UnifiedRepository._find({ id: 'missing' });
+      const found = await UnifiedRepository.find({ id: 'missing' });
 
       expect(found.length).toBe(0);
     });
@@ -108,7 +106,7 @@ describe('UnifiedRepository', () => {
       await UnifiedRepository._insertOne(makeInput({ id }));
       await UnifiedRepository._insertOne(makeInput({ id }));
 
-      const found = await UnifiedRepository._find({ id }, { limit: 2 });
+      const found = await UnifiedRepository.find({ id }, { limit: 2 });
 
       expect(found.length).toBe(2);
     });
@@ -120,7 +118,7 @@ describe('UnifiedRepository', () => {
       await UnifiedRepository._insertOne(makeInput({ id, order: 2 }));
       await UnifiedRepository._insertOne(makeInput({ id, order: 3 }));
 
-      const found = await UnifiedRepository._find({ id }, { sort: { order: 'desc' } });
+      const found = await UnifiedRepository.find({ id }, { sort: { order: 'desc' } });
 
       expect(found[0].order).toBe(3);
       expect(found.length).toBe(3);
@@ -134,7 +132,7 @@ describe('UnifiedRepository', () => {
         id: 1212
       }));
 
-      await expect(UnifiedRepository._find({
+      await expect(UnifiedRepository.find({
         // @ts-ignore
         id: 1212
       })).rejects.toThrow(ZodError);
@@ -147,7 +145,7 @@ describe('UnifiedRepository', () => {
     it('should find single document', async () => {
       await UnifiedRepository._insertOne(makeInput({ id }));
 
-      const found = await UnifiedRepository._findOne({ id });
+      const found = await UnifiedRepository.findOne({ id });
 
       expect(found).toMatchObject({ id });
     });
@@ -155,7 +153,7 @@ describe('UnifiedRepository', () => {
 
 
     it('should throw error if document is not found', async () => {
-      await expect(UnifiedRepository._findOne({
+      await expect(UnifiedRepository.findOne({
         id: 'missing'
       })).rejects.toMatchObject({ code: 'sys:not_found' });
     });
@@ -168,7 +166,7 @@ describe('UnifiedRepository', () => {
         id: 1212
       }));
 
-      await expect(UnifiedRepository._findOne({
+      await expect(UnifiedRepository.findOne({
         // @ts-ignore
         id: 1212
       })).rejects.toThrow(ZodError);
@@ -181,7 +179,7 @@ describe('UnifiedRepository', () => {
     it('should find single document', async () => {
       await UnifiedRepository._insertOne(makeInput({ id }));
 
-      const found = await UnifiedRepository._safeFindOne({ id });
+      const found = await UnifiedRepository.safeFindOne({ id });
 
       expect(found).toMatchObject({ id });
     });
@@ -189,7 +187,7 @@ describe('UnifiedRepository', () => {
 
 
     it('should return null if document is not found', async () => {
-      expect(await UnifiedRepository._safeFindOne({ id: 'missing' })).toBeNull();
+      expect(await UnifiedRepository.safeFindOne({ id: 'missing' })).toBeNull();
     });
 
 
@@ -200,7 +198,7 @@ describe('UnifiedRepository', () => {
         id: 1212
       }));
 
-      expect(await UnifiedRepository._safeFindOne({
+      expect(await UnifiedRepository.safeFindOne({
         // @ts-ignore
         id: 1212
       })).toBeNull();

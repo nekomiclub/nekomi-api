@@ -37,6 +37,7 @@
     "multer": "^1.4.5-lts.1",
     "nanoid": "^5.1.6",
     "swagger-ui-express": "^5.0.1",
+    "transliteration": "^2.7.0",
     "url-slug": "^4.0.1",
     "uuid": "^13.0.0",
     "winston": "^3.18.3",
