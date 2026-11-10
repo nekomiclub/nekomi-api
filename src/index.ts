@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 
+import Mongo from '~/services/MongoDB.service.js';
 import env from '~/utils/env.js';
 
 import AnimeRouter from './api/http/AnimeController/_router.js';
@@ -62,6 +63,7 @@ async function runtime() {
 
     //* === Establish database connection
     await DatabaseService.connect();
+    await Mongo.connect();
 
 
 

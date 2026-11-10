@@ -12,22 +12,23 @@ class MongoService {
 
 
 
+  constructor(uri = `mongodb+srv://${env('DATABASE_USR')}:${env('DATABASE_PWD')}@${env('DATABASE_HOST')}`, dbName = env('DATABASE_NAME')) {
+    this._client = new MongoClient(uri, {
+      retryWrites: true
+    });
+
+    this._database = this._client.db(dbName);
+  }
+
   get database() {
     return this._database;
   }
 
 
 
-  async connect(uri = `mongodb+srv://${env('DATABASE_USR')}:${env('DATABASE_PWD')}@${env('DATABASE_HOST')}`, dbName = env('DATABASE_NAME')) {
-    const client = new MongoClient(uri, {
-      retryWrites: true
-    });
-
-    await client.connect();
-    await client.db('admin').command({ ping: 1 }); // Send a ping to confirm a successful connection
-
-    this._client = client;
-    this._database = client.db(dbName);
+  async connect() {
+    await this._client?.connect();
+    await this._client?.db('admin').command({ ping: 1 }); // Send a ping to confirm a successful connection
 
     Logger.debug(`[Runtime]: 🔗 MongoDB connection established`);
   }

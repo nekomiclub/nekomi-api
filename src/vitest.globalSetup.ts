@@ -1,7 +1,4 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose, { Schema } from 'mongoose';
-
-import Mongo from '~/services/MongoDB.service.js';
 
 import conf from './conf.js';
 
@@ -25,53 +22,37 @@ const TeamModel = mongoose.model('team', new Schema({
 
 
 
-let mongod: MongoMemoryServer;
-
-
-
 export async function setup() {
-  mongod = await MongoMemoryServer.create();
-  await Mongo.connect(mongod.getUri(), 'test');
+
 }
 
 
 
 export async function teardown() {
-  mongod.stop();
-
   mongoose.set('strictQuery', false);
+  await mongoose.connect(conf.mongodb_uri, { retryWrites: true });
 
-  await mongoose.connect(conf.mongodb_uri, {
-    retryWrites: true,
-  });
+  try {
+    const [users, anime, teams] = await Promise.all([
+      UserModel.deleteMany({
+        $or: [
+          { id: { $regex: /^testing/i } },
+          { email: { $regex: /^testing/i } },
+          { username: { $regex: /^testing/i } },
+        ],
+      }),
+      AnimeModel.deleteMany({
+        $or: [{ id: { $regex: /^testing/i } }, { slug: { $regex: /^testing/i } }],
+      }),
+      TeamModel.deleteMany({
+        $or: [{ id: { $regex: /^testing/i } }, { slug: { $regex: /^testing/i } }],
+      }),
+    ]);
 
-
-
-  const usersDeletedData = await UserModel.deleteMany({
-    $or: [
-      { id: { $regex: /testing/gi } },
-      { email: { $regex: /testing/gi } },
-      { username: { $regex: /testing/gi } },
-    ]
-  });
-
-  const animeDeletedData = await AnimeModel.deleteMany({
-    $or: [
-      { id: { $regex: /testing/gi } },
-      { slug: { $regex: /testing/gi } },
-    ]
-  });
-
-  const teamDeletedData = await TeamModel.deleteMany({
-    $or: [
-      { id: { $regex: /testing/gi } },
-      { slug: { $regex: /testing/gi } },
-    ]
-  });
-
-  await mongoose.disconnect();
-
-
-
-  console.log(`[VitestTeardown]: Testing entities (${usersDeletedData.deletedCount + animeDeletedData.deletedCount + teamDeletedData.deletedCount}) removed`);
+    console.log(
+      `[VitestTeardown]: Testing entities (${users.deletedCount + anime.deletedCount + teams.deletedCount}) removed`
+    );
+  } finally {
+    await mongoose.disconnect();
+  }
 }
