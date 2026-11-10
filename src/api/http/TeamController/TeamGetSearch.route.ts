@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import ITeam, { TeamSearchResultSchema } from '~/domain/team.schema.js';
+import TeamEntity, { TeamSearchResultSchema } from '~/domain/team.schema.js';
 import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 import DTS from '~/services/DataTransferService.js';
 import { Middleware } from '~/services/MiddlewareService.js';
@@ -46,7 +46,7 @@ registry.registerPath({
  * Search dubbers
  */
 const endpoint = HandleRequest(async (req, res) => {
-  const { results: searches, pagination } = await RequestSearch<ITeam>(req, new TeamRepositoryClass(), TeamSearch);
+  const { results: searches, pagination } = await RequestSearch<TeamEntity>(req, new TeamRepositoryClass(), TeamSearch);
 
   const results = searches.map(result => DTS.toTeamSearchResult(result));
 

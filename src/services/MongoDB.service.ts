@@ -1,4 +1,4 @@
-import { Collection, Db, InsertOneOptions, MongoClient, OptionalUnlessRequiredId } from 'mongodb';
+import { Collection, Db, MongoClient } from 'mongodb';
 import z, { ZodObject } from 'zod';
 
 import Logger from '~/services/LoggerService.js';
@@ -46,21 +46,7 @@ class MongoService {
 
     const collection = this._database.collection<z.infer<typeof schema>>(name);
 
-    return new Proxy(collection, {
-      get(target, prop, receiver) {
-        if (prop === 'insertOne') {
-          return (document: OptionalUnlessRequiredId<z.input<TSchema>>, options?: InsertOneOptions) => {
-            const parsed = schema.parse(document);
-
-            return target.insertOne(parsed as OptionalUnlessRequiredId<z.output<TSchema>>, options);
-          };
-        }
-
-        const value = Reflect.get(target, prop, receiver);
-
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
+    return collection;
   }
 }
 

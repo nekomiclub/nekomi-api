@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -35,7 +34,7 @@ const makeInput = (overrides: Partial<ICreateFeedEntitySchema> = {}): ICreateFee
   cover_url: 'https://example.com',
   video_url: 'https://example.com',
   ...overrides,
-}) as ICreateFeedEntitySchema;
+}) satisfies ICreateFeedEntitySchema;
 
 const animeExists = () => vi.mocked(AnimeRepository.safeGetOne).mockResolvedValue({} as never);
 const animeMissing = () => vi.mocked(AnimeRepository.safeGetOne).mockResolvedValue(null as never);

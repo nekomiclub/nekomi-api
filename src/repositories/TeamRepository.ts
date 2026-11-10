@@ -2,8 +2,8 @@ import mongoose, { Schema } from 'mongoose';
 
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
 import conf, { isTesting } from '~/conf.js';
-import ITeam from '~/domain/team.schema.js';
-import { asTeamId,CDNString } from '~/interfaces/BrandedIds.js';
+import TeamEntity from '~/domain/team.schema.js';
+import { asTeamId, CDNString } from '~/interfaces/BrandedIds.js';
 import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
 import DTS from '~/services/DataTransferService.js';
@@ -18,7 +18,7 @@ import UnifiedRepositoryClass from './UnifiedRepository.js';
 
 
 /** Repository type. Reffers to the model interface */
-type RepositoryType = ITeam;
+type RepositoryType = TeamEntity;
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
   return { $or: [{ id: query }, { slug: query }] };
@@ -73,14 +73,14 @@ interface ISaveProps {
 
 interface IUploadACProps {
   type: NUS_UPLOAD_TYPE
-  key: keyof Pick<ITeam, 'avatar' | 'cover'>
+  key: keyof Pick<TeamEntity, 'avatar' | 'cover'>
   defaultUrl: string
   userId: string
 }
 
 
 
-
+/** @deprecated */
 export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> {
   constructor() {
     super(model, queries);
@@ -193,7 +193,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * 
    * @testing
    */
-  setSocial(key: keyof ITeam['socials'], value: string | undefined) {
+  setSocial(key: keyof TeamEntity['socials'], value: string | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // TODO: Add validation
@@ -208,7 +208,7 @@ export class TeamRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
    * 
    * @testing
    */
-  setSupport(key: keyof ITeam['support'], value: string | undefined) {
+  setSupport(key: keyof TeamEntity['support'], value: string | undefined) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // TODO: Add validation

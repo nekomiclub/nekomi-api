@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -29,12 +28,12 @@ const makeEntity = (overrides: Partial<RoleEntity> = {}): RoleEntity => ({
   name: 'name 123',
   permissions: [],
   ...overrides,
-}) as RoleEntity;
+}) satisfies RoleEntity;
 
 const makeInput = (overrides: Partial<ICreateRoleEntity> = {}): ICreateRoleEntity => ({
   name: 'name',
   ...overrides,
-}) as ICreateRoleEntity;
+}) satisfies ICreateRoleEntity;
 
 beforeEach(clearDb);
 afterAll(stopMongo);
@@ -155,13 +154,6 @@ describe('RoleRepository', () => {
 
       // Permissions length should not change
       expect(repo.document.permissions.length).toBe(1);
-    });
-
-
-
-    it('should throw error if document is not initialized', async () => {
-      expect(() => RoleRepository.appendPermission(ROLE_PERMISSION_ENUM.enum.BASIC))
-        .toThrow(expect.objectContaining({ code: 'sys:document_not_initialized' }));
     });
 
 

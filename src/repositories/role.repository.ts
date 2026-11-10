@@ -37,13 +37,14 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
   async insertOne(input: ICreateRoleEntity): Promise<RepositoryType> {
     const parsed = CreateRoleSchema.parse(input) as ICreateRoleEntity;
 
-    // === Insert document
+    // === Validate input
     const id = createId();
     let slug = createSlug(transliterate(parsed.name));
 
     const sameSlugDocument = await this.safeFindOneBySlug(slug);
     if (sameSlugDocument) slug = `${slug}-${nanoid(6)}`;
 
+    // === Insert document
     const body: RepositoryType = {
       id,
       slug,

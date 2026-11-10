@@ -1,5 +1,5 @@
 import { isTesting } from '~/conf.js';
-import { ADMIN_SLUG_ENUM, AdminTeamsMapType, IAdminTeamMapData } from '~/domain/admin.schema.js';
+import { ADMIN_SLUG_ENUM, AdminEntityTeamMapData, AdminEntityTeamsMap } from '~/domain/admin.schema.js';
 import DTS from '~/services/DataTransferService.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import Logger from '~/services/LoggerService.js';
@@ -27,7 +27,7 @@ export default class AdminTeamMapRepositoryClass extends AdminRepository {
 
     const id = isTesting ? `~testing-${createNanoId()}` : createId();
 
-    const payload: AdminTeamsMapType = {
+    const payload: AdminEntityTeamsMap = {
       id,
       slug,
       created_at: getUTC().ISO,
@@ -46,7 +46,7 @@ export default class AdminTeamMapRepositoryClass extends AdminRepository {
 
 
 
-  setTeams(data: IAdminTeamMapData[]) {
+  setTeams(data: AdminEntityTeamMapData[]) {
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     this._set('data', data);

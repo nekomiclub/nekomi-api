@@ -4,9 +4,9 @@ import ms from 'ms';
 import { AshdiAPI } from '~/api/external/ashdi.api.js';
 import { MoonanimeAPI } from '~/api/external/moonanime.api.js';
 import { ANIME_STATUS } from '~/data/AnimePrimitives.js';
-import { ADMIN_SLUG_ENUM, IAdminTeamMapData } from '~/domain/admin.schema.js';
+import { ADMIN_SLUG_ENUM, AdminEntityTeamMapData } from '~/domain/admin.schema.js';
 import { IAnimePlayer, IAnimePlayerTeam, IAnimePlayerVOD } from '~/domain/anime.schema.js';
-import { AnimeId , asTeamId,TeamId  } from '~/interfaces/BrandedIds.js';
+import { AnimeId, asTeamId, TeamId } from '~/interfaces/BrandedIds.js';
 import { AshdiPlType, IAshdiEpisode, IAshdiSeason } from '~/interfaces/external-api/IAshdi.api.js';
 import { ArgumentTypes } from '~/interfaces/types.js';
 import AdminTeamMapRepositoryClass from '~/repositories/admin/AdminDubberMapRepository.js';
@@ -33,7 +33,7 @@ interface IUnifiedEpisode {
 
 class AnimePlayerPlayerClass extends AnimeModel {
   constructor(
-    readonly teams: IAdminTeamMapData[]
+    readonly teams: AdminEntityTeamMapData[]
   ) {
     super();
   }
@@ -356,7 +356,7 @@ class AnimePlayerPlayerClass extends AnimeModel {
 
 
 class AnimePlayerUpdateCrawlerClass {
-  private teams: IAdminTeamMapData[] = [];
+  private teams: AdminEntityTeamMapData[] = [];
   private service: StackServiceClass<AnimeId>;
 
 

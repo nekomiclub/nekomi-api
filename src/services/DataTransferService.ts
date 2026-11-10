@@ -1,14 +1,12 @@
-import express from 'express';
 import { HydratedDocument } from 'mongoose';
 import z, { ZodSchema } from 'zod';
 
 import conf from '~/conf.js';
 import { AnimeDescribedGenres, AnimeDescribedRatings, AnimeNamedRecordSchema } from '~/data/AnimePrimitives.js';
 import IAnime, { AnimeExtendedSchema, AnimeMinifiedSchema, AnimeSearchResultSchema, IAnimeExtended, IAnimeMinified, IAnimePosterNode, IAnimeScreenshotNode, IAnimeSearchResult } from '~/domain/anime.schema.js';
-import ITeam, { ITeamMinified, ITeamSearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/domain/team.schema.js';
-import IUser, { IUserLib, IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/domain/user.schema.js';
+import TeamEntity, { TeamEntityMinified, TeamEntitySearchResult, TeamMinifiedSchema, TeamSearchResultSchema } from '~/domain/team.schema.js';
+import IUser, { IUserMinified, IUserSearchResult, UserMinifiedSchema, UserSearchResultSchema } from '~/domain/user.schema.js';
 import { asCDNString } from '~/interfaces/BrandedIds.js';
-import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 
 
 
@@ -152,8 +150,8 @@ class DTSClass {
 
 
 
-  team(object: HydratedDocument<ITeam> | ITeam, exposed?: boolean): ITeam {
-    const keys: (keyof ITeam)[] = [
+  team(object: HydratedDocument<TeamEntity> | TeamEntity, exposed?: boolean): TeamEntity {
+    const keys: (keyof TeamEntity)[] = [
       'members'
     ];
 
@@ -165,17 +163,17 @@ class DTSClass {
 
 
 
-  toTeamMinified(payload: ITeam): ITeamMinified {
+  toTeamMinified(payload: TeamEntity): TeamEntityMinified {
     return TeamMinifiedSchema.parse(payload);
   }
 
 
 
-  toTeamSearchResult(payload: ITeam): ITeamSearchResult {
+  toTeamSearchResult(payload: TeamEntity): TeamEntitySearchResult {
     return TeamSearchResultSchema.parse({
       ...DTS.toTeamMinified(payload),
       short_about: payload.about?.slice(0, 200)
-    } satisfies ITeamSearchResult);
+    } satisfies TeamEntitySearchResult);
   }
 
 
@@ -210,24 +208,6 @@ class DTSClass {
 
   toUserSearchResult(payload: IUser): IUserSearchResult {
     return UserSearchResultSchema.parse(payload);
-  }
-
-
-
-  /** @deprecated rework somehow */
-  async parseUserLibs(req: express.Request, user: IUser): Promise<IUserLib[]> {
-    let showPrivate = false;
-
-    try {
-      showPrivate = await isRequesterAdmin(req) || await isRequesterAccountOwner(req, user.id);
-    } catch (e) { null; }
-
-    return user.libs.filter(el => {
-      if (el.is_public) return el;
-      if (!el.is_public && showPrivate) return el;
-
-      return undefined;
-    });
   }
 }
 

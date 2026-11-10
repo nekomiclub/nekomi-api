@@ -1,7 +1,7 @@
 import z from 'zod';
 
 import IAnime, { AnimeEpisodeSchema, AnimePlayerSchema } from '~/domain/anime.schema.js';
-import { ITeamMinified, TeamMinifiedSchema } from '~/domain/team.schema.js';
+import { TeamEntityMinified, TeamMinifiedSchema } from '~/domain/team.schema.js';
 import { TeamId } from '~/interfaces/BrandedIds.js';
 import TeamRepository from '~/repositories/TeamRepository.js';
 
@@ -22,7 +22,7 @@ export async function AnimeGetEpisodes(anime: IAnime): Promise<z.infer<typeof An
   anime.player.subbed.forEach(team => team.dubber_ids.forEach(id => playerTeamsId.add(id)));
 
   const playerTeamsResults = await TeamRepository.getMany({ id: { $in: Array.from(playerTeamsId) } });
-  const playerTeams: ITeamMinified[] = playerTeamsResults.map(el => TeamMinifiedSchema.parse(el));
+  const playerTeams: TeamEntityMinified[] = playerTeamsResults.map(el => TeamMinifiedSchema.parse(el));
 
   return AnimeGetEpisodesSchema.parse({
     player: anime.player,

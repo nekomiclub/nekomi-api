@@ -10,6 +10,7 @@ import { Middleware } from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
 import { isRequesterAccountOwner, isRequesterAdmin } from '~/utils/auth-utils.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import parseUserLibs from '~/utils/parse-user-libs.js';
 
 
 
@@ -72,7 +73,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const documents = await AnimeRepository.getMany({ id: { $in: lib.anime_ids } });
   const catalog: IAnimeMinified[] = documents.map(el => DTS.toAnimeMinified(el));
 
-  const libs = await DTS.parseUserLibs(req, repo.document);
+  const libs = await parseUserLibs(req, repo.document);
   const user = DTS.toUserMinified(repo.document);
 
 

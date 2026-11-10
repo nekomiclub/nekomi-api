@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-import IAdmin, { ADMIN_SLUG_ENUM } from '~/domain/admin.schema.js';
+import AdminEntity, { ADMIN_SLUG_ENUM } from '~/domain/admin.schema.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
 import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
 import { NekoError } from '~/services/ExceptionService.js';
@@ -9,7 +9,7 @@ import { getUTC } from '~/utils/utils.js';
 
 
 /** Repository type. Reffers to the model interface */
-type RepositoryType = IAdmin<any, any>
+type RepositoryType = AdminEntity<any, any>
 
 const queries = (query: string): RepositoryQueriesType<RepositoryType> => {
   return { $or: [{ id: query }, { slug: query }] };

@@ -1,8 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import z, { ZodError } from 'zod';
 
-import { clearDb, getDb, stopMongo } from '~/__tests__/_helpers/mongo.js';
-
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -14,6 +12,7 @@ vi.mock('~/services/MongoDB.service.js', async () => {
 
 
 // Imports after mocks
+import { clearDb, getDb, stopMongo } from '~/__tests__/_helpers/mongo.js';
 import UnifiedRepositoryClass from '~/repositories/unified.repository.js';
 import Mongo from '~/services/MongoDB.service.js';
 
@@ -38,7 +37,7 @@ const makeInput = (overrides: Partial<z.infer<typeof schema>> = {}): z.infer<typ
   id,
   order: 1,
   ...overrides,
-}) as z.infer<typeof schema>;
+}) satisfies z.infer<typeof schema>;
 
 beforeEach(clearDb);
 afterAll(stopMongo);

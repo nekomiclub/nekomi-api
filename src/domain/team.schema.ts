@@ -96,19 +96,34 @@ export const TeamSearchResultSchema = TeamMinifiedSchema.extend({
 }).openapi('TeamSearchResult');
 
 /* --------------------- */
+/* Repository schemas    */
+/* --------------------- */
+
+export const CreateTeamSchema = z.object({
+  name: z.string(),
+  about: z.string().optional(),
+  avatar: z.url().optional(),
+  cover: z.url().optional(),
+  socials: TeamSchema.shape.socials.optional(),
+  support: TeamSchema.shape.support.optional(),
+});
+
+/* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
 export type TEAM_ROLE_ENUM = z.infer<typeof TEAM_ROLE_ENUM>
 
-export type ITeamMember = z.infer<typeof TeamMemberSchema>
-export type ITeamMemberExtended = z.infer<typeof TeamMemberExtendedSchema>
+export type TeamEntityMember = z.infer<typeof TeamMemberSchema>
+export type TeamEntityMemberExtended = z.infer<typeof TeamMemberExtendedSchema>
 
-export type ITeam = z.infer<typeof TeamSchema>
-export type ITeamPublic = z.infer<typeof TeamPublicSchema>
-export type ITeamMinified = z.infer<typeof TeamMinifiedSchema>
-export type ITeamSearchResult = z.infer<typeof TeamSearchResultSchema>
+export type TeamEntity = z.infer<typeof TeamSchema>
+export type TeamEntityPublic = z.infer<typeof TeamPublicSchema>
+export type TeamEntityMinified = z.infer<typeof TeamMinifiedSchema>
+export type TeamEntitySearchResult = z.infer<typeof TeamSearchResultSchema>
+
+export type ICreateTeamEntity = z.infer<typeof CreateTeamSchema>
 
 
 
-export default ITeam;
+export default TeamEntity;

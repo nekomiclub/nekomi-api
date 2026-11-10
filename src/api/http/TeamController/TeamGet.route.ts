@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { ITeamMemberExtended, ITeamPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/domain/team.schema.js';
+import { TeamEntityMemberExtended, TeamEntityPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/domain/team.schema.js';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
 import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
 import UserRepository from '~/repositories/UserRepository.js';
@@ -65,8 +65,8 @@ const endpoint = HandleRequest(async (req, res) => {
 
   const checkAPIKey = async (...args: ArgumentTypes<typeof isRequesterAPIValid>) => { return isAPIKeyValid = await isRequesterAPIValid(...args); };
 
-  let team: ITeamPublic | undefined = undefined;
-  let team_members: ITeamMemberExtended[] | undefined = undefined;
+  let team: TeamEntityPublic | undefined = undefined;
+  let team_members: TeamEntityMemberExtended[] | undefined = undefined;
 
   const refinedTeam = TeamSchema.parse(repo.document);
 

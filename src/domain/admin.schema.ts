@@ -55,18 +55,12 @@ export const AdminPosterLocaleMapSchema = AdminBaseSchema.extend({
 });
 
 /* --------------------- */
-/* DTS                   */
-/* --------------------- */
-
-// <none>
-
-/* --------------------- */
 /* Inferred types        */
 /* --------------------- */
 
 export type ADMIN_SLUG_ENUM = z.infer<typeof ADMIN_SLUG_ENUM>
 
-export type IAdmin<S extends ADMIN_SLUG_ENUM, D> = {
+export type AdminEntity<S extends ADMIN_SLUG_ENUM, D> = {
   id: string
   slug: S
   updated_at: string
@@ -74,12 +68,12 @@ export type IAdmin<S extends ADMIN_SLUG_ENUM, D> = {
   data: D
 }
 
-export type IAdminTeamMapData = z.infer<typeof AdminTeamMapDataSchema>
-export type AdminTeamsMapType = z.infer<typeof AdminTeamsMapSchema>
+export type AdminEntityTeamMapData = z.infer<typeof AdminTeamMapDataSchema>
+export type AdminEntityTeamsMap = z.infer<typeof AdminTeamsMapSchema>
 
-export type IAdminPosterLocaleMapData = z.infer<typeof AdminPosterLocaleMapDataSchema>
-export type AdminPosterLocaleMapType = z.infer<typeof AdminPosterLocaleMapSchema>
+export type AdminEntityPosterLocaleMapData = z.infer<typeof AdminPosterLocaleMapDataSchema>
+export type AdminEntityPosterLocaleMap = z.infer<typeof AdminPosterLocaleMapSchema>
 
 
 
-export default IAdmin;
+export default AdminEntity;

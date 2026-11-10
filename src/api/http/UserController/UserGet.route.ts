@@ -5,11 +5,11 @@ import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, Us
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
 import RoleRepository from '~/repositories/role.repository.js';
 import { UserRepositoryClass } from '~/repositories/UserRepository.js';
-import DTS from '~/services/DataTransferService.js';
 import MiddlewareService from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
 import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterAPIValid } from '~/utils/auth-utils.js';
 import { CreateResponseSchema, EndpointMiddlewares, getAuthorizationToken, HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import parseUserLibs from '~/utils/parse-user-libs.js';
 
 
 
@@ -152,7 +152,7 @@ const endpoint = HandleRequest(async (req, res) => {
   // Handle is_extended
   if (is_extended && isEligible(`is_extended`, await checkIsAPIKey(req, isAPIKeyValid))) {
     user_extended = {
-      libs: await DTS.parseUserLibs(req, repo.document),
+      libs: await parseUserLibs(req, repo.document),
       view_progress: repo.document.view_progress,
       total_viewtime: repo.document.total_viewtime
     };
