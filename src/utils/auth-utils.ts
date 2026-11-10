@@ -1,8 +1,8 @@
 import express from 'express';
 
 import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
-import { asUserSessionId,UserId, UserSessionId  } from '~/interfaces/BrandedIds.js';
-import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
+import { asUserSessionId, UserId, UserSessionId } from '~/interfaces/BrandedIds.js';
+import RoleRepository from '~/repositories/role.repository.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import MiddlewareService from '~/services/MiddlewareService.js';
 import SessionService from '~/services/SessionService.js';
@@ -34,7 +34,7 @@ export async function getSessionAuth(req: express.Request, res: express.Response
   } else {
     const { user, sessionId } = await new SessionService().parse(getAuthorizationToken(req));
 
-    const permissions = await parseRolesPermissions(user.roles);
+    const permissions = await RoleRepository.getPermissions(user.roles);
 
     return {
       userId: user.id,

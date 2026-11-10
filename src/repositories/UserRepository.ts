@@ -3,9 +3,10 @@ import mongoose, { Schema } from 'mongoose';
 import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
 import conf, { isTesting } from '~/conf.js';
 import IUser, { IUserViewProgress, USER_LIB_TYPE_ENUM, USER_RESTRICTION_ENUM } from '~/domain/user.schema.js';
-import { AnimeId, asUserId,CDNString , UserLibId  } from '~/interfaces/BrandedIds.js';
+import { AnimeId, asUserId, CDNString, UserLibId } from '~/interfaces/BrandedIds.js';
 import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
+import RoleRepository from '~/repositories/role.repository.js';
 import DTS from '~/services/DataTransferService.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import Logger from '~/services/LoggerService.js';
@@ -13,7 +14,6 @@ import createId, { createNanoId, createUserLibId } from '~/utils/create-id.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
 import UserValidators from '~/utils/validators/user-validators.js';
 
-import RoleRepository from './RoleRepository.js';
 import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
 
@@ -283,7 +283,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     // Pass if role is already assigned
     if (this._doc.roles.includes(slug)) return;
 
-    const role = await RoleRepository.getOne(slug);
+    const role = await RoleRepository.findOneBySlug(slug);
 
     this._doc.roles.push(role.slug);
     this._doc.markModified('roles');

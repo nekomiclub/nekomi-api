@@ -1,9 +1,9 @@
 import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import IUser from '~/domain/user.schema.js';
-import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
+import RoleRepository from '~/repositories/role.repository.js';
 import { SessionTokenSchema, SessionTokenType } from '~/schemas/auth.schema.js';
 import env from '~/utils/env.js';
-import { getAPIKey, getAuthorizationToken,HandleMiddleware } from '~/utils/http-utils.js';
+import { getAPIKey, getAuthorizationToken, HandleMiddleware } from '~/utils/http-utils.js';
 
 import DTS from './DataTransferService.js';
 import { NekoError } from './ExceptionService.js';
@@ -45,7 +45,7 @@ export default class MiddlewareService {
 
     // Ensure permissions
     if (permissions?.length) {
-      userPermissions = await parseRolesPermissions(session.document!.roles);
+      userPermissions = await RoleRepository.getPermissions(session.document!.roles);
 
       // Pass any checks for root 
       if (!userPermissions.includes(ROLE_PERMISSION_ENUM.enum.ABSOLUTE)) {

@@ -116,6 +116,20 @@ export class RoleRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
 
     this._doc.permissions = this._doc.permissions.filter(el => el !== slug);
   }
+
+
+
+  /** Get permissions from role slugs */
+  async getPermissions(slugs: string[]): Promise<ROLE_PERMISSION_ENUM[]> {
+    const roles = await this.find({ slug: { $in: slugs } });
+    const permissions = new Set<ROLE_PERMISSION_ENUM>();
+
+    roles.forEach(role => {
+      role.permissions.forEach(permission => permissions.add(permission));
+    });
+
+    return Array.from(permissions);
+  }
 }
 
 

@@ -3,13 +3,13 @@ import z from 'zod';
 import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { IUserPublic, USER_RESTRICTION_ENUM, UserLibSchema, UserPublicSchema, UserViewProgressSchema } from '~/domain/user.schema.js';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
-import { parseRolesPermissions } from '~/repositories/RoleRepository.js';
+import RoleRepository from '~/repositories/role.repository.js';
 import { UserRepositoryClass } from '~/repositories/UserRepository.js';
 import DTS from '~/services/DataTransferService.js';
 import MiddlewareService from '~/services/MiddlewareService.js';
 import { registry } from '~/services/openapi/registry.js';
-import { isEligible, isRequesterAccountOwner, isRequesterAdmin,isRequesterAPIValid } from '~/utils/auth-utils.js';
-import { CreateResponseSchema, EndpointMiddlewares, getAuthorizationToken,HandleRequest, SendResponse } from '~/utils/http-utils.js';
+import { isEligible, isRequesterAccountOwner, isRequesterAdmin, isRequesterAPIValid } from '~/utils/auth-utils.js';
+import { CreateResponseSchema, EndpointMiddlewares, getAuthorizationToken, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 
 
 
@@ -143,7 +143,7 @@ const endpoint = HandleRequest(async (req, res) => {
   if (get_permissions) {
     if (isEligible(`get_permissions`, (await checkIsAdmin(req, isUserAdmin) || await checkIsOwner(req, repo.document.id, isUserOwner)) && await checkIsAPIKey(req, isAPIKeyValid))) {
       user_permissions = {
-        permissions: await parseRolesPermissions(repo.document.roles),
+        permissions: await RoleRepository.getPermissions(repo.document.roles),
         restrictions: repo.document.restrictions
       };
     }

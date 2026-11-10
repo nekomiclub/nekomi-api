@@ -208,4 +208,24 @@ describe('RoleRepository', () => {
         .toThrow(expect.objectContaining({ code: 'sys:action_prevented' }));
     });
   });
+
+
+
+  describe('getPermissions', () => {
+    it('should retrieve unique permissions from roles', async () => {
+      const repo = new RoleRepositoryClass();
+
+      const role1 = await RoleRepository.insertOne(makeInput());
+      const role2 = await repo.insertOne(makeInput());
+
+      repo.appendPermission('sys:absolute');
+
+      await repo._save();
+
+      console.log(role1.slug, role2.slug);
+
+      expect((await RoleRepository.getPermissions([role1.slug])).length).toBe(1); // Only basic permission
+      expect((await RoleRepository.getPermissions([role1.slug, role2.slug])).length).toBe(2); // Not 3, basic permission occurs twice, so function should return only unique values
+    });
+  });
 });
