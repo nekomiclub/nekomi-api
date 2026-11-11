@@ -4,9 +4,10 @@ import { NekomiUploadService } from '~/api/external/nekomi-upload-service.js';
 import conf, { isTesting } from '~/conf.js';
 import { ANIME_GENRE, ANIME_RATING, ANIME_SEASON, ANIME_STATUS, ANIME_TYPE } from '~/data/AnimePrimitives.js';
 import IAnime, { IAnimeEpisode, IAnimePosterNode, IAnimeRelation, IAnimeSchedule, IAnimeScreenshotNode, IAnimeStudio } from '~/domain/anime.schema.js';
-import { asAnimeId,ISODateString } from '~/interfaces/BrandedIds.js';
+import { asAnimeId, ISODateString } from '~/interfaces/BrandedIds.js';
 import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
+import TeamRepository from '~/repositories/team.repository.js';
 import DTS from '~/services/DataTransferService.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import Logger from '~/services/LoggerService.js';
@@ -15,7 +16,6 @@ import createSlug from '~/utils/create-slug.js';
 import { getUTC, trimString } from '~/utils/utils.js';
 import AnimeValidators from '~/utils/validators/anime-validators.js';
 
-import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
 
 
@@ -723,7 +723,7 @@ export class AnimeRepositoryClass extends UnifiedRepositoryClass<RepositoryType>
     if (!this._doc) throw new NekoError('sys:document_not_initialized');
 
     // Ensure that team is exist
-    await TeamRepository.getOne(id);
+    await TeamRepository.findOneById(id);
 
     this._set('hero_poster_author', id);
   }

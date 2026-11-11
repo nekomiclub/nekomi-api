@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
+import { TeamRepositoryClass } from '~/repositories/team.repository.js';
 import { registry } from '~/services/openapi/registry.js';
 import { CreateResponseSchema, EndpointMiddlewares, HandleRequest, SendResponse } from '~/utils/http-utils.js';
 

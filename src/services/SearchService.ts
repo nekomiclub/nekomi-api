@@ -3,7 +3,6 @@ import Fuse, { FuseOptionKey } from 'fuse.js';
 import z from 'zod';
 
 import AnimeRepository from '~/repositories/AnimeRepository.js';
-import TeamRepository from '~/repositories/TeamRepository.js';
 import UnifiedRepositoryClass from '~/repositories/UnifiedRepository.js';
 import UserRepository from '~/repositories/UserRepository.js';
 import { IPagination } from '~/utils/pagination.js';
@@ -73,7 +72,6 @@ class SearchServiceClass<T extends object> {
 
 
 export const UserSearch = new SearchServiceClass(UserRepository, ['username']);
-export const TeamSearch = new SearchServiceClass(TeamRepository, ['slug', 'name']);
 export const AnimeSearch = new SearchServiceClass(AnimeRepository, ['title_en', 'title_ja', 'title_ua', 'title_synonims', 'slug']);
 
 

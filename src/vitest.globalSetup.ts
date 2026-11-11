@@ -15,11 +15,6 @@ const AnimeModel = mongoose.model('anime', new Schema({
   slug: String,
 }, { strict: false, versionKey: false }));
 
-const TeamModel = mongoose.model('team', new Schema({
-  id: String,
-  slug: String,
-}, { strict: false, versionKey: false }));
-
 
 
 export async function setup() {
@@ -33,7 +28,7 @@ export async function teardown() {
   await mongoose.connect(conf.mongodb_uri, { retryWrites: true });
 
   try {
-    const [users, anime, teams] = await Promise.all([
+    const [users, anime] = await Promise.all([
       UserModel.deleteMany({
         $or: [
           { id: { $regex: /^testing/i } },
@@ -43,14 +38,11 @@ export async function teardown() {
       }),
       AnimeModel.deleteMany({
         $or: [{ id: { $regex: /^testing/i } }, { slug: { $regex: /^testing/i } }],
-      }),
-      TeamModel.deleteMany({
-        $or: [{ id: { $regex: /^testing/i } }, { slug: { $regex: /^testing/i } }],
-      }),
+      })
     ]);
 
     console.log(
-      `[VitestTeardown]: Testing entities (${users.deletedCount + anime.deletedCount + teams.deletedCount}) removed`
+      `[VitestTeardown]: Testing entities (${users.deletedCount + anime.deletedCount}) removed`
     );
   } finally {
     await mongoose.disconnect();

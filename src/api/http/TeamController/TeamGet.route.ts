@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { TeamEntityMemberExtended, TeamEntityPublic, TeamMemberExtendedSchema, TeamPublicSchema, TeamSchema } from '~/domain/team.schema.js';
 import { ArgumentTypes, zBoolean } from '~/interfaces/types.js';
-import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
+import { TeamRepositoryClass } from '~/repositories/team.repository.js';
 import UserRepository from '~/repositories/UserRepository.js';
 import DTS from '~/services/DataTransferService.js';
 import { registry } from '~/services/openapi/registry.js';
@@ -59,7 +59,7 @@ const endpoint = HandleRequest(async (req, res) => {
   const { is_extended } = RequestQuerySchema.parse(req.query);
 
   const repo = new TeamRepositoryClass();
-  await repo.init(query);
+  await repo.init({ $or: [{ id: query }, { slug: query }] });
 
   let isAPIKeyValid = false;
 

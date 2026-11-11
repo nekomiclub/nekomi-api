@@ -3,7 +3,7 @@ import multer from 'multer';
 
 import { ROLE_PERMISSION_ENUM } from '~/domain/role.schema.js';
 import { CDNString, TeamId } from '~/interfaces/BrandedIds.js';
-import { TeamRepositoryClass } from '~/repositories/TeamRepository.js';
+import { TeamRepositoryClass } from '~/repositories/team.repository.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import { Middleware } from '~/services/MiddlewareService.js';
 

@@ -7,6 +7,7 @@ import { AnimeId, asUserId, CDNString, UserLibId } from '~/interfaces/BrandedIds
 import { NUS_UPLOAD_TYPE } from '~/interfaces/external-api/INekomiUploadService.api.js';
 import { RepositoryQueriesType } from '~/interfaces/types.js';
 import RoleRepository from '~/repositories/role.repository.js';
+import TeamRepository from '~/repositories/team.repository.js';
 import DTS from '~/services/DataTransferService.js';
 import { NekoError } from '~/services/ExceptionService.js';
 import Logger from '~/services/LoggerService.js';
@@ -14,7 +15,6 @@ import createId, { createNanoId, createUserLibId } from '~/utils/create-id.js';
 import { calcISO, getUTC } from '~/utils/utils.js';
 import UserValidators from '~/utils/validators/user-validators.js';
 
-import TeamRepository from './TeamRepository.js';
 import UnifiedRepositoryClass, { UnifiedModelClass } from './UnifiedRepository.js';
 
 
@@ -336,7 +336,7 @@ export class UserRepositoryClass extends UnifiedRepositoryClass<RepositoryType> 
     if (!id?.length) id = null;
 
     // Ensure that team exist
-    if (id) await TeamRepository.getOne(id);
+    if (id) await TeamRepository.findOneById(id);
 
     this._set('dubber_team_member', id);
   }
